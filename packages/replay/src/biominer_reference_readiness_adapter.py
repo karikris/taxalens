@@ -156,7 +156,12 @@ def _to_int(value: Any) -> int | None:
 def _string_list(value: Any) -> list[str]:
     if not isinstance(value, list):
         return []
-    return [item.strip() for item in (str(item) for item in value) if item.strip()]
+    normalized: list[str] = []
+    for item in value:
+        text = _to_str(item)
+        if text is not None:
+            normalized.append(text)
+    return normalized
 
 
 def _value_count(value: Any) -> tuple[int | None, str | None]:
