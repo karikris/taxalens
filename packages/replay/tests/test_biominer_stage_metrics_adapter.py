@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 from packages.replay.src.biominer_stage_metrics_adapter import (
@@ -100,3 +101,32 @@ def test_adapt_stage_metrics_normalizes_completed_status_alias() -> None:
     assert unknown["stage_id"] == "mystery_custom_stage"
     assert unknown["operation_type"] == "complete"
     assert unknown["join_type"] == "other"
+
+
+def test_adapt_stage_metrics_normalizes_in_progress_and_awaiting_manual_review_aliases(
+    tmp_path: Path,
+) -> None:
+    source = Path("packages/replay/tests/fixtures/run_manifest_stage_metrics_status_passed.json")
+    payload = json.loads(source.read_text(encoding="utf-8"))
+
+    payload["stages"][0]["status"] = "IN_PROGRESS"
+    in_progress_path = tmp_path / "run_manifest_stage_metrics_status_in_progress.json"
+    in_progress_path.write_text(json.dumps(payload), encoding="utf-8")
+    in_progress = adapt_stage_metrics(
+        manifest_path=in_progress_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+    metric = in_progress["stage_metrics"][0]
+    assert metric["operation_type"] == "running"
+    assert metric["join_type"] == "other"
+
+    payload["stages"][0]["status"] = "awaiting_manual_review"
+    awaiting_path = tmp_path / "run_manifest_stage_metrics_status_awaiting_manual_review.json"
+    awaiting_path.write_text(json.dumps(payload), encoding="utf-8")
+    awaiting = adapt_stage_metrics(
+        manifest_path=awaiting_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+    metric = awaiting["stage_metrics"][0]
+    assert metric["operation_type"] == "awaiting_manual_review"
+    assert metric["join_type"] == "other"
