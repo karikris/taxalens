@@ -1995,6 +1995,44 @@ def test_adapt_reference_readiness_records_note_for_missing_schema_version(tmp_p
     )
 
 
+def test_adapt_reference_readiness_marks_invalid_schema_version_in_readiness_payload(
+    tmp_path: Path,
+) -> None:
+    manifest_payload = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    readiness_payload = json.loads(
+        Path("packages/replay/tests/fixtures/reference_bank_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    readiness_payload["schema_version"] = "   "
+    manifest_payload["outputs"]["reference_readiness_manifest"] = "reference_bank_readiness.json"
+
+    manifest_path = (
+        tmp_path / "run_manifest_reference_readiness_invalid_readiness_schema_version.json"
+    )
+    manifest_path.write_text(json.dumps(manifest_payload), encoding="utf-8")
+    (tmp_path / "reference_bank_readiness.json").write_text(
+        json.dumps(readiness_payload), encoding="utf-8"
+    )
+
+    result = adapt_reference_readiness(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    summary = result["reference_readiness_summary"]
+    assert summary is not None
+    assert summary["readiness_artifact_schema_version"] is None
+    assert (
+        "reference readiness schema_version was missing or invalid"
+        in result["compatibility"]["notes"]
+    )
+
+
 def test_adapt_reference_readiness_handles_invalid_artifacts_payload(tmp_path: Path) -> None:
     manifest_payload = json.loads(
         Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
