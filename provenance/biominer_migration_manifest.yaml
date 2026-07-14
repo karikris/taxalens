@@ -20,3 +20,19 @@ components:
     tests:
       - "packages/replay/tests/test_biominer_run_manifest_adapter.py"
     status: "migrated"
+  - component_id: "biominer_stage_metrics_adapter"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    source_path: "src/biominer/run/stages.py"
+    destination_path: "packages/replay/src/biominer_stage_metrics_adapter.py"
+    migration_kind: "extracted"
+    reason: "Map BioMiner run-stage records and metrics into TaxaLens StageMetric contracts."
+    build_week_scope: "modified_existing"
+    source_license: "BioMiner project license (as-is)"
+    changes:
+      - "Added deterministic stage-key metadata and metric alias mapping"
+      - "Added compatibility report for unknown or malformed stage records"
+      - "Added tests and fixtures for legacy plus target-aware stage records"
+    tests:
+      - "packages/replay/tests/test_biominer_stage_metrics_adapter.py"
+    status: "migrated"

@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "run_id": "fixture-stage-metrics-missing-stages-0001",
+  "taxon_scope": {
+    "accepted_scientific_name": "Papilio demoleus",
+    "accepted_taxon_key": "gbif:54321",
+    "species_contexts": []
+  }
+}

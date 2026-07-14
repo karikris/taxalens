@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "run_id": "fixture-stage-metrics-0001",
+  "status": "complete",
+  "command": ["biominer", "run", "demo"],
+  "git_sha": "1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+  "storage_backend": "local",
+  "workstore_backend": "file",
+  "started_at": "2026-07-15T00:00:00Z",
+  "ended_at": "2026-07-15T00:01:00Z",
+  "taxon_scope": {
+    "input_name": "Papilio demoleus",
+    "accepted_scientific_name": "Papilio demoleus",
+    "accepted_taxon_key": "gbif:54321",
+    "species_contexts": []
+  },
+  "stages": [
+    {
+      "stage": "resolve_taxon_scope",
+      "status": "complete",
+      "metrics": {
+        "stage_elapsed_ms": 42,
+        "rows_in": 12,
+        "rows_out": 12
+      },
+      "outputs": {
+        "source": "staging/source_manifest.json",
+        "target": "staging/resolved_scope.json"
+      }
+    },
+    {
+      "stage": "build_registry",
+      "status": "complete",
+      "metrics": {
+        "rows_in": 1200,
+        "rows_out": 1180
+      },
+      "outputs": {
+        "registry_dir": "registry",
+        "manifest": "registry/manifest.json"
+      }
+    },
+    {
+      "stage": "compile_queries",
+      "status": "complete",
+      "metrics": {
+        "records_in": 10,
+        "registry_query_definition_rows": 44,
+        "flickr_work_items": 44,
+        "cache_hits": 4
+      },
+      "outputs": {
+        "query_definitions": "staging/query_definitions.parquet"
+      }
+    },
+    {
+      "stage": "detect_objects",
+      "status": "complete",
+      "metrics": {
+        "records_seen": 44,
+        "detections_written": 37,
+        "cache_hits": 0,
+        "detector_batch_retries": 2,
+        "bytes_scanned": 10240,
+        "bytes_written": 4096
+      },
+      "outputs": {
+        "object_detections": "staging/object_detections.parquet",
+        "object_scores": "staging/object_bioclip_scores.parquet"
+      }
+    },
+    {
+      "stage": "score_bioclip",
+      "status": "complete",
+      "metrics": {
+        "objects_scored": 37,
+        "elapsed_seconds": 5.8,
+        "cache_hits": 5,
+        "cache_misses": 2,
+        "bioclip_batch_retries": 1,
+        "produced_sha256": "sha256:abc123"
+      },
+      "outputs": {
+        "object_scores": "staging/object_scores.parquet",
+        "schema": "staging/object_score_schema.json"
+      }
+    },
+    {
+      "stage": "target_aware_scoring",
+      "status": "complete",
+      "metrics": {
+        "rows_in": 37,
+        "rows_out": 37,
+        "row_count": 37,
+        "elapsed_seconds": 3.2,
+        "schema_version_ref": "target-aware-candidate-scores-v1.0.0"
+      },
+      "outputs": {
+        "target_aware_object_scores": "staging/target_aware_object_scores.parquet",
+        "target_aware_candidate_scores": "staging/target_aware_candidate_scores.parquet"
+      }
+    },
+    {
+      "stage": "mystery_custom_stage",
+      "status": "complete",
+      "metrics": {
+        "rows_in": 3,
+        "rows_out": 3
+      }
+    }
+  ],
+  "query_counts": {},
+  "detection_counts": {},
+  "bioclip_counts": {},
+  "evidence_counts": {},
+  "metrics": {},
+  "outputs": {
+    "manifest": "run_manifest.json"
+  }
+}
