@@ -87,6 +87,73 @@ def test_adapt_query_geography_artifacts_missing_artifacts() -> None:
     assert any("did not declare query definition artifact path" in note for note in notes)
 
 
+def test_adapt_query_geography_artifacts_marks_parquet_artifacts_as_unparsed(
+    tmp_path: Path,
+) -> None:
+    manifest = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    manifest["outputs"]["query_definitions"] = "query_definitions.parquet"
+    manifest["outputs"]["taxon_geographic_spread"] = "taxon_geographic_spread.parquet"
+    manifest["outputs"]["geographic_occurrence_evidence"] = (
+        "geographic_occurrence_evidence.parquet"
+    )
+    manifest["outputs"]["taxon_geographic_summary"] = "taxon_geographic_summary.parquet"
+    manifest["outputs"]["geographic_spread_manifest"] = "geographic_spread_manifest.parquet"
+    manifest["outputs"]["geographic_summary_manifest"] = "geographic_summary_manifest.parquet"
+    manifest["outputs"]["geographic_qa_findings"] = "geographic_qa_findings.parquet"
+
+    manifest_path = tmp_path / "run_manifest_query_geography_parquet.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    result = adapt_query_geography_artifacts(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["query_definitions"] == []
+    assert result["geographic_spread_rows"] == []
+    assert result["geographic_occurrence_evidence_rows"] == []
+    assert result["taxon_geographic_summary_rows"] == []
+    assert result["query_definition_summary"]["total_query_definitions"] is None
+    assert result["compatibility"]["query_definition_rows_read"] == 0
+    assert result["compatibility"]["taxon_geographic_spread_rows_read"] == 0
+    assert result["compatibility"]["geographic_occurrence_evidence_rows_read"] == 0
+    assert result["compatibility"]["taxon_geographic_summary_rows_read"] == 0
+    assert (
+        "query definitions artifact is parquet and not parsed in deterministic replay fixtures: "
+        f"{manifest_path.parent / 'query_definitions.parquet'}"
+        in result["compatibility"]["notes"]
+    )
+    assert (
+        "taxon_geographic_spread artifact is parquet and not parsed in deterministic replay fixtures: "
+        f"{manifest_path.parent / 'taxon_geographic_spread.parquet'}"
+        in result["compatibility"]["notes"]
+    )
+    assert (
+        "geographic_occurrence_evidence artifact is parquet and not parsed in deterministic replay fixtures: "
+        f"{manifest_path.parent / 'geographic_occurrence_evidence.parquet'}"
+        in result["compatibility"]["notes"]
+    )
+    assert (
+        "taxon_geographic_summary artifact is parquet and not parsed in deterministic replay fixtures: "
+        f"{manifest_path.parent / 'taxon_geographic_summary.parquet'}"
+        in result["compatibility"]["notes"]
+    )
+    assert (
+        "geographic_spread_manifest is parquet and not parsed in deterministic replay fixtures: "
+        f"{manifest_path.parent / 'geographic_spread_manifest.parquet'}"
+        in result["compatibility"]["notes"]
+    )
+    assert (
+        "geographic_summary_manifest is parquet and not parsed in deterministic replay fixtures: "
+        f"{manifest_path.parent / 'geographic_summary_manifest.parquet'}"
+        in result["compatibility"]["notes"]
+    )
+
+
 def test_adapt_query_geography_artifacts_normalizes_structured_range_source_coverage() -> None:
     manifest = Path(
         "packages/replay/tests/fixtures/run_manifest_query_geography_structured_summary.json"
