@@ -101,6 +101,7 @@ def test_adapt_run_manifest_normalizes_all_known_status_aliases(tmp_path: Path) 
 
     aliases = [
         ("SUCCEEDED", "complete"),
+        ("succeeded", "complete"),
         ("pass", "complete"),
         ("passed", "complete"),
         ("complete", "complete"),
