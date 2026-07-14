@@ -87,3 +87,20 @@ components:
     tests:
       - "packages/replay/tests/test_biominer_reference_readiness_adapter.py"
     status: "migrated"
+  - component_id: "biominer_reference_review_queue_adapter"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    source_path: "src/biominer/references/schemas.py"
+    destination_path: "packages/replay/src/biominer_reference_review_queue_adapter.py"
+    migration_kind: "extracted"
+    reason: "Adapt BioMiner reference-review-queue artifacts into TaxaLens review queue summaries and records."
+    build_week_scope: "new"
+    source_license: "BioMiner project license (as-is)"
+    changes:
+      - "Added JSON-first adapter for deterministic replay of reference review queue rows"
+      - "Added status-aware summaries and record-level projection for review priorities and review statuses"
+      - "Added compatibility report with missing/parsing/format fallback behavior"
+      - "Added fixture-backed tests and manifest fixture"
+    tests:
+      - "packages/replay/tests/test_biominer_reference_review_queue_adapter.py"
+    status: "migrated"

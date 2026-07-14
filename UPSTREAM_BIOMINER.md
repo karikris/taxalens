@@ -27,6 +27,9 @@ TaxaLens treats `karikris/BioMiner` as the upstream research engine and treats t
 - Reference readiness contract (`src/biominer/references/readiness.py`)
   has been consumed through `packages/replay/src/biominer_reference_readiness_adapter.py` with
   fixture-backed tests in `packages/replay/tests/test_biominer_reference_readiness_adapter.py`.
+- Reference review queue contract (`src/biominer/references/schemas.py`)
+  has been consumed through `packages/replay/src/biominer_reference_review_queue_adapter.py` with
+  fixture-backed tests in `packages/replay/tests/test_biominer_reference_review_queue_adapter.py`.
 
 No additional BioMiner contracts are consumed yet in this phase.
 - Future migrations should be implemented as contracts and adapters with source SHAs recorded per component.

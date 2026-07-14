@@ -170,6 +170,41 @@ export interface ReferenceReadinessCheck extends BaseContract {
   evidence_fields: Nullable<string[]>;
 }
 
+export interface ReferenceReviewQueueRecord extends BaseContract {
+  review_request_id: Nullable<string>;
+  reference_media_id: Nullable<string>;
+  reference_observation_id: Nullable<string>;
+  accepted_taxon_key: Nullable<string>;
+  scientific_name: Nullable<string>;
+  source: Nullable<string>;
+  provider_media_id: Nullable<string>;
+  review_status: Nullable<string>;
+  review_priority: Nullable<number>;
+  required_review_count: Nullable<number>;
+  life_stage: Nullable<string>;
+  visual_domain: Nullable<string>;
+  review_reason: Nullable<string>;
+  reference_bank_version: Nullable<string>;
+  created_at: Nullable<string>;
+  artifact_path: Nullable<string>;
+}
+
+export interface ReferenceReviewQueueSummary extends BaseContract {
+  run_id: string;
+  source_manifest_path: Nullable<string>;
+  review_queue_artifact_path: Nullable<string>;
+  total_records: Nullable<number>;
+  pending_records: Nullable<number>;
+  in_review_records: Nullable<number>;
+  completed_records: Nullable<number>;
+  conflict_records: Nullable<number>;
+  cancelled_records: Nullable<number>;
+  unique_taxon_count: Nullable<number>;
+  unique_media_count: Nullable<number>;
+  max_review_priority: Nullable<number>;
+  max_required_review_count: Nullable<number>;
+}
+
 export interface DetectionRoute extends BaseContract {
   media_id: string;
   route: Nullable<'adult' | 'larva' | 'pupa' | 'pupa_like' | 'specimen' | 'moth' | 'artifact' | 'other_insect' | 'none'>;
