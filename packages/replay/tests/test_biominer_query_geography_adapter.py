@@ -188,3 +188,45 @@ def test_adapt_query_geography_artifacts_normalizes_success_aliases(tmp_path: Pa
     assert (
         result["geographic_summary_manifest_summary"]["qa_status"] == "warning"
     )
+
+
+def test_adapt_query_geography_artifacts_preserves_ok_status(tmp_path: Path) -> None:
+    manifest = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography_status_passed.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    spread_manifest = json.loads(
+        Path("packages/replay/tests/fixtures/geographic_spread_manifest_passed.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    summary_manifest = json.loads(
+        Path("packages/replay/tests/fixtures/geographic_summary_manifest_passed.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    spread_manifest["status"] = "OK"
+    summary_manifest["status"] = "OK"
+    summary_manifest["qa_status"] = "OK"
+
+    manifest["outputs"]["geographic_spread_manifest"] = "geographic_spread_manifest_ok.json"
+    manifest["outputs"]["geographic_summary_manifest"] = "geographic_summary_manifest_ok.json"
+
+    manifest_path = tmp_path / "run_manifest_query_geography_ok.json"
+    spread_path = tmp_path / "geographic_spread_manifest_ok.json"
+    summary_path = tmp_path / "geographic_summary_manifest_ok.json"
+
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    spread_path.write_text(json.dumps(spread_manifest), encoding="utf-8")
+    summary_path.write_text(json.dumps(summary_manifest), encoding="utf-8")
+
+    result = adapt_query_geography_artifacts(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["geographic_spread_manifest_summary"]["status"] == "ok"
+    assert result["geographic_summary_manifest_summary"]["status"] == "ok"
+    assert result["geographic_summary_manifest_summary"]["qa_status"] == "ok"
