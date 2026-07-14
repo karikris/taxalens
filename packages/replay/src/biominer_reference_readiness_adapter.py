@@ -275,9 +275,14 @@ def adapt_reference_readiness(
 
     manifest_path = Path(manifest_path)
     run_payload = _load_payload(manifest_path)
-    if "schema_version" in run_payload and run_payload["schema_version"] not in (1, "1"):
-        # Keep to committed contract behavior only.
-        raise ReferenceReadinessAdapterError("Unsupported run manifest schema version")
+    if "schema_version" in run_payload:
+        manifest_schema_version = run_payload.get("schema_version")
+        if isinstance(manifest_schema_version, bool) or manifest_schema_version not in (
+            1,
+            "1",
+        ):
+            # Keep to committed contract behavior only.
+            raise ReferenceReadinessAdapterError("Unsupported run manifest schema version")
 
     artifact = _artifact_path(run_payload, manifest_path)
     notes: list[str] = []
