@@ -148,6 +148,28 @@ def test_adapt_target_aware_candidate_scores_returns_empty_for_non_parseable_art
     assert "candidate score artifact was not parseable" in result["compatibility"]["notes"][0]
 
 
+def test_adapt_target_aware_candidate_scores_marks_missing_artifact_file(tmp_path: Path) -> None:
+    manifest = json.loads(
+        Path(
+            "packages/replay/tests/fixtures/run_manifest_target_aware_candidate_scores.json"
+        ).read_text(encoding="utf-8")
+    )
+    missing_path = tmp_path / "missing_target_aware_candidate_scores.json"
+    manifest["outputs"]["target_aware_candidate_scores"] = str(missing_path)
+
+    manifest_path = tmp_path / "run_manifest_target_aware_candidate_scores.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    result = adapt_target_aware_candidate_scores(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["candidate_scores"] == []
+    assert result["compatibility"]["artifact_missing"] is True
+    assert str(missing_path) in result["compatibility"]["notes"][0]
+
+
 def test_adapt_target_aware_candidate_scores_reports_empty_payload_notes(tmp_path: Path) -> None:
     manifest = json.loads(
         Path(
