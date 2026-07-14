@@ -809,6 +809,34 @@ def test_adapt_reference_readiness_accepts_string_schema_version_one(tmp_path: P
     assert result["compatibility"]["artifact_path"] == str(artifact_path)
 
 
+def test_adapt_reference_readiness_strips_run_id_whitespace(tmp_path: Path) -> None:
+    manifest_payload = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    readiness_payload = json.loads(
+        Path("packages/replay/tests/fixtures/reference_bank_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    manifest_payload["run_id"] = "  my-run-id  "
+    manifest_path = tmp_path / "run_manifest_reference_readiness_runid_whitespace.json"
+    artifact_path = tmp_path / "reference_bank_readiness.json"
+    manifest_payload["outputs"]["reference_readiness_manifest"] = artifact_path.name
+
+    manifest_path.write_text(json.dumps(manifest_payload), encoding="utf-8")
+    artifact_path.write_text(json.dumps(readiness_payload), encoding="utf-8")
+
+    result = adapt_reference_readiness(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f8403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["reference_readiness_summary"] is not None
+    assert result["reference_readiness_summary"]["run_id"] == "my-run-id"
+
+
 def test_adapt_reference_readiness_falls_back_to_reference_readiness_key(tmp_path: Path) -> None:
     manifest_payload = json.loads(
         Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
