@@ -545,3 +545,111 @@ def test_adapt_target_aware_candidate_scores_prefers_fallback_labels(tmp_path: P
 
     labels = [row["calibrated_label"] for row in result["candidate_scores"]]
     assert labels == ["target_probable", "abstain", "competitor"]
+
+
+def test_adapt_target_aware_candidate_scores_prefers_decision_field_when_present(tmp_path: Path) -> None:
+    manifest = json.loads(
+        Path(
+            "packages/replay/tests/fixtures/run_manifest_target_aware_candidate_scores.json"
+        ).read_text(encoding="utf-8")
+    )
+    payload_row = {
+        "candidate_set_id": "cs-decision",
+        "accepted_taxon_key": "gbif:54321",
+        "decision": "target_probable_review",
+        "classification_decision": "abstain",
+        "abstained": True,
+        "target_candidate": True,
+    }
+
+    manifest["outputs"]["target_aware_candidate_scores"] = str(
+        tmp_path / "target_aware_candidate_scores.json"
+    )
+    score_path = tmp_path / "target_aware_candidate_scores.json"
+    score_path.write_text(
+        json.dumps([payload_row]),
+        encoding="utf-8",
+    )
+    manifest_path = tmp_path / "run_manifest_target_aware_candidate_scores.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    result = adapt_target_aware_candidate_scores(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["candidate_scores"][0]["calibrated_label"] == "target_probable"
+
+
+def test_adapt_target_aware_candidate_scores_uses_decision_code_when_decision_field_missing(
+    tmp_path: Path,
+) -> None:
+    manifest = json.loads(
+        Path(
+            "packages/replay/tests/fixtures/run_manifest_target_aware_candidate_scores.json"
+        ).read_text(encoding="utf-8")
+    )
+    payload_row = {
+        "candidate_set_id": "cs-decision-code",
+        "accepted_taxon_key": "gbif:54321",
+        "decision_code": "KNOWN_COMPETITOR",
+        "abstained": True,
+    }
+
+    manifest["outputs"]["target_aware_candidate_scores"] = str(
+        tmp_path / "target_aware_candidate_scores.json"
+    )
+    score_path = tmp_path / "target_aware_candidate_scores.json"
+    score_path.write_text(
+        json.dumps([payload_row]),
+        encoding="utf-8",
+    )
+    manifest_path = tmp_path / "run_manifest_target_aware_candidate_scores.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    result = adapt_target_aware_candidate_scores(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["candidate_scores"][0]["calibrated_label"] == "competitor"
+
+
+def test_adapt_target_aware_candidate_scores_parses_string_booleans_for_fallback_fields(tmp_path: Path) -> None:
+    manifest = json.loads(
+        Path(
+            "packages/replay/tests/fixtures/run_manifest_target_aware_candidate_scores.json"
+        ).read_text(encoding="utf-8")
+    )
+    payload_rows = [
+        {
+            "candidate_set_id": "cs-string-true",
+            "accepted_taxon_key": "gbif:54321",
+            "target_candidate": "yes",
+        },
+        {
+            "candidate_set_id": "cs-string-abstain",
+            "accepted_taxon_key": "gbif:99999",
+            "target_candidate": "no",
+            "abstained": "1",
+        },
+    ]
+
+    manifest["outputs"]["target_aware_candidate_scores"] = str(
+        tmp_path / "target_aware_candidate_scores.json"
+    )
+    score_path = tmp_path / "target_aware_candidate_scores.json"
+    score_path.write_text(
+        json.dumps(payload_rows),
+        encoding="utf-8",
+    )
+    manifest_path = tmp_path / "run_manifest_target_aware_candidate_scores.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    result = adapt_target_aware_candidate_scores(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    labels = [row["calibrated_label"] for row in result["candidate_scores"]]
+    assert labels == ["target_probable", "abstain"]
