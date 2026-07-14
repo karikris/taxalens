@@ -243,3 +243,21 @@ def test_adapt_run_manifest_collects_missing_stage_names(tmp_path: Path) -> None
 
     assert result["compatibility"]["missing_stage_names"] == [None]
     assert result["run_summary"]["stage_count"] == 3
+
+
+def test_adapt_run_manifest_treats_blank_status_as_unknown(tmp_path: Path) -> None:
+    manifest_payload = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest.json").read_text(encoding="utf-8")
+    )
+    manifest_payload["status"] = "   "
+
+    manifest_path = tmp_path / "run_manifest_blank_status.json"
+    manifest_path.write_text(json.dumps(manifest_payload), encoding="utf-8")
+
+    result = adapt_run_manifest(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["run_summary"]["status"] == "unknown"
+    assert "status" not in result["compatibility"]["missing_fields"]
