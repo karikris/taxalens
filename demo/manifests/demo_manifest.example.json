@@ -1,0 +1,41 @@
+{
+  "demo_id": "smoke-contract-v1",
+  "title": "TaxaLens Replay Contract Smoke Demo",
+  "target_species": "placeholder_species_demo",
+  "source_biominer_commit": "1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+  "taxalens_commit": "dbee4a15b3f8b7e10086095356c8281cc66f4691",
+  "created_at": "2026-07-15T00:00:00Z",
+  "artifacts": [
+    {
+      "name": "run_summary",
+      "path": "demo/fixture/contract_smoke/run_summary.json",
+      "sha256": "92026071de9406fb43c2ca74aed56dadd76d07c4f296f2b5ca61c4d6681b3123"
+    },
+    {
+      "name": "stage_metrics",
+      "path": "demo/fixture/contract_smoke/stage_metrics.json",
+      "sha256": "a71a142f4f8e60b61a061e52445afd69be164c63bc1a95c88f1fa7b385496e0e"
+    },
+    {
+      "name": "evidence_records",
+      "path": "demo/fixture/contract_smoke/evidence_records.json",
+      "sha256": "732b341ee81c2cea4a3957ad727b9ce3ce2b92fc1b6c4abb2515fc3ac843475f"
+    }
+  ],
+  "expected_counts": {
+    "run_records": 3,
+    "stage_metrics": 2,
+    "evidence_records": 3
+  },
+  "hero_record_id": "evid-002",
+  "rights_summary": {
+    "status": "fixture-only",
+    "license": "CC0-1.0",
+    "attribution_required": false,
+    "notes": "Schema-level placeholders only; no real biological imagery or labels are included."
+  },
+  "openai_replay_mode": "stored_structured_outputs_only",
+  "checksum_algorithm": "sha256",
+  "phase12_contract_version": "taxalens-contracts:v1",
+  "phase13_excluded": true
+}
