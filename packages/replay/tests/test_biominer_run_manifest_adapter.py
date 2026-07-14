@@ -75,3 +75,12 @@ def test_adapt_run_manifest_normalizes_error_aliases(tmp_path: Path) -> None:
         biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
     )
     assert aborted_result["run_summary"]["status"] == "failed"
+
+    payload["status"] = "pass"
+    source_path = tmp_path / "run_manifest_pass.json"
+    source_path.write_text(json.dumps(payload), encoding="utf-8")
+    pass_result = adapt_run_manifest(
+        manifest_path=source_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+    assert pass_result["run_summary"]["status"] == "complete"
