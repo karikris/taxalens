@@ -2,6 +2,21 @@ upstream_repository: "karikris/BioMiner"
 pinned_biominer_sha: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
 migration_policy: "artifact_contract > api_contract > dependency > extracted > copied"
 phase12_status: "pushed-and-eligible-for-committed-migration-only"
-phase13_exclusion: "active-work-excluded-until-explicitly-pinned"
+phase13_exclusion: "active-work-excluded-unless-explicitly-pinned"
 recorded_at: "2026-07-15"
-components: []
+components:
+  - component_id: "biominer_run_manifest_adapter"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    source_path: "src/biominer/run/manifest.py"
+    destination_path: "packages/replay/src/biominer_run_manifest_adapter.py"
+    migration_kind: "extracted"
+    reason: "Map committed BioMiner run manifests into TaxaLens replay run summaries."
+    build_week_scope: "new"
+    source_license: "BioMiner project license (as-is)"
+    changes:
+      - "Added local JSON manifest reader and missing-field compatibility report"
+      - "Added compatibility report payload for stage-manifest gaps"
+    tests:
+      - "packages/replay/tests/test_biominer_run_manifest_adapter.py"
+    status: "migrated"
