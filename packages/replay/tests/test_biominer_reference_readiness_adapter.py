@@ -371,6 +371,7 @@ def test_adapt_reference_readiness_skips_non_mapping_checks(tmp_path: Path) -> N
     assert result["compatibility"]["checks_read"] == 2
     assert "non_mapping_readiness_check_0" in result["compatibility"]["skipped_checks"]
     assert "skipped 1 readiness checks while adapting" in result["compatibility"]["notes"]
+    assert result["reference_readiness_summary"]["check_ids"][0] == "readiness_check_0"
 
 
 def test_adapt_reference_readiness_normalizes_fail_and_failure_aliases(tmp_path: Path) -> None:

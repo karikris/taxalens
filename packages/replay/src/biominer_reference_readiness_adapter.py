@@ -367,6 +367,14 @@ def adapt_reference_readiness(
     if isinstance(documented_shortfalls, list):
         documented_shortfall_count = len(documented_shortfalls)
 
+    check_ids = []
+    raw_checks_for_ids = raw_checks if isinstance(raw_checks, list) else []
+    for index, check in enumerate(raw_checks_for_ids):
+        if isinstance(check, dict):
+            check_ids.append(_to_str(check.get("check_id")) or f"readiness_check_{index}")
+        else:
+            check_ids.append(f"readiness_check_{index}")
+
     summary: ReferenceReadinessSummaryContract = {
         "schema_version": "reference_readiness_summary:v1",
         "biominer_commit": biominer_commit,
@@ -418,10 +426,7 @@ def adapt_reference_readiness(
         "summary_file": summary_file,
         "summary_sha256": summary_sha,
         "candidate_set_ids": candidate_set_ids,
-        "check_ids": [
-            _to_str(item.get("check_id")) or f"readiness_check_{index}"
-            for index, item in enumerate(raw_checks or [])
-        ],
+        "check_ids": check_ids,
     }
 
     if not candidate_set_ids:
