@@ -138,6 +138,18 @@ def _status_bucket(status: str | None) -> str:
     return "other"
 
 
+def _normalize_review_status(value: Any) -> str | None:
+    raw = _to_str(value)
+    if raw is None:
+        return None
+    lowered = raw.strip().lower()
+    if lowered in {"done", "pass", "passed", "complete", "success", "succeeded"}:
+        return "completed"
+    if lowered == "done_review" or lowered == "reviewed":
+        return "completed"
+    return lowered
+
+
 def adapt_reference_review_queue(
     *,
     manifest_path: str | Path,
@@ -245,7 +257,8 @@ def adapt_reference_review_queue(
             compatibility_notes.append(f"non-mapping_review_queue_row_{index}")
             continue
 
-        status_bucket = _status_bucket(_to_str(raw_row.get("review_status")))
+        normalized_review_status = _normalize_review_status(raw_row.get("review_status"))
+        status_bucket = _status_bucket(normalized_review_status)
         if status_bucket in summary_buckets:
             summary_buckets[status_bucket] += 1
         else:
@@ -279,7 +292,7 @@ def adapt_reference_review_queue(
                 scientific_name=_to_str(raw_row.get("scientific_name")),
                 source=_to_str(raw_row.get("source")),
                 provider_media_id=_to_str(raw_row.get("provider_media_id")),
-                review_status=_to_str(raw_row.get("review_status")),
+                review_status=normalized_review_status,
                 review_priority=priority,
                 required_review_count=required_count,
                 life_stage=_to_str(raw_row.get("life_stage")),
