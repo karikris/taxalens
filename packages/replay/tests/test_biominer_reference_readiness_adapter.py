@@ -260,6 +260,74 @@ def test_adapt_reference_readiness_normalizes_successful_and_done_aliases(tmp_pa
     assert checks[1]["status"] == "warning"
 
 
+def test_adapt_reference_readiness_non_mapping_outputs_skips_artifact_path(
+    tmp_path: Path,
+) -> None:
+    manifest_path = tmp_path / "run_manifest_reference_readiness.json"
+    manifest_payload = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    manifest_payload["outputs"] = "not-a-mapping"
+    manifest_path.write_text(json.dumps(manifest_payload), encoding="utf-8")
+
+    result = adapt_reference_readiness(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["reference_readiness_summary"] is None
+    assert result["reference_readiness_checks"] == []
+    assert result["compatibility"]["artifact_missing"] is True
+    assert result["compatibility"]["artifact_path"] is None
+    assert (
+        "run manifest did not declare reference readiness artifact path"
+        in str(result["compatibility"]["notes"][0])
+    )
+
+
+def test_adapt_reference_readiness_non_list_checks_records_note(tmp_path: Path) -> None:
+    run_payload = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    readiness_payload = json.loads(
+        Path("packages/replay/tests/fixtures/reference_bank_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    readiness_payload["checks"] = {"not": "a-list"}
+
+    manifest_path = tmp_path / "run_manifest_reference_readiness.json"
+    artifact_path = tmp_path / "reference_bank_readiness.json"
+    run_payload["outputs"]["reference_readiness_manifest"] = str(artifact_path.name)
+
+    manifest_path.write_text(json.dumps(run_payload), encoding="utf-8")
+    artifact_path.write_text(json.dumps(readiness_payload), encoding="utf-8")
+
+    result = adapt_reference_readiness(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    summary = result["reference_readiness_summary"]
+    assert summary is not None
+    assert summary["checks_total"] == 0
+    assert summary["checks_passed"] == 0
+    assert summary["checks_warning"] == 0
+    assert summary["checks_failed"] == 0
+    assert summary["checks_pending"] == 0
+    assert result["compatibility"]["checks_read"] == 0
+    assert (
+        "reference readiness checks was missing or malformed"
+        in result["compatibility"]["notes"]
+    )
+    assert "reference readiness checks were empty" in result["compatibility"]["notes"]
+
+
 def test_adapt_reference_readiness_normalizes_fail_and_failure_aliases(tmp_path: Path) -> None:
     run_payload = json.loads(
         Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
@@ -452,3 +520,62 @@ def test_adapt_reference_readiness_handles_invalid_artifact_json(tmp_path: Path)
         "reference readiness artifact was not parseable" in note
         for note in result["compatibility"]["notes"]
     )
+
+
+def test_adapt_reference_readiness_treats_non_dict_outputs_as_missing_artifact(tmp_path: Path) -> None:
+    manifest_payload = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    manifest_payload["outputs"] = "not-a-dict"
+
+    manifest_path = tmp_path / "run_manifest_reference_readiness_bad_outputs.json"
+    manifest_path.write_text(json.dumps(manifest_payload), encoding="utf-8")
+
+    result = adapt_reference_readiness(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["reference_readiness_summary"] is None
+    assert result["reference_readiness_checks"] == []
+    assert result["compatibility"]["artifact_missing"] is True
+    assert (
+        "run manifest did not declare reference readiness artifact path"
+        in result["compatibility"]["notes"][0]
+    )
+
+
+def test_adapt_reference_readiness_skips_non_list_checks(tmp_path: Path) -> None:
+    manifest_payload = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    readiness_payload = json.loads(
+        Path("packages/replay/tests/fixtures/reference_bank_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    readiness_payload["checks"] = {"unexpected": "object"}
+
+    manifest_payload["outputs"]["reference_readiness_manifest"] = "reference_bank_readiness.json"
+    manifest_path = tmp_path / "run_manifest_reference_readiness_bad_checks.json"
+    manifest_path.write_text(json.dumps(manifest_payload), encoding="utf-8")
+    (tmp_path / "reference_bank_readiness.json").write_text(
+        json.dumps(readiness_payload), encoding="utf-8"
+    )
+
+    result = adapt_reference_readiness(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f8403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["reference_readiness_summary"] is not None
+    assert result["reference_readiness_summary"]["checks_total"] == 0
+    assert result["reference_readiness_summary"]["checks_warning"] == 0
+    assert result["reference_readiness_summary"]["checks_failed"] == 0
+    assert result["reference_readiness_summary"]["checks_pending"] == 0
+    assert result["compatibility"]["checks_read"] == 0
+    assert result["compatibility"]["notes"] == ["reference readiness checks was missing or malformed"]
