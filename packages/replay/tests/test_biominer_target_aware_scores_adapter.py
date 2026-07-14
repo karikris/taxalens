@@ -335,6 +335,78 @@ def test_adapt_target_aware_candidate_scores_extracts_rows_from_candidates_key(t
     assert result["compatibility"]["rows_read"] == 1
     assert len(result["candidate_scores"]) == 1
     assert result["candidate_scores"][0]["calibrated_label"] == "abstain"
+
+
+def test_adapt_target_aware_candidate_scores_falls_back_to_target_scores_output_key(tmp_path: Path) -> None:
+    manifest = json.loads(
+        Path(
+            "packages/replay/tests/fixtures/run_manifest_target_aware_candidate_scores.json"
+        ).read_text(encoding="utf-8")
+    )
+    manifest["outputs"] = {
+        "target_scores": str(tmp_path / "legacy_target_scores.json")
+    }
+
+    score_path = tmp_path / "legacy_target_scores.json"
+    score_path.write_text(
+        json.dumps(
+            [
+                {
+                    "candidate_set_id": "cs-target-score",
+                    "accepted_taxon_key": "gbif:54321",
+                    "classification_decision": "target_probable",
+                }
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    manifest_path = tmp_path / "run_manifest_target_aware_candidate_scores.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    result = adapt_target_aware_candidate_scores(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert len(result["candidate_scores"]) == 1
+    assert result["candidate_scores"][0]["candidate_set_id"] == "cs-target-score"
+    assert result["compatibility"]["artifact_path"].endswith("legacy_target_scores.json")
+
+
+def test_adapt_target_aware_candidate_scores_extracts_rows_from_data_key(tmp_path: Path) -> None:
+    manifest = json.loads(
+        Path(
+            "packages/replay/tests/fixtures/run_manifest_target_aware_candidate_scores.json"
+        ).read_text(encoding="utf-8")
+    )
+    manifest["outputs"]["target_aware_candidate_scores"] = str(
+        tmp_path / "target_aware_candidate_scores.json"
+    )
+
+    score_payload = {
+        "data": [
+            {
+                "candidate_set_id": "cs-data",
+                "accepted_taxon_key": "gbif:54321",
+                "classification_decision": "target_confirmed",
+            }
+        ]
+    }
+    score_path = tmp_path / "target_aware_candidate_scores.json"
+    score_path.write_text(json.dumps(score_payload), encoding="utf-8")
+
+    manifest_path = tmp_path / "run_manifest_target_aware_candidate_scores.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    result = adapt_target_aware_candidate_scores(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["compatibility"]["rows_read"] == 1
+    assert len(result["candidate_scores"]) == 1
+    assert result["candidate_scores"][0]["calibrated_label"] == "target_confirmed"
 @pytest.mark.parametrize(
     ("decision", "expected_label"),
     [
