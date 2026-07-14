@@ -406,6 +406,42 @@ def test_adapt_reference_readiness_skips_non_mapping_checks(tmp_path: Path) -> N
     assert result["reference_readiness_summary"]["check_ids"][2] == "model_building_inputs_available"
 
 
+def test_adapt_reference_readiness_uses_fallback_check_id_for_blank_values(tmp_path: Path) -> None:
+    run_payload = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    readiness_payload = json.loads(
+        Path("packages/replay/tests/fixtures/reference_bank_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    readiness_payload["checks"][0]["check_id"] = "   "
+    readiness_payload["checks"][1]["check_id"] = None
+
+    manifest_path = tmp_path / "run_manifest_reference_readiness_blank_check_id.json"
+    artifact_path = tmp_path / "reference_bank_readiness.json"
+    run_payload["outputs"]["reference_readiness_manifest"] = str(artifact_path.name)
+
+    manifest_path.write_text(json.dumps(run_payload), encoding="utf-8")
+    artifact_path.write_text(json.dumps(readiness_payload), encoding="utf-8")
+
+    result = adapt_reference_readiness(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    checks = result["reference_readiness_checks"]
+    summary = result["reference_readiness_summary"]
+    assert summary is not None
+    assert checks[0]["check_id"] is None
+    assert checks[1]["check_id"] is None
+    assert summary["check_ids"][0] == "readiness_check_0"
+    assert summary["check_ids"][1] == "readiness_check_1"
+
+
 def test_adapt_reference_readiness_normalizes_fail_and_failure_aliases(tmp_path: Path) -> None:
     run_payload = json.loads(
         Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
