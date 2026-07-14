@@ -207,3 +207,39 @@ def test_adapt_run_manifest_notes_schema_and_output_missing_fields(tmp_path: Pat
     assert result["run_summary"]["schema_version"] == "run_summary:v1"
     assert result["run_summary"]["status"] == "unknown"
     assert result["run_summary"]["records_in"] is None
+
+
+def test_adapt_run_manifest_collects_missing_stage_names(tmp_path: Path) -> None:
+    payload = {
+        "run_id": "fixture-missing-stages",
+        "status": "complete",
+        "command": ["biominer", "run", "demo"],
+        "git_sha": "1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+        "storage_backend": "local",
+        "workstore_backend": "file",
+        "started_at": "2026-07-15T00:00:00Z",
+        "ended_at": "2026-07-15T00:01:00Z",
+        "taxon_scope": {"input_name": "Papilio demoleus"},
+        "query_counts": {"total": 12},
+        "detection_counts": {},
+        "bioclip_counts": {},
+        "evidence_counts": {},
+        "metrics": {},
+        "outputs": {},
+        "stages": [
+            {"status": "complete"},
+            "non-dict-stage",
+            {"stage": "detect_objects", "status": "complete"},
+        ],
+    }
+
+    manifest_path = tmp_path / "run_manifest_missing_stage_names.json"
+    manifest_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    result = adapt_run_manifest(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["compatibility"]["missing_stage_names"] == [None]
+    assert result["run_summary"]["stage_count"] == 3
