@@ -148,13 +148,19 @@ def _map_label(row: dict[str, Any]) -> str | None:
         normalized = decision.strip().lower()
         if normalized == "target_confirmed":
             return "target_confirmed"
-        if normalized == "target_probable_review":
+        if normalized in {"target_probable_review", "target_probable"}:
             return "target_probable"
         if normalized == "abstain":
             return "abstain"
-        if normalized in {"known_regional_competitor", "known_nonregional_competitor"}:
+        if normalized in {
+            "known_regional_competitor",
+            "known_nonregional_competitor",
+            "known_competitor",
+        }:
             return "competitor"
         if normalized in {"negative", "other_butterfly", "non_butterfly_insect"}:
+            return "negative"
+        if normalized in {"other_insect"}:
             return "negative"
         return "other"
     if _to_bool(row.get("target_candidate")) is True:
