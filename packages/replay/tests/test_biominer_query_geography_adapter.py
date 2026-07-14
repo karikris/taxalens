@@ -3073,6 +3073,61 @@ def test_adapt_query_geography_artifacts_treats_null_occurrence_payload_as_no_ro
     assert result["query_definition_summary"]["total_query_definitions"] == 3
 
 
+def test_adapt_query_geography_artifacts_treats_null_summary_payload_as_no_rows(
+    tmp_path: Path,
+) -> None:
+    source_manifest = json.loads(
+        Path(
+            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
+        ).read_text(encoding="utf-8")
+    )
+    source_manifest["outputs"]["taxon_geographic_summary"] = "taxon_geographic_summary_null.json"
+
+    manifest_path = tmp_path / "run_manifest_query_geography_null_summary.json"
+    manifest_path.write_text(json.dumps(source_manifest), encoding="utf-8")
+    (tmp_path / "taxon_geographic_summary_null.json").write_text("null", encoding="utf-8")
+
+    # Keep other artifacts valid so this test isolates summary payload behavior.
+    (tmp_path / "query_definitions.json").write_text(
+        Path("packages/replay/tests/fixtures/query_definitions.json").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    (tmp_path / "taxon_geographic_spread.json").write_text(
+        Path("packages/replay/tests/fixtures/taxon_geographic_spread.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "geographic_occurrence_evidence.json").write_text(
+        Path("packages/replay/tests/fixtures/geographic_occurrence_evidence.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "geographic_spread_manifest.json").write_text(
+        Path("packages/replay/tests/fixtures/geographic_spread_manifest.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "geographic_summary_manifest.json").write_text(
+        Path("packages/replay/tests/fixtures/geographic_summary_manifest_passed.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+
+    result = adapt_query_geography_artifacts(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["taxon_geographic_summary_rows"] == []
+    assert result["compatibility"]["taxon_geographic_summary_rows_read"] == 0
+    assert len(result["query_definitions"]) == 3
+    assert result["query_definition_summary"]["total_query_definitions"] == 3
+
+
 def test_adapt_query_geography_artifacts_ignores_non_list_query_curation_rules(
     tmp_path: Path,
 ) -> None:
