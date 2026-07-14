@@ -290,3 +290,52 @@ def test_adapt_reference_readiness_normalizes_fail_and_failure_aliases(tmp_path:
     checks = result["reference_readiness_checks"]
     assert checks[0]["status"] == "failed"
     assert checks[1]["status"] == "failed"
+
+
+def test_adapt_reference_readiness_normalizes_all_known_status_aliases(tmp_path: Path) -> None:
+    run_payload = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    readiness_template = json.loads(
+        Path("packages/replay/tests/fixtures/reference_bank_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    aliases = [
+        ("succeeded", "passed"),
+        ("successful", "passed"),
+        ("pass", "passed"),
+        ("passed", "passed"),
+        ("complete", "passed"),
+        ("completed", "passed"),
+        ("done", "passed"),
+        ("failed", "failed"),
+        ("fail", "failed"),
+        ("failure", "failed"),
+        ("failed_with_warning", "warning"),
+        ("warning", "warning"),
+        ("warn", "warning"),
+        ("warned", "warning"),
+        ("pending", "pending"),
+    ]
+
+    manifest_path = tmp_path / "run_manifest_reference_readiness.json"
+
+    for status, expected in aliases:
+        readiness_payload = json.loads(json.dumps(readiness_template))
+        readiness_payload["checks"][0]["status"] = status
+        artifact_path = tmp_path / f"reference_bank_readiness_{status}.json"
+        run_payload["outputs"]["reference_readiness_manifest"] = artifact_path.name
+
+        manifest_path.write_text(json.dumps(run_payload), encoding="utf-8")
+        artifact_path.write_text(json.dumps(readiness_payload), encoding="utf-8")
+
+        result = adapt_reference_readiness(
+            manifest_path=manifest_path,
+            biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+        )
+
+        assert result["reference_readiness_checks"][0]["status"] == expected

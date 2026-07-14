@@ -93,3 +93,32 @@ def test_adapt_run_manifest_normalizes_error_aliases(tmp_path: Path) -> None:
         biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
     )
     assert done_result["run_summary"]["status"] == "complete"
+
+
+def test_adapt_run_manifest_normalizes_all_known_status_aliases(tmp_path: Path) -> None:
+    source = Path("packages/replay/tests/fixtures/run_manifest.json")
+    payload = json.loads(source.read_text(encoding="utf-8"))
+
+    aliases = [
+        ("SUCCEEDED", "complete"),
+        ("pass", "complete"),
+        ("passed", "complete"),
+        ("complete", "complete"),
+        ("completed", "complete"),
+        ("done", "complete"),
+        ("success", "complete"),
+        ("running", "running"),
+        ("failed", "failed"),
+        ("error", "failed"),
+        ("aborted", "failed"),
+    ]
+
+    for status, expected in aliases:
+        payload["status"] = status
+        source_path = tmp_path / f"run_manifest_status_{status.lower()}.json"
+        source_path.write_text(json.dumps(payload), encoding="utf-8")
+        result = adapt_run_manifest(
+            manifest_path=source_path,
+            biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+        )
+        assert result["run_summary"]["status"] == expected

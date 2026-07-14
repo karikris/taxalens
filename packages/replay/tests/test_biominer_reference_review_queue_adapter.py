@@ -151,3 +151,41 @@ def test_adapt_reference_review_queue_normalizes_pass_and_done_review_status_ali
     assert len(records) == 4
     assert records[0]["review_status"] == "completed"
     assert records[1]["review_status"] == "completed"
+
+
+def test_adapt_reference_review_queue_normalizes_all_known_status_aliases(tmp_path: Path) -> None:
+    manifest_path = Path("packages/replay/tests/fixtures/run_manifest_reference_review_queue.json")
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    queue = json.loads(
+        Path("packages/replay/tests/fixtures/reference_review_queue.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    aliases = [
+        ("done", "completed"),
+        ("pass", "completed"),
+        ("passed", "completed"),
+        ("complete", "completed"),
+        ("success", "completed"),
+        ("succeeded", "completed"),
+        ("done_review", "completed"),
+        ("reviewed", "completed"),
+    ]
+
+    for status, expected in aliases:
+        queue[0]["review_status"] = status
+        artifact = tmp_path / "reference_review_queue_alias.json"
+        artifact.write_text(json.dumps(queue), encoding="utf-8")
+        manifest["outputs"]["reference_review_queue"] = artifact.name
+
+        manifest_file = tmp_path / "run_manifest_reference_review_queue_alias.json"
+        manifest_file.write_text(json.dumps(manifest), encoding="utf-8")
+
+        result = adapt_reference_review_queue(
+            manifest_path=manifest_file,
+            biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+        )
+
+        records = result["reference_review_queue_records"]
+        assert records[0]["review_status"] == expected

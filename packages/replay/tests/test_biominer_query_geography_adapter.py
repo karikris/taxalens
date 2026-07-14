@@ -358,3 +358,70 @@ def test_adapt_query_geography_artifacts_preserves_partial_and_incomplete_status
     assert result["geographic_spread_manifest_summary"]["status"] == "partial"
     assert result["geographic_summary_manifest_summary"]["status"] == "incomplete"
     assert result["geographic_summary_manifest_summary"]["qa_status"] == "partial"
+
+
+def test_adapt_query_geography_artifacts_normalizes_all_known_status_aliases(tmp_path: Path) -> None:
+    source_manifest = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography_status_passed.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    spread_template = json.loads(
+        Path("packages/replay/tests/fixtures/geographic_spread_manifest_passed.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    summary_template = json.loads(
+        Path("packages/replay/tests/fixtures/geographic_summary_manifest_passed.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    aliases = [
+        ("succeeded", "complete"),
+        ("pass", "complete"),
+        ("passed", "complete"),
+        ("complete", "complete"),
+        ("completed", "complete"),
+        ("done", "complete"),
+        ("success", "complete"),
+        ("warn", "warning"),
+        ("warning", "warning"),
+        ("failed", "failed"),
+        ("running", "running"),
+        ("ok", "ok"),
+        ("incomplete", "incomplete"),
+        ("partial", "partial"),
+        ("unknown", "unknown"),
+    ]
+
+    for status, expected in aliases:
+        manifest = json.loads(json.dumps(source_manifest))
+        spread_manifest = json.loads(json.dumps(spread_template))
+        summary_manifest = json.loads(json.dumps(summary_template))
+
+        manifest["outputs"]["geographic_spread_manifest"] = f"geographic_spread_manifest_{status}.json"
+        manifest["outputs"]["geographic_summary_manifest"] = f"geographic_summary_manifest_{status}.json"
+
+        spread_manifest["status"] = status
+        summary_manifest["status"] = status
+        summary_manifest["qa_status"] = status
+
+        manifest_path = tmp_path / f"run_manifest_query_geography_{status}.json"
+        spread_path = tmp_path / f"geographic_spread_manifest_{status}.json"
+        summary_path = tmp_path / f"geographic_summary_manifest_{status}.json"
+
+        manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+        spread_path.write_text(json.dumps(spread_manifest), encoding="utf-8")
+        summary_path.write_text(json.dumps(summary_manifest), encoding="utf-8")
+
+        result = adapt_query_geography_artifacts(
+            manifest_path=manifest_path,
+            biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+        )
+
+        assert result["geographic_spread_manifest_summary"]["status"] == expected
+        assert result["geographic_summary_manifest_summary"]["status"] == expected
+        assert result["geographic_summary_manifest_summary"]["qa_status"] == (
+            "warning" if status in {"warn", "warning"} else expected
+        )

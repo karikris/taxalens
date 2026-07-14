@@ -191,3 +191,36 @@ def test_adapt_stage_metrics_normalizes_done_and_succeeded_status_aliases(
         biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
     )
     assert success_result["stage_metrics"][0]["operation_type"] == "complete"
+
+
+def test_adapt_stage_metrics_normalizes_all_known_status_aliases(tmp_path: Path) -> None:
+    source = Path("packages/replay/tests/fixtures/run_manifest_stage_metrics_status_passed.json")
+    base_payload = json.loads(source.read_text(encoding="utf-8"))
+
+    aliases = [
+        ("succeeded", "complete"),
+        ("pass", "complete"),
+        ("passed", "complete"),
+        ("complete", "complete"),
+        ("completed", "complete"),
+        ("done", "complete"),
+        ("success", "complete"),
+        ("running", "running"),
+        ("in_progress", "running"),
+        ("failed", "failed"),
+        ("pending", "pending"),
+        ("skipped", "skipped"),
+        ("awaiting_manual_review", "awaiting_manual_review"),
+    ]
+
+    for status, expected in aliases:
+        payload = json.loads(json.dumps(base_payload))
+        payload["stages"][0]["status"] = status
+        manifest_path = tmp_path / f"run_manifest_stage_metrics_status_{status}.json"
+        manifest_path.write_text(json.dumps(payload), encoding="utf-8")
+
+        result = adapt_stage_metrics(
+            manifest_path=manifest_path,
+            biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+        )
+        assert result["stage_metrics"][0]["operation_type"] == expected
