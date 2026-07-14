@@ -1975,3 +1975,79 @@ def test_adapt_query_geography_artifacts_ignores_non_object_query_definitions_pa
     assert result["query_definition_summary"]["max_search_priority"] is None
     assert result["query_definition_summary"]["query_curation_rule_count"] is None
     assert result["compatibility"]["query_definition_rows_read"] == 0
+
+
+def test_adapt_query_geography_artifacts_coerces_non_string_bucket_fields(
+    tmp_path: Path,
+) -> None:
+    source_manifest = json.loads(
+        Path(
+            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
+        ).read_text(encoding="utf-8")
+    )
+    source_manifest["outputs"]["query_definitions"] = "query_definitions_bucket_types.json"
+
+    manifest_path = tmp_path / "run_manifest_query_geography_bucket_types.json"
+    manifest_path.write_text(json.dumps(source_manifest), encoding="utf-8")
+    (tmp_path / "query_definitions_bucket_types.json").write_text(
+        json.dumps(
+            [
+                {
+                    "query_definition_id": "qd-bucket-001",
+                    "query_eligible": True,
+                    "enabled": True,
+                    "source": 1,
+                    "accepted_rank": 2,
+                },
+                {
+                    "query_definition_id": "qd-bucket-002",
+                    "query_eligible": False,
+                    "enabled": False,
+                    "source": True,
+                    "accepted_rank": False,
+                },
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    # Keep other artifacts valid so this test only checks bucket coercion in query-definition summary.
+    (tmp_path / "taxon_geographic_spread.json").write_text(
+        Path("packages/replay/tests/fixtures/taxon_geographic_spread.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "geographic_occurrence_evidence.json").write_text(
+        Path("packages/replay/tests/fixtures/geographic_occurrence_evidence.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "taxon_geographic_summary.json").write_text(
+        Path("packages/replay/tests/fixtures/taxon_geographic_summary.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "geographic_spread_manifest.json").write_text(
+        Path("packages/replay/tests/fixtures/geographic_spread_manifest.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "geographic_summary_manifest.json").write_text(
+        Path("packages/replay/tests/fixtures/geographic_summary_manifest_passed.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+
+    result = adapt_query_geography_artifacts(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert len(result["query_definitions"]) == 2
+    assert result["query_definition_summary"]["query_definitions_by_source"] == {"1": 1, "true": 1}
+    assert result["query_definition_summary"]["query_definitions_by_rank"] == {"2": 1, "false": 1}
