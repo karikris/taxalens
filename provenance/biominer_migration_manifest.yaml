@@ -53,3 +53,20 @@ components:
     tests:
       - "packages/replay/tests/test_biominer_target_aware_scores_adapter.py"
     status: "migrated"
+  - component_id: "biominer_candidate_set_summary_adapter"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    source_path: "src/biominer/bioclip/target_aware_output.py"
+    destination_path: "packages/replay/src/biominer_candidate_set_summary_adapter.py"
+    migration_kind: "extracted"
+    reason: "Build candidate-set summaries for replay from target-aware candidate score artifacts."
+    build_week_scope: "new"
+    source_license: "BioMiner project license (as-is)"
+    changes:
+      - "Added artifact-path resolution and JSON extraction for candidate-score inputs"
+      - "Grouped candidate rows by media id and emitted TaxaLens candidate-set summary records"
+      - "Added compatibility notes for missing or malformed source artifacts"
+      - "Added fixture-backed tests for summary grouping and empty-artifact behavior"
+    tests:
+      - "packages/replay/tests/test_biominer_candidate_set_summary_adapter.py"
+    status: "migrated"
