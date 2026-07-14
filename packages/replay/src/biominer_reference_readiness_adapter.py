@@ -102,10 +102,16 @@ def _normalize_status(value: Any) -> str | None:
     normalized = text.lower()
     status_map = {
         "succeeded": "passed",
+        "successful": "passed",
         "pass": "passed",
         "passed": "passed",
+        "complete": "passed",
+        "completed": "passed",
+        "done": "passed",
         "failed": "failed",
         "fail": "failed",
+        "failure": "failed",
+        "failed_with_warning": "warning",
         "warning": "warning",
         "warn": "warning",
         "warned": "warning",

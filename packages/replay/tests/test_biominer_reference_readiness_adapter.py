@@ -98,9 +98,9 @@ def test_adapt_reference_readiness_normalizes_status_aliases(tmp_path: Path) -> 
     )
 
     readiness_payload["status"] = "READY_WITH_REPORTED_SHORTFALLS"
-    readiness_payload["checks"][0]["status"] = "PASSED"
+    readiness_payload["checks"][0]["status"] = "COMPLETED"
     readiness_payload["checks"][1]["status"] = "WARN"
-    readiness_payload["checks"][2]["status"] = "FAILED"
+    readiness_payload["checks"][2]["status"] = "FAILURE"
 
     manifest_path = tmp_path / "run_manifest_reference_readiness.json"
     artifact_path = tmp_path / "reference_bank_readiness.json"
