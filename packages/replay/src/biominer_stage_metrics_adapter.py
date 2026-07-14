@@ -222,7 +222,21 @@ def _normalize_status(value: Any) -> str | None:
     raw = str(value or "").strip().lower()
     if not raw:
         return None
-    return raw
+    status_map = {
+        "succeeded": "complete",
+        "pass": "complete",
+        "passed": "complete",
+        "complete": "complete",
+        "done": "complete",
+        "success": "complete",
+        "running": "running",
+        "in_progress": "running",
+        "failed": "failed",
+        "pending": "pending",
+        "skipped": "skipped",
+        "awaiting_manual_review": "awaiting_manual_review",
+    }
+    return status_map.get(raw, raw)
 
 
 def _load_payload(path: Path) -> dict[str, Any]:
