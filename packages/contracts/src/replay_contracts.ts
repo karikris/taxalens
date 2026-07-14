@@ -115,6 +115,61 @@ export interface CandidateSetSummary extends BaseContract {
   source_artifact: Nullable<string>;
 }
 
+export interface ReferenceReadinessSummary extends BaseContract {
+  run_id: string;
+  status: Nullable<string>;
+  source_manifest_path: Nullable<string>;
+  readiness_artifact_path: Nullable<string>;
+  permits_vision: Nullable<boolean>;
+  target_accepted_taxon_key: Nullable<string>;
+  registry_version: Nullable<string>;
+  reference_bank_version: Nullable<string>;
+  policy_version: Nullable<string>;
+  policy_fingerprint: Nullable<string>;
+  readiness_artifact_schema_version: Nullable<string>;
+  created_at: Nullable<string>;
+  git_sha: Nullable<string>;
+  checks_total: Nullable<number>;
+  checks_passed: Nullable<number>;
+  checks_warning: Nullable<number>;
+  checks_failed: Nullable<number>;
+  checks_pending: Nullable<number>;
+  documented_shortfall_count: Nullable<number>;
+  candidate_set_count: Nullable<number>;
+  candidate_set_fingerprint_count: Nullable<number>;
+  support_manifest_rows: Nullable<number>;
+  eligible_support_rows: Nullable<number>;
+  pending_review_count: Nullable<number>;
+  pending_target_review_count: Nullable<number>;
+  unresolved_duplicate_count: Nullable<number>;
+  licence_blocker_count: Nullable<number>;
+  attribution_blocker_count: Nullable<number>;
+  unverified_support_count: Nullable<number>;
+  route_separation_conflict_count: Nullable<number>;
+  split_leakage_count: Nullable<number>;
+  structural_issue_count: Nullable<number>;
+  model_input_fingerprint: Nullable<string>;
+  support_manifest_file: Nullable<string>;
+  support_manifest_sha256: Nullable<string>;
+  summary_file: Nullable<string>;
+  summary_sha256: Nullable<string>;
+  candidate_set_ids: Nullable<string[]>;
+  check_ids: Nullable<string[]>;
+}
+
+export interface ReferenceReadinessCheck extends BaseContract {
+  check_id: Nullable<string>;
+  status: Nullable<string>;
+  observed_count: Nullable<number>;
+  required_count: Nullable<number>;
+  observed_type: Nullable<string>;
+  required_type: Nullable<string>;
+  affected_species_count: Nullable<number>;
+  affected_clusters_count: Nullable<number>;
+  affected_routes_count: Nullable<number>;
+  evidence_fields: Nullable<string[]>;
+}
+
 export interface DetectionRoute extends BaseContract {
   media_id: string;
   route: Nullable<'adult' | 'larva' | 'pupa' | 'pupa_like' | 'specimen' | 'moth' | 'artifact' | 'other_insect' | 'none'>;
