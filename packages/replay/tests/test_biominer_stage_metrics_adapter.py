@@ -224,3 +224,35 @@ def test_adapt_stage_metrics_normalizes_all_known_status_aliases(tmp_path: Path)
             biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
         )
         assert result["stage_metrics"][0]["operation_type"] == expected
+
+
+def test_adapt_stage_metrics_collects_missing_stage_records(tmp_path: Path) -> None:
+    source = Path("packages/replay/tests/fixtures/run_manifest_stage_metrics.json")
+    payload = json.loads(source.read_text(encoding="utf-8"))
+
+    payload["stages"] = [
+        {"status": "complete", "metrics": {"rows_in": 1}},
+        {"status": "complete"},
+        {"stage": "detect_objects", "status": "complete", "metrics": {"rows_in": 10, "rows_out": 9}},
+        "not-a-stage-record",
+    ]
+
+    manifest_path = tmp_path / "run_manifest_stage_metrics_malformed_stage.json"
+    manifest_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    result = adapt_stage_metrics(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert len(result["stage_metrics"]) == 1
+    assert result["stage_metrics"][0]["stage_id"] == "detect_objects"
+    assert result["compatibility"]["missing_stage_records"] == [
+        "missing_stage_name_0",
+        "missing_stage_name_1",
+        "non_object_stage_record_3",
+    ]
+    assert any(
+        "some stage records were missing expected fields" in note
+        for note in result["compatibility"]["notes"]
+    )
