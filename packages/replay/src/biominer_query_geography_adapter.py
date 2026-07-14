@@ -259,6 +259,43 @@ def _to_float_dict(value: Any) -> dict[str, float] | None:
     return out or None
 
 
+def _normalize_range_source_coverage(
+    value: Any,
+) -> list[dict[str, int]] | None:
+    if not isinstance(value, list):
+        return None
+
+    normalized: list[dict[str, int]] = []
+    for row in value:
+        if not isinstance(row, dict):
+            continue
+        source = (
+            _first_str(row.get("source"))
+            or _first_str(row.get("dataset"))
+            or _first_str(row.get("source_dataset"))
+            or _first_str(row.get("name"))
+        )
+        if source is not None:
+            count = (
+                _to_int(row.get("dataset_count"))
+                if "dataset_count" in row
+                else None
+            )
+            if count is None and "eligible_occurrence_count" in row:
+                count = _to_int(row.get("eligible_occurrence_count"))
+            if count is None and "count" in row:
+                count = _to_int(row.get("count"))
+            if count is not None:
+                normalized.append({source: count})
+                continue
+
+        mapped = _to_int_dict(row)
+        if mapped is not None:
+            normalized.append(mapped)
+
+    return normalized or None
+
+
 def _normalize_occupied_envelope(value: Any) -> dict[str, float | bool] | None:
     if not isinstance(value, dict):
         return None
@@ -576,10 +613,8 @@ def _map_taxon_geographic_summary_row(
         "data_deficient": _to_bool(row.get("data_deficient")),
         "data_deficient_reasons": _to_string_list(row.get("data_deficient_reasons")),
         "suspicious_outlier_cell_count": _to_int(row.get("suspicious_outlier_cell_count")),
-        "range_source_coverage": (
+        "range_source_coverage": _normalize_range_source_coverage(
             row.get("range_source_coverage")
-            if isinstance(row.get("range_source_coverage"), list)
-            else None
         ),
         "known_introduced_regions": _to_string_list(row.get("known_introduced_regions")),
         "current_evidence_count": _to_int(row.get("current_evidence_count")),

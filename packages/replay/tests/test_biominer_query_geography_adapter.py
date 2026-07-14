@@ -40,6 +40,10 @@ def test_adapt_query_geography_artifacts_from_fixture() -> None:
         "east": 83.9,
         "crosses_dateline": False,
     }
+    assert result["taxon_geographic_summary_rows"][0]["range_source_coverage"] == [
+        {"gbif": 2},
+        {"iNaturalist": 1},
+    ]
 
     spread_manifest_summary = result["geographic_spread_manifest_summary"]
     assert spread_manifest_summary["status"] == "complete"
@@ -80,3 +84,18 @@ def test_adapt_query_geography_artifacts_missing_artifacts() -> None:
     assert result["query_definition_summary"]["query_definition_artifact_path"] is None
     notes = result["compatibility"]["notes"]
     assert any("did not declare query definition artifact path" in note for note in notes)
+
+
+def test_adapt_query_geography_artifacts_normalizes_structured_range_source_coverage() -> None:
+    manifest = Path(
+        "packages/replay/tests/fixtures/run_manifest_query_geography_structured_summary.json"
+    )
+    result = adapt_query_geography_artifacts(
+        manifest_path=manifest,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+    row = result["taxon_geographic_summary_rows"][0]
+    assert row["range_source_coverage"] == [
+        {"gbif": 2},
+        {"iNaturalist": 1},
+    ]
