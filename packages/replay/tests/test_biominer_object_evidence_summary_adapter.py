@@ -227,6 +227,38 @@ def test_adapt_object_evidence_summary_collects_notes_for_parse_errors(tmp_path:
     assert any("failed to parse photo_summary artifact" in note for note in notes)
 
 
+def test_adapt_object_evidence_summary_collects_notes_for_object_parse_error(tmp_path: Path) -> None:
+    manifest = json.loads(
+        Path(
+            "packages/replay/tests/fixtures/run_manifest_object_evidence_summary.json"
+        ).read_text(encoding="utf-8")
+    )
+    manifest["outputs"]["object_evidence"] = "object_evidence_bad.json"
+    manifest["outputs"]["photo_summary"] = "photo_summary.json"
+
+    manifest_path = tmp_path / "run_manifest_object_evidence_summary_bad_object.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    (tmp_path / "object_evidence_bad.json").write_text("{invalid_json", encoding="utf-8")
+    (tmp_path / "photo_summary.json").write_text(
+        Path("packages/replay/tests/fixtures/photo_summary.json").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+
+    result = adapt_object_evidence_summary(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    summary = result["object_evidence_summary"]
+    compatibility = result["compatibility"]
+    assert summary["object_evidence_rows"] is None
+    assert summary["photo_summary_rows"] == 3
+    assert compatibility["artifact_missing"] is True
+    assert any("failed to parse object_evidence artifact" in note for note in compatibility["notes"])
+    assert compatibility["object_rows_read"] == 0
+
+
 def test_adapt_object_evidence_summary_treats_non_dict_outputs_as_missing(tmp_path: Path) -> None:
     manifest = json.loads(
         Path("packages/replay/tests/fixtures/run_manifest_object_evidence_summary.json").read_text(

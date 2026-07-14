@@ -282,3 +282,64 @@ def test_adapt_reference_review_queue_treats_non_dict_outputs_as_missing(tmp_pat
         "run manifest did not declare reference review queue artifact path"
         in result["compatibility"]["notes"][0]
     )
+
+
+def test_adapt_reference_review_queue_treats_parquet_artifact_as_not_adapted(tmp_path: Path) -> None:
+    manifest = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_reference_review_queue.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    manifest["outputs"]["reference_review_queue"] = "reference_review_queue.parquet"
+
+    manifest_path = tmp_path / "run_manifest_reference_review_queue_parquet.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    result = adapt_reference_review_queue(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["reference_review_queue_summary"] is None
+    assert result["reference_review_queue_records"] == []
+    assert result["compatibility"]["artifact_missing"] is False
+    assert (
+        result["compatibility"]["notes"][0]
+        == "parquet review queue artifacts are not adapted in deterministic replay fixtures"
+    )
+
+
+def test_adapt_reference_review_queue_skips_non_mapping_rows(tmp_path: Path) -> None:
+    manifest = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_reference_review_queue.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    manifest["outputs"]["reference_review_queue"] = "reference_review_queue_mixed.json"
+
+    manifest_path = tmp_path / "run_manifest_reference_review_queue_mixed.json"
+    payload = [
+        {
+            "review_request_id": "request-good-001",
+            "review_status": "done",
+            "accepted_taxon_key": "gbif:11111",
+            "reference_media_id": "media-001",
+        },
+        "invalid_row",
+        {"review_request_id": "request-good-002", "review_status": "pass", "accepted_taxon_key": "gbif:22222"},
+    ]
+    (tmp_path / "reference_review_queue_mixed.json").write_text(json.dumps(payload), encoding="utf-8")
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    result = adapt_reference_review_queue(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    records = result["reference_review_queue_records"]
+    assert len(records) == 2
+    assert records[0]["review_request_id"] == "request-good-001"
+    assert records[0]["review_status"] == "completed"
+    assert records[1]["review_request_id"] == "request-good-002"
+    assert records[1]["review_status"] == "completed"
+    assert any("non-mapping_review_queue_row_1" in note for note in result["compatibility"]["notes"])
