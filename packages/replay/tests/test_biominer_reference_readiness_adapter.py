@@ -1099,6 +1099,44 @@ def test_adapt_reference_readiness_skips_non_list_checks(tmp_path: Path) -> None
     assert result["compatibility"]["notes"] == ["reference readiness checks was missing or malformed"]
 
 
+def test_adapt_reference_readiness_none_checks_treated_as_no_checks(tmp_path: Path) -> None:
+    manifest_payload = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    readiness_payload = json.loads(
+        Path("packages/replay/tests/fixtures/reference_bank_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    readiness_payload["checks"] = None
+
+    manifest_payload["outputs"]["reference_readiness_manifest"] = "reference_bank_readiness.json"
+    manifest_path = tmp_path / "run_manifest_reference_readiness_none_checks.json"
+    manifest_path.write_text(json.dumps(manifest_payload), encoding="utf-8")
+    (tmp_path / "reference_bank_readiness.json").write_text(
+        json.dumps(readiness_payload), encoding="utf-8"
+    )
+
+    result = adapt_reference_readiness(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f8403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    summary = result["reference_readiness_summary"]
+    assert summary is not None
+    assert summary["checks_total"] == 0
+    assert summary["checks_warning"] == 0
+    assert summary["checks_failed"] == 0
+    assert summary["checks_pending"] == 0
+    assert result["reference_readiness_checks"] == []
+    assert (
+        "reference readiness checks was missing or malformed"
+        in result["compatibility"]["notes"]
+    )
+
+
 def test_adapt_reference_readiness_non_list_checks_does_not_emit_check_ids(tmp_path: Path) -> None:
     manifest_payload = json.loads(
         Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
