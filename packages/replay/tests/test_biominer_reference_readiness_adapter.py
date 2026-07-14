@@ -1018,6 +1018,37 @@ def test_adapt_reference_readiness_trims_reference_readiness_manifest_path(
     )
 
 
+def test_adapt_reference_readiness_reference_manifest_output_blank_is_missing(
+    tmp_path: Path,
+) -> None:
+    manifest_payload = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    manifest_payload["outputs"]["reference_readiness_manifest"] = "   "
+    manifest_payload["outputs"]["reference_readiness"] = None
+    manifest_payload["outputs"]["readiness_manifest"] = 0
+    manifest_payload["outputs"]["reference_readiness_file"] = ""
+    manifest_payload["outputs"]["readiness"] = {}
+
+    manifest_path = tmp_path / "run_manifest_reference_readiness_blank_output_value.json"
+    manifest_path.write_text(json.dumps(manifest_payload), encoding="utf-8")
+
+    result = adapt_reference_readiness(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["reference_readiness_summary"] is None
+    assert result["reference_readiness_checks"] == []
+    assert result["compatibility"]["artifact_missing"] is True
+    assert (
+        "run manifest did not declare reference readiness artifact path"
+        in result["compatibility"]["notes"][0]
+    )
+
+
 def test_adapt_reference_readiness_skips_none_output_value_and_falls_back(tmp_path: Path) -> None:
     manifest_payload = json.loads(
         Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
