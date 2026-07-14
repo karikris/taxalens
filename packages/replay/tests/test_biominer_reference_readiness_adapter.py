@@ -339,3 +339,116 @@ def test_adapt_reference_readiness_normalizes_all_known_status_aliases(tmp_path:
         )
 
         assert result["reference_readiness_checks"][0]["status"] == expected
+
+
+def test_adapt_reference_readiness_rejects_unsupported_schema_version(
+    tmp_path: Path,
+) -> None:
+    run_payload = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    run_payload["schema_version"] = 2
+
+    manifest_path = tmp_path / "run_manifest_reference_readiness_v2.json"
+    manifest_path.write_text(json.dumps(run_payload), encoding="utf-8")
+
+    try:
+        adapt_reference_readiness(
+            manifest_path=manifest_path,
+            biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+        )
+    except ReferenceReadinessAdapterError as exc:
+        assert "Unsupported run manifest schema version" in str(exc)
+    else:
+        assert False
+
+
+def test_adapt_reference_readiness_falls_back_to_reference_readiness_key(tmp_path: Path) -> None:
+    manifest_payload = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    readiness_payload = json.loads(
+        Path("packages/replay/tests/fixtures/reference_bank_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    manifest_path = tmp_path / "run_manifest_reference_readiness_fallback.json"
+    artifact_path = tmp_path / "reference_readiness_payload.json"
+    manifest_payload["outputs"] = {
+        "reference_readiness": artifact_path.name
+    }
+
+    manifest_path.write_text(json.dumps(manifest_payload), encoding="utf-8")
+    artifact_path.write_text(json.dumps(readiness_payload), encoding="utf-8")
+
+    result = adapt_reference_readiness(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["reference_readiness_summary"] is not None
+    assert result["compatibility"]["artifact_key"] == "reference_readiness"
+    assert result["compatibility"]["checks_read"] == 3
+
+
+def test_adapt_reference_readiness_resolves_manifest_directory_to_reference_bank_readiness_file(tmp_path: Path) -> None:
+    manifest_payload = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    readiness_payload = json.loads(
+        Path("packages/replay/tests/fixtures/reference_bank_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    artifact_directory = tmp_path / "reference_readiness"
+    artifact_directory.mkdir()
+    artifact_file = artifact_directory / "reference_bank_readiness.json"
+    artifact_file.write_text(json.dumps(readiness_payload), encoding="utf-8")
+
+    manifest_path = tmp_path / "run_manifest_reference_readiness_dir.json"
+    manifest_payload["outputs"]["reference_readiness_manifest"] = str(artifact_directory)
+    manifest_path.write_text(json.dumps(manifest_payload), encoding="utf-8")
+
+    result = adapt_reference_readiness(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["reference_readiness_summary"] is not None
+    assert result["compatibility"]["artifact_path"] == str(artifact_file)
+    assert result["compatibility"]["checks_read"] == 3
+
+
+def test_adapt_reference_readiness_handles_invalid_artifact_json(tmp_path: Path) -> None:
+    manifest_payload = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    manifest_path = tmp_path / "run_manifest_reference_readiness_invalid_payload.json"
+    artifact_path = tmp_path / "reference_bank_readiness.json"
+    manifest_payload["outputs"]["reference_readiness_manifest"] = artifact_path.name
+
+    manifest_path.write_text(json.dumps(manifest_payload), encoding="utf-8")
+    artifact_path.write_text("{", encoding="utf-8")
+
+    result = adapt_reference_readiness(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["reference_readiness_summary"] is None
+    assert result["reference_readiness_checks"] == []
+    assert result["compatibility"]["checks_read"] == 0
+    assert any(
+        "reference readiness artifact was not parseable" in note
+        for note in result["compatibility"]["notes"]
+    )

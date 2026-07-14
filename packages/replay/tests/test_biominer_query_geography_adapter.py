@@ -425,3 +425,94 @@ def test_adapt_query_geography_artifacts_normalizes_all_known_status_aliases(tmp
         assert result["geographic_summary_manifest_summary"]["qa_status"] == (
             "warning" if status in {"warn", "warning"} else expected
         )
+
+
+def test_adapt_query_geography_artifacts_rejects_invalid_manifest_json(tmp_path: Path) -> None:
+    manifest_text = Path(
+        "packages/replay/tests/fixtures/run_manifest_query_geography_status_passed.json"
+    ).read_text(encoding="utf-8")
+    invalid_manifest = tmp_path / "invalid_query_geography_manifest.json"
+    invalid_manifest.write_text(manifest_text.rstrip("}"), encoding="utf-8")
+
+    try:
+        adapt_query_geography_artifacts(
+            manifest_path=invalid_manifest,
+            biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+        )
+    except QueryGeographyAdapterError as exc:
+        assert "not valid JSON" in str(exc).lower()
+    else:
+        assert False
+
+
+def test_adapt_query_geography_artifacts_continues_when_one_artifact_is_malformed(
+    tmp_path: Path,
+) -> None:
+    source_manifest = json.loads(
+        Path(
+            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
+        ).read_text(encoding="utf-8")
+    )
+    spread_payload = json.loads(
+        Path("packages/replay/tests/fixtures/taxon_geographic_spread.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    occurrence_payload = json.loads(
+        Path("packages/replay/tests/fixtures/geographic_occurrence_evidence.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    summary_payload = json.loads(
+        Path("packages/replay/tests/fixtures/taxon_geographic_summary.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    spread_manifest = json.loads(
+        Path("packages/replay/tests/fixtures/geographic_spread_manifest.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    summary_manifest = json.loads(
+        Path("packages/replay/tests/fixtures/geographic_summary_manifest_passed.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    source_manifest["outputs"]["query_definitions"] = "bad_query_definitions.json"
+    source_manifest["outputs"]["taxon_geographic_spread"] = "taxon_geographic_spread.json"
+    source_manifest["outputs"]["geographic_occurrence_evidence"] = "geographic_occurrence_evidence.json"
+    source_manifest["outputs"]["taxon_geographic_summary"] = "taxon_geographic_summary.json"
+    source_manifest["outputs"]["geographic_spread_manifest"] = "geographic_spread_manifest.json"
+    source_manifest["outputs"]["geographic_summary_manifest"] = "geographic_summary_manifest.json"
+
+    manifest_path = tmp_path / "run_manifest_query_geography.json"
+    bad_query_path = tmp_path / "bad_query_definitions.json"
+    spread_payload_path = tmp_path / "taxon_geographic_spread.json"
+    occurrence_payload_path = tmp_path / "geographic_occurrence_evidence.json"
+    summary_payload_path = tmp_path / "taxon_geographic_summary.json"
+    spread_manifest_path = tmp_path / "geographic_spread_manifest.json"
+    summary_manifest_path = tmp_path / "geographic_summary_manifest.json"
+
+    manifest_path.write_text(json.dumps(source_manifest), encoding="utf-8")
+    bad_query_path.write_text("[", encoding="utf-8")
+    spread_payload_path.write_text(json.dumps(spread_payload), encoding="utf-8")
+    occurrence_payload_path.write_text(json.dumps(occurrence_payload), encoding="utf-8")
+    summary_payload_path.write_text(json.dumps(summary_payload), encoding="utf-8")
+    spread_manifest_path.write_text(json.dumps(spread_manifest), encoding="utf-8")
+    summary_manifest_path.write_text(json.dumps(summary_manifest), encoding="utf-8")
+
+    result = adapt_query_geography_artifacts(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["query_definitions"] == []
+    assert result["query_definition_summary"]["total_query_definitions"] is None
+    assert result["compatibility"]["query_definition_rows_read"] == 0
+    assert any(
+        "failed to parse query definitions artifact" in note
+        for note in result["compatibility"]["notes"]
+    )
+    assert len(result["geographic_spread_rows"]) == 2
+    assert len(result["geographic_occurrence_evidence_rows"]) == 2
