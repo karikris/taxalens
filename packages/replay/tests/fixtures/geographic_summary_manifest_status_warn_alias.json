@@ -1,0 +1,16 @@
+{
+  "run_id": "fixture-query-geography-status-alias-qa-0001",
+  "schema_version": "geographic-summary-manifest-v1.0.0",
+  "status": "passed",
+  "qa_status": "warn",
+  "qa_fatal_count": 0,
+  "qa_warning_count": 1,
+  "summary_row_count": 1,
+  "qa_row_count": 0,
+  "created_at": "2026-07-15T01:25:00Z",
+  "policy": {
+    "policy_version": "geo-policy-v2"
+  },
+  "grid_name": "quadkey",
+  "grid_version": "v2"
+}
