@@ -284,3 +284,51 @@ def test_adapt_candidate_set_summaries_marks_missing_artifact_file(tmp_path: Pat
     assert compatibility["source_artifact"] == str(missing_path)
     assert compatibility["summary_rows_read"] == 0
     assert "candidate score artifact was not present" in str(compatibility["notes"][0])
+
+
+def test_adapt_candidate_set_summaries_records_missing_media_id_notes(tmp_path: Path) -> None:
+    manifest = json.loads(
+        Path(
+            "packages/replay/tests/fixtures/run_manifest_target_aware_candidate_scores.json"
+        ).read_text(encoding="utf-8")
+    )
+    manifest["outputs"]["target_aware_candidate_scores"] = "candidate_scores_payload.json"
+
+    manifest_path = tmp_path / "run_manifest_target_aware_candidate_scores.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    (tmp_path / "candidate_scores_payload.json").write_text(
+        json.dumps(
+            [
+                {
+                    "flickr_photo_id": "photo-001",
+                    "accepted_taxon_key": "gbif:11111",
+                    "scientific_name": "Species One",
+                    "target_candidate": True,
+                },
+                {
+                    "accepted_taxon_key": "gbif:11112",
+                    "scientific_name": "Species Two",
+                },
+                {
+                    "flickr_photo_id": "",
+                    "accepted_taxon_key": "gbif:11113",
+                    "scientific_name": "Species Three",
+                },
+            ],
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+
+    result = adapt_candidate_set_summaries(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    summaries = result["candidate_set_summaries"]
+    assert len(summaries) == 1
+    assert summaries[0]["media_id"] == "photo-001"
+    assert summaries[0]["total_candidates"] == 1
+    assert summaries[0]["candidate_names"] == ["Species One"]
+    assert "missing_media_id_row_1" in result["compatibility"]["notes"]
+    assert "missing_media_id_row_2" in result["compatibility"]["notes"]
