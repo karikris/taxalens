@@ -695,3 +695,71 @@ def test_adapt_reference_readiness_non_list_candidate_set_ids(tmp_path: Path) ->
         "reference readiness payload had no candidate_set_ids"
         in result["compatibility"]["notes"]
     )
+
+
+def test_adapt_reference_readiness_records_note_for_missing_schema_version(tmp_path: Path) -> None:
+    manifest_payload = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    readiness_payload = json.loads(
+        Path("packages/replay/tests/fixtures/reference_bank_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    readiness_payload.pop("schema_version", None)
+    manifest_payload["outputs"]["reference_readiness_manifest"] = "reference_bank_readiness.json"
+
+    manifest_path = tmp_path / "run_manifest_reference_readiness_missing_schema.json"
+    manifest_path.write_text(json.dumps(manifest_payload), encoding="utf-8")
+    (tmp_path / "reference_bank_readiness.json").write_text(
+        json.dumps(readiness_payload), encoding="utf-8"
+    )
+
+    result = adapt_reference_readiness(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    summary = result["reference_readiness_summary"]
+    assert summary is not None
+    assert summary["readiness_artifact_schema_version"] is None
+    assert (
+        "readiness schema_version was missing"
+        in result["compatibility"]["notes"]
+    )
+
+
+def test_adapt_reference_readiness_handles_invalid_artifacts_payload(tmp_path: Path) -> None:
+    manifest_payload = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    readiness_payload = json.loads(
+        Path("packages/replay/tests/fixtures/reference_bank_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    readiness_payload["artifacts"] = "not-a-dict"
+    manifest_payload["outputs"]["reference_readiness_manifest"] = "reference_bank_readiness.json"
+
+    manifest_path = tmp_path / "run_manifest_reference_readiness_invalid_artifacts.json"
+    manifest_path.write_text(json.dumps(manifest_payload), encoding="utf-8")
+    (tmp_path / "reference_bank_readiness.json").write_text(
+        json.dumps(readiness_payload), encoding="utf-8"
+    )
+
+    result = adapt_reference_readiness(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f8403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    summary = result["reference_readiness_summary"]
+    assert summary is not None
+    assert summary["support_manifest_file"] is None
+    assert summary["summary_file"] is None
+    assert summary["support_manifest_sha256"] is None
+    assert summary["summary_sha256"] is None
+    assert result["compatibility"]["checks_read"] == 3
