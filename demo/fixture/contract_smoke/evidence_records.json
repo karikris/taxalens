@@ -1,0 +1,65 @@
+[
+  {
+    "schema_version": "evidence_record:v1",
+    "biominer_commit": "1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    "evidence_record_id": "evid-001",
+    "media_id": "media-smoke-001",
+    "run_id": "smoke-run-0001",
+    "target_taxon_key": "placeholder_taxon_a",
+    "target_name": "Placeholder A",
+    "strongest_competitor_key": "placeholder_taxon_b",
+    "strongest_competitor_name": "Placeholder B",
+    "decision": "abstain",
+    "calibrated_output": null,
+    "decision_threshold": null,
+    "candidate_count": 3,
+    "comment_revision_count": 0,
+    "raw_similarity_available": true,
+    "decision_artifact_uri": "demo/fixture/contract_smoke/evidence_records.json",
+    "ledger": [
+      { "step": "query_resolution", "actor": "fixture-loader", "detail": "Resolved mocked stage and artifact paths." }
+    ]
+  },
+  {
+    "schema_version": "evidence_record:v1",
+    "biominer_commit": "1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    "evidence_record_id": "evid-002",
+    "media_id": "media-smoke-002",
+    "run_id": "smoke-run-0001",
+    "target_taxon_key": "placeholder_taxon_a",
+    "target_name": "Placeholder A",
+    "strongest_competitor_key": null,
+    "strongest_competitor_name": null,
+    "decision": "insufficient_reference",
+    "calibrated_output": null,
+    "decision_threshold": null,
+    "candidate_count": 2,
+    "comment_revision_count": 1,
+    "raw_similarity_available": true,
+    "decision_artifact_uri": "demo/fixture/contract_smoke/evidence_records.json",
+    "ledger": [
+      { "step": "reference_check", "actor": "fixture-loader", "detail": "Missing reference coverage is intentional for this record." }
+    ]
+  },
+  {
+    "schema_version": "evidence_record:v1",
+    "biominer_commit": "1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    "evidence_record_id": "evid-003",
+    "media_id": "media-smoke-003",
+    "run_id": "smoke-run-0001",
+    "target_taxon_key": "placeholder_taxon_c",
+    "target_name": "Placeholder C",
+    "strongest_competitor_key": "placeholder_taxon_d",
+    "strongest_competitor_name": "Placeholder D",
+    "decision": "target_probable",
+    "calibrated_output": 0.57,
+    "decision_threshold": 0.6,
+    "candidate_count": 4,
+    "comment_revision_count": 0,
+    "raw_similarity_available": true,
+    "decision_artifact_uri": "demo/fixture/contract_smoke/evidence_records.json",
+    "ledger": [
+      { "step": "scoring", "actor": "fixture-loader", "detail": "Calibrated output intentionally near threshold." }
+    ]
+  }
+]

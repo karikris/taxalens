@@ -1,0 +1,22 @@
+{
+  "schema_version": "run_summary:v1",
+  "run_id": "smoke-run-0001",
+  "biominer_commit": "1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+  "title": "TaxaLens replay contract smoke run",
+  "source_manifest_path": "demo/manifest_smoke.json",
+  "source_biominer_run_artifact": "demo/fixture/contract_smoke/run_summary.json",
+  "status": "complete",
+  "started_at": "2026-07-15T00:00:00Z",
+  "completed_at": "2026-07-15T00:00:01Z",
+  "records_in": 3,
+  "records_out": 3,
+  "stage_count": 2,
+  "expected_output_artifacts": [
+    "demo/fixture/contract_smoke/stage_metrics.json",
+    "demo/fixture/contract_smoke/evidence_records.json"
+  ],
+  "notes": [
+    "This is a schema-only smoke fixture.",
+    "No biological truth labels are asserted."
+  ]
+}
