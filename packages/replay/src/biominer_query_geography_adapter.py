@@ -517,7 +517,7 @@ def _map_occurrence_evidence_row(
         "source_dataset_name": _first_str(row.get("source_dataset_name")),
         "basis_of_record": _first_str(row.get("basis_of_record")),
         "country_code": _first_str(row.get("country_code")),
-        "admin1_code": _first_str(row.get("admin1_code")),
+        "admin1_code": _first_str(row.get("admin1_code")) or _first_str(row.get("admin1")),
         "coordinate_latitude": _to_float(row.get("coordinate_latitude")),
         "coordinate_longitude": _to_float(row.get("coordinate_longitude")),
         "event_date": _first_str(row.get("event_date")) or _first_str(row.get("eventDate")),
