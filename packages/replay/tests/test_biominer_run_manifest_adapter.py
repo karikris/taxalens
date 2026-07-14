@@ -26,3 +26,14 @@ def test_adapt_run_manifest_rejects_invalid_biominer_sha() -> None:
         assert "full 40-character" in str(exc)
     else:
         assert False
+
+
+def test_adapt_run_manifest_normalizes_status_aliases() -> None:
+    fixture = Path("packages/replay/tests/fixtures/run_manifest_status_passed.json")
+    result = adapt_run_manifest(
+        manifest_path=fixture,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["run_summary"]["status"] == "complete"
+    assert result["run_summary"]["run_id"] == "fixture-run-status-passed-0001"

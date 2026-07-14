@@ -62,6 +62,27 @@ def _required_str(payload: dict[str, Any], key: str, *, fallback: str | None = N
     return value
 
 
+def _normalize_status(value: Any) -> str | None:
+    raw = _required_str({"status": value}, "status")
+    if raw is None:
+        return None
+    lowered = raw.strip().lower()
+    status_map = {
+        "succeeded": "complete",
+        "pass": "complete",
+        "passed": "complete",
+        "complete": "complete",
+        "done": "complete",
+        "success": "complete",
+        "running": "running",
+        "in_progress": "running",
+        "failed": "failed",
+        "incomplete": "incomplete",
+        "unknown": "unknown",
+    }
+    return status_map.get(lowered, lowered)
+
+
 def _required_int(payload: dict[str, Any], key: str, *, fallback: int | None = None) -> int | None:
     value = payload.get(key)
     if value is None:
@@ -130,7 +151,7 @@ def _run_summary_from_payload(
         "title": _required_str(taxon_scope, "input_name") or _required_str(taxon_scope, "accepted_scientific_name"),
         "source_manifest_path": source_path,
         "source_biominer_run_artifact": source_path,
-        "status": payload.get("status") if payload.get("status") else "unknown",
+        "status": _normalize_status(payload.get("status")) or "unknown",
         "started_at": _required_str(payload, "started_at"),
         "completed_at": _required_str(payload, "ended_at"),
         "records_in": _required_int(payload.get("query_counts", {}), "total", fallback=None),
