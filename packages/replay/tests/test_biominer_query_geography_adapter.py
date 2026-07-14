@@ -1663,3 +1663,83 @@ def test_adapt_query_geography_artifacts_treats_blank_query_definitions_output_a
         "did not declare query definition artifact path" in note
         for note in result["compatibility"]["notes"]
     )
+
+
+def test_adapt_query_geography_artifacts_normalizes_search_priority_types(
+    tmp_path: Path,
+) -> None:
+    source_manifest = json.loads(
+        Path(
+            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
+        ).read_text(encoding="utf-8")
+    )
+    source_manifest["outputs"]["query_definitions"] = "query_definitions_search_priority.json"
+
+    manifest_path = tmp_path / "run_manifest_query_geography_search_priority_types.json"
+    manifest_path.write_text(json.dumps(source_manifest), encoding="utf-8")
+    (tmp_path / "query_definitions_search_priority.json").write_text(
+        json.dumps(
+            [
+                {
+                    "query_definition_id": "qd-priority-001",
+                    "query_eligible": True,
+                    "enabled": True,
+                    "search_priority": "10",
+                },
+                {
+                    "query_definition_id": "qd-priority-002",
+                    "query_eligible": False,
+                    "enabled": False,
+                    "search_priority": 3.9,
+                },
+                {
+                    "query_definition_id": "qd-priority-003",
+                    "query_eligible": False,
+                    "enabled": False,
+                    "search_priority": "not-a-number",
+                },
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    # Keep remaining artifacts valid so this test focuses on query-definition priority normalization.
+    (tmp_path / "taxon_geographic_spread.json").write_text(
+        Path("packages/replay/tests/fixtures/taxon_geographic_spread.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "geographic_occurrence_evidence.json").write_text(
+        Path("packages/replay/tests/fixtures/geographic_occurrence_evidence.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "taxon_geographic_summary.json").write_text(
+        Path("packages/replay/tests/fixtures/taxon_geographic_summary.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "geographic_spread_manifest.json").write_text(
+        Path("packages/replay/tests/fixtures/geographic_spread_manifest.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "geographic_summary_manifest.json").write_text(
+        Path("packages/replay/tests/fixtures/geographic_summary_manifest_passed.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+
+    result = adapt_query_geography_artifacts(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert len(result["query_definitions"]) == 3
+    assert result["query_definitions"][0]["query_definition_id"] == "qd-priority-001"
+    assert result["query_definition_summary"]["max_search_priority"] == 10
