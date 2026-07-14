@@ -260,3 +260,27 @@ def test_adapt_candidate_set_summaries_reports_empty_notes_for_empty_payload(tmp
     assert result["candidate_set_summaries"] == []
     assert any("candidate score artifact was empty" in note for note in result["compatibility"]["notes"])
     assert result["compatibility"]["summary_rows_read"] == 0
+
+
+def test_adapt_candidate_set_summaries_marks_missing_artifact_file(tmp_path: Path) -> None:
+    manifest = json.loads(
+        Path(
+            "packages/replay/tests/fixtures/run_manifest_target_aware_candidate_scores.json"
+        ).read_text(encoding="utf-8")
+    )
+    missing_path = tmp_path / "missing_candidate_scores.json"
+    manifest["outputs"]["target_aware_candidate_scores"] = str(missing_path)
+
+    manifest_path = tmp_path / "run_manifest_target_aware_candidate_scores.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    result = adapt_candidate_set_summaries(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["candidate_set_summaries"] == []
+    compatibility = result["compatibility"]
+    assert compatibility["source_artifact"] == str(missing_path)
+    assert compatibility["summary_rows_read"] == 0
+    assert "candidate score artifact was not present" in str(compatibility["notes"][0])
