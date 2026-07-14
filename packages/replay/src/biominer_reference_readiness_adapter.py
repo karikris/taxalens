@@ -370,7 +370,7 @@ def adapt_reference_readiness(
         "run_id": _to_str(run_payload.get("run_id")) or "unknown-run",
         "source_manifest_path": str(manifest_path),
         "readiness_artifact_path": str(artifact_path),
-        "status": _to_str(readiness_payload.get("status")),
+        "status": _normalize_status(readiness_payload.get("status")),
         "permits_vision": _to_bool(readiness_payload.get("permits_vision")),
         "target_accepted_taxon_key": _to_str(
             readiness_payload.get("target_accepted_taxon_key")

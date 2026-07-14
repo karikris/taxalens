@@ -84,6 +84,24 @@ def test_adapt_reference_readiness_without_artifact_returns_empty_result() -> No
     )
 
 
+def test_adapt_reference_readiness_normalizes_payload_status_alias() -> None:
+    manifest = Path(
+        "packages/replay/tests/fixtures/run_manifest_reference_readiness_status_summary_passed.json"
+    )
+    result = adapt_reference_readiness(
+        manifest_path=manifest,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    summary = result["reference_readiness_summary"]
+    assert summary is not None
+    assert summary["status"] == "passed"
+    assert summary["checks_passed"] == 2
+    assert summary["checks_warning"] == 0
+    assert summary["checks_failed"] == 0
+    assert summary["checks_pending"] == 0
+
+
 def test_adapt_reference_readiness_normalizes_status_aliases() -> None:
     manifest = Path(
         "packages/replay/tests/fixtures/run_manifest_reference_readiness_status_alias.json"
