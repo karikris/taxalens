@@ -82,3 +82,25 @@ def test_adapt_reference_readiness_without_artifact_returns_empty_result() -> No
         "run manifest did not declare reference readiness artifact path"
         in str(result["compatibility"]["notes"][0])
     )
+
+
+def test_adapt_reference_readiness_normalizes_status_aliases() -> None:
+    manifest = Path(
+        "packages/replay/tests/fixtures/run_manifest_reference_readiness_status_alias.json"
+    )
+    result = adapt_reference_readiness(
+        manifest_path=manifest,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    summary = result["reference_readiness_summary"]
+    assert summary is not None
+    assert summary["checks_passed"] == 2
+    assert summary["checks_warning"] == 1
+    assert summary["checks_failed"] == 0
+    assert summary["checks_pending"] == 0
+
+    checks = result["reference_readiness_checks"]
+    assert checks[0]["status"] == "passed"
+    assert checks[1]["status"] == "warning"
+    assert checks[2]["status"] == "passed"

@@ -95,6 +95,28 @@ def _to_str(value: Any) -> str | None:
     return text or None
 
 
+def _normalize_status(value: Any) -> str | None:
+    raw = _to_str(value)
+    if raw is None:
+        return None
+    lowered = raw.strip().lower()
+    status_map = {
+        "pass": "passed",
+        "passed": "passed",
+        "complete": "passed",
+        "done": "passed",
+        "success": "passed",
+        "warn": "warning",
+        "warning": "warning",
+        "failed": "failed",
+        "pending": "pending",
+    }
+    mapped = status_map.get(lowered)
+    if mapped is not None:
+        return mapped
+    return lowered
+
+
 def _to_bool(value: Any) -> bool | None:
     if isinstance(value, bool):
         return value
@@ -197,7 +219,7 @@ def _adapt_check(check: Any, index: int, notes: list[str]) -> ReferenceReadiness
         notes.append(f"non_mapping_readiness_check_{index}")
         return None
 
-    status = _to_str(check.get("status"))
+    status = _normalize_status(check.get("status"))
     observed = check.get("observed")
     required = check.get("required")
     observed_count, observed_type = _value_count(observed)
