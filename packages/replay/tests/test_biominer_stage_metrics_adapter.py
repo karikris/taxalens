@@ -182,3 +182,12 @@ def test_adapt_stage_metrics_normalizes_done_and_succeeded_status_aliases(
         biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
     )
     assert succeeded["stage_metrics"][0]["operation_type"] == "complete"
+
+    payload["stages"][0]["status"] = "success"
+    success_path = tmp_path / "run_manifest_stage_metrics_status_success.json"
+    success_path.write_text(json.dumps(payload), encoding="utf-8")
+    success_result = adapt_stage_metrics(
+        manifest_path=success_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+    assert success_result["stage_metrics"][0]["operation_type"] == "complete"

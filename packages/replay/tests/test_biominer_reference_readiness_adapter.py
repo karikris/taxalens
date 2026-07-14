@@ -226,3 +226,35 @@ def test_adapt_reference_readiness_normalizes_succeeded_and_warned_aliases(tmp_p
     checks = result["reference_readiness_checks"]
     assert checks[0]["status"] == "passed"
     assert checks[1]["status"] == "warning"
+
+
+def test_adapt_reference_readiness_normalizes_successful_and_done_aliases(tmp_path: Path) -> None:
+    run_payload = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    readiness_payload = json.loads(
+        Path("packages/replay/tests/fixtures/reference_bank_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    readiness_payload["checks"][0]["status"] = "successful"
+    readiness_payload["checks"][1]["status"] = "done"
+
+    manifest_path = tmp_path / "run_manifest_reference_readiness.json"
+    artifact_path = tmp_path / "reference_bank_readiness.json"
+    run_payload["outputs"]["reference_readiness_manifest"] = str(artifact_path.name)
+
+    manifest_path.write_text(json.dumps(run_payload), encoding="utf-8")
+    artifact_path.write_text(json.dumps(readiness_payload), encoding="utf-8")
+
+    result = adapt_reference_readiness(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    checks = result["reference_readiness_checks"]
+    assert checks[0]["status"] == "passed"
+    assert checks[1]["status"] == "warning"
