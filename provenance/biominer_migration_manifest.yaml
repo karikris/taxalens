@@ -1,0 +1,7 @@
+upstream_repository: "karikris/BioMiner"
+pinned_biominer_sha: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+migration_policy: "artifact_contract > api_contract > dependency > extracted > copied"
+phase12_status: "pushed-and-eligible-for-committed-migration-only"
+phase13_exclusion: "active-work-excluded-until-explicitly-pinned"
+recorded_at: "2026-07-15"
+components: []
