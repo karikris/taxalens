@@ -73,6 +73,181 @@ export interface QueryAssociation extends BaseContract {
   deduplicated_with: Nullable<string[]>;
 }
 
+export interface QueryDefinition extends BaseContract {
+  query_definition_id: string;
+  logical_query_id: Nullable<string>;
+  canonical_keyword_id: Nullable<string>;
+  keyword_id: Nullable<string>;
+  registry_schema_version: Nullable<string>;
+  compiler_version: Nullable<string>;
+  registry_version: Nullable<string>;
+  accepted_taxon_key: Nullable<string>;
+  accepted_scientific_name: Nullable<string>;
+  accepted_rank: Nullable<string>;
+  family_key: Nullable<string>;
+  family: Nullable<string>;
+  genus_key: Nullable<string>;
+  genus: Nullable<string>;
+  species_key: Nullable<string>;
+  species: Nullable<string>;
+  name_id: Nullable<string>;
+  source_term: Nullable<string>;
+  normalized_query_term: Nullable<string>;
+  normalized_match_key: Nullable<string>;
+  language: Nullable<string>;
+  api_language_code: Nullable<string>;
+  script: Nullable<string>;
+  region: Nullable<string>;
+  bcp47: Nullable<string>;
+  bbox: Nullable<string>;
+  name_class: Nullable<string>;
+  source: Nullable<string>;
+  source_taxon_id: Nullable<string>;
+  lineage_check: Nullable<string>;
+  trust_tier: Nullable<string>;
+  original_trust_tier: Nullable<string>;
+  effective_trust_tier: Nullable<string>;
+  confidence: Nullable<string>;
+  precision_tier: Nullable<string>;
+  search_field: Nullable<string>;
+  search_priority: Nullable<number>;
+  enabled: Nullable<boolean>;
+  disabled_reason: Nullable<string>;
+  query_eligible: Nullable<boolean>;
+  query_disabled_reason: Nullable<string>;
+  species_specificity_score: Nullable<number>;
+}
+
+export interface QueryDefinitionSummary extends BaseContract {
+  run_id: string;
+  source_manifest_path: Nullable<string>;
+  query_definition_artifact_path: Nullable<string>;
+  total_query_definitions: Nullable<number>;
+  eligible_query_definitions: Nullable<number>;
+  ineligible_query_definitions: Nullable<number>;
+  query_definitions_by_source: Nullable<Record<string, number>>;
+  query_definitions_by_rank: Nullable<Record<string, number>>;
+  disabled_query_definitions: Nullable<number>;
+  max_search_priority: Nullable<number>;
+  query_curation_rule_count: Nullable<number>;
+}
+
+export interface GeographicSpreadRecord extends BaseContract {
+  schema_version: Nullable<string>;
+  registry_version: Nullable<string>;
+  accepted_taxon_key: Nullable<string>;
+  gbif_species_key: Nullable<number>;
+  scientific_name: Nullable<string>;
+  source: Nullable<string>;
+  source_dataset_key: Nullable<string>;
+  source_dataset_citation: Nullable<string>;
+  source_query_hash: Nullable<string>;
+  spatial_cell_id: Nullable<string>;
+  spatial_resolution: Nullable<number>;
+  country_code: Nullable<string>;
+  admin1: Nullable<string>;
+  bioregion: Nullable<string>;
+  centroid_latitude: Nullable<number>;
+  centroid_longitude: Nullable<number>;
+  occurrence_count: Nullable<number>;
+  georeferenced_occurrence_count: Nullable<number>;
+  range_inference_eligible_count: Nullable<number>;
+  preserved_specimen_count: Nullable<number>;
+  fossil_count: Nullable<number>;
+  geospatial_issue_count: Nullable<number>;
+  coordinate_uncertainty_summary: Nullable<Record<string, number>>;
+  earliest_occurrence_date: Nullable<string>;
+  latest_occurrence_date: Nullable<string>;
+  known_range_role: Nullable<string>;
+  taxon_key_match: Nullable<boolean>;
+  coordinate_valid: Nullable<boolean>;
+}
+
+export interface GeographicOccurrenceEvidence extends BaseContract {
+  schema_version: Nullable<string>;
+  source: Nullable<string>;
+  gbif_id: Nullable<string>;
+  accepted_taxon_key: Nullable<string>;
+  scientific_name: Nullable<string>;
+  source_dataset_key: Nullable<string>;
+  source_dataset_name: Nullable<string>;
+  basis_of_record: Nullable<string>;
+  country_code: Nullable<string>;
+  admin1_code: Nullable<string>;
+  coordinate_latitude: Nullable<number>;
+  coordinate_longitude: Nullable<number>;
+  event_date: Nullable<string>;
+  coordinate_uncertainty_m: Nullable<number>;
+  georeferenced: Nullable<boolean>;
+  preserved_specimen: Nullable<boolean>;
+  range_inference_eligible: Nullable<boolean>;
+  known_range_role: Nullable<string>;
+}
+
+export interface GeographicSpreadManifestSummary extends BaseContract {
+  run_id: string;
+  source_manifest_path: Nullable<string>;
+  geographic_spread_manifest_path: Nullable<string>;
+  taxon_geographic_spread_artifact_path: Nullable<string>;
+  geographic_occurrence_evidence_artifact_path: Nullable<string>;
+  status: Nullable<string>;
+  retrieved_at: Nullable<string>;
+  resumed: Nullable<boolean>;
+  completed_occurrence_count: Nullable<number>;
+  invalid_coordinate_count: Nullable<number>;
+  taxon_key_mismatch_count: Nullable<number>;
+  range_inference_eligible_occurrence_count: Nullable<number>;
+  evidence_row_count: Nullable<number>;
+  evidence_confidence_method: Nullable<string>;
+  spread_row_count: Nullable<number>;
+  checkpoint_part_count: Nullable<number>;
+  source_total_records: Nullable<number>;
+  source: Nullable<string>;
+  source_query_hash: Nullable<string>;
+  source_snapshot_version: Nullable<string>;
+}
+
+export interface TaxonGeographicSummaryRecord extends BaseContract {
+  schema_version: Nullable<string>;
+  registry_version: Nullable<string>;
+  accepted_taxon_key: Nullable<string>;
+  scientific_name: Nullable<string>;
+  geographic_evidence_version: Nullable<string>;
+  cell_counts_by_resolution: Nullable<Array<Record<string, number>>>;
+  countries: Nullable<string[]>;
+  admin_regions: Nullable<string[]>;
+  occupied_envelope: Nullable<Record<string, number | boolean>>;
+  disconnected_range_component_count: Nullable<number>;
+  occurrence_density_summary: Nullable<Record<string, number>>;
+  data_deficient: Nullable<boolean>;
+  data_deficient_reasons: Nullable<string[]>;
+  suspicious_outlier_cell_count: Nullable<number>;
+  range_source_coverage: Nullable<Array<Record<string, number>>>;
+  known_introduced_regions: Nullable<string[]>;
+  current_evidence_count: Nullable<number>;
+  historical_evidence_count: Nullable<number>;
+  spread_fingerprint: Nullable<string>;
+  created_at: Nullable<string>;
+}
+
+export interface GeographicSummaryManifestSummary extends BaseContract {
+  run_id: string;
+  source_manifest_path: Nullable<string>;
+  geographic_summary_manifest_path: Nullable<string>;
+  taxon_geographic_summary_artifact_path: Nullable<string>;
+  geographic_qa_findings_artifact_path: Nullable<string>;
+  status: Nullable<string>;
+  qa_status: Nullable<string>;
+  qa_fatal_count: Nullable<number>;
+  qa_warning_count: Nullable<number>;
+  summary_row_count: Nullable<number>;
+  qa_row_count: Nullable<number>;
+  created_at: Nullable<string>;
+  policy_version: Nullable<string>;
+  grid_name: Nullable<string>;
+  grid_version: Nullable<string>;
+}
+
 export interface MediaIdentity extends BaseContract {
   media_id: string;
   source_system: Nullable<string>;
@@ -113,6 +288,17 @@ export interface CandidateSetSummary extends BaseContract {
   candidate_names: Nullable<string[]>;
   candidate_version: Nullable<number>;
   source_artifact: Nullable<string>;
+}
+
+export interface ObjectEvidenceSummary extends BaseContract {
+  run_id: string;
+  source_manifest_path: Nullable<string>;
+  object_evidence_artifact_path: Nullable<string>;
+  photo_summary_artifact_path: Nullable<string>;
+  object_evidence_rows: Nullable<number>;
+  photo_summary_rows: Nullable<number>;
+  object_occurrence_bin_counts: Nullable<Record<string, number>>;
+  photo_occurrence_bin_counts: Nullable<Record<string, number>>;
 }
 
 export interface ReferenceReadinessSummary extends BaseContract {

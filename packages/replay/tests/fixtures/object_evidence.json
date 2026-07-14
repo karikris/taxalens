@@ -1,0 +1,23 @@
+[
+  {
+    "schema_version": "object-evidence-v1.0.0",
+    "media_id": "photo-001",
+    "accepted_taxon_key": "gbif:54321",
+    "occurrence_bin": "adult",
+    "visual_domain": "adult"
+  },
+  {
+    "schema_version": "object-evidence-v1.0.0",
+    "media_id": "photo-002",
+    "accepted_taxon_key": "gbif:54321",
+    "occurrence_bin": "adult",
+    "visual_domain": "adult"
+  },
+  {
+    "schema_version": "object-evidence-v1.0.0",
+    "media_id": "photo-003",
+    "accepted_taxon_key": "gbif:54321",
+    "occurrence_bin": "larva",
+    "visual_domain": "larva"
+  }
+]

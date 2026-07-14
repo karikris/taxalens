@@ -1,0 +1,20 @@
+[
+  {
+    "schema_version": "photo-summary-v1.0.0",
+    "photo_id": "photo-001",
+    "photo_occurrence_bin": "single_image",
+    "photo_count": 1
+  },
+  {
+    "schema_version": "photo-summary-v1.0.0",
+    "photo_id": "photo-002",
+    "photo_occurrence_bin": "multi_image",
+    "photo_count": 1
+  },
+  {
+    "schema_version": "photo-summary-v1.0.0",
+    "photo_id": "photo-003",
+    "photo_occurrence_bin": "single_image",
+    "photo_count": 1
+  }
+]

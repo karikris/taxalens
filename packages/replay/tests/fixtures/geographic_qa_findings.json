@@ -1,0 +1,12 @@
+[
+  {
+    "qa_check": "suspicious_outliers",
+    "status": "warning",
+    "value": 1
+  },
+  {
+    "qa_check": "low_country_coverage",
+    "status": "ok",
+    "value": 0
+  }
+]

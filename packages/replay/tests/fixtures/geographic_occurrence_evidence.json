@@ -1,0 +1,42 @@
+[
+  {
+    "schema_version": "geographic-occurrence-evidence-v1.0.0",
+    "source": "gbif",
+    "gbif_id": "gbif-occ-001",
+    "accepted_taxon_key": "gbif:54321",
+    "scientific_name": "Papilio demoleus",
+    "source_dataset_key": "001",
+    "source_dataset_name": "GBIF",
+    "basis_of_record": "HUMAN_OBSERVATION",
+    "country_code": "IN",
+    "admin1_code": "KA",
+    "coordinate_latitude": 12.9121,
+    "coordinate_longitude": 77.6489,
+    "event_date": "2026-06-10",
+    "coordinate_uncertainty_m": 12.5,
+    "georeferenced": true,
+    "preserved_specimen": false,
+    "range_inference_eligible": true,
+    "known_range_role": "target"
+  },
+  {
+    "schema_version": "geographic-occurrence-evidence-v1.0.0",
+    "source": "gbif",
+    "gbif_id": "gbif-occ-002",
+    "accepted_taxon_key": "gbif:22222",
+    "scientific_name": "Papilio polytes",
+    "source_dataset_key": "001",
+    "source_dataset_name": "GBIF",
+    "basis_of_record": "PRESERVED_SPECIMEN",
+    "country_code": "TH",
+    "admin1_code": "10",
+    "coordinate_latitude": 13.7367,
+    "coordinate_longitude": 100.5232,
+    "event_date": "2026-05-29",
+    "coordinate_uncertainty_m": 28.0,
+    "georeferenced": true,
+    "preserved_specimen": true,
+    "range_inference_eligible": true,
+    "known_range_role": "competitor"
+  }
+]

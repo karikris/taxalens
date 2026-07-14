@@ -30,8 +30,18 @@ TaxaLens treats `karikris/BioMiner` as the upstream research engine and treats t
 - Reference review queue contract (`src/biominer/references/schemas.py`)
   has been consumed through `packages/replay/src/biominer_reference_review_queue_adapter.py` with
   fixture-backed tests in `packages/replay/tests/test_biominer_reference_review_queue_adapter.py`.
+- Query-definition contract (`src/biominer/registry/compiler.py`)
+  has been consumed through `packages/replay/src/biominer_query_geography_adapter.py` with
+  fixture-backed tests in `packages/replay/tests/test_biominer_query_geography_adapter.py`.
+- Geographic spread/occurrence/summary contracts (`src/biominer/registry/geographic_spread.py`,
+  `src/biominer/registry/geographic_summary.py`)
+  have been consumed through `packages/replay/src/biominer_query_geography_adapter.py` with
+  fixture-backed tests in `packages/replay/tests/test_biominer_query_geography_adapter.py`.
+- Object evidence summary via evidence joins and metrics (`src/biominer/evidence/join.py`,
+  `src/biominer/evidence/metrics.py`)
+  has been consumed through `packages/replay/src/biominer_object_evidence_summary_adapter.py` with
+  fixture-backed tests in `packages/replay/tests/test_biominer_object_evidence_summary_adapter.py`.
 
-No additional BioMiner contracts are consumed yet in this phase.
 - Future migrations should be implemented as contracts and adapters with source SHAs recorded per component.
 
 ## Excluded work
