@@ -69,6 +69,36 @@ def test_adapt_reference_readiness_rejects_invalid_biominer_sha() -> None:
         assert False
 
 
+def test_adapt_reference_readiness_rejects_missing_manifest_path() -> None:
+    missing_manifest = Path(
+        "/tmp/does-not-exist-reference-readiness-manifest.json"
+    )
+    try:
+        adapt_reference_readiness(
+            manifest_path=missing_manifest,
+            biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+        )
+    except ReferenceReadinessAdapterError as exc:
+        assert "Manifest not found" in str(exc)
+    else:
+        assert False
+
+
+def test_adapt_reference_readiness_rejects_invalid_manifest_json(tmp_path: Path) -> None:
+    manifest_path = tmp_path / "run_manifest_reference_readiness_invalid.json"
+    manifest_path.write_text("{", encoding="utf-8")
+
+    try:
+        adapt_reference_readiness(
+            manifest_path=manifest_path,
+            biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+        )
+    except ReferenceReadinessAdapterError as exc:
+        assert "Manifest is not valid JSON" in str(exc)
+    else:
+        assert False
+
+
 def test_adapt_reference_readiness_without_artifact_returns_empty_result() -> None:
     manifest = Path("packages/replay/tests/fixtures/run_manifest.json")
     result = adapt_reference_readiness(
