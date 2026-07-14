@@ -261,3 +261,25 @@ def test_adapt_run_manifest_treats_blank_status_as_unknown(tmp_path: Path) -> No
 
     assert result["run_summary"]["status"] == "unknown"
     assert "status" not in result["compatibility"]["missing_fields"]
+
+
+def test_adapt_run_manifest_non_object_outputs_is_treated_as_missing_payload(tmp_path: Path) -> None:
+    manifest_payload = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest.json").read_text(encoding="utf-8")
+    )
+    manifest_payload["outputs"] = []
+
+    manifest_path = tmp_path / "run_manifest_non_object_outputs.json"
+    manifest_path.write_text(json.dumps(manifest_payload), encoding="utf-8")
+
+    result = adapt_run_manifest(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["run_summary"]["expected_output_artifacts"] == []
+    assert (
+        "Manifest outputs field was missing or malformed; defaulted to empty outputs."
+        in result["compatibility"]["notes"]
+    )
+    assert "outputs" not in result["compatibility"]["missing_fields"]
