@@ -1,0 +1,151 @@
+{
+  "schema_version": "reference-bank-readiness-v2.0.0",
+  "status": "ready_with_documented_shortfalls",
+  "permits_vision": true,
+  "registry_version": "gbif-taxon-registry-v4",
+  "reference_bank_version": "reference-bank-v9",
+  "policy_version": "reference-policy-v3",
+  "policy_fingerprint": "sha256:policy-fingerprint-0001",
+  "policy": {
+    "policy_id": "demo-policy",
+    "target_accepted_taxon_key": "gbif:54321",
+    "documented_shortfalls": []
+  },
+  "target_accepted_taxon_key": "gbif:54321",
+  "candidate_set_ids": [
+    "cs-001",
+    "cs-002"
+  ],
+  "candidate_set_fingerprints": [
+    "sha256:candidate-set-fingerprint-001",
+    "sha256:candidate-set-fingerprint-002"
+  ],
+  "created_at": "2026-07-15T01:20:00Z",
+  "git_sha": "1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+  "bank_fingerprint": "sha256:bank-fingerprint-0001",
+  "support_manifest_fingerprint": "sha256:support-manifest-fingerprint-0001",
+  "summary_fingerprint": "sha256:summary-fingerprint-0001",
+  "split_assignments_fingerprint": "sha256:split-fingerprint-0001",
+  "model_input_identity": {
+    "schema_version": "reference-model-input-identity-v2.0.0",
+    "fingerprint": "sha256:model-input-fingerprint-0001"
+  },
+  "model_input_fingerprint": "sha256:model-input-fingerprint-0001",
+  "checks": [
+    {
+      "check_id": "artifact_integrity",
+      "status": "passed",
+      "observed": 0,
+      "required": 0,
+      "affected_species": [],
+      "affected_clusters": [],
+      "affected_routes": [],
+      "evidence": {
+        "reference_bank_fingerprint": "sha256:bank-fingerprint-0001",
+        "support_manifest_fingerprint": "sha256:support-manifest-fingerprint-0001",
+        "summary_fingerprint": "sha256:summary-fingerprint-0001",
+        "split_assignments_fingerprint": "sha256:split-fingerprint-0001",
+        "issues": []
+      }
+    },
+    {
+      "check_id": "target_adult_minimum",
+      "status": "warning",
+      "observed": [
+        {
+          "accepted_taxon_key": "gbif:54321",
+          "required_minimum_count": 8,
+          "observed_count": 6,
+          "shortfall": 2,
+          "documented": true,
+          "requirement": {
+            "accepted_taxon_key": "gbif:54321",
+            "accepted_taxon_name": "Papilio demoleus",
+            "requirement_minimum_count": 8,
+            "approved_minimum_count": 6,
+            "route": "adult"
+          }
+          ,
+          "plan_configuration_fingerprint": "sha256:plan-fingerprint-0001"
+        }
+      ],
+      "required": [
+        {
+          "accepted_taxon_key": "gbif:54321",
+          "required_minimum_count": 8,
+          "shortfall_id": "target_adult_minimum"
+        }
+      ],
+      "affected_species": ["gbif:54321"],
+      "affected_clusters": [],
+      "affected_routes": ["adult_field"],
+      "evidence": {
+        "reference_bank_fingerprint": "sha256:bank-fingerprint-0001",
+        "support_manifest_fingerprint": "sha256:support-manifest-fingerprint-0001",
+        "summary_fingerprint": "sha256:summary-fingerprint-0001",
+        "split_assignments_fingerprint": "sha256:split-fingerprint-0001"
+      }
+    },
+    {
+      "check_id": "model_building_inputs_available",
+      "status": "passed",
+      "observed": 1,
+      "required": 1,
+      "affected_species": ["gbif:54321"],
+      "affected_clusters": ["cluster-01"],
+      "affected_routes": [],
+      "evidence": {
+        "reference_bank_fingerprint": "sha256:bank-fingerprint-0001",
+        "support_manifest_fingerprint": "sha256:support-manifest-fingerprint-0001",
+        "summary_fingerprint": "sha256:summary-fingerprint-0001",
+        "split_assignments_fingerprint": "sha256:split-fingerprint-0001",
+        "model_input_fingerprint": "sha256:model-input-fingerprint-0001",
+        "eligible_species_count": 1
+      }
+    }
+  ],
+  "counts": {
+    "support_manifest_rows": 12,
+    "eligible_support_rows": 11,
+    "target_minimum_shortfall_count": 1,
+    "competitor_minima_shortfall_count": 0,
+    "geographic_coverage_shortfall_count": 0,
+    "undocumented_competitor_shortfall_count": 0,
+    "undocumented_geographic_shortfall_count": 0,
+    "documented_shortfall_count": 1,
+    "pending_review_count": 0,
+    "pending_target_review_count": 0,
+    "unresolved_duplicate_count": 0,
+    "licence_blocker_count": 0,
+    "attribution_blocker_count": 0,
+    "unverified_support_count": 0,
+    "route_separation_conflict_count": 0,
+    "split_leakage_count": 0,
+    "structural_issue_count": 0
+  },
+  "documented_shortfalls": [
+    {
+      "shortfall_id": "target_adult_minimum",
+      "requirement_minimum_count": 8,
+      "approved_minimum_count": 6,
+      "observed_count": 6,
+      "accepted_taxon_key": "gbif:54321"
+    }
+  ],
+  "inputs": {
+    "candidate_set_ids": ["cs-001", "cs-002"],
+    "source_artifacts": ["reference_support_manifest.parquet", "reference_bank_summary.parquet"]
+  },
+  "artifacts": {
+    "support_manifest": {
+      "file": "reference_support_manifest.parquet",
+      "sha256": "sha256:support-manifest-0001",
+      "semantic_fingerprint": "sha256:support-manifest-fingerprint-0001"
+    },
+    "summary": {
+      "file": "reference_bank_summary.parquet",
+      "sha256": "sha256:summary-manifest-0001",
+      "semantic_fingerprint": "sha256:summary-fingerprint-0001"
+    }
+  }
+}

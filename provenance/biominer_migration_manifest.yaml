@@ -70,3 +70,20 @@ components:
     tests:
       - "packages/replay/tests/test_biominer_candidate_set_summary_adapter.py"
     status: "migrated"
+  - component_id: "biominer_reference_readiness_adapter"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    source_path: "src/biominer/references/readiness.py"
+    destination_path: "packages/replay/src/biominer_reference_readiness_adapter.py"
+    migration_kind: "extracted"
+    reason: "Adapt BioMiner reference-bank readiness manifest into TaxaLens summary and check contracts."
+    build_week_scope: "new"
+    source_license: "BioMiner project license (as-is)"
+    changes:
+      - "Added readiness artifact discovery and JSON ingestion"
+      - "Added summary plus check-level adaptation with documented shortfall and readiness counters"
+      - "Added compatibility report for missing/malformed readiness payloads"
+      - "Added fixture-backed tests and manifest fixture"
+    tests:
+      - "packages/replay/tests/test_biominer_reference_readiness_adapter.py"
+    status: "migrated"

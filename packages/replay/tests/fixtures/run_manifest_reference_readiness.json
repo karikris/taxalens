@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "run_id": "fixture-reference-readiness-0001",
+  "status": "complete",
+  "command": ["biominer", "run", "demo"],
+  "git_sha": "1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+  "storage_backend": "local",
+  "workstore_backend": "file",
+  "started_at": "2026-07-15T01:15:00Z",
+  "ended_at": "2026-07-15T01:20:00Z",
+  "taxon_scope": {
+    "input_name": "Papilio demoleus",
+    "accepted_scientific_name": "Papilio demoleus",
+    "accepted_taxon_key": "gbif:54321"
+  },
+  "outputs": {
+    "reference_readiness_manifest": "reference_bank_readiness.json",
+    "manifest": "run_manifest.json"
+  }
+}
