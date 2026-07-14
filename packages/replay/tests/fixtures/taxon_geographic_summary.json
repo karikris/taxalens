@@ -12,11 +12,11 @@
     "countries": ["IN", "BD", "MM"],
     "admin_regions": ["KA", "DL", "AN"],
     "occupied_envelope": {
-      "min_lat": 8.1,
-      "max_lat": 26.8,
-      "min_lon": 73.0,
-      "max_lon": 83.9,
-      "connected": true
+      "south": 8.1,
+      "north": 26.8,
+      "west": 73.0,
+      "east": 83.9,
+      "crosses_dateline": false
     },
     "disconnected_range_component_count": 1,
     "occurrence_density_summary": {

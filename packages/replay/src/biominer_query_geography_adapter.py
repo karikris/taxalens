@@ -259,6 +259,42 @@ def _to_float_dict(value: Any) -> dict[str, float] | None:
     return out or None
 
 
+def _normalize_occupied_envelope(value: Any) -> dict[str, float | bool] | None:
+    if not isinstance(value, dict):
+        return None
+
+    aliases = {
+        "min_lat": "south",
+        "max_lat": "north",
+        "min_lon": "west",
+        "max_lon": "east",
+    }
+    normalized: dict[str, float | bool] = {}
+    for key, raw in value.items():
+        raw_key = _first_str(key)
+        if raw_key is None:
+            continue
+        normalized_key = aliases.get(raw_key, raw_key)
+        if normalized_key in {"crosses_dateline", "connected"}:
+            bool_value = _to_bool(raw)
+            if bool_value is None:
+                continue
+            normalized[normalized_key] = bool_value
+            continue
+        if normalized_key in {"south", "north", "west", "east"}:
+            float_value = _to_float(raw)
+            if float_value is None:
+                continue
+            normalized[normalized_key] = float_value
+            continue
+        float_value = _to_float(raw)
+        if float_value is None:
+            continue
+        normalized[normalized_key] = float_value
+
+    return normalized or None
+
+
 def _to_int_dict(value: Any) -> dict[str, int] | None:
     if not isinstance(value, dict):
         return None
@@ -271,19 +307,6 @@ def _to_int_dict(value: Any) -> dict[str, int] | None:
         if number is None:
             continue
         out[key_text] = number
-    return out or None
-
-
-def _to_string_dict(value: Any) -> dict[str, str] | None:
-    if not isinstance(value, dict):
-        return None
-    out: dict[str, str] = {}
-    for key, raw in value.items():
-        key_text = _first_str(key)
-        value_text = _first_str(raw)
-        if key_text is None or value_text is None:
-            continue
-        out[key_text] = value_text
     return out or None
 
 
@@ -532,9 +555,7 @@ def _map_occurrence_evidence_row(
 def _map_taxon_geographic_summary_row(
     row: dict[str, Any]
 ) -> TaxonGeographicSummaryRecordContract:
-    occupied_envelope = row.get("occupied_envelope")
-    if not isinstance(occupied_envelope, dict):
-        occupied_envelope = _to_string_dict(occupied_envelope)
+    occupied_envelope = _normalize_occupied_envelope(row.get("occupied_envelope"))
 
     return {
         "schema_version": _first_str(row.get("schema_version")),
@@ -549,11 +570,7 @@ def _map_taxon_geographic_summary_row(
         ),
         "countries": _to_string_list(row.get("countries")),
         "admin_regions": _to_string_list(row.get("admin_regions")),
-        "occupied_envelope": (
-            {str(key): value for key, value in occupied_envelope.items()}
-            if isinstance(occupied_envelope, dict)
-            else occupied_envelope
-        ),
+        "occupied_envelope": occupied_envelope,
         "disconnected_range_component_count": _to_int(row.get("disconnected_range_component_count")),
         "occurrence_density_summary": _to_float_dict(row.get("occurrence_density_summary")),
         "data_deficient": _to_bool(row.get("data_deficient")),

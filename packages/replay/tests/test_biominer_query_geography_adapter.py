@@ -33,6 +33,13 @@ def test_adapt_query_geography_artifacts_from_fixture() -> None:
     assert len(result["geographic_occurrence_evidence_rows"]) == 2
     assert len(result["taxon_geographic_summary_rows"]) == 1
     assert result["geographic_occurrence_evidence_rows"][0]["admin1_code"] == "KA"
+    assert result["taxon_geographic_summary_rows"][0]["occupied_envelope"] == {
+        "south": 8.1,
+        "north": 26.8,
+        "west": 73.0,
+        "east": 83.9,
+        "crosses_dateline": False,
+    }
 
     spread_manifest_summary = result["geographic_spread_manifest_summary"]
     assert spread_manifest_summary["status"] == "complete"
