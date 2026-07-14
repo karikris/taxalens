@@ -123,3 +123,87 @@ def test_adapt_run_manifest_normalizes_all_known_status_aliases(tmp_path: Path) 
             biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
         )
         assert result["run_summary"]["status"] == expected
+
+
+def test_adapt_run_manifest_rejects_missing_manifest() -> None:
+    try:
+        adapt_run_manifest(
+            manifest_path=Path("missing_run_manifest.json"),
+            biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+        )
+    except RunManifestAdapterError as exc:
+        assert "Run manifest not found" in str(exc)
+    else:
+        assert False
+
+
+def test_adapt_run_manifest_rejects_invalid_json_manifest(tmp_path: Path) -> None:
+    manifest = tmp_path / "run_manifest_invalid.json"
+    manifest.write_text("{invalid_json:", encoding="utf-8")
+
+    try:
+        adapt_run_manifest(
+            manifest_path=manifest,
+            biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+        )
+    except RunManifestAdapterError as exc:
+        assert "Run manifest is not valid JSON" in str(exc)
+    else:
+        assert False
+
+
+def test_adapt_run_manifest_rejects_non_object_manifest(tmp_path: Path) -> None:
+    manifest = tmp_path / "run_manifest_not_object.json"
+    manifest.write_text("[1, 2, 3]", encoding="utf-8")
+
+    try:
+        adapt_run_manifest(
+            manifest_path=manifest,
+            biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+        )
+    except RunManifestAdapterError as exc:
+        assert "Run manifest payload must be an object" in str(exc)
+    else:
+        assert False
+
+
+def test_adapt_run_manifest_rejects_unsupported_schema_version(tmp_path: Path) -> None:
+    manifest_payload = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest.json").read_text(encoding="utf-8")
+    )
+    manifest_payload["schema_version"] = 2
+
+    manifest = tmp_path / "run_manifest_unsupported_schema.json"
+    manifest.write_text(json.dumps(manifest_payload), encoding="utf-8")
+
+    try:
+        adapt_run_manifest(
+            manifest_path=manifest,
+            biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+        )
+    except RunManifestAdapterError as exc:
+        assert "Unsupported run manifest schema version" in str(exc)
+    else:
+        assert False
+
+
+def test_adapt_run_manifest_notes_schema_and_output_missing_fields(tmp_path: Path) -> None:
+    incomplete = {}
+    manifest = tmp_path / "run_manifest_incomplete.json"
+    manifest.write_text(json.dumps(incomplete), encoding="utf-8")
+
+    result = adapt_run_manifest(
+        manifest_path=manifest,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    compatibility = result["compatibility"]
+    assert len(compatibility["missing_fields"]) == 15
+    assert "run_id" in compatibility["missing_fields"]
+    assert compatibility["notes"] == [
+        "Manifest metrics field was missing or malformed; defaulted to empty metrics.",
+        "Manifest outputs field was missing or malformed; defaulted to empty outputs.",
+    ]
+    assert result["run_summary"]["schema_version"] == "run_summary:v1"
+    assert result["run_summary"]["status"] == "unknown"
+    assert result["run_summary"]["records_in"] is None
