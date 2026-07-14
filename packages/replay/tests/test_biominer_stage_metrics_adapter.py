@@ -256,3 +256,43 @@ def test_adapt_stage_metrics_collects_missing_stage_records(tmp_path: Path) -> N
         "some stage records were missing expected fields" in note
         for note in result["compatibility"]["notes"]
     )
+
+
+def test_adapt_stage_metrics_tolerates_non_object_metrics_and_outputs(tmp_path: Path) -> None:
+    payload = {
+        "stages": [
+            {
+                "stage": "detect_objects",
+                "status": "complete",
+                "metrics": "not-a-metrics-mapping",
+                "outputs": ["not", "a", "mapping"],
+            }
+        ]
+    }
+
+    manifest_path = tmp_path / "run_manifest_stage_metrics_bad_stage_payloads.json"
+    manifest_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    result = adapt_stage_metrics(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    metric = result["stage_metrics"][0]
+    assert metric["stage_id"] == "detect_objects"
+    assert metric["operation_type"] == "object_detection"
+    assert metric["join_type"] == "nearest_neighbour"
+    assert metric["rows_in"] is None
+    assert metric["rows_out"] is None
+    assert metric["cache_hits"] is None
+    assert metric["input_artifact_id"] is None
+    assert metric["output_artifact_id"] is None
+    assert metric["input_keys"] == ["source_records"]
+    assert metric["output_keys"] == ["object_detections", "object_scores"]
+
+    compatibility = result["compatibility"]
+    assert compatibility["unknown_stages"] == []
+    assert compatibility["missing_stage_records"] == []
+    assert any(
+        "best-effort metric aliases" in note for note in compatibility["notes"]
+    )
