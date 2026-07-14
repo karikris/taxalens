@@ -130,3 +130,30 @@ def test_adapt_stage_metrics_normalizes_in_progress_and_awaiting_manual_review_a
     metric = awaiting["stage_metrics"][0]
     assert metric["operation_type"] == "awaiting_manual_review"
     assert metric["join_type"] == "other"
+
+
+def test_adapt_stage_metrics_normalizes_pending_and_skipped_status_aliases(
+    tmp_path: Path,
+) -> None:
+    source = Path("packages/replay/tests/fixtures/run_manifest_stage_metrics_status_passed.json")
+    payload = json.loads(source.read_text(encoding="utf-8"))
+
+    payload["stages"][0]["status"] = "pending"
+    pending_path = tmp_path / "run_manifest_stage_metrics_status_pending.json"
+    pending_path.write_text(json.dumps(payload), encoding="utf-8")
+    pending = adapt_stage_metrics(
+        manifest_path=pending_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+    metric = pending["stage_metrics"][0]
+    assert metric["operation_type"] == "pending"
+
+    payload["stages"][0]["status"] = "skipped"
+    skipped_path = tmp_path / "run_manifest_stage_metrics_status_skipped.json"
+    skipped_path.write_text(json.dumps(payload), encoding="utf-8")
+    skipped = adapt_stage_metrics(
+        manifest_path=skipped_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+    metric = skipped["stage_metrics"][0]
+    assert metric["operation_type"] == "skipped"
