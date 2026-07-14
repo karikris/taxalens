@@ -328,6 +328,51 @@ def test_adapt_reference_readiness_non_list_checks_records_note(tmp_path: Path) 
     assert "reference readiness checks were empty" in result["compatibility"]["notes"]
 
 
+def test_adapt_reference_readiness_skips_non_mapping_checks(tmp_path: Path) -> None:
+    run_payload = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    readiness_payload = json.loads(
+        Path("packages/replay/tests/fixtures/reference_bank_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    original_checks = readiness_payload["checks"]
+    readiness_payload["checks"] = [
+        "non-mapping-check",
+        original_checks[1],
+        original_checks[2],
+    ]
+
+    manifest_path = tmp_path / "run_manifest_reference_readiness.json"
+    artifact_path = tmp_path / "reference_bank_readiness.json"
+    run_payload["outputs"]["reference_readiness_manifest"] = str(artifact_path.name)
+
+    manifest_path.write_text(json.dumps(run_payload), encoding="utf-8")
+    artifact_path.write_text(json.dumps(readiness_payload), encoding="utf-8")
+
+    result = adapt_reference_readiness(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    checks = result["reference_readiness_checks"]
+    summary = result["reference_readiness_summary"]
+    assert summary is not None
+    assert len(checks) == 2
+    assert checks[0]["check_id"] == "target_adult_minimum"
+    assert checks[1]["check_id"] == "model_building_inputs_available"
+    assert summary["checks_total"] == 2
+    assert summary["checks_warning"] == 1
+    assert summary["checks_passed"] == 1
+    assert result["compatibility"]["checks_read"] == 2
+    assert "non_mapping_readiness_check_0" in result["compatibility"]["skipped_checks"]
+    assert "skipped 1 readiness checks while adapting" in result["compatibility"]["notes"]
+
+
 def test_adapt_reference_readiness_normalizes_fail_and_failure_aliases(tmp_path: Path) -> None:
     run_payload = json.loads(
         Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
