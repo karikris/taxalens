@@ -244,6 +244,30 @@ def _to_bool(value: Any) -> bool | None:
     return None
 
 
+def _normalize_status(value: Any, *, fallback_to_lower: bool = True) -> str | None:
+    raw = _first_str(value)
+    if raw is None:
+        return None
+    lowered = raw.strip().lower()
+    status_map = {
+        "succeeded": "complete",
+        "pass": "complete",
+        "passed": "complete",
+        "complete": "complete",
+        "done": "complete",
+        "success": "complete",
+        "failed": "failed",
+        "running": "running",
+        "incomplete": "incomplete",
+        "partial": "partial",
+        "unknown": "unknown",
+    }
+    mapped = status_map.get(lowered)
+    if mapped is not None:
+        return mapped
+    return lowered if not fallback_to_lower else lowered
+
+
 def _to_float_dict(value: Any) -> dict[str, float] | None:
     if not isinstance(value, dict):
         return None
@@ -681,7 +705,7 @@ def _map_geographic_spread_manifest_summary(
         "geographic_occurrence_evidence_artifact_path": str(occurrence_artifact_path)
         if occurrence_artifact_path
         else None,
-        "status": _first_str(payload.get("status")),
+        "status": _normalize_status(payload.get("status")),
         "retrieved_at": _first_str(payload.get("retrieved_at")),
         "resumed": _to_bool(payload.get("resumed")),
         "completed_occurrence_count": _to_int(payload.get("completed_occurrence_count")),
@@ -738,8 +762,8 @@ def _map_geographic_summary_manifest_summary(
         if summary_artifact_path
         else None,
         "geographic_qa_findings_artifact_path": str(qa_artifact_path) if qa_artifact_path else None,
-        "status": _first_str(payload.get("status")) if isinstance(payload, dict) else None,
-        "qa_status": _first_str(payload.get("qa_status")) if isinstance(payload, dict) else None,
+        "status": _normalize_status(payload.get("status")) if isinstance(payload, dict) else None,
+        "qa_status": _normalize_status(payload.get("qa_status")) if isinstance(payload, dict) else None,
         "qa_fatal_count": _to_int(payload.get("qa_fatal_count")) if isinstance(payload, dict) else None,
         "qa_warning_count": _to_int(payload.get("qa_warning_count")) if isinstance(payload, dict) else None,
         "summary_row_count": summary_row_count,

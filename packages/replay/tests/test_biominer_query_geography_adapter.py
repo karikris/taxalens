@@ -99,3 +99,17 @@ def test_adapt_query_geography_artifacts_normalizes_structured_range_source_cove
         {"gbif": 2},
         {"iNaturalist": 1},
     ]
+
+
+def test_adapt_query_geography_artifacts_normalizes_passed_statuses() -> None:
+    manifest = Path(
+        "packages/replay/tests/fixtures/run_manifest_query_geography_status_passed.json"
+    )
+    result = adapt_query_geography_artifacts(
+        manifest_path=manifest,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["geographic_spread_manifest_summary"]["status"] == "complete"
+    assert result["geographic_summary_manifest_summary"]["status"] == "complete"
+    assert result["geographic_summary_manifest_summary"]["qa_status"] == "complete"

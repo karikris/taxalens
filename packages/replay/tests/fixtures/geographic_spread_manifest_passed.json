@@ -1,0 +1,19 @@
+{
+  "run_id": "fixture-query-geography-passed-status-0001",
+  "schema_version": "geographic-spread-manifest-v1.0.0",
+  "status": "passed",
+  "retrieved_at": "2026-07-15T01:24:00Z",
+  "resumed": false,
+  "completed_occurrence_count": 2,
+  "invalid_coordinate_count": 0,
+  "taxon_key_mismatch_count": 0,
+  "range_inference_eligible_occurrence_count": 2,
+  "evidence_row_count": 2,
+  "evidence_confidence_method": "grid-density-v1",
+  "spread_row_count": 2,
+  "checkpoint_part_count": 2,
+  "source_total_records": 3200,
+  "source": "gbif",
+  "source_query_hash": "hash-query-geography",
+  "source_snapshot_version": "snapshot-2026-07-15"
+}
