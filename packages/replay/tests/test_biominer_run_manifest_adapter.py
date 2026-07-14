@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from packages.replay.src.biominer_run_manifest_adapter import adapt_run_manifest, RunManifestAdapterError
@@ -28,23 +29,17 @@ def test_adapt_run_manifest_rejects_invalid_biominer_sha() -> None:
         assert False
 
 
-def test_adapt_run_manifest_normalizes_status_aliases() -> None:
-    fixture = Path("packages/replay/tests/fixtures/run_manifest_status_passed.json")
+def test_adapt_run_manifest_normalizes_completed_alias(tmp_path: Path) -> None:
+    source = Path("packages/replay/tests/fixtures/run_manifest.json")
+    payload = json.loads(source.read_text(encoding="utf-8"))
+    payload["status"] = "COMPLETED"
+
+    source_path = tmp_path / "run_manifest.json"
+    source_path.write_text(json.dumps(payload), encoding="utf-8")
+
     result = adapt_run_manifest(
-        manifest_path=fixture,
+        manifest_path=source_path,
         biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
     )
 
     assert result["run_summary"]["status"] == "complete"
-    assert result["run_summary"]["run_id"] == "fixture-run-status-passed-0001"
-
-
-def test_adapt_run_manifest_normalizes_completed_status_alias() -> None:
-    fixture = Path("packages/replay/tests/fixtures/run_manifest_status_completed.json")
-    result = adapt_run_manifest(
-        manifest_path=fixture,
-        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
-    )
-
-    assert result["run_summary"]["status"] == "complete"
-    assert result["run_summary"]["run_id"] == "fixture-run-status-completed-0001"

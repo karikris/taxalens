@@ -62,28 +62,6 @@ def _required_str(payload: dict[str, Any], key: str, *, fallback: str | None = N
     return value
 
 
-def _normalize_status(value: Any) -> str | None:
-    raw = _required_str({"status": value}, "status")
-    if raw is None:
-        return None
-    lowered = raw.strip().lower()
-    status_map = {
-        "succeeded": "complete",
-        "pass": "complete",
-        "passed": "complete",
-        "complete": "complete",
-        "completed": "complete",
-        "done": "complete",
-        "success": "complete",
-        "running": "running",
-        "in_progress": "running",
-        "failed": "failed",
-        "incomplete": "incomplete",
-        "unknown": "unknown",
-    }
-    return status_map.get(lowered, lowered)
-
-
 def _required_int(payload: dict[str, Any], key: str, *, fallback: int | None = None) -> int | None:
     value = payload.get(key)
     if value is None:
@@ -98,6 +76,26 @@ def _list_of_strings(value: Any) -> list[str]:
     if isinstance(value, list):
         return [str(item) for item in value if str(item)]
     return []
+
+
+def _normalize_status(value: Any) -> str | None:
+    raw = str(value or "").strip().lower()
+    if not raw:
+        return None
+    mapping = {
+        "succeeded": "complete",
+        "pass": "complete",
+        "passed": "complete",
+        "complete": "complete",
+        "completed": "complete",
+        "done": "complete",
+        "success": "complete",
+        "running": "running",
+        "failed": "failed",
+        "error": "failed",
+        "aborted": "failed",
+    }
+    return mapping.get(raw, raw)
 
 
 def _run_summary_from_payload(

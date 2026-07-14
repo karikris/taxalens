@@ -96,26 +96,22 @@ def _to_str(value: Any) -> str | None:
 
 
 def _normalize_status(value: Any) -> str | None:
-    raw = _to_str(value)
-    if raw is None:
+    text = _to_str(value)
+    if text is None:
         return None
-    lowered = raw.strip().lower()
+    normalized = text.lower()
     status_map = {
+        "succeeded": "passed",
         "pass": "passed",
         "passed": "passed",
-        "complete": "passed",
-        "completed": "passed",
-        "done": "passed",
-        "success": "passed",
-        "warn": "warning",
-        "warning": "warning",
         "failed": "failed",
+        "fail": "failed",
+        "warning": "warning",
+        "warn": "warning",
+        "warned": "warning",
         "pending": "pending",
     }
-    mapped = status_map.get(lowered)
-    if mapped is not None:
-        return mapped
-    return lowered
+    return status_map.get(normalized, normalized)
 
 
 def _to_bool(value: Any) -> bool | None:
