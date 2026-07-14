@@ -1077,3 +1077,97 @@ def test_adapt_query_geography_artifacts_prefers_data_key_after_rows(
     }
     assert result["query_definition_summary"]["max_search_priority"] == 9
     assert result["query_definition_summary"]["query_curation_rule_count"] == 1
+
+
+def test_adapt_query_geography_artifacts_prefers_candidates_key_after_data(
+    tmp_path: Path,
+) -> None:
+    source_manifest = json.loads(
+        Path(
+            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
+        ).read_text(encoding="utf-8")
+    )
+    source_manifest["outputs"]["query_definitions"] = "query_definitions_candidates_key.json"
+
+    manifest_path = tmp_path / "run_manifest_query_geography_candidates_key.json"
+    manifest_path.write_text(json.dumps(source_manifest), encoding="utf-8")
+    (tmp_path / "query_definitions_candidates_key.json").write_text(
+        json.dumps({
+            "candidates": [
+                {
+                    "query_definition_id": "qd-candidate-001",
+                    "query_eligible": False,
+                    "enabled": True,
+                    "source": "registry",
+                    "accepted_rank": "species",
+                    "search_priority": 7,
+                    "query_curation_rules": [{"name": "candidate-priority"}],
+                },
+                None,
+                {
+                    "query_definition_id": "qd-candidate-002",
+                    "query_eligible": False,
+                    "enabled": False,
+                    "source": "api",
+                    "accepted_rank": "family",
+                    "search_priority": 6,
+                },
+            ]
+        }),
+        encoding="utf-8",
+    )
+
+    # Keep other artifacts valid so this test targets query-definition payload shape behavior only.
+    (tmp_path / "taxon_geographic_spread.json").write_text(
+        Path("packages/replay/tests/fixtures/taxon_geographic_spread.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "geographic_occurrence_evidence.json").write_text(
+        Path("packages/replay/tests/fixtures/geographic_occurrence_evidence.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "taxon_geographic_summary.json").write_text(
+        Path("packages/replay/tests/fixtures/taxon_geographic_summary.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "geographic_spread_manifest.json").write_text(
+        Path("packages/replay/tests/fixtures/geographic_spread_manifest.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "geographic_summary_manifest.json").write_text(
+        Path("packages/replay/tests/fixtures/geographic_summary_manifest_passed.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+
+    result = adapt_query_geography_artifacts(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert len(result["query_definitions"]) == 2
+    assert result["query_definitions"][0]["query_definition_id"] == "qd-candidate-001"
+    assert result["query_definitions"][1]["query_definition_id"] == "qd-candidate-002"
+    assert result["query_definition_summary"]["total_query_definitions"] == 2
+    assert result["query_definition_summary"]["eligible_query_definitions"] == 0
+    assert result["query_definition_summary"]["ineligible_query_definitions"] == 2
+    assert result["query_definition_summary"]["disabled_query_definitions"] == 1
+    assert result["query_definition_summary"]["query_definitions_by_source"] == {
+        "registry": 1,
+        "api": 1,
+    }
+    assert result["query_definition_summary"]["query_definitions_by_rank"] == {
+        "species": 1,
+        "family": 1,
+    }
+    assert result["query_definition_summary"]["max_search_priority"] == 7
+    assert result["query_definition_summary"]["query_curation_rule_count"] == 1
