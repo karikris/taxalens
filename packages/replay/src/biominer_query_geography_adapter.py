@@ -414,6 +414,7 @@ def _load_manifest(path: Path) -> dict[str, Any]:
 
 
 def _extract_rows(payload: Any) -> list[dict[str, Any]]:
+    rows: list[Any] = []
     if isinstance(payload, list):
         rows = payload
     elif isinstance(payload, dict):
