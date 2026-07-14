@@ -583,3 +583,70 @@ def test_adapt_query_geography_artifacts_continues_when_one_artifact_is_malforme
     )
     assert len(result["geographic_spread_rows"]) == 2
     assert len(result["geographic_occurrence_evidence_rows"]) == 2
+
+
+def test_adapt_query_geography_artifacts_reports_non_object_manifest_payloads(
+    tmp_path: Path,
+) -> None:
+    source_manifest = json.loads(
+        Path(
+            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
+        ).read_text(encoding="utf-8")
+    )
+    source_manifest["outputs"]["query_definitions"] = "query_definitions.json"
+    source_manifest["outputs"]["taxon_geographic_spread"] = "taxon_geographic_spread.json"
+    source_manifest["outputs"]["geographic_occurrence_evidence"] = (
+        "geographic_occurrence_evidence.json"
+    )
+    source_manifest["outputs"]["taxon_geographic_summary"] = "taxon_geographic_summary.json"
+    source_manifest["outputs"]["geographic_spread_manifest"] = "spread_manifest_bad.json"
+    source_manifest["outputs"]["geographic_summary_manifest"] = "summary_manifest_bad.json"
+
+    manifest_path = tmp_path / "run_manifest_query_geography_non_object_manifests.json"
+    manifest_path.write_text(json.dumps(source_manifest), encoding="utf-8")
+
+    (tmp_path / "query_definitions.json").write_text(
+        Path("packages/replay/tests/fixtures/query_definitions.json").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    (tmp_path / "taxon_geographic_spread.json").write_text(
+        Path("packages/replay/tests/fixtures/taxon_geographic_spread.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "geographic_occurrence_evidence.json").write_text(
+        Path("packages/replay/tests/fixtures/geographic_occurrence_evidence.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "taxon_geographic_summary.json").write_text(
+        Path("packages/replay/tests/fixtures/taxon_geographic_summary.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "spread_manifest_bad.json").write_text(json.dumps([1, 2, 3]), encoding="utf-8")
+    (tmp_path / "summary_manifest_bad.json").write_text(json.dumps([1, 2]), encoding="utf-8")
+
+    result = adapt_query_geography_artifacts(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert len(result["query_definitions"]) == 3
+    assert len(result["geographic_spread_rows"]) == 2
+    assert len(result["geographic_occurrence_evidence_rows"]) == 2
+    assert len(result["taxon_geographic_summary_rows"]) == 1
+    assert result["geographic_spread_manifest_summary"]["status"] is None
+    assert result["geographic_summary_manifest_summary"]["status"] is None
+    assert result["geographic_summary_manifest_summary"]["qa_status"] is None
+    assert (
+        f"geographic_spread_manifest was not a JSON object at {manifest_path.parent / 'spread_manifest_bad.json'}"
+        in result["compatibility"]["notes"]
+    )
+    assert (
+        f"geographic_summary_manifest was not a JSON object at {manifest_path.parent / 'summary_manifest_bad.json'}"
+        in result["compatibility"]["notes"]
+    )
