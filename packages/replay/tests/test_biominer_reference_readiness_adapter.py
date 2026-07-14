@@ -571,6 +571,34 @@ def test_adapt_reference_readiness_resolves_manifest_directory_to_reference_bank
     assert result["compatibility"]["checks_read"] == 3
 
 
+def test_adapt_reference_readiness_reports_missing_reference_readiness_file_from_directory(
+    tmp_path: Path,
+) -> None:
+    manifest_payload = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    artifact_directory = tmp_path / "reference_readiness"
+    artifact_directory.mkdir()
+    manifest_path = tmp_path / "run_manifest_reference_readiness_dir_missing.json"
+    manifest_payload["outputs"]["reference_readiness_manifest"] = str(artifact_directory)
+    manifest_path.write_text(json.dumps(manifest_payload), encoding="utf-8")
+
+    result = adapt_reference_readiness(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["reference_readiness_summary"] is None
+    assert result["reference_readiness_checks"] == []
+    assert result["compatibility"]["artifact_missing"] is True
+    assert str(artifact_directory / "reference_bank_readiness.json") in str(
+        result["compatibility"]["notes"][0]
+    )
+
+
 def test_adapt_reference_readiness_handles_invalid_artifact_json(tmp_path: Path) -> None:
     manifest_payload = json.loads(
         Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(

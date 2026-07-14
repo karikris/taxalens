@@ -187,9 +187,7 @@ def _resolve_output_path(manifest_path: Path, raw: str) -> Path:
     if not path.is_absolute():
         path = (manifest_path.parent / path).resolve()
     if path.is_dir():
-        file_candidate = path / REFERENCE_BANK_READINESS_FILE
-        if file_candidate.exists():
-            return file_candidate
+        return path / REFERENCE_BANK_READINESS_FILE
     return path
 
 
