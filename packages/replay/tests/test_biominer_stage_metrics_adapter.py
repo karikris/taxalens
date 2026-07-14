@@ -157,3 +157,28 @@ def test_adapt_stage_metrics_normalizes_pending_and_skipped_status_aliases(
     )
     metric = skipped["stage_metrics"][0]
     assert metric["operation_type"] == "skipped"
+
+
+def test_adapt_stage_metrics_normalizes_done_and_succeeded_status_aliases(
+    tmp_path: Path,
+) -> None:
+    source = Path("packages/replay/tests/fixtures/run_manifest_stage_metrics_status_passed.json")
+    payload = json.loads(source.read_text(encoding="utf-8"))
+
+    payload["stages"][0]["status"] = "done"
+    done_path = tmp_path / "run_manifest_stage_metrics_status_done.json"
+    done_path.write_text(json.dumps(payload), encoding="utf-8")
+    done = adapt_stage_metrics(
+        manifest_path=done_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+    assert done["stage_metrics"][0]["operation_type"] == "complete"
+
+    payload["stages"][0]["status"] = "SUCCEEDED"
+    succeeded_path = tmp_path / "run_manifest_stage_metrics_status_succeeded.json"
+    succeeded_path.write_text(json.dumps(payload), encoding="utf-8")
+    succeeded = adapt_stage_metrics(
+        manifest_path=succeeded_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+    assert succeeded["stage_metrics"][0]["operation_type"] == "complete"
