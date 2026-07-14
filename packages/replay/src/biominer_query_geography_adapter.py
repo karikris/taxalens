@@ -254,6 +254,7 @@ def _normalize_status(value: Any, *, fallback_to_lower: bool = True) -> str | No
         "pass": "complete",
         "passed": "complete",
         "complete": "complete",
+        "completed": "complete",
         "done": "complete",
         "success": "complete",
         "warn": "warning",

@@ -104,6 +104,7 @@ def _normalize_status(value: Any) -> str | None:
         "pass": "passed",
         "passed": "passed",
         "complete": "passed",
+        "completed": "passed",
         "done": "passed",
         "success": "passed",
         "warn": "warning",
