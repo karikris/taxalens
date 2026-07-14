@@ -189,3 +189,96 @@ def test_adapt_reference_review_queue_normalizes_all_known_status_aliases(tmp_pa
 
         records = result["reference_review_queue_records"]
         assert records[0]["review_status"] == expected
+
+
+def test_adapt_reference_review_queue_rejects_missing_manifest() -> None:
+    try:
+        adapt_reference_review_queue(
+            manifest_path=Path("missing_reference_review_queue_manifest.json"),
+            biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+        )
+    except ReferenceReviewQueueAdapterError as exc:
+        assert "Manifest not found" in str(exc)
+    else:
+        assert False
+
+
+def test_adapt_reference_review_queue_rejects_invalid_json_manifest(tmp_path: Path) -> None:
+    manifest = tmp_path / "run_manifest_invalid.json"
+    manifest.write_text("{invalid_json:", encoding="utf-8")
+
+    try:
+        adapt_reference_review_queue(
+            manifest_path=manifest,
+            biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+        )
+    except ReferenceReviewQueueAdapterError as exc:
+        assert "Manifest is not valid JSON" in str(exc)
+    else:
+        assert False
+
+
+def test_adapt_reference_review_queue_rejects_non_object_manifest(tmp_path: Path) -> None:
+    manifest = tmp_path / "run_manifest_not_object.json"
+    manifest.write_text("[1, 2, 3]", encoding="utf-8")
+
+    try:
+        adapt_reference_review_queue(
+            manifest_path=manifest,
+            biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+        )
+    except ReferenceReviewQueueAdapterError as exc:
+        assert "Manifest payload must be a JSON object" in str(exc)
+    else:
+        assert False
+
+
+def test_adapt_reference_review_queue_treats_invalid_artifact_json_as_empty_result(tmp_path: Path) -> None:
+    manifest = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_reference_review_queue.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    manifest["outputs"]["reference_review_queue"] = "reference_review_queue_bad.json"
+
+    manifest_path = tmp_path / "run_manifest_reference_review_queue_bad.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    (tmp_path / "reference_review_queue_bad.json").write_text("{invalid_json", encoding="utf-8")
+
+    result = adapt_reference_review_queue(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["reference_review_queue_summary"] is None
+    assert result["reference_review_queue_records"] == []
+    assert result["compatibility"]["artifact_missing"] is False
+    assert any(
+        "review queue artifact could not be parsed" in note
+        for note in result["compatibility"]["notes"]
+    )
+
+
+def test_adapt_reference_review_queue_treats_non_dict_outputs_as_missing(tmp_path: Path) -> None:
+    manifest = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_reference_review_queue.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    manifest["outputs"] = "not-a-dict"
+
+    manifest_path = tmp_path / "run_manifest_reference_review_queue_bad_outputs.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    result = adapt_reference_review_queue(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["reference_review_queue_summary"] is None
+    assert result["reference_review_queue_records"] == []
+    assert result["compatibility"]["artifact_missing"] is True
+    assert (
+        "run manifest did not declare reference review queue artifact path"
+        in result["compatibility"]["notes"][0]
+    )
