@@ -668,6 +668,28 @@ def test_adapt_reference_readiness_rejects_boolean_schema_version(tmp_path: Path
         assert False
 
 
+def test_adapt_reference_readiness_rejects_false_schema_version(tmp_path: Path) -> None:
+    manifest_payload = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    manifest_payload["schema_version"] = False
+
+    manifest_path = tmp_path / "run_manifest_reference_readiness_vfalse.json"
+    manifest_path.write_text(json.dumps(manifest_payload), encoding="utf-8")
+
+    try:
+        adapt_reference_readiness(
+            manifest_path=manifest_path,
+            biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+        )
+    except ReferenceReadinessAdapterError as exc:
+        assert "Unsupported run manifest schema version" in str(exc)
+    else:
+        assert False
+
+
 def test_adapt_reference_readiness_rejects_empty_string_schema_version(tmp_path: Path) -> None:
     manifest_payload = json.loads(
         Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
