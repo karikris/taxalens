@@ -439,7 +439,12 @@ def _resolve_artifact_path(
     if not isinstance(outputs, dict):
         return None
     for key in keys:
-        raw = _first_str(outputs.get(key))
+        value = outputs.get(key)
+        if not isinstance(value, str):
+            continue
+        raw = value.strip()
+        if not raw:
+            continue
         if raw is None:
             continue
         path = Path(raw)
