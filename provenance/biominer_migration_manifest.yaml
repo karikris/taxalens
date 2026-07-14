@@ -36,3 +36,20 @@ components:
     tests:
       - "packages/replay/tests/test_biominer_stage_metrics_adapter.py"
     status: "migrated"
+  - component_id: "biominer_target_aware_scores_adapter"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    source_path: "src/biominer/bioclip/target_aware_output.py"
+    destination_path: "packages/replay/src/biominer_target_aware_scores_adapter.py"
+    migration_kind: "extracted"
+    reason: "Adapt BioMiner target-aware candidate score artifacts into TaxaLens candidate score contracts."
+    build_week_scope: "new"
+    source_license: "BioMiner project license (as-is)"
+    changes:
+      - "Added target-aware candidate score artifact path resolution and JSON parsing"
+      - "Mapped BioMiner candidate evidence fields to TaxaLens CandidateScore contract fields"
+      - "Added compatibility report for missing/malformed score artifacts"
+      - "Added fixture-backed tests for score labels, raw/calibrated values, and empty-artifact behavior"
+    tests:
+      - "packages/replay/tests/test_biominer_target_aware_scores_adapter.py"
+    status: "migrated"

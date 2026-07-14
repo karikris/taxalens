@@ -21,7 +21,11 @@ TaxaLens treats `karikris/BioMiner` as the upstream research engine and treats t
 
 ## Contracts consumed (current phase)
 
-- No BioMiner contracts have been migrated yet in this phase.
+- Target-aware candidate score frame contract (`src/biominer/bioclip/target_aware_output.py`)
+  has been consumed through `packages/replay/src/biominer_target_aware_scores_adapter.py` with
+  fixture-backed tests in `packages/replay/tests/test_biominer_target_aware_scores_adapter.py`.
+
+No additional BioMiner contracts are consumed yet in this phase.
 - Future migrations should be implemented as contracts and adapters with source SHAs recorded per component.
 
 ## Excluded work
