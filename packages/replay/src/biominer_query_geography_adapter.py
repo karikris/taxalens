@@ -417,16 +417,13 @@ def _extract_rows(payload: Any) -> list[dict[str, Any]]:
     if isinstance(payload, list):
         rows = payload
     elif isinstance(payload, dict):
-        candidate = (
-            payload.get("rows")
-            or payload.get("data")
-            or payload.get("definitions")
-            or payload.get("query_definitions")
-            or payload.get("candidates")
-        )
-        if isinstance(candidate, list):
-            rows = candidate
-        else:
+        for key in ("rows", "data", "definitions", "query_definitions", "candidates"):
+            if key not in payload:
+                continue
+            candidate = payload.get(key)
+            if isinstance(candidate, list):
+                rows = candidate
+                break
             return []
     else:
         return []
