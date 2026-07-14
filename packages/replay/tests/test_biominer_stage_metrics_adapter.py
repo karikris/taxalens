@@ -85,3 +85,18 @@ def test_adapt_stage_metrics_normalizes_stage_status_aliases() -> None:
     assert unknown["stage_id"] == "mystery_custom_stage"
     assert unknown["operation_type"] == "complete"
     assert unknown["join_type"] == "other"
+
+
+def test_adapt_stage_metrics_normalizes_completed_status_alias() -> None:
+    fixture = Path("packages/replay/tests/fixtures/run_manifest_stage_metrics_status_completed.json")
+    result = adapt_stage_metrics(
+        manifest_path=fixture,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    stage_metrics = result["stage_metrics"]
+    assert len(stage_metrics) == 1
+    unknown = stage_metrics[0]
+    assert unknown["stage_id"] == "mystery_custom_stage"
+    assert unknown["operation_type"] == "complete"
+    assert unknown["join_type"] == "other"

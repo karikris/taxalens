@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "run_id": "fixture-stage-metrics-completed-0001",
+  "status": "complete",
+  "command": ["biominer", "run", "demo"],
+  "git_sha": "1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+  "storage_backend": "local",
+  "workstore_backend": "file",
+  "started_at": "2026-07-15T00:00:00Z",
+  "ended_at": "2026-07-15T00:01:00Z",
+  "taxon_scope": {
+    "input_name": "Papilio demoleus",
+    "accepted_scientific_name": "Papilio demoleus",
+    "accepted_taxon_key": "gbif:54321",
+    "species_contexts": []
+  },
+  "stages": [
+    {
+      "stage": "mystery_custom_stage",
+      "status": "completed",
+      "metrics": {
+        "rows_in": 8,
+        "rows_out": 8
+      },
+      "outputs": {
+        "artifact": "staging/mystery_stage_completed.parquet"
+      }
+    }
+  ],
+  "query_counts": {},
+  "detection_counts": {},
+  "bioclip_counts": {},
+  "evidence_counts": {},
+  "metrics": {},
+  "outputs": {
+    "manifest": "run_manifest.json"
+  }
+}

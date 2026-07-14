@@ -93,3 +93,20 @@ def test_adapt_reference_review_queue_normalizes_review_status_aliases() -> None
     assert len(records) == 2
     assert records[0]["review_status"] == "completed"
     assert records[1]["review_status"] == "in_review"
+
+
+def test_adapt_reference_review_queue_normalizes_completed_status_alias() -> None:
+    manifest = Path(
+        "packages/replay/tests/fixtures/run_manifest_reference_review_queue_status_complete.json"
+    )
+    result = adapt_reference_review_queue(
+        manifest_path=manifest,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    summary = result["reference_review_queue_summary"]
+    assert summary is not None
+    assert summary["completed_records"] == 1
+    records = result["reference_review_queue_records"]
+    assert len(records) == 1
+    assert records[0]["review_status"] == "completed"

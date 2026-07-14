@@ -145,6 +145,8 @@ def _normalize_review_status(value: Any) -> str | None:
     lowered = raw.strip().lower()
     if lowered in {"done", "pass", "passed", "complete", "success", "succeeded"}:
         return "completed"
+    if lowered == "completed":
+        return "completed"
     if lowered == "done_review" or lowered == "reviewed":
         return "completed"
     return lowered
