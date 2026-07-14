@@ -1449,3 +1449,39 @@ def test_adapt_reference_readiness_prefers_documented_shortfalls_list_length_for
     summary = result["reference_readiness_summary"]
     assert summary is not None
     assert summary["documented_shortfall_count"] == 1
+
+
+def test_adapt_reference_readiness_string_counts_are_coerced_to_ints(tmp_path: Path) -> None:
+    manifest_payload = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    readiness_payload = json.loads(
+        Path("packages/replay/tests/fixtures/reference_bank_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    readiness_payload["counts"] = {
+        "support_manifest_rows": "12",
+        "eligible_support_rows": "4",
+        "pending_review_count": "not-a-number",
+    }
+    manifest_payload["outputs"]["reference_readiness_manifest"] = "reference_bank_readiness.json"
+
+    manifest_path = tmp_path / "run_manifest_reference_readiness_string_counts.json"
+    manifest_path.write_text(json.dumps(manifest_payload), encoding="utf-8")
+    (tmp_path / "reference_bank_readiness.json").write_text(
+        json.dumps(readiness_payload), encoding="utf-8"
+    )
+
+    result = adapt_reference_readiness(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f8403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    summary = result["reference_readiness_summary"]
+    assert summary is not None
+    assert summary["support_manifest_rows"] == 12
+    assert summary["eligible_support_rows"] == 4
+    assert summary["pending_review_count"] is None
