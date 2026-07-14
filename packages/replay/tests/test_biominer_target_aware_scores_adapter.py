@@ -56,6 +56,18 @@ def test_adapt_target_aware_candidate_scores_rejects_invalid_biominer_sha() -> N
         assert False
 
 
+def test_adapt_target_aware_candidate_scores_rejects_missing_manifest() -> None:
+    try:
+        adapt_target_aware_candidate_scores(
+            manifest_path=Path("tmp_missing_manifest.json"),
+            biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+        )
+    except TargetAwareScoresAdapterError as exc:
+        assert "Run manifest not found" in str(exc)
+    else:
+        assert False
+
+
 def test_adapt_target_aware_candidate_scores_rejects_non_object_manifest(tmp_path: Path) -> None:
     manifest_path = tmp_path / "run_manifest_not_object.json"
     manifest_path.write_text("[1, 2, 3]", encoding="utf-8")
@@ -69,6 +81,30 @@ def test_adapt_target_aware_candidate_scores_rejects_non_object_manifest(tmp_pat
         assert "payload must be a JSON object" in str(exc)
     else:
         assert False
+
+
+def test_adapt_target_aware_candidate_scores_treats_non_dict_outputs_as_missing_artifact(tmp_path: Path) -> None:
+    manifest = json.loads(
+        Path(
+            "packages/replay/tests/fixtures/run_manifest_target_aware_candidate_scores.json"
+        ).read_text(encoding="utf-8")
+    )
+    manifest["outputs"] = "not-a-dict"
+
+    manifest_path = tmp_path / "run_manifest_target_aware_candidate_scores.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    result = adapt_target_aware_candidate_scores(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["candidate_scores"] == []
+    assert result["compatibility"]["artifact_missing"] is True
+    assert (
+        "did not declare target-aware candidate score artifact path"
+        in result["compatibility"]["notes"][0]
+    )
 
 
 def test_adapt_target_aware_candidate_scores_rejects_invalid_manifest_json(tmp_path: Path) -> None:
@@ -182,6 +218,32 @@ def test_adapt_target_aware_candidate_scores_reports_empty_payload_notes(tmp_pat
 
     score_path = tmp_path / "target_aware_candidate_scores.json"
     score_path.write_text("{}", encoding="utf-8")
+
+    manifest_path = tmp_path / "run_manifest_target_aware_candidate_scores.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    result = adapt_target_aware_candidate_scores(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["candidate_scores"] == []
+    assert result["compatibility"]["rows_read"] == 0
+    assert "candidate score artifact was empty or had no rows" in result["compatibility"]["notes"]
+
+
+def test_adapt_target_aware_candidate_scores_handles_non_mapping_score_payload(tmp_path: Path) -> None:
+    manifest = json.loads(
+        Path(
+            "packages/replay/tests/fixtures/run_manifest_target_aware_candidate_scores.json"
+        ).read_text(encoding="utf-8")
+    )
+    manifest["outputs"]["target_aware_candidate_scores"] = str(
+        tmp_path / "target_aware_candidate_scores.json"
+    )
+
+    score_path = tmp_path / "target_aware_candidate_scores.json"
+    score_path.write_text(json.dumps(123), encoding="utf-8")
 
     manifest_path = tmp_path / "run_manifest_target_aware_candidate_scores.json"
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
@@ -545,6 +607,38 @@ def test_adapt_target_aware_candidate_scores_prefers_fallback_labels(tmp_path: P
 
     labels = [row["calibrated_label"] for row in result["candidate_scores"]]
     assert labels == ["target_probable", "abstain", "competitor"]
+
+
+def test_adapt_target_aware_candidate_scores_uses_other_when_fallback_flags_are_false(
+    tmp_path: Path,
+) -> None:
+    manifest = json.loads(
+        Path(
+            "packages/replay/tests/fixtures/run_manifest_target_aware_candidate_scores.json"
+        ).read_text(encoding="utf-8")
+    )
+    payload_row = {
+        "candidate_set_id": "cs-other",
+        "accepted_taxon_key": "gbif:54321",
+        "target_accepted_taxon_key": "gbif:54321",
+        "target_candidate": "0",
+        "abstained": "off",
+    }
+
+    manifest["outputs"]["target_aware_candidate_scores"] = str(
+        tmp_path / "target_aware_candidate_scores.json"
+    )
+    score_path = tmp_path / "target_aware_candidate_scores.json"
+    score_path.write_text(json.dumps([payload_row]), encoding="utf-8")
+    manifest_path = tmp_path / "run_manifest_target_aware_candidate_scores.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    result = adapt_target_aware_candidate_scores(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["candidate_scores"][0]["calibrated_label"] == "other"
 
 
 def test_adapt_target_aware_candidate_scores_prefers_decision_field_when_present(tmp_path: Path) -> None:
