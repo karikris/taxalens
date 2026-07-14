@@ -1464,3 +1464,66 @@ def test_adapt_query_geography_artifacts_counts_only_mapping_rows_for_compatibil
     assert result["query_definitions"][0]["query_definition_id"] == "qd-valid-001"
     assert result["query_definitions"][1]["query_definition_id"] == "qd-valid-002"
     assert result["compatibility"]["query_definition_rows_read"] == 2
+
+
+def test_adapt_query_geography_artifacts_prefers_empty_query_definitions_list(
+    tmp_path: Path,
+) -> None:
+    source_manifest = json.loads(
+        Path(
+            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
+        ).read_text(encoding="utf-8")
+    )
+    source_manifest["outputs"]["query_definitions"] = "query_definitions_empty.json"
+
+    manifest_path = tmp_path / "run_manifest_query_geography_empty.json"
+    manifest_path.write_text(json.dumps(source_manifest), encoding="utf-8")
+    (tmp_path / "query_definitions_empty.json").write_text(json.dumps([]), encoding="utf-8")
+
+    # Keep remaining artifacts valid so this test only exercises query-definition extraction.
+    (tmp_path / "taxon_geographic_spread.json").write_text(
+        Path("packages/replay/tests/fixtures/taxon_geographic_spread.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "geographic_occurrence_evidence.json").write_text(
+        Path("packages/replay/tests/fixtures/geographic_occurrence_evidence.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "taxon_geographic_summary.json").write_text(
+        Path("packages/replay/tests/fixtures/taxon_geographic_summary.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "geographic_spread_manifest.json").write_text(
+        Path("packages/replay/tests/fixtures/geographic_spread_manifest.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "geographic_summary_manifest.json").write_text(
+        Path("packages/replay/tests/fixtures/geographic_summary_manifest_passed.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+
+    result = adapt_query_geography_artifacts(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["query_definitions"] == []
+    assert result["query_definition_summary"]["total_query_definitions"] is None
+    assert result["query_definition_summary"]["eligible_query_definitions"] is None
+    assert result["query_definition_summary"]["ineligible_query_definitions"] is None
+    assert result["query_definition_summary"]["disabled_query_definitions"] is None
+    assert result["query_definition_summary"]["query_definitions_by_source"] is None
+    assert result["query_definition_summary"]["query_definitions_by_rank"] is None
+    assert result["query_definition_summary"]["max_search_priority"] is None
+    assert result["query_definition_summary"]["query_curation_rule_count"] is None
+    assert result["compatibility"]["query_definition_rows_read"] == 0
