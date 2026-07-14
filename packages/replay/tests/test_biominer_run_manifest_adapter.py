@@ -43,3 +43,35 @@ def test_adapt_run_manifest_normalizes_completed_alias(tmp_path: Path) -> None:
     )
 
     assert result["run_summary"]["status"] == "complete"
+
+
+def test_adapt_run_manifest_normalizes_error_aliases(tmp_path: Path) -> None:
+    source = Path("packages/replay/tests/fixtures/run_manifest.json")
+    payload = json.loads(source.read_text(encoding="utf-8"))
+
+    payload["status"] = "SUCCESS"
+    source_path = tmp_path / "run_manifest_success.json"
+    source_path.write_text(json.dumps(payload), encoding="utf-8")
+    success_result = adapt_run_manifest(
+        manifest_path=source_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+    assert success_result["run_summary"]["status"] == "complete"
+
+    payload["status"] = "ERROR"
+    source_path = tmp_path / "run_manifest_error.json"
+    source_path.write_text(json.dumps(payload), encoding="utf-8")
+    error_result = adapt_run_manifest(
+        manifest_path=source_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+    assert error_result["run_summary"]["status"] == "failed"
+
+    payload["status"] = "aborted"
+    source_path = tmp_path / "run_manifest_aborted.json"
+    source_path.write_text(json.dumps(payload), encoding="utf-8")
+    aborted_result = adapt_run_manifest(
+        manifest_path=source_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+    assert aborted_result["run_summary"]["status"] == "failed"
