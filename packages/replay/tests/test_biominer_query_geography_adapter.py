@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 from packages.replay.src.biominer_query_geography_adapter import (
@@ -139,3 +140,51 @@ def test_adapt_query_geography_artifacts_normalizes_completed_status_alias() -> 
 
     assert result["geographic_summary_manifest_summary"]["status"] == "complete"
     assert result["geographic_summary_manifest_summary"]["qa_status"] == "complete"
+
+
+def test_adapt_query_geography_artifacts_normalizes_success_aliases(tmp_path: Path) -> None:
+    manifest = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography_status_passed.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    spread_manifest = json.loads(
+        Path("packages/replay/tests/fixtures/geographic_spread_manifest_passed.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    summary_manifest = json.loads(
+        Path("packages/replay/tests/fixtures/geographic_summary_manifest_passed.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    spread_manifest["status"] = "SUCCESS"
+    summary_manifest["status"] = "SUCCESS"
+    summary_manifest["qa_status"] = "warn"
+
+    manifest["outputs"]["geographic_spread_manifest"] = "geographic_spread_manifest_alias.json"
+    manifest["outputs"]["geographic_summary_manifest"] = "geographic_summary_manifest_alias.json"
+
+    manifest_path = tmp_path / "run_manifest_query_geography_alias.json"
+    spread_path = tmp_path / "geographic_spread_manifest_alias.json"
+    summary_path = tmp_path / "geographic_summary_manifest_alias.json"
+
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    spread_path.write_text(json.dumps(spread_manifest), encoding="utf-8")
+    summary_path.write_text(json.dumps(summary_manifest), encoding="utf-8")
+
+    result = adapt_query_geography_artifacts(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert (
+        result["geographic_spread_manifest_summary"]["status"] == "complete"
+    )
+    assert (
+        result["geographic_summary_manifest_summary"]["status"] == "complete"
+    )
+    assert (
+        result["geographic_summary_manifest_summary"]["qa_status"] == "warning"
+    )
