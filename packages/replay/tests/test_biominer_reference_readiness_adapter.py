@@ -523,6 +523,46 @@ def test_adapt_reference_readiness_normalizes_all_known_status_aliases(tmp_path:
         assert result["reference_readiness_checks"][0]["status"] == expected
 
 
+def test_adapt_reference_readiness_leaves_unknown_status_unchanged_and_unclassified(
+    tmp_path: Path,
+) -> None:
+    run_payload = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    readiness_payload = json.loads(
+        Path("packages/replay/tests/fixtures/reference_bank_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    readiness_payload["checks"][0]["status"] = "IN_PROGRESS"
+    readiness_payload["checks"][1]["status"] = "SKIPPED"
+    readiness_payload["checks"][2]["status"] = "HALTED"
+
+    manifest_path = tmp_path / "run_manifest_reference_readiness_unknown_check_status.json"
+    artifact_path = tmp_path / "reference_bank_readiness_unknown_status.json"
+    run_payload["outputs"]["reference_readiness_manifest"] = artifact_path.name
+
+    manifest_path.write_text(json.dumps(run_payload), encoding="utf-8")
+    artifact_path.write_text(json.dumps(readiness_payload), encoding="utf-8")
+
+    result = adapt_reference_readiness(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f8403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    checks = result["reference_readiness_checks"]
+    summary = result["reference_readiness_summary"]
+    assert checks[0]["status"] == "in_progress"
+    assert checks[1]["status"] == "skipped"
+    assert checks[2]["status"] == "halted"
+    assert summary["checks_passed"] == 0
+    assert summary["checks_warning"] == 0
+    assert summary["checks_failed"] == 0
+    assert summary["checks_pending"] == 0
+
+
 def test_adapt_reference_readiness_rejects_unsupported_schema_version(
     tmp_path: Path,
 ) -> None:
