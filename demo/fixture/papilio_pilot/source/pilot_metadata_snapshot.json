@@ -300,7 +300,7 @@
             "sha256": "sha256:8a61a6f9c5ee157e8c6da64779cc2d888e67535b2ca28a2e5acba49ca9d66db9"
           }
         },
-        "import_manifest_sha256": "7a911f4e3549875321aa9af48b323ab61d2a0ffcc8ff167bd9e798df600b02a4",
+        "import_manifest_sha256": "400d457daa148cfa59e0a38c3ec17dfce70160af6115afe1ed543ae5c12a742f",
         "imported_files": [
           {
             "byte_count": 3424,
@@ -319,6 +319,15 @@
             "schema_version": "papilio-demoleus-phase14-experiment-matrix-v1.0.0",
             "sha256": "5911e367ba1e3d0d0db81f939b9f37fccff07cef86a172842e1d6bb7f124c283",
             "source_path": "config/pilot/papilio_demoleus_phase14_experiment_matrix.json"
+          },
+          {
+            "byte_count": 4734,
+            "checksum_verified": true,
+            "imported_path": "papilio_demoleus_geographic_workload.json",
+            "role": "geographic_workload_settings",
+            "schema_version": "target-aware-reference-cli-settings-v1",
+            "sha256": "c3196ca753090d6062edad6b524c0fd662fb3202070a7c05b61f3e6f4334c7e2",
+            "source_path": "config/pilot/papilio_demoleus_geographic_workload.json"
           },
           {
             "byte_count": 3083,
@@ -381,6 +390,15 @@
           "schema_version": "papilio-demoleus-phase14-experiment-matrix-v1.0.0",
           "sha256": "5911e367ba1e3d0d0db81f939b9f37fccff07cef86a172842e1d6bb7f124c283",
           "source_path": "config/pilot/papilio_demoleus_phase14_experiment_matrix.json"
+        },
+        {
+          "byte_count": 4734,
+          "checksum_verified": true,
+          "imported_path": "papilio_demoleus_geographic_workload.json",
+          "role": "geographic_workload_settings",
+          "schema_version": "target-aware-reference-cli-settings-v1",
+          "sha256": "c3196ca753090d6062edad6b524c0fd662fb3202070a7c05b61f3e6f4334c7e2",
+          "source_path": "config/pilot/papilio_demoleus_geographic_workload.json"
         },
         {
           "byte_count": 3083,
@@ -1017,11 +1035,26 @@
           "query_count": 22,
           "registry_identity_required": true,
           "sha256": "sha256:a94c81070b3a223fc84830e1f3cc0f04d52d47e00fdecc9713f84bea654d7520"
+        },
+        "source_registry": {
+          "accepted_identity_namespace": "gbif",
+          "registry_name": "BioMiner butterflies registry",
+          "registry_version": "butterflies-v2-20260712",
+          "source_snapshot_version": "gbif-reference-search-20260715"
         }
       },
       "human_review_required": true,
       "scientific_claim_allowed": false,
       "source_artifacts": [
+        {
+          "byte_count": 4734,
+          "checksum_verified": true,
+          "imported_path": "papilio_demoleus_geographic_workload.json",
+          "role": "geographic_workload_settings",
+          "schema_version": "target-aware-reference-cli-settings-v1",
+          "sha256": "c3196ca753090d6062edad6b524c0fd662fb3202070a7c05b61f3e6f4334c7e2",
+          "source_path": "config/pilot/papilio_demoleus_geographic_workload.json"
+        },
         {
           "byte_count": 8623,
           "checksum_verified": true,
@@ -1085,7 +1118,7 @@
   "metadata_only": true,
   "origin_commit": "75461d9c065af0cd96b41cd1f845c2e920f7ae34",
   "origin_repository": "karikris/BioMiner",
-  "schema_version": "taxalens-phase14-pilot-metadata:v1.0.0",
+  "schema_version": "taxalens-phase14-pilot-metadata:v1.1.0",
   "scientific_results_available": false,
   "target": {
     "accepted_taxon_key": "gbif:1938069",

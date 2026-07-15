@@ -44,6 +44,12 @@ export interface EvidencePlan {
     readonly scientificName: string
     readonly acceptedTaxonKey: string
   }
+  readonly sourceRegistry: {
+    readonly name: string
+    readonly version: string
+    readonly sourceSnapshotVersion: string
+    readonly acceptedIdentityNamespace: string
+  }
   readonly region: {
     readonly selection: string
     readonly regionCount: number
@@ -303,6 +309,7 @@ export function generateEvidencePlan(draft: MissionDraft, replay: ReplayEvidence
       scientificName: replay.target.scientificName,
       acceptedTaxonKey: replay.target.acceptedTaxonKey,
     },
+    sourceRegistry: { ...replay.mission.sourceRegistry },
     region: {
       selection: selectedRegion?.name ?? 'global',
       regionCount: selectedRegion === undefined ? replay.mission.regions.length : 1,

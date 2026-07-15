@@ -69,6 +69,14 @@ def test_adapts_real_committed_phase14_metadata() -> None:
         "Papilio machaon",
     ]
 
+    source_registry = contracts["trust_first_reference_plan"]["data"]["source_registry"]
+    assert source_registry == {
+        "registry_name": "BioMiner butterflies registry",
+        "registry_version": "butterflies-v2-20260712",
+        "source_snapshot_version": "gbif-reference-search-20260715",
+        "accepted_identity_namespace": "gbif",
+    }
+
     source_counts = contracts["source_media_counts"]["data"]["counts"]
     assert source_counts["media_candidate_count"] == 142_873
     assert source_counts["eligible_source_media_candidate_count"] == 838
@@ -127,7 +135,7 @@ def test_handoff_contract_verifies_exact_imported_bytes_without_large_payloads()
     assert handoff["verification_status"] == "content_and_cross_references_verified"
     assert handoff["human_review_required"] is False
     assert handoff["data"]["origin_commit"] == BIOMINER_SHA
-    assert len(handoff["data"]["imported_files"]) == 6
+    assert len(handoff["data"]["imported_files"]) == 7
     assert all(row["checksum_verified"] is True for row in handoff["data"]["imported_files"])
     assert handoff["data"]["large_payloads_imported"] is False
 
@@ -169,6 +177,26 @@ def test_rejects_cross_file_fingerprint_mismatch(tmp_path: Path) -> None:
     manifest_path.write_text(json.dumps(import_payload), encoding="utf-8")
 
     with pytest.raises(Phase14PilotAdapterError, match="source plan SHA-256"):
+        adapt_current_pilot_metadata(manifest_path)
+
+
+def test_rejects_mixed_source_registry_versions(tmp_path: Path) -> None:
+    manifest_path = _copy_import(tmp_path)
+    settings_path = manifest_path.parent / "papilio_demoleus_geographic_workload.json"
+    settings = json.loads(settings_path.read_text(encoding="utf-8"))
+    settings["commands"]["fetch-metadata"]["registry_version"] = "different-registry-v1"
+    settings_path.write_text(json.dumps(settings, separators=(",", ":")), encoding="utf-8")
+
+    import_payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+    imported = next(
+        row for row in import_payload["files"] if row["role"] == "geographic_workload_settings"
+    )
+    content = settings_path.read_bytes()
+    imported["byte_count"] = len(content)
+    imported["sha256"] = hashlib.sha256(content).hexdigest()
+    manifest_path.write_text(json.dumps(import_payload), encoding="utf-8")
+
+    with pytest.raises(Phase14PilotAdapterError, match="registry versions differ"):
         adapt_current_pilot_metadata(manifest_path)
 
 

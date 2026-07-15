@@ -13,8 +13,8 @@ from typing import Any, TypedDict
 
 from packages.replay.src.validation import is_full_git_sha
 
-PILOT_METADATA_ADAPTER_SCHEMA_VERSION = "taxalens-phase14-pilot-metadata:v1.0.0"
-COMPACT_IMPORT_SCHEMA_VERSION = "taxalens-biominer-compact-import:v1.0.0"
+PILOT_METADATA_ADAPTER_SCHEMA_VERSION = "taxalens-phase14-pilot-metadata:v1.1.0"
+COMPACT_IMPORT_SCHEMA_VERSION = "taxalens-biominer-compact-import:v1.1.0"
 DEFAULT_IMPORT_MANIFEST = Path("demo/source/biominer_phase14/import_manifest.json")
 
 SECTION_NAMES = (
@@ -34,6 +34,7 @@ SECTION_NAMES = (
 _EXPECTED_ROLES = {
     "competitor_relationships": "competitor-relationship-source-v1.0.0",
     "experiment_matrix": "papilio-demoleus-phase14-experiment-matrix-v1.0.0",
+    "geographic_workload_settings": "target-aware-reference-cli-settings-v1",
     "range_seed": "range-seed-v1",
     "reference_source_queries": ("papilio-demoleus-pilot-reference-source-queries-v1.0.0"),
     "geographic_workload_manifest": ("papilio-demoleus-pilot-geographic-workload-manifest-v1.0.0"),
@@ -90,6 +91,7 @@ def adapt_current_pilot_metadata(
     _validate_cross_file_contracts(payloads, sources)
 
     geographic = payloads["geographic_workload_manifest"]
+    geographic_settings = payloads["geographic_workload_settings"]
     references = payloads["reference_source_manifest"]
     queries = payloads["reference_source_queries"]
     relationships = payloads["competitor_relationships"]
@@ -185,12 +187,14 @@ def adapt_current_pilot_metadata(
             human_review_required=True,
             sources=_sources(
                 sources,
+                "geographic_workload_settings",
                 "reference_source_queries",
                 "reference_source_manifest",
                 "experiment_matrix",
             ),
             data={
                 "source_plan": references["source_plan"],
+                "source_registry": _source_registry(geographic_settings, queries),
                 "query_scope_policy": queries["query_scope_policy"],
                 "acquisition_quotas": queries["acquisition_quotas"],
                 "query_count": len(_list_of_mappings(queries.get("queries"), "queries")),
@@ -325,6 +329,7 @@ def _validate_cross_file_contracts(
     sources: Mapping[str, Mapping[str, object]],
 ) -> None:
     geographic = payloads["geographic_workload_manifest"]
+    geographic_settings = payloads["geographic_workload_settings"]
     references = payloads["reference_source_manifest"]
     queries = payloads["reference_source_queries"]
     relationships = payloads["competitor_relationships"]
@@ -332,12 +337,17 @@ def _validate_cross_file_contracts(
     matrix = payloads["experiment_matrix"]
     target_keys = {
         _mapping(geographic.get("target"), "geographic.target").get("accepted_taxon_key"),
+        _mapping(
+            _mapping(geographic_settings.get("pilot"), "settings.pilot").get("target"),
+            "settings.pilot.target",
+        ).get("accepted_taxon_key"),
         _mapping(references.get("target"), "references.target").get("accepted_taxon_key"),
         _mapping(matrix.get("target"), "matrix.target").get("accepted_taxon_key"),
         range_seed.get("accepted_taxon_key"),
     }
     if target_keys != {"gbif:1938069"}:
         raise Phase14PilotAdapterError("pilot target identity differs across imported artifacts")
+    _source_registry(geographic_settings, queries)
     _require_prefixed_digest_match(
         _mapping(geographic.get("competitor_plan"), "competitor_plan").get(
             "relationship_source_sha256"
@@ -393,6 +403,48 @@ def _validate_cross_file_contracts(
         {"authorized": False, "current_default_must_remain_unchanged": True},
         label="phase15_default_gate",
     )
+
+
+def _source_registry(
+    settings: Mapping[str, Any],
+    queries: Mapping[str, Any],
+) -> dict[str, object]:
+    commands = _mapping(settings.get("commands"), "settings.commands")
+    command_names = (
+        "build-geographic-spread",
+        "build-regional-competitor-evidence",
+        "fetch-metadata",
+    )
+    registry_versions = {
+        _required_text(
+            _mapping(commands.get(name), f"settings.commands.{name}").get("registry_version"),
+            f"settings.commands.{name}.registry_version",
+        )
+        for name in command_names
+    }
+    if len(registry_versions) != 1:
+        raise Phase14PilotAdapterError("pilot command registry versions differ")
+
+    query_rows = _list_of_mappings(queries.get("queries"), "queries")
+    snapshot_versions = {
+        _required_text(row.get("source_snapshot_version"), "query source_snapshot_version")
+        for row in query_rows
+    }
+    if len(snapshot_versions) != 1:
+        raise Phase14PilotAdapterError("reference query source snapshot versions differ")
+
+    fetch_metadata = _mapping(
+        commands.get("fetch-metadata"), "settings.commands.fetch-metadata"
+    )
+    if fetch_metadata.get("queries") != "config/pilot/papilio_demoleus_reference_source_queries.json":
+        raise Phase14PilotAdapterError("fetch-metadata query source differs")
+
+    return {
+        "registry_name": "BioMiner butterflies registry",
+        "registry_version": next(iter(registry_versions)),
+        "source_snapshot_version": next(iter(snapshot_versions)),
+        "accepted_identity_namespace": "gbif",
+    }
 
 
 def _range_summary(range_seed: Mapping[str, Any]) -> dict[str, object]:

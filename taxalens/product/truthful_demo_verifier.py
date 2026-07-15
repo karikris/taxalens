@@ -93,7 +93,7 @@ _EXPECTED_ARTIFACT_VERSIONS = {
     "flickr-candidate-summaries": "truthful-demo-flickr-candidate-summary:v1.0.0",
     "geographic-clusters": "truthful-demo-geographic-cluster-summary:v1.0.0",
     "logical-associations": "truthful-demo-logical-association:v1.0.0",
-    "pilot-metadata-snapshot": "taxalens-phase14-pilot-metadata:v1.0.0",
+    "pilot-metadata-snapshot": "taxalens-phase14-pilot-metadata:v1.1.0",
     "pipeline-stages": "truthful-demo-pipeline-stage:v1.0.0",
     "query-definitions": "truthful-demo-query-definition:v1.0.0",
     "reference-readiness": "truthful-demo-reference-readiness:v1.0.0",

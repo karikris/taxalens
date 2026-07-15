@@ -43,6 +43,12 @@ export interface ReplayIdentity {
 }
 
 export interface MissionEvidence {
+  readonly sourceRegistry: {
+    readonly name: string
+    readonly version: string
+    readonly sourceSnapshotVersion: string
+    readonly acceptedIdentityNamespace: string
+  }
   readonly queryPolicy: {
     readonly queryCount: number
     readonly queriedSpeciesCount: number
@@ -526,6 +532,10 @@ function projectMissionEvidence(
     'query_definitions.data.query_scope_policy',
   )
   const labelContract = object(queryData.label_contract, 'query_definitions.data.label_contract')
+  const sourceRegistry = object(
+    queryData.source_registry,
+    'query_definitions.data.source_registry',
+  )
   const phase15Gate = object(
     queryData.phase15_default_gate,
     'query_definitions.data.phase15_default_gate',
@@ -653,6 +663,28 @@ function projectMissionEvidence(
   })
 
   return deepFreeze({
+    sourceRegistry: {
+      name: stringField(
+        sourceRegistry,
+        'registry_name',
+        'query_definitions.data.source_registry',
+      ),
+      version: stringField(
+        sourceRegistry,
+        'registry_version',
+        'query_definitions.data.source_registry',
+      ),
+      sourceSnapshotVersion: stringField(
+        sourceRegistry,
+        'source_snapshot_version',
+        'query_definitions.data.source_registry',
+      ),
+      acceptedIdentityNamespace: stringField(
+        sourceRegistry,
+        'accepted_identity_namespace',
+        'query_definitions.data.source_registry',
+      ),
+    },
     queryPolicy: {
       queryCount: numberField(queryData, 'query_count', 'query_definitions.data'),
       queriedSpeciesCount: numberField(

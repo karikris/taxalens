@@ -85,6 +85,8 @@ test('shows only checksum-verified evidence with explicit fallback and unavailab
 })
 
 test('configures a bounded mission without enabling unsupported live work', async ({ page }) => {
+  const requestUrls: string[] = []
+  page.on('request', (request) => requestUrls.push(request.url()))
   await page.goto('./#mission')
 
   const target = page.getByRole('textbox', { name: 'Target species' })
@@ -101,6 +103,8 @@ test('configures a bounded mission without enabling unsupported live work', asyn
   await page.getByRole('button', { name: 'Generate deterministic plan' }).click()
   await expect(page.getByRole('heading', { name: 'Evidence plan' })).toBeVisible()
   await expect(page.getByText('taxalens-evidence-plan-v1.0.0', { exact: true })).toBeVisible()
+  await expect(page.getByText(/^sha256:[0-9a-f]{64}$/u)).toBeVisible()
+  await expect(page.getByText('butterflies-v2-20260712', { exact: true })).toBeVisible()
   await expect(page.getByText('Explicit approval remains required')).toBeVisible()
 
   await target.fill('Papilio polytes')
@@ -111,4 +115,20 @@ test('configures a bounded mission without enabling unsupported live work', asyn
   await expect(target).toHaveValue('Papilio demoleus')
   await expect(page.getByRole('textbox', { name: 'Optional device' })).toHaveValue('')
   await expect(page.getByText('No matching verified fixture')).toBeHidden()
+
+  const requestsBeforeLaunch = requestUrls.length
+  await page.getByRole('button', { name: 'Generate deterministic plan' }).click()
+  await expect(page.getByRole('button', { name: 'Launch submitted replay' })).toBeVisible()
+  await expect(page.getByRole('button', { name: /Live work/u })).toBeDisabled()
+  await page.getByRole('button', { name: 'Launch submitted replay' }).click()
+
+  await expect(page.getByRole('heading', { name: 'Replay launch receipt' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Observatory' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  )
+  await expect(page.locator('.replay-launch-receipt').getByText(/^sha256:[0-9a-f]{64}$/u)).toBeVisible()
+  await expect(page.getByText('17 / 17 verified')).toBeVisible()
+  await expect(page.getByText('Fixture replay only · no live actions · no remote requests')).toBeVisible()
+  expect(requestUrls).toHaveLength(requestsBeforeLaunch)
 })

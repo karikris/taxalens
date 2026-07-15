@@ -38,6 +38,12 @@ describe('generateEvidencePlan', () => {
     expect(nowSpy).not.toHaveBeenCalled()
     expect(randomSpy).not.toHaveBeenCalled()
     expect(first.planVersion).toBe(EVIDENCE_PLAN_VERSION)
+    expect(first.sourceRegistry).toEqual({
+      name: 'BioMiner butterflies registry',
+      version: 'butterflies-v2-20260712',
+      sourceSnapshotVersion: 'gbif-reference-search-20260715',
+      acceptedIdentityNamespace: 'gbif',
+    })
     expect(first.target).toEqual({
       scientificName: 'Papilio demoleus',
       acceptedTaxonKey: 'gbif:1938069',

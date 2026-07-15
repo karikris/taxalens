@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import {
   Button,
   FieldError,
@@ -24,14 +24,21 @@ import {
   createMissionDraft,
   generateEvidencePlan,
   MissionPlanValidationError,
-  type EvidencePlan,
   type MissionDraft,
   type MissionMode,
 } from './missionPlan'
+import {
+  launchSubmittedReplay,
+  prepareReplayPlan,
+  ReplayLaunchError,
+  type ReplayLaunchReceipt,
+  type ReplayPlanReadyState,
+} from './replayLaunch'
 import './mission.css'
 
 interface MissionWorkspaceProps {
   readonly replay: ReplayEvidence
+  readonly onReplayLaunch: (receipt: ReplayLaunchReceipt) => void
 }
 
 interface SelectOption<T extends string> {
@@ -81,7 +88,14 @@ function PolicySelect<T extends string>({
   )
 }
 
-function PlanResult({ plan }: { readonly plan: EvidencePlan }) {
+function PlanResult({
+  onLaunch,
+  ready,
+}: {
+  readonly onLaunch: () => void
+  readonly ready: ReplayPlanReadyState
+}) {
+  const { plan, planFingerprint } = ready
   const futureArtifacts = plan.artifactExpectations.filter(
     (expectation) => expectation.purpose === 'future_evidence_required',
   )
@@ -97,7 +111,16 @@ function PlanResult({ plan }: { readonly plan: EvidencePlan }) {
             action is used.
           </p>
         </div>
-        <code>{plan.planVersion}</code>
+        <div className="mission-plan__identity">
+          <span>
+            <small>Plan version</small>
+            <code>{plan.planVersion}</code>
+          </span>
+          <span>
+            <small>Plan fingerprint</small>
+            <code>{planFingerprint}</code>
+          </span>
+        </div>
       </div>
 
       <div className="mission-plan__summary">
@@ -126,6 +149,31 @@ function PlanResult({ plan }: { readonly plan: EvidencePlan }) {
           </div>
         </dl>
       </div>
+
+      <dl className="mission-plan__provenance">
+        <div>
+          <dt>Source registry</dt>
+          <dd>{plan.sourceRegistry.name}</dd>
+        </div>
+        <div>
+          <dt>Registry version</dt>
+          <dd>
+            <code>{plan.sourceRegistry.version}</code>
+          </dd>
+        </div>
+        <div>
+          <dt>Source snapshot</dt>
+          <dd>
+            <code>{plan.sourceRegistry.sourceSnapshotVersion}</code>
+          </dd>
+        </div>
+        <div>
+          <dt>Identity namespace</dt>
+          <dd>
+            <code>{plan.sourceRegistry.acceptedIdentityNamespace}</code>
+          </dd>
+        </div>
+      </dl>
 
       <div className="mission-plan__grid">
         <section aria-labelledby="expected-stages-title">
@@ -176,6 +224,21 @@ function PlanResult({ plan }: { readonly plan: EvidencePlan }) {
         incomplete. This plan does not approve or launch live work.
       </EvidenceState>
 
+      <section className="mission-launch" aria-labelledby="replay-launch-title">
+        <div>
+          <p className="eyebrow">Replay launch</p>
+          <h4 id="replay-launch-title">Open the submitted fixture</h4>
+          <p>
+            Launch reuses the 17 checksum-verified local artifacts bound to this fingerprint. It
+            makes no remote request and performs no scientific work.
+          </p>
+        </div>
+        <div className="mission-launch__actions">
+          <Button onPress={onLaunch}>Launch submitted replay</Button>
+          <Button isDisabled>Live work · approval unavailable</Button>
+        </div>
+      </section>
+
       <details className="mission-plan__json">
         <summary>Inspect structured plan JSON</summary>
         <pre>{JSON.stringify(plan, null, 2)}</pre>
@@ -184,12 +247,14 @@ function PlanResult({ plan }: { readonly plan: EvidencePlan }) {
   )
 }
 
-export function MissionWorkspace({ replay }: MissionWorkspaceProps) {
+export function MissionWorkspace({ onReplayLaunch, replay }: MissionWorkspaceProps) {
   const { mission: evidence, target } = replay
   const baseline = useMemo(() => createMissionDraft(replay), [replay])
   const [draft, setDraft] = useState<MissionDraft>(baseline)
-  const [plan, setPlan] = useState<EvidencePlan | null>(null)
+  const [readyPlan, setReadyPlan] = useState<ReplayPlanReadyState | null>(null)
   const [planIssues, setPlanIssues] = useState<readonly string[]>([])
+  const [isPreparingPlan, setIsPreparingPlan] = useState(false)
+  const planGeneration = useRef(0)
   const targetMatchesBundle =
     draft.targetSpecies.trim().toLowerCase() === target.scientificName.toLowerCase()
   const incompleteGates = evidence.prerequisiteGates.filter((gate) => gate.status !== 'complete')
@@ -197,27 +262,70 @@ export function MissionWorkspace({ replay }: MissionWorkspaceProps) {
 
   function update<K extends keyof MissionDraft>(field: K, value: MissionDraft[K]) {
     setDraft((current) => ({ ...current, [field]: value }))
-    setPlan(null)
+    planGeneration.current += 1
+    setReadyPlan(null)
+    setIsPreparingPlan(false)
     setPlanIssues([])
   }
 
   function restoreBaseline() {
     setDraft(baseline)
-    setPlan(null)
+    planGeneration.current += 1
+    setReadyPlan(null)
+    setIsPreparingPlan(false)
     setPlanIssues([])
   }
 
-  function generatePlan() {
+  async function generatePlan() {
+    const generation = planGeneration.current + 1
+    planGeneration.current = generation
+    setReadyPlan(null)
+    setIsPreparingPlan(true)
     try {
-      setPlan(generateEvidencePlan(draft, replay))
+      const plan = generateEvidencePlan(draft, replay)
+      const prepared = await prepareReplayPlan(plan)
+      if (planGeneration.current !== generation) {
+        return
+      }
+      setReadyPlan(prepared)
       setPlanIssues([])
     } catch (error) {
-      setPlan(null)
+      if (planGeneration.current !== generation) {
+        return
+      }
+      setReadyPlan(null)
       setPlanIssues(
         error instanceof MissionPlanValidationError
           ? error.issues.map((issue) => issue.message)
           : ['The deterministic plan could not be generated.'],
       )
+    } finally {
+      if (planGeneration.current === generation) {
+        setIsPreparingPlan(false)
+      }
+    }
+  }
+
+  function launchReplay() {
+    if (readyPlan === null) {
+      setPlanIssues(['Generate and fingerprint a valid replay plan before launch.'])
+      return
+    }
+    try {
+      const receipt = launchSubmittedReplay(readyPlan, replay)
+      onReplayLaunch(receipt)
+      window.location.hash = '#observatory'
+      window.requestAnimationFrame(() => {
+        const main = document.querySelector<HTMLElement>('#main-content')
+        main?.focus({ preventScroll: true })
+        main?.scrollIntoView?.({ block: 'start' })
+      })
+    } catch (error) {
+      setPlanIssues([
+        error instanceof ReplayLaunchError
+          ? error.message
+          : 'The submitted replay could not be launched.',
+      ])
     }
   }
 
@@ -393,8 +501,8 @@ export function MissionWorkspace({ replay }: MissionWorkspaceProps) {
             </fieldset>
 
             <div className="mission-form__actions">
-              <Button type="button" onPress={generatePlan}>
-                Generate deterministic plan
+              <Button type="button" isDisabled={isPreparingPlan} onPress={() => void generatePlan()}>
+                {isPreparingPlan ? 'Fingerprinting plan…' : 'Generate deterministic plan'}
               </Button>
               <Button type="button" className="mission-button--secondary" onPress={restoreBaseline}>
                 Restore replay baseline
@@ -455,7 +563,7 @@ export function MissionWorkspace({ replay }: MissionWorkspaceProps) {
         </aside>
       </div>
 
-      {plan !== null && <PlanResult plan={plan} />}
+      {readyPlan !== null && <PlanResult ready={readyPlan} onLaunch={launchReplay} />}
 
       <section className="mission-card mission-baseline" aria-labelledby="query-hierarchy-title">
         <p className="eyebrow">Verified replay baseline</p>

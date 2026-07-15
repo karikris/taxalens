@@ -99,6 +99,26 @@
   overflow-wrap: anywhere;
 }
 
+.replay-launch-receipt {
+  border-top: 4px solid var(--tl-brand);
+}
+
+.replay-launch-receipt__facts {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.replay-launch-receipt__fingerprint {
+  grid-column: span 2;
+}
+
+.replay-launch-receipt__fingerprint code {
+  overflow-wrap: anywhere;
+}
+
+.replay-launch-receipt__capabilities {
+  grid-column: 1 / -1;
+}
+
 .evidence-boundary {
   display: flex;
   flex-wrap: wrap;
@@ -175,6 +195,11 @@ code {
 
   .evidence-facts {
     grid-template-columns: 1fr;
+  }
+
+  .replay-launch-receipt__fingerprint,
+  .replay-launch-receipt__capabilities {
+    grid-column: auto;
   }
 
   .unavailable-evidence-list {

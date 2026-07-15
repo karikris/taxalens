@@ -279,13 +279,92 @@
   color: var(--tl-ink-muted);
 }
 
-.mission-plan__heading > code {
-  flex: 0 0 auto;
+.mission-plan__identity {
+  display: grid;
+  flex: 0 1 34rem;
+  gap: var(--tl-space-2);
+  min-width: 0;
+}
+
+.mission-plan__identity > span {
+  display: grid;
+  gap: var(--tl-space-1);
+  min-width: 0;
   padding: var(--tl-space-2) var(--tl-space-3);
   color: var(--tl-brand-strong);
   background: var(--tl-brand-soft);
   border: 1px solid var(--tl-line-strong);
-  border-radius: var(--tl-radius-pill);
+  border-radius: var(--tl-radius-sm);
+}
+
+.mission-plan__identity small,
+.mission-plan__provenance dt {
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-xs);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mission-plan__identity code,
+.mission-plan__provenance code {
+  overflow-wrap: anywhere;
+}
+
+.mission-plan__provenance {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0;
+  overflow: hidden;
+  background: var(--tl-line);
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.mission-plan__provenance > div {
+  min-width: 0;
+  padding: var(--tl-space-3);
+  background: var(--tl-surface-subtle);
+}
+
+.mission-plan__provenance dd {
+  margin: var(--tl-space-1) 0 0;
+  overflow-wrap: anywhere;
+}
+
+.mission-launch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tl-space-4);
+  padding: var(--tl-space-4);
+  background: var(--tl-brand-soft);
+  border: 1px solid var(--tl-line-strong);
+  border-radius: var(--tl-radius-sm);
+}
+
+.mission-launch h4 {
+  margin-bottom: var(--tl-space-1);
+}
+
+.mission-launch p:last-child {
+  max-width: var(--tl-reading-width);
+  margin-bottom: 0;
+  color: var(--tl-ink-muted);
+}
+
+.mission-launch__actions {
+  display: grid;
+  flex: 0 0 auto;
+  gap: var(--tl-space-2);
+}
+
+.mission-launch__actions .react-aria-Button[data-disabled] {
+  color: var(--tl-ink-muted);
+  background: var(--tl-surface-subtle);
+  border: 1px solid var(--tl-line);
+  cursor: not-allowed;
 }
 
 .mission-plan__summary dl {
@@ -699,6 +778,10 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .mission-plan__provenance {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .mission-draft {
     position: static;
   }
@@ -728,7 +811,8 @@
 @media (max-width: 44rem) {
   .mission-workspace__intro,
   .mission-form__actions,
-  .mission-plan__heading {
+  .mission-plan__heading,
+  .mission-launch {
     display: grid;
   }
 
@@ -737,11 +821,13 @@
   .mission-metrics,
   .mission-plan__summary dl,
   .mission-plan__stages,
-  .mission-plan__artifacts {
+  .mission-plan__artifacts,
+  .mission-plan__provenance {
     grid-template-columns: 1fr;
   }
 
-  .mission-plan__heading > code {
-    justify-self: start;
+  .mission-plan__identity,
+  .mission-launch__actions {
+    width: 100%;
   }
 }

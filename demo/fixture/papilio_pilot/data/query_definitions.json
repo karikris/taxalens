@@ -170,12 +170,27 @@
         "query_count": 22,
         "registry_identity_required": true,
         "sha256": "sha256:a94c81070b3a223fc84830e1f3cc0f04d52d47e00fdecc9713f84bea654d7520"
+      },
+      "source_registry": {
+        "accepted_identity_namespace": "gbif",
+        "registry_name": "BioMiner butterflies registry",
+        "registry_version": "butterflies-v2-20260712",
+        "source_snapshot_version": "gbif-reference-search-20260715"
       }
     },
     "human_review_required": true,
     "record_id": "trust-first-reference-query-plan",
     "scientific_claim_allowed": false,
     "source_artifacts": [
+      {
+        "byte_count": 4734,
+        "checksum_verified": true,
+        "imported_path": "papilio_demoleus_geographic_workload.json",
+        "role": "geographic_workload_settings",
+        "schema_version": "target-aware-reference-cli-settings-v1",
+        "sha256": "c3196ca753090d6062edad6b524c0fd662fb3202070a7c05b61f3e6f4334c7e2",
+        "source_path": "config/pilot/papilio_demoleus_geographic_workload.json"
+      },
       {
         "byte_count": 8623,
         "checksum_verified": true,

@@ -93,14 +93,14 @@
     },
     {
       "artifact_id": "pilot-metadata-snapshot",
-      "bytes": 43415,
+      "bytes": 45059,
       "media_type": "application/json",
       "path": "source/pilot_metadata_snapshot.json",
       "record_count": 1,
       "required": true,
       "role": "other",
-      "schema_version": "taxalens-phase14-pilot-metadata:v1.0.0",
-      "sha256": "335598458517f8b5d372e013fc7b0841fab9c21b1a73e11e91101259fbffd241",
+      "schema_version": "taxalens-phase14-pilot-metadata:v1.1.0",
+      "sha256": "24078d02358e3339cfe4986eb8409a7f4b7dc4ff4479c2a5a3402ed47b44740b",
       "source_commit": "75461d9c065af0cd96b41cd1f845c2e920f7ae34",
       "source_repository": "karikris/BioMiner"
     },
@@ -119,14 +119,14 @@
     },
     {
       "artifact_id": "query-definitions",
-      "bytes": 7585,
+      "bytes": 8281,
       "media_type": "application/json",
       "path": "data/query_definitions.json",
       "record_count": 1,
       "required": true,
       "role": "query_definitions",
       "schema_version": "truthful-demo-query-definition:v1.0.0",
-      "sha256": "801920d1afdb829ec96f7bdf18f5744b5e6fc18f337ed050b8ee0cf84463014d",
+      "sha256": "68e416b6bb48c095ccfc7ea244f1af9666c622a09b0841b46a36427d4f57e5a5",
       "source_commit": "75461d9c065af0cd96b41cd1f845c2e920f7ae34",
       "source_repository": "karikris/BioMiner"
     },
@@ -270,8 +270,8 @@
   "checksums": {
     "algorithm": "sha256",
     "canonicalization": "json-sorted-keys-utf8-v1",
-    "inventory_sha256": "4e1b6b3bf8e7ac20dac7c824624bd6583612f7117ca45cf9cf06adf8632d5ef9",
-    "payload_root_sha256": "b842cdbb22c26b1a016d1481e41dd756e4f44938b0e042d1cd89967f90c58a87"
+    "inventory_sha256": "3a1be72b2b8904b5781b3a504eb9e25209ba3730a4db9a26ad0317e481c7eb41",
+    "payload_root_sha256": "13ad52509c1b6f7881d7d428dc2479524130a937176f26da4816a35779bd5c11"
   },
   "created_at": "2026-07-15T15:30:00Z",
   "expected_ui_counts": {

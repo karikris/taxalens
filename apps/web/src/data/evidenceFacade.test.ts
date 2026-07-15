@@ -95,6 +95,12 @@ describe('loadEvidenceFacade', () => {
     expect(facade.replay.unavailableSections).toHaveLength(6)
     expect(facade.replay.sections.yoloe_evidence.status).toBe('unavailable')
     expect(facade.replay.mission).toMatchObject({
+      sourceRegistry: {
+        name: 'BioMiner butterflies registry',
+        version: 'butterflies-v2-20260712',
+        sourceSnapshotVersion: 'gbif-reference-search-20260715',
+        acceptedIdentityNamespace: 'gbif',
+      },
       queryPolicy: {
         queryCount: 22,
         queriedSpeciesCount: 22,

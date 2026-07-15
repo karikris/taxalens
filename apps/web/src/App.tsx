@@ -6,6 +6,7 @@ import {
   type ReplayEvidence,
 } from './data/evidenceFacade'
 import { EvidenceDesignation, EvidenceState, EvidenceTier } from './design-system'
+import type { ReplayLaunchReceipt } from './mission'
 import { AppShell, type ShellView } from './shell'
 
 const MissionWorkspace = lazy(async () => {
@@ -21,6 +22,7 @@ type LoadState =
 export function App() {
   const [attempt, setAttempt] = useState(0)
   const [state, setState] = useState<LoadState>({ kind: 'loading' })
+  const [replayLaunch, setReplayLaunch] = useState<ReplayLaunchReceipt | null>(null)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -46,7 +48,10 @@ export function App() {
     }
   }, [attempt])
 
-  const retry = () => setAttempt((value) => value + 1)
+  const resetReplay = () => {
+    setReplayLaunch(null)
+    setAttempt((value) => value + 1)
+  }
 
   return (
     <AppShell
@@ -56,17 +61,34 @@ export function App() {
           ? {
               title: 'The static evidence bundle could not be opened',
               message: state.message,
-              onRetry: retry,
+              onRetry: resetReplay,
             }
           : undefined
       }
-      onReset={retry}
-      renderView={(view) => <ReplayContent state={state} view={view} />}
+      onReset={resetReplay}
+      renderView={(view) => (
+        <ReplayContent
+          state={state}
+          view={view}
+          replayLaunch={replayLaunch}
+          onReplayLaunch={setReplayLaunch}
+        />
+      )}
     />
   )
 }
 
-function ReplayContent({ state, view }: { readonly state: LoadState; readonly view: ShellView }) {
+function ReplayContent({
+  onReplayLaunch,
+  replayLaunch,
+  state,
+  view,
+}: {
+  readonly onReplayLaunch: (receipt: ReplayLaunchReceipt) => void
+  readonly replayLaunch: ReplayLaunchReceipt | null
+  readonly state: LoadState
+  readonly view: ShellView
+}) {
   if (state.kind === 'loading') {
     return (
       <section className="state-panel" aria-labelledby="loading-title">
@@ -89,10 +111,27 @@ function ReplayContent({ state, view }: { readonly state: LoadState; readonly vi
     )
   }
 
-  return <ReplayView replay={state.facade.replay} view={view} />
+  return (
+    <ReplayView
+      replay={state.facade.replay}
+      view={view}
+      replayLaunch={replayLaunch}
+      onReplayLaunch={onReplayLaunch}
+    />
+  )
 }
 
-function ReplayView({ replay, view }: { readonly replay: ReplayEvidence; readonly view: ShellView }) {
+function ReplayView({
+  onReplayLaunch,
+  replay,
+  replayLaunch,
+  view,
+}: {
+  readonly onReplayLaunch: (receipt: ReplayLaunchReceipt) => void
+  readonly replay: ReplayEvidence
+  readonly replayLaunch: ReplayLaunchReceipt | null
+  readonly view: ShellView
+}) {
   switch (view) {
     case 'mission':
       return (
@@ -104,11 +143,11 @@ function ReplayView({ replay, view }: { readonly replay: ReplayEvidence; readonl
             </EvidenceState>
           }
         >
-          <MissionWorkspace replay={replay} />
+          <MissionWorkspace replay={replay} onReplayLaunch={onReplayLaunch} />
         </Suspense>
       )
     case 'observatory':
-      return <ObservatoryView replay={replay} />
+      return <ObservatoryView replay={replay} replayLaunch={replayLaunch} />
     case 'evidence-lens':
       return <EvidenceLensView replay={replay} />
     case 'dashboard':
@@ -116,7 +155,81 @@ function ReplayView({ replay, view }: { readonly replay: ReplayEvidence; readonl
   }
 }
 
-function ObservatoryView({ replay }: { readonly replay: ReplayEvidence }) {
+function ObservatoryView({
+  replay,
+  replayLaunch,
+}: {
+  readonly replay: ReplayEvidence
+  readonly replayLaunch: ReplayLaunchReceipt | null
+}) {
+  if (replayLaunch !== null) {
+    return (
+      <section className="detail-panel replay-launch-receipt" aria-labelledby="replay-receipt-title">
+        <p className="eyebrow">Provenance-bound replay</p>
+        <h2 id="replay-receipt-title">Replay launch receipt</h2>
+        <p className="lede">
+          The submitted fixture is open. This receipt is bound to the exact plan, source registry,
+          source revisions, and verified artifact inventory shown below.
+        </p>
+        <EvidenceState state="available" title="Submitted fixture opened">
+          All {replayLaunch.bundle.artifactCount} local artifact checks passed. No remote request or
+          live scientific action was enabled.
+        </EvidenceState>
+        <dl className="evidence-facts replay-launch-receipt__facts">
+          <div className="replay-launch-receipt__fingerprint">
+            <dt>Plan fingerprint</dt>
+            <dd>
+              <code>{replayLaunch.planFingerprint}</code>
+            </dd>
+          </div>
+          <div>
+            <dt>Registry version</dt>
+            <dd>
+              <code>{replayLaunch.sourceRegistry.version}</code>
+            </dd>
+          </div>
+          <div>
+            <dt>Source snapshot</dt>
+            <dd>
+              <code>{replayLaunch.sourceRegistry.sourceSnapshotVersion}</code>
+            </dd>
+          </div>
+          <div>
+            <dt>Bundle</dt>
+            <dd>{replayLaunch.bundle.bundleId}</dd>
+          </div>
+          <div>
+            <dt>Artifact checksums</dt>
+            <dd>
+              {replayLaunch.bundle.verifiedArtifactCount} / {replayLaunch.bundle.artifactCount}{' '}
+              verified
+            </dd>
+          </div>
+          <div>
+            <dt>Live approval</dt>
+            <dd>{replayLaunch.liveApproval.status.replaceAll('_', ' ')}</dd>
+          </div>
+          <div>
+            <dt>TaxaLens SHA</dt>
+            <dd>
+              <code>{replayLaunch.sourceRevisions.taxalensSha}</code>
+            </dd>
+          </div>
+          <div>
+            <dt>BioMiner SHA</dt>
+            <dd>
+              <code>{replayLaunch.sourceRevisions.biominerSha}</code>
+            </dd>
+          </div>
+          <div className="replay-launch-receipt__capabilities">
+            <dt>Capabilities</dt>
+            <dd>Fixture replay only · no live actions · no remote requests</dd>
+          </div>
+        </dl>
+      </section>
+    )
+  }
+
   return (
     <section className="detail-panel" aria-labelledby="observatory-title">
       <p className="eyebrow">Verified observatory</p>

@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
-import { beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { loadEvidenceFacade, type ReplayEvidence } from '../data/evidenceFacade'
 import { createCommittedFixtureFetcher } from '../test/fixtures'
@@ -15,8 +15,11 @@ beforeAll(async () => {
   replay = facade.replay
 })
 
-function renderMission() {
-  return render(<MissionWorkspace replay={replay} />)
+function renderMission(onReplayLaunch = vi.fn()) {
+  return {
+    onReplayLaunch,
+    ...render(<MissionWorkspace replay={replay} onReplayLaunch={onReplayLaunch} />),
+  }
 }
 
 describe('MissionWorkspace', () => {
@@ -73,12 +76,14 @@ describe('MissionWorkspace', () => {
     expect(screen.queryByText('No matching verified fixture')).not.toBeInTheDocument()
   })
 
-  it('generates the structured plan locally and rejects an incomplete candidate budget', () => {
+  it('generates the structured plan locally and rejects an incomplete candidate budget', async () => {
     renderMission()
 
     fireEvent.click(screen.getByRole('button', { name: 'Generate deterministic plan' }))
-    expect(screen.getByRole('heading', { name: 'Evidence plan' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Evidence plan' })).toBeInTheDocument()
     expect(screen.getByText('taxalens-evidence-plan-v1.0.0')).toBeInTheDocument()
+    expect(screen.getByText(/^sha256:[0-9a-f]{64}$/u)).toBeInTheDocument()
+    expect(screen.getByText('butterflies-v2-20260712')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Ordered replay workflow' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Declared, never inferred' })).toBeInTheDocument()
     expect(screen.getByText('Explicit approval remains required')).toBeInTheDocument()
@@ -88,5 +93,29 @@ describe('MissionWorkspace', () => {
     expect(screen.getByText('Plan needs correction')).toBeInTheDocument()
     expect(screen.getByText('The plan must retain all 5 eligible regional candidates.')).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Evidence plan' })).not.toBeInTheDocument()
+  })
+
+  it('launches the submitted replay with a fingerprinted provenance receipt', async () => {
+    const onReplayLaunch = vi.fn()
+    renderMission(onReplayLaunch)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Generate deterministic plan' }))
+    await screen.findByRole('heading', { name: 'Evidence plan' })
+    fireEvent.click(screen.getByRole('button', { name: 'Launch submitted replay' }))
+
+    expect(onReplayLaunch).toHaveBeenCalledOnce()
+    expect(onReplayLaunch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 'replay_launched',
+        mode: 'submitted_fixture_replay',
+        planFingerprint: expect.stringMatching(/^sha256:[0-9a-f]{64}$/u),
+        sourceRegistry: expect.objectContaining({ version: 'butterflies-v2-20260712' }),
+        capabilities: {
+          fixtureReplay: true,
+          liveActions: false,
+          remoteRequests: false,
+        },
+      }),
+    )
   })
 })
