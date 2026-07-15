@@ -404,10 +404,227 @@
   font-size: var(--tl-text-sm);
 }
 
+.full-frame-comparison {
+  display: grid;
+  gap: var(--tl-space-3);
+  padding: clamp(var(--tl-space-3), 3vw, var(--tl-space-4));
+  background: var(--tl-surface-subtle);
+  border: 1px solid var(--tl-state-unavailable-line);
+  border-top: 4px solid var(--tl-blue-800);
+  border-radius: var(--tl-radius-sm);
+}
+
+.full-frame-comparison__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--tl-space-3);
+}
+
+.full-frame-comparison__heading h3 {
+  margin: 0;
+}
+
+.full-frame-comparison__heading p:last-child {
+  max-width: var(--tl-reading-width);
+  margin: var(--tl-space-2) 0 0;
+  color: var(--tl-ink-muted);
+}
+
+.full-frame-comparison__heading > strong {
+  flex: 0 0 auto;
+  padding: var(--tl-space-1) var(--tl-space-2);
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-xs);
+  background: var(--tl-state-unavailable-bg);
+  border: 1px solid var(--tl-state-unavailable-line);
+  border-radius: var(--tl-radius-pill);
+}
+
+.full-frame-viewer {
+  display: grid;
+  gap: var(--tl-space-2);
+}
+
+.full-frame-viewer__tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  background: var(--tl-line);
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.full-frame-viewer__tabs [role="tab"] {
+  min-height: 3rem;
+  padding: var(--tl-space-2);
+  color: var(--tl-ink-muted);
+  font-weight: 800;
+  text-align: center;
+  background: var(--tl-surface-paper);
+  border: 0;
+  cursor: pointer;
+}
+
+.full-frame-viewer__tabs [role="tab"][data-selected] {
+  color: var(--tl-brand-strong);
+  background: var(--tl-brand-soft);
+  box-shadow: inset 0 -3px 0 var(--tl-brand);
+}
+
+.full-frame-viewer__panel:focus-visible {
+  outline: 3px solid var(--tl-focus);
+  outline-offset: 3px;
+}
+
+.full-frame-viewer__figure {
+  display: grid;
+  gap: var(--tl-space-3);
+  padding: var(--tl-space-3);
+  margin: 0;
+  background: var(--tl-surface-paper);
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.full-frame-viewer__panel-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--tl-space-3);
+}
+
+.full-frame-viewer__panel-heading h4 {
+  margin: var(--tl-space-2) 0 0;
+  font-family: var(--tl-font-editorial);
+  font-size: var(--tl-text-md);
+  font-weight: 600;
+}
+
+.full-frame-viewer__panel-heading p {
+  max-width: var(--tl-reading-width);
+  margin: var(--tl-space-1) 0 0;
+  color: var(--tl-ink-muted);
+}
+
+.full-frame-viewer__panel-heading > span {
+  flex: 0 0 auto;
+  padding: var(--tl-space-1) var(--tl-space-2);
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-xs);
+  font-weight: 800;
+  background: var(--tl-state-unavailable-bg);
+  border: 1px dashed var(--tl-state-unavailable-line);
+  border-radius: var(--tl-radius-pill);
+}
+
+.full-frame-viewer__pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--tl-space-3);
+}
+
+.full-frame-viewer__frame {
+  display: grid;
+  gap: var(--tl-space-1);
+  min-width: 0;
+}
+
+.full-frame-viewer__frame > div[role="img"] {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  min-height: 12rem;
+  padding: var(--tl-space-3);
+  color: var(--tl-ink-muted);
+  text-align: center;
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--tl-state-unavailable-bg),
+    var(--tl-state-unavailable-bg) 0.75rem,
+    var(--tl-surface-subtle) 0.75rem,
+    var(--tl-surface-subtle) 1.5rem
+  );
+  border: 2px dashed var(--tl-state-unavailable-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.full-frame-viewer__frame > div[role="img"] span {
+  padding: var(--tl-space-1) var(--tl-space-2);
+  font-weight: 800;
+  background: var(--tl-surface-paper);
+  border-radius: var(--tl-radius-sm);
+}
+
+.full-frame-viewer__frame > span {
+  font-size: var(--tl-text-xs);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.full-frame-viewer__frame small {
+  color: var(--tl-ink-muted);
+}
+
+.full-frame-viewer__figure figcaption {
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-sm);
+}
+
+.full-frame-comparison__identities {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--tl-space-2);
+  margin: 0;
+}
+
+.full-frame-comparison__identities > div {
+  min-width: 0;
+  padding: var(--tl-space-3);
+  background: var(--tl-state-unavailable-bg);
+  border: 1px dashed var(--tl-state-unavailable-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.full-frame-comparison__identities dt {
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-xs);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.full-frame-comparison__identities dd {
+  margin: var(--tl-space-1) 0 0;
+}
+
+.full-frame-comparison__identities dd strong,
+.full-frame-comparison__identities dd span {
+  display: block;
+}
+
+.full-frame-comparison__identities dd span {
+  margin-top: var(--tl-space-1);
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-sm);
+}
+
+.full-frame-comparison__boundary {
+  margin: 0;
+  padding: var(--tl-space-2);
+  color: var(--tl-state-review-ink);
+  font-size: var(--tl-text-sm);
+  background: var(--tl-state-review-bg);
+  border: 1px solid var(--tl-state-review-line);
+  border-radius: var(--tl-radius-sm);
+}
+
 @media (max-width: 44rem) {
   .discovery-evidence__heading,
   .provenance-card__heading,
-  .yoloe-routing__heading {
+  .yoloe-routing__heading,
+  .full-frame-comparison__heading,
+  .full-frame-viewer__panel-heading {
     display: grid;
   }
 
@@ -417,8 +634,18 @@
 
   .provenance-card__facts,
   .query-associations dl,
-  .yoloe-routing__facts {
+  .yoloe-routing__facts,
+  .full-frame-viewer__pair,
+  .full-frame-comparison__identities {
     grid-template-columns: 1fr;
+  }
+
+  .full-frame-viewer__tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .full-frame-viewer__frame > div[role="img"] {
+    min-height: 10rem;
   }
 
   .yoloe-routing .tl-scientific-figure__plot {

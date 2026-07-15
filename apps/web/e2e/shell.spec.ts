@@ -384,3 +384,52 @@ test('shows the complete unavailable YOLOE routing contract without a synthetic 
   }))
   expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth)
 })
+
+test('compares every full-frame input contract without inventing transformation identity', async ({
+  page,
+}) => {
+  const requestUrls: string[] = []
+  page.on('request', (request) => requestUrls.push(request.url()))
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('./#evidence-lens')
+
+  const modes = page.getByRole('tablist', { name: 'Full-frame visual-input mode' })
+  await expect(modes.getByRole('tab')).toHaveCount(4)
+  const focused = modes.getByRole('tab', { name: 'Focused full frame' })
+  await expect(focused).toHaveAttribute('aria-selected', 'true')
+  await focused.focus()
+  await focused.press('ArrowRight')
+
+  const masked = modes.getByRole('tab', { name: 'Masked full frame' })
+  await expect(masked).toHaveAttribute('aria-selected', 'true')
+  const panel = page.getByRole('tabpanel', { name: 'Masked full frame' })
+  await expect(panel.getByRole('img', { name: 'Raw full image unavailable' })).toBeVisible()
+  await expect(panel.getByRole('img', { name: 'Masked attention view unavailable' })).toBeVisible()
+  await expect(panel.getByText('Crossfade unavailable', { exact: true })).toBeVisible()
+  await expect(page.locator('.full-frame-comparison img')).toHaveCount(0)
+
+  const identities = page.getByRole('group', { name: 'Full-frame identities' })
+  await expect(identities.locator(':scope > div')).toHaveCount(4)
+  for (const label of [
+    'Full canvas retained',
+    'Transformation version',
+    'Transformation fingerprint',
+    'Embedding identity',
+  ]) {
+    await expect(identities.getByText(label, { exact: true })).toBeVisible()
+  }
+  await expect(identities.getByText('Unavailable', { exact: true })).toHaveCount(4)
+
+  const expectedOrigin = new URL(page.url()).origin
+  expect(
+    requestUrls.filter((url) => {
+      const parsed = new URL(url)
+      return ['http:', 'https:'].includes(parsed.protocol) && parsed.origin !== expectedOrigin
+    }),
+  ).toEqual([])
+  const viewport = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }))
+  expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth)
+})
