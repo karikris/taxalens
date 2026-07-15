@@ -375,3 +375,27 @@ def test_adapt_reference_review_queue_skips_non_mapping_rows(tmp_path: Path) -> 
     assert records[1]["review_request_id"] == "request-good-002"
     assert records[1]["review_status"] == "completed"
     assert any("non-mapping_review_queue_row_1" in note for note in result["compatibility"]["notes"])
+
+
+def test_adapt_reference_review_queue_treats_non_string_output_values_as_missing_artifact(tmp_path: Path) -> None:
+    manifest = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_reference_review_queue.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    manifest["outputs"]["reference_review_queue"] = {"path": "reference_review_queue.json"}
+    manifest["outputs"]["review_queue"] = []
+
+    manifest_path = tmp_path / "run_manifest_reference_review_queue_bad_outputs.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    result = adapt_reference_review_queue(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["reference_review_queue_summary"] is None
+    assert result["reference_review_queue_records"] == []
+    assert result["compatibility"]["artifact_missing"] is True
+    notes = result["compatibility"]["notes"]
+    assert any("did not declare reference review queue artifact path" in note for note in notes)

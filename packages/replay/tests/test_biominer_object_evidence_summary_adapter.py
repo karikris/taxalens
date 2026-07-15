@@ -364,3 +364,38 @@ def test_adapt_object_evidence_summary_extracts_only_mapping_rows(tmp_path: Path
     assert compatibility["photo_rows_read"] == 1
     assert summary["object_occurrence_bin_counts"] == {"adult": 1, "larva": 1}
     assert summary["photo_occurrence_bin_counts"] == {"single_image": 1}
+
+
+def test_adapt_object_evidence_summary_treats_non_string_output_values_as_missing_artifacts(
+    tmp_path: Path,
+) -> None:
+    manifest = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_object_evidence_summary.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    manifest["outputs"]["object_evidence"] = {"path": "object_evidence.json"}
+    manifest["outputs"]["object_evidence_joined"] = []
+    manifest["outputs"]["photo_summary"] = {"path": "photo_summary.json"}
+    manifest["outputs"]["photo_evidence_summary"] = 42
+
+    manifest_path = tmp_path / "run_manifest_object_evidence_summary_bad_outputs.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    result = adapt_object_evidence_summary(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    summary = result["object_evidence_summary"]
+    compatibility = result["compatibility"]
+    assert summary["object_evidence_rows"] is None
+    assert summary["photo_summary_rows"] is None
+    assert summary["object_occurrence_bin_counts"] == {}
+    assert summary["photo_occurrence_bin_counts"] == {}
+    assert compatibility["artifact_missing"] is True
+    assert compatibility["object_rows_read"] == 0
+    assert compatibility["photo_rows_read"] == 0
+    notes = compatibility["notes"]
+    assert any("did not declare object_evidence artifact path" in note for note in notes)
+    assert any("did not declare photo_summary artifact path" in note for note in notes)
