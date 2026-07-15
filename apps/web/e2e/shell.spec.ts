@@ -1067,3 +1067,83 @@ test('shows the reviewed evaluation state without fabricating precision or accur
   }))
   expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth)
 })
+
+test('exports five deterministic research outputs without promoting blocked evidence', async ({
+  page,
+}) => {
+  const requestUrls: string[] = []
+  page.on('request', (request) => requestUrls.push(request.url()))
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('./#dashboard')
+
+  const panel = page.locator('.research-outputs')
+  await expect(panel.getByRole('heading', { name: 'Export research outputs' })).toBeVisible()
+  await expect(
+    panel.getByText('Deterministic local export · unsigned manifest', { exact: true }),
+  ).toBeVisible()
+  const files = panel.getByRole('list', { name: 'Research output files' })
+  await expect(files.locator(':scope > li')).toHaveCount(5)
+  await expect(files.locator('li[data-output-state="planned"]')).toHaveCount(5)
+  for (const label of [
+    'Review queue',
+    'Evidence summary',
+    'Manifest',
+    'Provenance',
+    'Evaluation report',
+  ]) {
+    await expect(files.getByRole('heading', { name: label })).toBeVisible()
+  }
+  await expect(
+    panel.getByRole('heading', { name: 'Portable does not mean promoted' }).locator('..').locator('..'),
+  ).toContainText('unranked worklist snapshot')
+
+  await panel.getByRole('button', { name: 'Prepare five research outputs' }).click()
+  await expect(panel.getByText('Five research outputs prepared locally', { exact: true })).toBeVisible()
+  await expect(files.locator('li[data-output-state="ready"]')).toHaveCount(5)
+  for (const label of [
+    'Review queue',
+    'Evidence summary',
+    'Manifest',
+    'Provenance',
+    'Evaluation report',
+  ]) {
+    await expect(files.getByRole('button', { name: `Download ${label}` })).toBeVisible()
+  }
+  await expect(files.locator('.research-outputs__receipt > small')).toHaveCount(5)
+
+  const downloadPromise = page.waitForEvent('download')
+  await files.getByRole('button', { name: 'Download Evaluation report' }).click()
+  const download = await downloadPromise
+  expect(download.suggestedFilename()).toBe(
+    'taxalens-papilio-demoleus-awaiting-human-review.evaluation-report.json',
+  )
+  const downloadedPath = await download.path()
+  expect(downloadedPath).not.toBeNull()
+  const report = JSON.parse(await readFile(downloadedPath!, 'utf8')) as {
+    committedReviewedMetricCount: number
+    phase14: { status: string; humanVerifiedShortfall: number }
+    metrics: readonly { status: string; value: string }[]
+    scientificClaimAllowed: boolean
+  }
+  expect(report.committedReviewedMetricCount).toBe(0)
+  expect(report.phase14).toEqual(expect.objectContaining({
+    status: 'blocked',
+    humanVerifiedShortfall: 490,
+  }))
+  expect(report.metrics).toHaveLength(7)
+  expect(report.metrics.every(({ status, value }) => status === 'unavailable' && value === 'Unavailable')).toBe(true)
+  expect(report.scientificClaimAllowed).toBe(false)
+
+  const expectedOrigin = new URL(page.url()).origin
+  expect(
+    requestUrls.filter((url) => {
+      const parsed = new URL(url)
+      return ['http:', 'https:'].includes(parsed.protocol) && parsed.origin !== expectedOrigin
+    }),
+  ).toEqual([])
+  const viewport = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }))
+  expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth)
+})

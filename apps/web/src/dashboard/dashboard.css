@@ -1680,3 +1680,180 @@
     justify-self: start;
   }
 }
+
+.research-outputs {
+  display: grid;
+  gap: var(--tl-space-3);
+  min-width: 0;
+  padding: clamp(var(--tl-space-3), 3vw, var(--tl-space-4));
+  background: var(--tl-surface-paper);
+  border: 1px solid var(--tl-line);
+  border-top: 4px solid var(--tl-blue-800);
+  border-radius: var(--tl-radius-sm);
+}
+
+.research-outputs__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--tl-space-3);
+}
+
+.research-outputs__heading h3 {
+  margin: 0;
+}
+
+.research-outputs__heading p:last-child {
+  max-width: var(--tl-reading-width);
+  margin: var(--tl-space-2) 0 0;
+  color: var(--tl-ink-muted);
+}
+
+.research-outputs__heading button,
+.research-outputs__receipt button {
+  min-height: 2.75rem;
+  padding: var(--tl-space-2) var(--tl-space-3);
+  color: var(--tl-surface-paper);
+  font-weight: 800;
+  background: var(--tl-brand-strong);
+  border: 1px solid var(--tl-brand-strong);
+  border-radius: var(--tl-radius-sm);
+  cursor: pointer;
+}
+
+.research-outputs__heading button {
+  flex: 0 0 auto;
+}
+
+.research-outputs__heading button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.research-outputs__idle {
+  margin: 0;
+  padding: var(--tl-space-2);
+  color: var(--tl-ink-muted);
+  background: var(--tl-surface-subtle);
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.research-outputs__files {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--tl-space-2);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.research-outputs__files > li,
+.research-outputs__files article {
+  min-width: 0;
+  height: 100%;
+}
+
+.research-outputs__files article {
+  display: grid;
+  grid-template-rows: auto auto auto 1fr;
+  gap: var(--tl-space-2);
+  padding: var(--tl-space-3);
+  background: var(--tl-surface-subtle);
+  border: 1px solid var(--tl-line);
+  border-left: 5px solid var(--tl-blue-800);
+  border-radius: var(--tl-radius-sm);
+}
+
+.research-outputs__files li[data-output-state="ready"] article {
+  background: var(--tl-state-available-bg);
+  border-color: var(--tl-state-available-line);
+}
+
+.research-outputs__file-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--tl-space-2);
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-xs);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.research-outputs__files h4,
+.research-outputs__files article > p {
+  margin: 0;
+}
+
+.research-outputs__files h4 {
+  font-family: var(--tl-font-editorial);
+  font-size: var(--tl-text-md);
+}
+
+.research-outputs__files article > p,
+.research-outputs__files article > small,
+.research-outputs__receipt small {
+  color: var(--tl-ink-muted);
+}
+
+.research-outputs__files article > small,
+.research-outputs__receipt {
+  align-self: end;
+}
+
+.research-outputs__receipt {
+  display: grid;
+  gap: var(--tl-space-2);
+  min-width: 0;
+}
+
+.research-outputs__receipt > code,
+.research-outputs__receipt small code {
+  overflow-wrap: anywhere;
+}
+
+.research-outputs__receipt > code {
+  padding: var(--tl-space-1);
+  background: var(--tl-surface-paper);
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.research-outputs__receipt button {
+  justify-self: start;
+}
+
+.research-outputs__boundary {
+  display: grid;
+  grid-template-columns: minmax(14rem, 1fr) minmax(0, 2fr);
+  gap: var(--tl-space-3);
+  padding: var(--tl-space-3);
+  background: var(--tl-brand-soft);
+  border: 1px solid var(--tl-line);
+  border-left: 5px solid var(--tl-brand);
+  border-radius: var(--tl-radius-sm);
+}
+
+.research-outputs__boundary h4,
+.research-outputs__boundary > p {
+  margin: 0;
+}
+
+@media (max-width: 60rem) {
+  .research-outputs__boundary {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 44rem) {
+  .research-outputs__heading,
+  .research-outputs__files {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .research-outputs__heading button,
+  .research-outputs__receipt button {
+    width: 100%;
+  }
+}

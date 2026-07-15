@@ -53,7 +53,7 @@ export async function prepareEvidenceExport(
 
   const ledger = buildEvidenceLedger(replay)
   const prefix = exportPrefix(replay)
-  const evidenceBytes = jsonBytes({
+  const evidenceBytes = canonicalExportJsonBytes({
     schemaVersion: EXPORT_SCHEMA_VERSION,
     bundleId: replay.bundleId,
     target: replay.target,
@@ -64,7 +64,7 @@ export async function prepareEvidenceExport(
   })
   const csvBytes = new TextEncoder().encode(evidenceLedgerCsv(replay))
   const parquetBytes = sourceParquet.bytes.slice()
-  const provenanceBytes = jsonBytes({
+  const provenanceBytes = canonicalExportJsonBytes({
     schemaVersion: PROVENANCE_SCHEMA_VERSION,
     bundleId: replay.bundleId,
     sourceRevisions: replay.sourceRevisions,
@@ -107,7 +107,7 @@ export async function prepareEvidenceExport(
   ])
   payloadFiles.sort(compareFiles)
 
-  const manifestBytes = jsonBytes({
+  const manifestBytes = canonicalExportJsonBytes({
     schemaVersion: MANIFEST_SCHEMA_VERSION,
     bundleId: replay.bundleId,
     recordId: replay.heroRecordId,
@@ -180,7 +180,13 @@ export function evidenceLedgerCsv(replay: ReplayEvidence): string {
   return `${rows.map((row) => row.map(csvCell).join(',')).join('\r\n')}\r\n`
 }
 
-export function downloadEvidenceFile(file: EvidenceExportFile): void {
+export interface DownloadableEvidenceFile {
+  readonly filename: string
+  readonly mediaType: string
+  readonly bytes: Uint8Array<ArrayBuffer>
+}
+
+export function downloadEvidenceFile(file: DownloadableEvidenceFile): void {
   const url = URL.createObjectURL(new Blob([file.bytes], { type: file.mediaType }))
   const link = document.createElement('a')
   link.href = url
@@ -191,7 +197,7 @@ export function downloadEvidenceFile(file: EvidenceExportFile): void {
   window.setTimeout(() => URL.revokeObjectURL(url), 0)
 }
 
-function jsonBytes(value: unknown): Uint8Array<ArrayBuffer> {
+export function canonicalExportJsonBytes(value: unknown): Uint8Array<ArrayBuffer> {
   return new TextEncoder().encode(`${canonicalJson(value)}\n`)
 }
 
@@ -265,7 +271,7 @@ async function assertSourceParquet(
   }
 }
 
-async function sha256Hex(bytes: Uint8Array<ArrayBuffer>): Promise<string> {
+export async function sha256Hex(bytes: Uint8Array<ArrayBuffer>): Promise<string> {
   const digest = await globalThis.crypto.subtle.digest('SHA-256', bytes)
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('')
 }
