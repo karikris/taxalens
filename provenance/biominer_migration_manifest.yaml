@@ -5,6 +5,21 @@ phase12_status: "pushed-and-eligible-for-committed-migration-only"
 phase13_exclusion: "active-work-excluded-unless-explicitly-pinned"
 recorded_at: "2026-07-15"
 components:
+  - component_id: biominer_visual_input_fusion
+    source_repository: karikris/BioMiner
+    source_commit: 1535c494f9403e22ed9b163f3ae0ce3706e17f4c
+    source_path: src/biominer/bioclip/visual_input_fusion.py
+    destination_path: packages/replay/src/biominer_visual_input_fusion.py
+    migration_kind: copied
+    reason: Preserve the complete target-aware visual-input embedding reuse and evidence fusion contract for Build Week replay and explanation.
+    build_week_scope: new
+    source_license: MIT
+    changes:
+      - Redirected internal imports to preserved TaxaLens semantic-hash, route, attention, and target full-frame contracts.
+      - Retained every production embedding, score, fusion, competitor, disagreement, review, fingerprint, validation, and payload rule.
+    tests:
+      - packages/replay/tests/test_biominer_visual_input_fusion.py
+    status: migrated
   - component_id: biominer_reference_routes
     source_repository: karikris/BioMiner
     source_commit: 1535c494f9403e22ed9b163f3ae0ce3706e17f4c
