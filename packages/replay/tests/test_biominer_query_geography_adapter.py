@@ -3690,8 +3690,8 @@ def test_adapt_query_geography_artifacts_uses_flickr_query_definitions_output_ke
     assert result["query_definitions"][0]["query_definition_id"] == "qd-flickr-001"
     assert result["query_definition_summary"]["total_query_definitions"] == 1
     assert result["query_definition_summary"]["eligible_query_definitions"] == 1
-    assert result["query_definition_summary"]["ineligible_query_definitions"] is None
-    assert result["query_definition_summary"]["disabled_query_definitions"] is None
+    assert result["query_definition_summary"]["ineligible_query_definitions"] == 0
+    assert result["query_definition_summary"]["disabled_query_definitions"] == 0
     assert result["query_definition_summary"]["query_definitions_by_source"] is None
     assert result["query_definition_summary"]["query_definitions_by_rank"] is None
     assert result["query_definition_summary"]["query_curation_rule_count"] == 0
@@ -4002,9 +4002,9 @@ def test_adapt_query_geography_artifacts_normalizes_bool_like_eligibility_fields
     assert result["query_definitions"][0]["query_definition_id"] == "qd-bool-001"
     assert result["query_definitions"][3]["query_definition_id"] == "qd-bool-004"
     assert result["query_definition_summary"]["total_query_definitions"] == 4
-    assert result["query_definition_summary"]["eligible_query_definitions"] == 3
-    assert result["query_definition_summary"]["ineligible_query_definitions"] == 1
-    assert result["query_definition_summary"]["disabled_query_definitions"] == 1
+    assert result["query_definition_summary"]["eligible_query_definitions"] == 2
+    assert result["query_definition_summary"]["ineligible_query_definitions"] == 2
+    assert result["query_definition_summary"]["disabled_query_definitions"] == 2
 
 
 def test_adapt_query_geography_artifacts_ignores_non_object_query_definitions_payload(

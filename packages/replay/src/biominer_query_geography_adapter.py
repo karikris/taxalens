@@ -459,7 +459,11 @@ def _resolve_artifact_path(
 def _bucket_count(rows: list[dict[str, Any]], key: str) -> dict[str, int]:
     buckets: dict[str, int] = {}
     for row in rows:
-        bucket = _first_str(row.get(key))
+        raw_bucket = row.get(key)
+        if isinstance(raw_bucket, bool):
+            bucket = "true" if raw_bucket else "false"
+        else:
+            bucket = _first_str(raw_bucket)
         if bucket is None:
             continue
         buckets[bucket] = buckets.get(bucket, 0) + 1
@@ -527,9 +531,19 @@ def _build_query_summary(
     biominer_commit: str | None,
 ) -> QueryDefinitionSummaryContract:
     total = len(rows)
-    eligible = sum(1 for row in rows if _to_bool(row.get("query_eligible")) is True)
-    ineligible = sum(1 for row in rows if _to_bool(row.get("query_eligible")) is False)
-    disabled = sum(1 for row in rows if _to_bool(row.get("enabled")) is False)
+    eligibility_values = [
+        value
+        for row in rows
+        if (value := _to_bool(row.get("query_eligible"))) is not None
+    ]
+    enabled_values = [
+        value
+        for row in rows
+        if (value := _to_bool(row.get("enabled"))) is not None
+    ]
+    eligible = sum(1 for value in eligibility_values if value)
+    ineligible = sum(1 for value in eligibility_values if not value)
+    disabled = sum(1 for value in enabled_values if not value)
 
     max_priority: int | None = None
     for row in rows:
@@ -550,13 +564,13 @@ def _build_query_summary(
         "source_manifest_path": source_manifest_path,
         "query_definition_artifact_path": str(artifact_path) if artifact_path else None,
         "total_query_definitions": total if total else None,
-        "eligible_query_definitions": eligible if eligible else None,
-        "ineligible_query_definitions": ineligible if ineligible else None,
-        "disabled_query_definitions": disabled if disabled else None,
+        "eligible_query_definitions": eligible if eligibility_values else None,
+        "ineligible_query_definitions": ineligible if eligibility_values else None,
+        "disabled_query_definitions": disabled if enabled_values else None,
         "query_definitions_by_source": _to_int_dict(_bucket_count(rows, "source")),
         "query_definitions_by_rank": _to_int_dict(_bucket_count(rows, "accepted_rank")),
         "max_search_priority": max_priority,
-        "query_curation_rule_count": raw_rule_count if raw_rule_count else None,
+        "query_curation_rule_count": raw_rule_count if rows else None,
     }
 
 
