@@ -1,5 +1,6 @@
 export { CandidateSpeciesComparison } from './CandidateSpeciesComparison'
 export { EvidenceLensWorkspace } from './EvidenceLensWorkspace'
+export { EvidenceLedger } from './EvidenceLedger'
 export { FullFrameInputComparison } from './FullFrameInputComparison'
 export { GeographyReferenceContext } from './GeographyReferenceContext'
 export { SelectiveDecisionEvidence } from './SelectiveDecisionEvidence'

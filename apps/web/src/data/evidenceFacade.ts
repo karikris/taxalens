@@ -132,6 +132,7 @@ export interface ObservatoryEvidence {
 export interface ReplayEvidence extends ReplayIdentity {
   readonly schemaVersion: typeof JUDGE_BUNDLE_SCHEMA_VERSION
   readonly title: string
+  readonly bundleCreatedAt: string
   readonly mission: MissionEvidence
   readonly observatory: ObservatoryEvidence
   readonly discovery: DiscoveryEvidenceBoundary
@@ -1625,6 +1626,7 @@ export async function loadEvidenceFacade(
     schemaVersion: JUDGE_BUNDLE_SCHEMA_VERSION,
     bundleId: manifest.bundle_id,
     title: manifest.title,
+    bundleCreatedAt: manifest.created_at,
     mission,
     observatory,
     discovery,

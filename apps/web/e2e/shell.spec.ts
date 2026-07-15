@@ -579,3 +579,51 @@ test('separates raw evidence from an unavailable calibrated decision', async ({ 
   }))
   expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth)
 })
+
+test('shows a truthful lifecycle ledger without fabricated event times or comments', async ({
+  page,
+}) => {
+  const requestUrls: string[] = []
+  page.on('request', (request) => requestUrls.push(request.url()))
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('./#evidence-lens')
+
+  await expect(page.getByRole('heading', { name: 'Evidence ledger' })).toBeVisible()
+  await expect(page.getByText('comment enrichment unavailable for this record', { exact: true })).toBeVisible()
+  const ledger = page.getByRole('list', { name: 'Evidence lifecycle ledger' })
+  await expect(ledger.locator(':scope > li')).toHaveCount(10)
+  for (const label of [
+    'Discovery',
+    'Deduplication',
+    'Geography',
+    'Reference status',
+    'Route',
+    'Visual inputs',
+    'Candidates',
+    'Decision',
+    'Review state',
+    'Export',
+  ]) {
+    await expect(ledger.getByRole('heading', { name: label, exact: true })).toBeVisible()
+  }
+  await expect(
+    ledger.getByText('Unavailable — no per-event timestamp committed', { exact: true }),
+  ).toHaveCount(9)
+  await expect(ledger.getByRole('time')).toHaveCount(1)
+  await expect(
+    ledger.getByRole('heading', { name: 'Export' }).locator('xpath=ancestor::article[1]'),
+  ).toContainText('22 / 22 checksum-verified artifacts')
+
+  const expectedOrigin = new URL(page.url()).origin
+  expect(
+    requestUrls.filter((url) => {
+      const parsed = new URL(url)
+      return ['http:', 'https:'].includes(parsed.protocol) && parsed.origin !== expectedOrigin
+    }),
+  ).toEqual([])
+  const viewport = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }))
+  expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth)
+})

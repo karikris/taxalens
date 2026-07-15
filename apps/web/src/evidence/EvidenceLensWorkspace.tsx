@@ -8,6 +8,7 @@ import type {
 import { EvidenceDesignation, EvidenceState, EvidenceTier } from '../design-system'
 import type { DiscoveryProvenanceResult } from './discoveryProvenance'
 import { CandidateSpeciesComparison } from './CandidateSpeciesComparison'
+import { EvidenceLedger } from './EvidenceLedger'
 import { FullFrameInputComparison } from './FullFrameInputComparison'
 import { GeographyReferenceContext } from './GeographyReferenceContext'
 import { SelectiveDecisionEvidence } from './SelectiveDecisionEvidence'
@@ -153,6 +154,8 @@ export function EvidenceLensWorkspace({
       <CandidateSpeciesComparison replay={replay} />
 
       <SelectiveDecisionEvidence replay={replay} />
+
+      <EvidenceLedger replay={replay} />
 
       <h3>Explicitly unavailable evidence</h3>
       <ul className="unavailable-evidence-list">
