@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 
 import {
   loadEvidenceFacade,
@@ -7,6 +7,11 @@ import {
 } from './data/evidenceFacade'
 import { EvidenceDesignation, EvidenceState, EvidenceTier } from './design-system'
 import { AppShell, type ShellView } from './shell'
+
+const MissionWorkspace = lazy(async () => {
+  const module = await import('./mission')
+  return { default: module.MissionWorkspace }
+})
 
 type LoadState =
   | { readonly kind: 'loading' }
@@ -90,7 +95,18 @@ function ReplayContent({ state, view }: { readonly state: LoadState; readonly vi
 function ReplayView({ replay, view }: { readonly replay: ReplayEvidence; readonly view: ShellView }) {
   switch (view) {
     case 'mission':
-      return <MissionView replay={replay} />
+      return (
+        <Suspense
+          fallback={
+            <EvidenceState state="loading" title="Opening mission controls">
+              The verified evidence bundle is already loaded; only the local interface module is
+              pending.
+            </EvidenceState>
+          }
+        >
+          <MissionWorkspace evidence={replay.mission} target={replay.target} />
+        </Suspense>
+      )
     case 'observatory':
       return <ObservatoryView replay={replay} />
     case 'evidence-lens':
@@ -98,24 +114,6 @@ function ReplayView({ replay, view }: { readonly replay: ReplayEvidence; readonl
     case 'dashboard':
       return <DashboardView replay={replay} />
   }
-}
-
-function MissionView({ replay }: { readonly replay: ReplayEvidence }) {
-  return (
-    <section className="mission-panel" aria-labelledby="target-title">
-      <div>
-        <EvidenceTier tier="metadata" />
-        <p className="eyebrow mission-panel__kicker">Research target</p>
-        <h2 id="target-title">
-          <i>{replay.target.scientificName}</i>
-        </h2>
-        <p className="lede">
-          The target identifies the pilot mission. It is not a classification of an image.
-        </p>
-      </div>
-      <EvidenceState state="review" title="Awaiting human review" compact />
-    </section>
-  )
 }
 
 function ObservatoryView({ replay }: { readonly replay: ReplayEvidence }) {

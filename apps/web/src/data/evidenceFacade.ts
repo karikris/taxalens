@@ -42,9 +42,64 @@ export interface ReplayIdentity {
   }
 }
 
+export interface MissionEvidence {
+  readonly queryPolicy: {
+    readonly queryCount: number
+    readonly queriedSpeciesCount: number
+    readonly defaultRetrievalPolicy: string
+    readonly occurrenceSearchCeiling: number
+    readonly registryIdentityRequired: boolean
+    readonly humanReviewBeforeSupport: boolean
+    readonly groundTruthPolicy: string
+  }
+  readonly regions: readonly {
+    readonly name: string
+    readonly rangeStatus: string
+    readonly countryCount: number
+    readonly requiresOccurrenceSupport: boolean
+    readonly taxonomicCaution: boolean
+  }[]
+  readonly candidatePolicy: {
+    readonly candidateCount: number
+    readonly minimumPerSpecies: number
+    readonly maximumPerSpecies: number
+    readonly candidates: readonly {
+      readonly acceptedTaxonKey: string
+      readonly scientificName: string
+    }[]
+  }
+  readonly referenceRequirements: {
+    readonly eligibleSourceMediaCount: number
+    readonly humanVerifiedSourceMediaCount: number
+    readonly sourceCandidateShortfall: number
+    readonly humanVerifiedShortfall: number
+    readonly unresolvedGroups: readonly {
+      readonly name: string
+      readonly status: string
+    }[]
+  }
+  readonly budgets: {
+    readonly materializedRequestCount: number
+    readonly localBuildVerificationMaxImages: number
+  }
+  readonly prerequisiteGates: readonly {
+    readonly gateId: string
+    readonly status: string
+    readonly requiredArtifactCount: number
+    readonly requiredComputer: string | null
+  }[]
+  readonly stoppingConditions: {
+    readonly phase15Authorized: boolean
+    readonly requiredEvidence: readonly string[]
+    readonly largeYoloeRuns: string
+    readonly largeBioclipRuns: string
+  }
+}
+
 export interface ReplayEvidence extends ReplayIdentity {
   readonly schemaVersion: typeof JUDGE_BUNDLE_SCHEMA_VERSION
   readonly title: string
+  readonly mission: MissionEvidence
   readonly rightsStatus: string
   readonly artifactCount: number
   readonly verifiedArtifactCount: number
@@ -193,6 +248,13 @@ function object(value: JsonValue | undefined, location: string): Record<string, 
   return value
 }
 
+function array(value: JsonValue | undefined, location: string): JsonValue[] {
+  if (!Array.isArray(value)) {
+    throw new EvidenceFacadeError(`${location} must be a JSON array`)
+  }
+  return value
+}
+
 function stringField(
   record: Record<string, JsonValue>,
   field: string,
@@ -201,6 +263,30 @@ function stringField(
   const value = record[field]
   if (typeof value !== 'string' || value.length === 0) {
     throw new EvidenceFacadeError(`${location}.${field} must be non-empty text`)
+  }
+  return value
+}
+
+function numberField(
+  record: Record<string, JsonValue>,
+  field: string,
+  location: string,
+): number {
+  const value = record[field]
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    throw new EvidenceFacadeError(`${location}.${field} must be a finite number`)
+  }
+  return value
+}
+
+function booleanField(
+  record: Record<string, JsonValue>,
+  field: string,
+  location: string,
+): boolean {
+  const value = record[field]
+  if (typeof value !== 'boolean') {
+    throw new EvidenceFacadeError(`${location}.${field} must be a boolean`)
   }
   return value
 }
@@ -392,6 +478,250 @@ function projectSections(
   )
 }
 
+function artifactJsonForRole(
+  artifacts: ReadonlyMap<string, VerifiedArtifact>,
+  role: JudgeBundleSectionName,
+): JsonValue {
+  const artifact = [...artifacts.values()].find(
+    (candidate) => candidate.descriptor.role === role && candidate.json !== undefined,
+  )
+  if (artifact?.json === undefined) {
+    throw new EvidenceFacadeError(`${role} has no verified JSON artifact`)
+  }
+  return artifact.json
+}
+
+function recordForRole(
+  artifacts: ReadonlyMap<string, VerifiedArtifact>,
+  role: JudgeBundleSectionName,
+  recordId?: string,
+): Record<string, JsonValue> {
+  const records = array(artifactJsonForRole(artifacts, role), role)
+  const value =
+    recordId === undefined
+      ? records[0]
+      : records.find((candidate) => {
+          const record = object(candidate, `${role} record`)
+          return record.record_id === recordId
+        })
+  return object(value, recordId === undefined ? `${role}[0]` : `${role}.${recordId}`)
+}
+
+function projectMissionEvidence(
+  artifacts: ReadonlyMap<string, VerifiedArtifact>,
+): MissionEvidence {
+  const queryRecord = recordForRole(artifacts, 'query_definitions')
+  const queryData = object(queryRecord.data, 'query_definitions.data')
+  const sourcePlan = object(queryData.source_plan, 'query_definitions.data.source_plan')
+  const queryScope = object(
+    queryData.query_scope_policy,
+    'query_definitions.data.query_scope_policy',
+  )
+  const labelContract = object(queryData.label_contract, 'query_definitions.data.label_contract')
+  const phase15Gate = object(
+    queryData.phase15_default_gate,
+    'query_definitions.data.phase15_default_gate',
+  )
+
+  const rangeRecord = recordForRole(
+    artifacts,
+    'logical_associations',
+    'target-range-planning-hypothesis',
+  )
+  const rangeData = object(rangeRecord.data, 'logical_associations.target_range.data')
+  const regions = array(rangeData.regions, 'logical_associations.target_range.data.regions').map(
+    (value, index) => {
+      const region = object(value, `regions[${index}]`)
+      return {
+        name: stringField(region, 'region', `regions[${index}]`),
+        rangeStatus: stringField(region, 'range_status', `regions[${index}]`),
+        countryCount: array(region.countries, `regions[${index}].countries`).length,
+        requiresOccurrenceSupport: booleanField(
+          region,
+          'requires_occurrence_support',
+          `regions[${index}]`,
+        ),
+        taxonomicCaution: booleanField(region, 'taxonomic_caution', `regions[${index}]`),
+      }
+    },
+  )
+
+  const candidateRows = array(artifactJsonForRole(artifacts, 'candidate_sets'), 'candidate_sets')
+  const candidates = candidateRows.map((value, index) => {
+    const row = object(value, `candidate_sets[${index}]`)
+    const candidate = object(row.candidate, `candidate_sets[${index}].candidate`)
+    return {
+      acceptedTaxonKey: stringField(
+        candidate,
+        'accepted_taxon_key',
+        `candidate_sets[${index}].candidate`,
+      ),
+      scientificName: stringField(
+        candidate,
+        'scientific_name',
+        `candidate_sets[${index}].candidate`,
+      ),
+    }
+  })
+  const candidatePolicy = object(candidateRows[0], 'candidate_sets[0]')
+
+  const readinessRecord = recordForRole(artifacts, 'reference_readiness')
+  const readinessData = object(readinessRecord.data, 'reference_readiness.data')
+  const readinessCounts = object(readinessData.counts, 'reference_readiness.data.counts')
+  const materialization = object(
+    readinessData.materialization,
+    'reference_readiness.data.materialization',
+  )
+  const executionConstraints = object(
+    readinessData.execution_constraints,
+    'reference_readiness.data.execution_constraints',
+  )
+
+  const shortfallRecord = recordForRole(artifacts, 'reference_shortfalls')
+  const shortfallData = object(shortfallRecord.data, 'reference_shortfalls.data')
+  const unresolvedGroups = object(
+    shortfallData.unresolved_groups,
+    'reference_shortfalls.data.unresolved_groups',
+  )
+
+  const prerequisiteGates = array(
+    queryData.prerequisite_gates,
+    'query_definitions.data.prerequisite_gates',
+  ).map((value, index) => {
+    const gate = object(value, `prerequisite_gates[${index}]`)
+    const requiredArtifacts = gate.required_artifacts
+    const requiredComputer = gate.required_computer
+    if (requiredComputer !== undefined && typeof requiredComputer !== 'string') {
+      throw new EvidenceFacadeError(
+        `prerequisite_gates[${index}].required_computer must be text`,
+      )
+    }
+    return {
+      gateId: stringField(gate, 'gate_id', `prerequisite_gates[${index}]`),
+      status: stringField(gate, 'status', `prerequisite_gates[${index}]`),
+      requiredArtifactCount:
+        requiredArtifacts === undefined
+          ? 0
+          : array(requiredArtifacts, `prerequisite_gates[${index}].required_artifacts`).length,
+      requiredComputer: requiredComputer ?? null,
+    }
+  })
+
+  const requiredEvidence = array(
+    phase15Gate.required_evidence,
+    'query_definitions.data.phase15_default_gate.required_evidence',
+  ).map((value, index) => {
+    if (typeof value !== 'string') {
+      throw new EvidenceFacadeError(`required_evidence[${index}] must be text`)
+    }
+    return value
+  })
+
+  return deepFreeze({
+    queryPolicy: {
+      queryCount: numberField(queryData, 'query_count', 'query_definitions.data'),
+      queriedSpeciesCount: numberField(
+        sourcePlan,
+        'queried_species_count',
+        'query_definitions.data.source_plan',
+      ),
+      defaultRetrievalPolicy: stringField(
+        queryScope,
+        'default',
+        'query_definitions.data.query_scope_policy',
+      ),
+      occurrenceSearchCeiling: numberField(
+        queryScope,
+        'gbif_occurrence_search_ceiling',
+        'query_definitions.data.query_scope_policy',
+      ),
+      registryIdentityRequired: booleanField(
+        sourcePlan,
+        'registry_identity_required',
+        'query_definitions.data.source_plan',
+      ),
+      humanReviewBeforeSupport: booleanField(
+        sourcePlan,
+        'human_review_required_before_support_use',
+        'query_definitions.data.source_plan',
+      ),
+      groundTruthPolicy: stringField(
+        labelContract,
+        'ground_truth',
+        'query_definitions.data.label_contract',
+      ),
+    },
+    regions,
+    candidatePolicy: {
+      candidateCount: candidates.length,
+      minimumPerSpecies: numberField(candidatePolicy, 'minimum_per_species', 'candidate_sets[0]'),
+      maximumPerSpecies: numberField(candidatePolicy, 'maximum_per_species', 'candidate_sets[0]'),
+      candidates,
+    },
+    referenceRequirements: {
+      eligibleSourceMediaCount: numberField(
+        readinessCounts,
+        'eligible_source_media_candidate_count',
+        'reference_readiness.data.counts',
+      ),
+      humanVerifiedSourceMediaCount: numberField(
+        readinessCounts,
+        'human_verified_source_media_count',
+        'reference_readiness.data.counts',
+      ),
+      sourceCandidateShortfall: numberField(
+        shortfallData,
+        'source_candidate_shortfall',
+        'reference_shortfalls.data',
+      ),
+      humanVerifiedShortfall: numberField(
+        shortfallData,
+        'human_verified_shortfall',
+        'reference_shortfalls.data',
+      ),
+      unresolvedGroups: Object.entries(unresolvedGroups)
+        .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
+        .map(([name, status]) => {
+          if (typeof status !== 'string') {
+            throw new EvidenceFacadeError(`unresolved group ${name} status must be text`)
+          }
+          return { name, status }
+        }),
+    },
+    budgets: {
+      materializedRequestCount: numberField(
+        materialization,
+        'request_count',
+        'reference_readiness.data.materialization',
+      ),
+      localBuildVerificationMaxImages: numberField(
+        executionConstraints,
+        'local_build_verification_max_images',
+        'reference_readiness.data.execution_constraints',
+      ),
+    },
+    prerequisiteGates,
+    stoppingConditions: {
+      phase15Authorized: booleanField(
+        phase15Gate,
+        'authorized',
+        'query_definitions.data.phase15_default_gate',
+      ),
+      requiredEvidence,
+      largeYoloeRuns: stringField(
+        executionConstraints,
+        'large_yoloe_runs',
+        'reference_readiness.data.execution_constraints',
+      ),
+      largeBioclipRuns: stringField(
+        executionConstraints,
+        'large_bioclip_runs',
+        'reference_readiness.data.execution_constraints',
+      ),
+    },
+  })
+}
+
 class VerifiedEvidenceFacade implements EvidenceFacade {
   readonly replay: ReplayEvidence
   readonly #artifacts: ReadonlyMap<string, VerifiedArtifact>
@@ -528,6 +858,7 @@ export async function loadEvidenceFacade(
   }
 
   const sections = projectSections(manifest)
+  const mission = projectMissionEvidence(artifacts)
   const unavailableSections = Object.freeze(
     JUDGE_BUNDLE_SECTION_NAMES.map((name) => sections[name]).filter(
       (section) => section.status === 'unavailable',
@@ -537,6 +868,7 @@ export async function loadEvidenceFacade(
     schemaVersion: JUDGE_BUNDLE_SCHEMA_VERSION,
     bundleId: manifest.bundle_id,
     title: manifest.title,
+    mission,
     target: {
       acceptedTaxonKey: manifest.target.accepted_taxon_key,
       scientificName: manifest.target.scientific_name,

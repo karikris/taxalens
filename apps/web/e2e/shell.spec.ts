@@ -23,7 +23,7 @@ test('preserves hierarchy at a narrow viewport and honors reduced motion', async
   await page.goto('./')
 
   await expect(page.getByRole('heading', { name: 'Papilio demoleus' })).toBeVisible()
-  await expect(page.getByText('Metadata only')).toBeVisible()
+  await expect(page.getByText('Metadata only', { exact: true })).toBeVisible()
   await expect(page.getByRole('status')).toContainText('Awaiting human review')
 
   const viewport = await page.evaluate(() => ({
@@ -82,4 +82,28 @@ test('shows only checksum-verified evidence with explicit fallback and unavailab
   await expect(page.getByRole('heading', { name: 'Verified JSON fallback' })).toBeVisible()
   await expect(page.getByText('parquet unavailable')).toBeVisible()
   await expect(page.getByText(/DuckDB-Wasm was not started/u)).toBeVisible()
+})
+
+test('configures a bounded mission without enabling unsupported live work', async ({ page }) => {
+  await page.goto('./#mission')
+
+  const target = page.getByRole('textbox', { name: 'Target species' })
+  await expect(target).toHaveValue('Papilio demoleus')
+  await expect(page.getByRole('textbox', { name: 'Maximum API calls' })).toHaveValue('314')
+  await expect(page.getByRole('textbox', { name: 'Candidate limit' })).toHaveValue('5')
+  await expect(page.getByRole('radio', { name: 'Replay committed evidence' })).toBeChecked()
+  await expect(
+    page.getByRole('radio', { name: 'Live work unavailable in the submitted build' }),
+  ).toBeDisabled()
+  await expect(page.getByText('22 committed definitions')).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Live scientific work is not ready' })).toBeVisible()
+
+  await target.fill('Papilio polytes')
+  await expect(page.getByText('No matching verified fixture')).toBeVisible()
+  await page.getByRole('textbox', { name: 'Optional device' }).fill('external GPU computer')
+
+  await page.getByRole('button', { name: 'Restore replay baseline' }).click()
+  await expect(target).toHaveValue('Papilio demoleus')
+  await expect(page.getByRole('textbox', { name: 'Optional device' })).toHaveValue('')
+  await expect(page.getByText('No matching verified fixture')).toBeHidden()
 })

@@ -94,6 +94,31 @@ describe('loadEvidenceFacade', () => {
     expect(facade.replay.verifiedArtifactCount).toBe(17)
     expect(facade.replay.unavailableSections).toHaveLength(6)
     expect(facade.replay.sections.yoloe_evidence.status).toBe('unavailable')
+    expect(facade.replay.mission).toMatchObject({
+      queryPolicy: {
+        queryCount: 22,
+        queriedSpeciesCount: 22,
+        defaultRetrievalPolicy: 'global_then_assign_to_flickr_clusters',
+        occurrenceSearchCeiling: 100000,
+      },
+      candidatePolicy: {
+        candidateCount: 5,
+        minimumPerSpecies: 20,
+        maximumPerSpecies: 50,
+      },
+      referenceRequirements: {
+        eligibleSourceMediaCount: 838,
+        humanVerifiedSourceMediaCount: 0,
+        sourceCandidateShortfall: 247,
+        humanVerifiedShortfall: 490,
+      },
+      budgets: {
+        materializedRequestCount: 314,
+        localBuildVerificationMaxImages: 5,
+      },
+    })
+    expect(facade.replay.mission.regions).toHaveLength(8)
+    expect(facade.replay.mission.prerequisiteGates).toHaveLength(4)
     expect(facade.replay.verification).toMatchObject({
       inventoryChecksumVerified: true,
       payloadRootChecksumVerified: true,
