@@ -119,6 +119,13 @@ describe('loadEvidenceFacade', () => {
     })
     expect(facade.replay.mission.regions).toHaveLength(8)
     expect(facade.replay.mission.prerequisiteGates).toHaveLength(4)
+    expect(facade.replay.mission.pipelineStages).toHaveLength(8)
+    expect(facade.replay.mission.pipelineStages[4]).toMatchObject({
+      stageId: 'yoloe-detection',
+      status: 'unavailable',
+      recordCount: 0,
+      scientificClaimAllowed: false,
+    })
     expect(facade.replay.verification).toMatchObject({
       inventoryChecksumVerified: true,
       payloadRootChecksumVerified: true,

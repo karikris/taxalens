@@ -16,7 +16,7 @@ beforeAll(async () => {
 })
 
 function renderMission() {
-  return render(<MissionWorkspace evidence={replay.mission} target={replay.target} />)
+  return render(<MissionWorkspace replay={replay} />)
 }
 
 describe('MissionWorkspace', () => {
@@ -71,5 +71,22 @@ describe('MissionWorkspace', () => {
     expect(target).toHaveValue('Papilio demoleus')
     expect(device).toHaveValue('')
     expect(screen.queryByText('No matching verified fixture')).not.toBeInTheDocument()
+  })
+
+  it('generates the structured plan locally and rejects an incomplete candidate budget', () => {
+    renderMission()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Generate deterministic plan' }))
+    expect(screen.getByRole('heading', { name: 'Evidence plan' })).toBeInTheDocument()
+    expect(screen.getByText('taxalens-evidence-plan-v1.0.0')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Ordered replay workflow' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Declared, never inferred' })).toBeInTheDocument()
+    expect(screen.getByText('Explicit approval remains required')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /Decrease candidate limit/u }))
+    fireEvent.click(screen.getByRole('button', { name: 'Generate deterministic plan' }))
+    expect(screen.getByText('Plan needs correction')).toBeInTheDocument()
+    expect(screen.getByText('The plan must retain all 5 eligible regional candidates.')).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Evidence plan' })).not.toBeInTheDocument()
   })
 })

@@ -104,7 +104,7 @@ function ReplayView({ replay, view }: { readonly replay: ReplayEvidence; readonl
             </EvidenceState>
           }
         >
-          <MissionWorkspace evidence={replay.mission} target={replay.target} />
+          <MissionWorkspace replay={replay} />
         </Suspense>
       )
     case 'observatory':

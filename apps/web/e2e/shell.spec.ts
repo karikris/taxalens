@@ -98,6 +98,11 @@ test('configures a bounded mission without enabling unsupported live work', asyn
   await expect(page.getByText('22 committed definitions')).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Live scientific work is not ready' })).toBeVisible()
 
+  await page.getByRole('button', { name: 'Generate deterministic plan' }).click()
+  await expect(page.getByRole('heading', { name: 'Evidence plan' })).toBeVisible()
+  await expect(page.getByText('taxalens-evidence-plan-v1.0.0', { exact: true })).toBeVisible()
+  await expect(page.getByText('Explicit approval remains required')).toBeVisible()
+
   await target.fill('Papilio polytes')
   await expect(page.getByText('No matching verified fixture')).toBeVisible()
   await page.getByRole('textbox', { name: 'Optional device' }).fill('external GPU computer')

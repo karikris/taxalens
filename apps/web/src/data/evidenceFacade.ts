@@ -94,6 +94,14 @@ export interface MissionEvidence {
     readonly largeYoloeRuns: string
     readonly largeBioclipRuns: string
   }
+  readonly pipelineStages: readonly {
+    readonly stageId: string
+    readonly status: string
+    readonly recordCount: number
+    readonly verificationStatus: string
+    readonly scientificClaimAllowed: boolean
+    readonly reason: string | null
+  }[]
 }
 
 export interface ReplayEvidence extends ReplayIdentity {
@@ -617,6 +625,33 @@ function projectMissionEvidence(
     return value
   })
 
+  const pipelineStages = array(
+    artifactJsonForRole(artifacts, 'pipeline_stages'),
+    'pipeline_stages',
+  ).map((value, index) => {
+    const stage = object(value, `pipeline_stages[${index}]`)
+    const reason = stage.reason
+    if (reason !== undefined && typeof reason !== 'string') {
+      throw new EvidenceFacadeError(`pipeline_stages[${index}].reason must be text`)
+    }
+    return {
+      stageId: stringField(stage, 'stage_id', `pipeline_stages[${index}]`),
+      status: stringField(stage, 'status', `pipeline_stages[${index}]`),
+      recordCount: numberField(stage, 'record_count', `pipeline_stages[${index}]`),
+      verificationStatus: stringField(
+        stage,
+        'verification_status',
+        `pipeline_stages[${index}]`,
+      ),
+      scientificClaimAllowed: booleanField(
+        stage,
+        'scientific_claim_allowed',
+        `pipeline_stages[${index}]`,
+      ),
+      reason: reason ?? null,
+    }
+  })
+
   return deepFreeze({
     queryPolicy: {
       queryCount: numberField(queryData, 'query_count', 'query_definitions.data'),
@@ -719,6 +754,7 @@ function projectMissionEvidence(
         'reference_readiness.data.execution_constraints',
       ),
     },
+    pipelineStages,
   })
 }
 

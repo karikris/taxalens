@@ -223,6 +223,16 @@
   flex: 0 0 auto;
 }
 
+.mission-form__actions .react-aria-Button.mission-button--secondary {
+  color: var(--tl-brand-strong);
+  background: transparent;
+  border: 1px solid var(--tl-brand);
+}
+
+.mission-form__actions .react-aria-Button.mission-button--secondary[data-hovered] {
+  background: var(--tl-brand-soft);
+}
+
 .mission-form__actions p {
   margin: 0;
   color: var(--tl-ink-muted);
@@ -231,6 +241,227 @@
 
 .mission-card--form > .tl-evidence-state {
   margin-top: var(--tl-space-4);
+}
+
+.mission-plan-errors {
+  padding-left: var(--tl-space-4);
+  margin: var(--tl-space-2) 0 0;
+}
+
+.mission-plan {
+  display: grid;
+  gap: var(--tl-space-5);
+  border-top: 4px solid var(--tl-brand);
+}
+
+.mission-plan h4 {
+  margin: 0 0 var(--tl-space-3);
+  font-family: var(--tl-font-editorial);
+  font-size: var(--tl-text-md);
+  font-weight: 600;
+}
+
+.mission-plan__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--tl-space-4);
+}
+
+.mission-plan__heading h3 {
+  margin-bottom: var(--tl-space-2);
+  font-size: clamp(1.5rem, 3vw, 2rem);
+}
+
+.mission-plan__heading p:last-child {
+  max-width: 46rem;
+  margin-bottom: 0;
+  color: var(--tl-ink-muted);
+}
+
+.mission-plan__heading > code {
+  flex: 0 0 auto;
+  padding: var(--tl-space-2) var(--tl-space-3);
+  color: var(--tl-brand-strong);
+  background: var(--tl-brand-soft);
+  border: 1px solid var(--tl-line-strong);
+  border-radius: var(--tl-radius-pill);
+}
+
+.mission-plan__summary dl {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0;
+  overflow: hidden;
+  background: var(--tl-line);
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.mission-plan__summary dl > div {
+  display: grid;
+  align-content: start;
+  gap: var(--tl-space-1);
+  padding: var(--tl-space-3);
+  background: var(--tl-surface-subtle);
+}
+
+.mission-plan__summary dt {
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-xs);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mission-plan__summary dd {
+  margin: 0;
+  font-family: var(--tl-font-editorial);
+  font-size: var(--tl-text-lg);
+}
+
+.mission-plan__summary small {
+  color: var(--tl-ink-muted);
+}
+
+.mission-plan__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(18rem, 0.8fr);
+  gap: var(--tl-space-5);
+}
+
+.mission-plan__stages,
+.mission-plan__unavailable,
+.mission-plan__artifacts {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.mission-plan__stages {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--tl-space-2);
+}
+
+.mission-plan__stages li {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  gap: var(--tl-space-2);
+  min-width: 0;
+  padding: var(--tl-space-3);
+  background: var(--tl-surface-subtle);
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.mission-plan__stages li[data-stage-status="unavailable"] {
+  background: var(--tl-state-unavailable-bg);
+  border-color: var(--tl-state-unavailable-line);
+  border-style: dashed;
+}
+
+.mission-plan__stages li[data-stage-status="pending"] {
+  background: var(--tl-state-review-bg);
+  border-color: var(--tl-state-review-line);
+}
+
+.mission-plan__stages li > span {
+  color: var(--tl-ink-muted);
+  font-family: var(--tl-font-mono);
+  font-size: var(--tl-text-xs);
+}
+
+.mission-plan__stages li > div {
+  display: grid;
+  gap: var(--tl-space-1);
+  min-width: 0;
+}
+
+.mission-plan__stages strong,
+.mission-plan__stages small {
+  overflow-wrap: anywhere;
+  text-transform: capitalize;
+}
+
+.mission-plan__stages small {
+  color: var(--tl-ink-muted);
+}
+
+.mission-plan__unavailable {
+  display: grid;
+  gap: var(--tl-space-2);
+}
+
+.mission-plan__unavailable li {
+  display: grid;
+  gap: var(--tl-space-1);
+  padding-bottom: var(--tl-space-2);
+  border-bottom: 1px solid var(--tl-line);
+}
+
+.mission-plan__unavailable strong {
+  color: var(--tl-state-unavailable-ink);
+  text-transform: capitalize;
+}
+
+.mission-plan__unavailable span {
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-sm);
+}
+
+.mission-plan__artifact-kicker {
+  margin-top: var(--tl-space-5);
+}
+
+.mission-plan__artifacts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--tl-space-2);
+}
+
+.mission-plan__artifacts li {
+  display: grid;
+  gap: var(--tl-space-1);
+  min-width: 0;
+  padding: var(--tl-space-2);
+  background: var(--tl-state-unavailable-bg);
+  border: 1px dashed var(--tl-state-unavailable-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.mission-plan__artifacts code {
+  overflow-wrap: anywhere;
+}
+
+.mission-plan__artifacts span {
+  color: var(--tl-state-unavailable-ink);
+  font-size: var(--tl-text-xs);
+  text-transform: capitalize;
+}
+
+.mission-plan__json {
+  min-width: 0;
+  border-top: 1px solid var(--tl-line);
+}
+
+.mission-plan__json summary {
+  padding-top: var(--tl-space-3);
+  color: var(--tl-brand-strong);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.mission-plan__json pre {
+  max-height: 30rem;
+  padding: var(--tl-space-3);
+  overflow: auto;
+  color: var(--tl-paper-100);
+  font-size: var(--tl-text-xs);
+  line-height: 1.55;
+  background: var(--tl-brand-strong);
+  border-radius: var(--tl-radius-sm);
 }
 
 .mission-draft {
@@ -459,8 +690,13 @@
 
 @media (max-width: 58rem) {
   .mission-layout,
-  .mission-evidence-grid {
+  .mission-evidence-grid,
+  .mission-plan__grid {
     grid-template-columns: 1fr;
+  }
+
+  .mission-plan__summary dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .mission-draft {
@@ -491,13 +727,21 @@
 
 @media (max-width: 44rem) {
   .mission-workspace__intro,
-  .mission-form__actions {
+  .mission-form__actions,
+  .mission-plan__heading {
     display: grid;
   }
 
   .mission-form fieldset,
   .candidate-policy-list,
-  .mission-metrics {
+  .mission-metrics,
+  .mission-plan__summary dl,
+  .mission-plan__stages,
+  .mission-plan__artifacts {
     grid-template-columns: 1fr;
+  }
+
+  .mission-plan__heading > code {
+    justify-self: start;
   }
 }

@@ -18,30 +18,20 @@ import {
   TextField,
 } from 'react-aria-components'
 
-import type { MissionEvidence, ReplayIdentity } from '../data/evidenceFacade'
+import type { ReplayEvidence } from '../data/evidenceFacade'
 import { EvidenceState, EvidenceTier } from '../design-system'
+import {
+  createMissionDraft,
+  generateEvidencePlan,
+  MissionPlanValidationError,
+  type EvidencePlan,
+  type MissionDraft,
+  type MissionMode,
+} from './missionPlan'
 import './mission.css'
 
-type RetrievalPolicy = 'global_then_assign_to_flickr_clusters' | 'target_supported_countries'
-type ReferencePolicy = 'human_review_before_support_use' | 'metadata_planning_only'
-type EvidenceStrictness = 'block_unverified_claims' | 'metadata_exploration_only'
-type MissionMode = 'replay' | 'live'
-
-interface MissionDraft {
-  readonly targetSpecies: string
-  readonly region: string
-  readonly retrievalPolicy: RetrievalPolicy
-  readonly maximumApiCalls: number
-  readonly candidateLimit: number
-  readonly referencePolicy: ReferencePolicy
-  readonly evidenceStrictness: EvidenceStrictness
-  readonly mode: MissionMode
-  readonly device: string
-}
-
 interface MissionWorkspaceProps {
-  readonly evidence: MissionEvidence
-  readonly target: ReplayIdentity['target']
+  readonly replay: ReplayEvidence
 }
 
 interface SelectOption<T extends string> {
@@ -51,20 +41,6 @@ interface SelectOption<T extends string> {
 
 function humanize(value: string): string {
   return value.replaceAll('_', ' ')
-}
-
-function missionBaseline(evidence: MissionEvidence, target: ReplayIdentity['target']): MissionDraft {
-  return {
-    targetSpecies: target.scientificName,
-    region: 'global',
-    retrievalPolicy: evidence.queryPolicy.defaultRetrievalPolicy as RetrievalPolicy,
-    maximumApiCalls: evidence.budgets.materializedRequestCount,
-    candidateLimit: evidence.candidatePolicy.candidateCount,
-    referencePolicy: 'human_review_before_support_use',
-    evidenceStrictness: 'block_unverified_claims',
-    mode: 'replay',
-    device: '',
-  }
 }
 
 function PolicySelect<T extends string>({
@@ -105,16 +81,144 @@ function PolicySelect<T extends string>({
   )
 }
 
-export function MissionWorkspace({ evidence, target }: MissionWorkspaceProps) {
-  const baseline = useMemo(() => missionBaseline(evidence, target), [evidence, target])
+function PlanResult({ plan }: { readonly plan: EvidencePlan }) {
+  const futureArtifacts = plan.artifactExpectations.filter(
+    (expectation) => expectation.purpose === 'future_evidence_required',
+  )
+
+  return (
+    <section className="mission-card mission-plan" aria-labelledby="evidence-plan-title">
+      <div className="mission-plan__heading">
+        <div>
+          <p className="eyebrow">Deterministic output</p>
+          <h3 id="evidence-plan-title">Evidence plan</h3>
+          <p>
+            Generated locally from the draft and verified replay contract. No OpenAI call or live
+            action is used.
+          </p>
+        </div>
+        <code>{plan.planVersion}</code>
+      </div>
+
+      <div className="mission-plan__summary">
+        <dl>
+          <div>
+            <dt>Target</dt>
+            <dd>
+              <i>{plan.target.scientificName}</i>
+            </dd>
+            <small>{plan.target.acceptedTaxonKey}</small>
+          </div>
+          <div>
+            <dt>Region</dt>
+            <dd>{humanize(plan.region.selection)}</dd>
+            <small>{plan.region.countryCount} country entries · planning hypothesis</small>
+          </div>
+          <div>
+            <dt>Approved API budget</dt>
+            <dd>{plan.approvedBudget.maximumApiCalls.toLocaleString()}</dd>
+            <small>{plan.approvedBudget.fixtureMaterializedApiCalls} calls in the replay</small>
+          </div>
+          <div>
+            <dt>Candidate budget</dt>
+            <dd>{plan.approvedBudget.candidateLimit}</dd>
+            <small>Every eligible regional candidate remains scoreable</small>
+          </div>
+        </dl>
+      </div>
+
+      <div className="mission-plan__grid">
+        <section aria-labelledby="expected-stages-title">
+          <p className="eyebrow">Expected stages</p>
+          <h4 id="expected-stages-title">Ordered replay workflow</h4>
+          <ol className="mission-plan__stages">
+            {plan.expectedStages.map((stage) => (
+              <li key={stage.stageId} data-stage-status={stage.status}>
+                <span>{String(stage.sequence).padStart(2, '0')}</span>
+                <div>
+                  <strong>{humanize(stage.stageId)}</strong>
+                  <small>
+                    {humanize(stage.status)} · {stage.recordCount.toLocaleString()} records
+                  </small>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section aria-labelledby="unavailable-stages-title">
+          <p className="eyebrow">Unavailable stages</p>
+          <h4 id="unavailable-stages-title">Declared, never inferred</h4>
+          <ul className="mission-plan__unavailable">
+            {plan.unavailableStages.map((stage) => (
+              <li key={stage.stageId}>
+                <strong>{humanize(stage.stageId)}</strong>
+                <span>{stage.reason}</span>
+              </li>
+            ))}
+          </ul>
+
+          <p className="eyebrow mission-plan__artifact-kicker">Artifact expectations</p>
+          <ul className="mission-plan__artifacts" aria-label="Future evidence artifacts">
+            {futureArtifacts.map((expectation) => (
+              <li key={expectation.role}>
+                <code>{expectation.role}</code>
+                <span>{humanize(expectation.availability)}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
+
+      <EvidenceState state="review" title="Explicit approval remains required">
+        {plan.approvalRequirement.requiredEvidence.length} Phase 15 evidence gates and{' '}
+        {plan.approvalRequirement.incompletePrerequisiteGates.length} prerequisite stages remain
+        incomplete. This plan does not approve or launch live work.
+      </EvidenceState>
+
+      <details className="mission-plan__json">
+        <summary>Inspect structured plan JSON</summary>
+        <pre>{JSON.stringify(plan, null, 2)}</pre>
+      </details>
+    </section>
+  )
+}
+
+export function MissionWorkspace({ replay }: MissionWorkspaceProps) {
+  const { mission: evidence, target } = replay
+  const baseline = useMemo(() => createMissionDraft(replay), [replay])
   const [draft, setDraft] = useState<MissionDraft>(baseline)
-  const targetMatchesBundle = draft.targetSpecies.trim().toLocaleLowerCase() ===
-    target.scientificName.toLocaleLowerCase()
+  const [plan, setPlan] = useState<EvidencePlan | null>(null)
+  const [planIssues, setPlanIssues] = useState<readonly string[]>([])
+  const targetMatchesBundle =
+    draft.targetSpecies.trim().toLowerCase() === target.scientificName.toLowerCase()
   const incompleteGates = evidence.prerequisiteGates.filter((gate) => gate.status !== 'complete')
   const countryCount = evidence.regions.reduce((total, region) => total + region.countryCount, 0)
 
   function update<K extends keyof MissionDraft>(field: K, value: MissionDraft[K]) {
     setDraft((current) => ({ ...current, [field]: value }))
+    setPlan(null)
+    setPlanIssues([])
+  }
+
+  function restoreBaseline() {
+    setDraft(baseline)
+    setPlan(null)
+    setPlanIssues([])
+  }
+
+  function generatePlan() {
+    try {
+      setPlan(generateEvidencePlan(draft, replay))
+      setPlanIssues([])
+    } catch (error) {
+      setPlan(null)
+      setPlanIssues(
+        error instanceof MissionPlanValidationError
+          ? error.issues.map((issue) => issue.message)
+          : ['The deterministic plan could not be generated.'],
+      )
+    }
   }
 
   return (
@@ -289,11 +393,14 @@ export function MissionWorkspace({ evidence, target }: MissionWorkspaceProps) {
             </fieldset>
 
             <div className="mission-form__actions">
-              <Button type="button" onPress={() => setDraft(baseline)}>
+              <Button type="button" onPress={generatePlan}>
+                Generate deterministic plan
+              </Button>
+              <Button type="button" className="mission-button--secondary" onPress={restoreBaseline}>
                 Restore replay baseline
               </Button>
               <p aria-live="polite">
-                Deterministic plan generation is the next gated step; no work launches here.
+                Plans are local and deterministic; no work launches here.
               </p>
             </div>
           </Form>
@@ -302,6 +409,16 @@ export function MissionWorkspace({ evidence, target }: MissionWorkspaceProps) {
             <EvidenceState state="blocked" title="No matching verified fixture">
               The draft target differs from {target.scientificName}. Only the submitted target has a
               checksum-verified replay bundle.
+            </EvidenceState>
+          )}
+
+          {planIssues.length > 0 && (
+            <EvidenceState state="blocked" title="Plan needs correction">
+              <ul className="mission-plan-errors">
+                {planIssues.map((issue) => (
+                  <li key={issue}>{issue}</li>
+                ))}
+              </ul>
             </EvidenceState>
           )}
         </section>
@@ -337,6 +454,8 @@ export function MissionWorkspace({ evidence, target }: MissionWorkspaceProps) {
           </dl>
         </aside>
       </div>
+
+      {plan !== null && <PlanResult plan={plan} />}
 
       <section className="mission-card mission-baseline" aria-labelledby="query-hierarchy-title">
         <p className="eyebrow">Verified replay baseline</p>
