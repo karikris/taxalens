@@ -1,0 +1,34 @@
+[
+  {
+    "candidate_semantics": "source_taxon_match_not_human_verified_image_label",
+    "data": {
+      "group_count": 8,
+      "groups_awaiting_human_review": 1,
+      "groups_with_source_candidate_shortfall": 5,
+      "human_review_status": "not_available_at_metadata_stage",
+      "human_verified_shortfall": 490,
+      "source_candidate_shortfall": 247,
+      "status": "awaiting_human_review_or_additional_sources",
+      "unresolved_group_count": 2,
+      "unresolved_groups": {
+        "domain_negatives": "requires_human_review",
+        "other_insect_or_moth_negatives": "requires_registry_linked_taxa"
+      }
+    },
+    "human_review_required": true,
+    "record_id": "reference-source-shortfalls",
+    "scientific_claim_allowed": false,
+    "source_artifacts": [
+      {
+        "byte_count": 4025,
+        "checksum_verified": true,
+        "imported_path": "pilot_reference_source_manifest.json",
+        "role": "reference_source_manifest",
+        "schema_version": "papilio-demoleus-pilot-reference-source-manifest-v1.0.0",
+        "sha256": "c5b6e809b194c3325735a97a60bbb804059f957b894d73a4c4597c3c66c4ae29",
+        "source_path": "examples/species/papilio_demoleus/pilot_reference_source_manifest.json"
+      }
+    ],
+    "verification_status": "shortfall_report_verified_unresolved"
+  }
+]

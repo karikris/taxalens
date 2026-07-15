@@ -1,0 +1,56 @@
+{
+  "all_artifacts_covered": true,
+  "all_media_rights_verified": false,
+  "included_image_count": 0,
+  "items": [
+    {
+      "artifact_ids": [
+        "stage-metrics",
+        "query-definitions",
+        "logical-associations",
+        "flickr-candidate-summaries",
+        "duplicate-summaries",
+        "geographic-clusters",
+        "candidate-sets",
+        "reference-readiness",
+        "reference-shortfalls",
+        "biological-negatives",
+        "visual-domain-negatives",
+        "pilot-metadata-snapshot"
+      ],
+      "attribution_required": true,
+      "creator_or_owner": "Kris Kari",
+      "derivative_status": "TaxaLens deterministic metadata projection",
+      "license_name": "MIT",
+      "license_uri": "https://opensource.org/license/mit",
+      "permitted_use": "TaxaLens judge replay and redistribution under MIT",
+      "rights_id": "biominer-mit-metadata",
+      "source_url": "https://github.com/karikris/BioMiner"
+    },
+    {
+      "artifact_ids": [
+        "run-summary",
+        "pipeline-stages",
+        "selective-decision-metadata",
+        "rights-manifest",
+        "attribution-manifest"
+      ],
+      "attribution_required": true,
+      "creator_or_owner": "Kris Kari",
+      "derivative_status": "original fixture structure and explicit unavailable states",
+      "license_name": "MIT",
+      "license_uri": "https://opensource.org/license/mit",
+      "permitted_use": "TaxaLens judge replay and redistribution under MIT",
+      "rights_id": "taxalens-mit-fixture",
+      "source_url": "https://github.com/karikris/TaxaLens"
+    }
+  ],
+  "licensed_image_count": 0,
+  "media_asset_count": 0,
+  "media_policy": "No image is admitted without a committed license, attribution, and human-review record.",
+  "notes": [
+    "all_media_rights_verified is deliberately false, not vacuously true, because no media is included.",
+    "The target taxon name and candidate metadata are not image labels or occurrence claims."
+  ],
+  "schema_version": "truthful-demo-rights-manifest:v1.0.0"
+}

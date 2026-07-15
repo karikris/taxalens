@@ -1,0 +1,55 @@
+[
+  {
+    "candidate_semantics": "source_taxon_match_not_human_verified_image_label",
+    "data": {
+      "counts": {
+        "checkpoint_media_candidate_row_count": 142878,
+        "checkpoint_observation_row_count": 91180,
+        "deduplicated_media_candidate_count": 5,
+        "deduplicated_observation_count": 4,
+        "eligible_source_media_candidate_count": 838,
+        "fallback_observation_count": 26262,
+        "human_verified_source_media_count": 0,
+        "located_observation_count": 64914,
+        "media_candidate_count": 142873,
+        "observation_count": 91176
+      },
+      "execution_constraints": {
+        "bioclip_images_processed": 0,
+        "branch": "main",
+        "images_downloaded": 0,
+        "large_bioclip_runs": "different_computer_required",
+        "large_yoloe_runs": "different_computer_required",
+        "local_build_verification_max_images": 5,
+        "yoloe_images_processed": 0
+      },
+      "materialization": {
+        "checkpoint_count": 22,
+        "checkpoint_page_count": 314,
+        "command": "biominer references fetch-metadata",
+        "complete_checkpoint_count": 22,
+        "implementation_git_sha": "48cedf0373c9998c591dcd78c9f76958ca1ef1f9",
+        "rate_limit_count": 0,
+        "report_schema_version": "reference-metadata-cli-report-v2",
+        "request_count": 314,
+        "retry_count": 0
+      },
+      "status": "metadata_complete_awaiting_human_review_and_additional_sources"
+    },
+    "human_review_required": true,
+    "record_id": "reference-source-readiness",
+    "scientific_claim_allowed": false,
+    "source_artifacts": [
+      {
+        "byte_count": 4025,
+        "checksum_verified": true,
+        "imported_path": "pilot_reference_source_manifest.json",
+        "role": "reference_source_manifest",
+        "schema_version": "papilio-demoleus-pilot-reference-source-manifest-v1.0.0",
+        "sha256": "c5b6e809b194c3325735a97a60bbb804059f957b894d73a4c4597c3c66c4ae29",
+        "source_path": "examples/species/papilio_demoleus/pilot_reference_source_manifest.json"
+      }
+    ],
+    "verification_status": "committed_metadata_counts_verified"
+  }
+]

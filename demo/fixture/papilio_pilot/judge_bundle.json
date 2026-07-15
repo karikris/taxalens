@@ -1,0 +1,594 @@
+{
+  "artifact_inventory": [
+    {
+      "artifact_id": "attribution-manifest",
+      "bytes": 1442,
+      "media_type": "application/json",
+      "path": "attribution_manifest.json",
+      "record_count": 2,
+      "required": true,
+      "role": "attribution",
+      "schema_version": "truthful-demo-attribution-manifest:v1.0.0",
+      "sha256": "bf7810a9f18a7f1ff9f34fb60776dbaba48eb2107ae62e43f1091b3a41b56fe6",
+      "source_commit": "188187d73ca8e0ef2c670bdf6cefcb20c8a59d9d",
+      "source_repository": "karikris/TaxaLens"
+    },
+    {
+      "artifact_id": "biological-negatives",
+      "bytes": 6241,
+      "media_type": "application/json",
+      "path": "data/biological_negatives.json",
+      "record_count": 1,
+      "required": true,
+      "role": "biological_negatives",
+      "schema_version": "truthful-demo-biological-negative-plan:v1.0.0",
+      "sha256": "e852579b22ea630f5ddf3e977f6d5493160a26841cc6617cea1d8838752494d9",
+      "source_commit": "75461d9c065af0cd96b41cd1f845c2e920f7ae34",
+      "source_repository": "karikris/BioMiner"
+    },
+    {
+      "artifact_id": "candidate-sets",
+      "bytes": 2280,
+      "media_type": "application/json",
+      "path": "data/candidate_sets.json",
+      "record_count": 5,
+      "required": true,
+      "role": "candidate_sets",
+      "schema_version": "truthful-demo-candidate-set:v1.0.0",
+      "sha256": "cd36c310150c0ca9c63e0adf690519a0afb5428b68c7eb064f8b4e6749cb0791",
+      "source_commit": "75461d9c065af0cd96b41cd1f845c2e920f7ae34",
+      "source_repository": "karikris/BioMiner"
+    },
+    {
+      "artifact_id": "duplicate-summaries",
+      "bytes": 935,
+      "media_type": "application/json",
+      "path": "data/duplicate_summaries.json",
+      "record_count": 1,
+      "required": true,
+      "role": "duplicate_summaries",
+      "schema_version": "truthful-demo-duplicate-summary:v1.0.0",
+      "sha256": "70483b208a037e8f3061406337d098990f08249f0a7a2ca3a3e15ba4b9a52718",
+      "source_commit": "75461d9c065af0cd96b41cd1f845c2e920f7ae34",
+      "source_repository": "karikris/BioMiner"
+    },
+    {
+      "artifact_id": "flickr-candidate-summaries",
+      "bytes": 1514,
+      "media_type": "application/json",
+      "path": "data/flickr_candidate_summaries.json",
+      "record_count": 1,
+      "required": true,
+      "role": "flickr_candidate_summaries",
+      "schema_version": "truthful-demo-flickr-candidate-summary:v1.0.0",
+      "sha256": "4bd6264afa013f13130490289c8b35789e8bf45708952aded741b92513c40062",
+      "source_commit": "75461d9c065af0cd96b41cd1f845c2e920f7ae34",
+      "source_repository": "karikris/BioMiner"
+    },
+    {
+      "artifact_id": "geographic-clusters",
+      "bytes": 1564,
+      "media_type": "application/json",
+      "path": "data/geographic_clusters.json",
+      "record_count": 1,
+      "required": true,
+      "role": "geographic_clusters",
+      "schema_version": "truthful-demo-geographic-cluster-summary:v1.0.0",
+      "sha256": "7e66e5979100d7a4565d51498f9d60ba1b0eb9ca7daab047ec0dd60a0220e4d3",
+      "source_commit": "75461d9c065af0cd96b41cd1f845c2e920f7ae34",
+      "source_repository": "karikris/BioMiner"
+    },
+    {
+      "artifact_id": "logical-associations",
+      "bytes": 7950,
+      "media_type": "application/json",
+      "path": "data/logical_associations.json",
+      "record_count": 2,
+      "required": true,
+      "role": "logical_associations",
+      "schema_version": "truthful-demo-logical-association:v1.0.0",
+      "sha256": "31052ae652d9550e6bb698fab6acf63c0bb31878855c7b3d6e7053785caf709c",
+      "source_commit": "75461d9c065af0cd96b41cd1f845c2e920f7ae34",
+      "source_repository": "karikris/BioMiner"
+    },
+    {
+      "artifact_id": "pilot-metadata-snapshot",
+      "bytes": 43415,
+      "media_type": "application/json",
+      "path": "source/pilot_metadata_snapshot.json",
+      "record_count": 1,
+      "required": true,
+      "role": "other",
+      "schema_version": "taxalens-phase14-pilot-metadata:v1.0.0",
+      "sha256": "335598458517f8b5d372e013fc7b0841fab9c21b1a73e11e91101259fbffd241",
+      "source_commit": "75461d9c065af0cd96b41cd1f845c2e920f7ae34",
+      "source_repository": "karikris/BioMiner"
+    },
+    {
+      "artifact_id": "pipeline-stages",
+      "bytes": 1845,
+      "media_type": "application/json",
+      "path": "data/pipeline_stages.json",
+      "record_count": 8,
+      "required": true,
+      "role": "pipeline_stages",
+      "schema_version": "truthful-demo-pipeline-stage:v1.0.0",
+      "sha256": "82b51bfe2fc5776ddb97659d4622bf7d2585a2c4ecc8128ff783ce9fa68b69ad",
+      "source_commit": "188187d73ca8e0ef2c670bdf6cefcb20c8a59d9d",
+      "source_repository": "karikris/TaxaLens"
+    },
+    {
+      "artifact_id": "query-definitions",
+      "bytes": 7585,
+      "media_type": "application/json",
+      "path": "data/query_definitions.json",
+      "record_count": 1,
+      "required": true,
+      "role": "query_definitions",
+      "schema_version": "truthful-demo-query-definition:v1.0.0",
+      "sha256": "801920d1afdb829ec96f7bdf18f5744b5e6fc18f337ed050b8ee0cf84463014d",
+      "source_commit": "75461d9c065af0cd96b41cd1f845c2e920f7ae34",
+      "source_repository": "karikris/BioMiner"
+    },
+    {
+      "artifact_id": "reference-readiness",
+      "bytes": 2145,
+      "media_type": "application/json",
+      "path": "data/reference_readiness.json",
+      "record_count": 1,
+      "required": true,
+      "role": "reference_readiness",
+      "schema_version": "truthful-demo-reference-readiness:v1.0.0",
+      "sha256": "4669e0454b4cd8227775c8aed96e34a68f413c9a15e3e4f198d8c549413aea4a",
+      "source_commit": "75461d9c065af0cd96b41cd1f845c2e920f7ae34",
+      "source_repository": "karikris/BioMiner"
+    },
+    {
+      "artifact_id": "reference-shortfalls",
+      "bytes": 1312,
+      "media_type": "application/json",
+      "path": "data/reference_shortfalls.json",
+      "record_count": 1,
+      "required": true,
+      "role": "reference_shortfalls",
+      "schema_version": "truthful-demo-reference-shortfall:v1.0.0",
+      "sha256": "fa69d6a8c12dfdbd002c9bcaefadf092df5b857a25fcc2859cd5aa0aa3cae0ae",
+      "source_commit": "75461d9c065af0cd96b41cd1f845c2e920f7ae34",
+      "source_repository": "karikris/BioMiner"
+    },
+    {
+      "artifact_id": "rights-manifest",
+      "bytes": 2024,
+      "media_type": "application/json",
+      "path": "rights_manifest.json",
+      "record_count": 1,
+      "required": true,
+      "role": "rights",
+      "schema_version": "truthful-demo-rights-manifest:v1.0.0",
+      "sha256": "5e1b9a97620489db48cc27a129de50bffb4ac3f0f66e78d4ab54a884b9c776cc",
+      "source_commit": "188187d73ca8e0ef2c670bdf6cefcb20c8a59d9d",
+      "source_repository": "karikris/TaxaLens"
+    },
+    {
+      "artifact_id": "run-summary",
+      "bytes": 1896,
+      "media_type": "application/json",
+      "path": "data/run_summary.json",
+      "record_count": 1,
+      "required": true,
+      "role": "run_summary",
+      "schema_version": "truthful-demo-run-summary:v1.0.0",
+      "sha256": "2071c4bc54fb3dd084a231726d228ca8c0d78679f39eed335d856048dac97573",
+      "source_commit": "188187d73ca8e0ef2c670bdf6cefcb20c8a59d9d",
+      "source_repository": "karikris/TaxaLens"
+    },
+    {
+      "artifact_id": "selective-decision-metadata",
+      "bytes": 1963,
+      "media_type": "application/json",
+      "path": "data/selective_decision_metadata.json",
+      "record_count": 1,
+      "required": true,
+      "role": "selective_decision_metadata",
+      "schema_version": "truthful-demo-decision-state:v1.0.0",
+      "sha256": "6906410a5715674987df35b92bfc7836779d5514e3a52b68cb61437b07581743",
+      "source_commit": "188187d73ca8e0ef2c670bdf6cefcb20c8a59d9d",
+      "source_repository": "karikris/TaxaLens"
+    },
+    {
+      "artifact_id": "stage-metrics",
+      "bytes": 861,
+      "media_type": "application/json",
+      "path": "data/stage_metrics.json",
+      "record_count": 4,
+      "required": true,
+      "role": "stage_metrics",
+      "schema_version": "truthful-demo-metadata-metric:v1.0.0",
+      "sha256": "04f083e24f9aa994aa549d4312dc4a1c4acf59c65d6244fd772fff9b92e0dd2d",
+      "source_commit": "75461d9c065af0cd96b41cd1f845c2e920f7ae34",
+      "source_repository": "karikris/BioMiner"
+    },
+    {
+      "artifact_id": "visual-domain-negatives",
+      "bytes": 1074,
+      "media_type": "application/json",
+      "path": "data/visual_domain_negatives.json",
+      "record_count": 1,
+      "required": true,
+      "role": "visual_domain_negatives",
+      "schema_version": "truthful-demo-visual-domain-negative-plan:v1.0.0",
+      "sha256": "7241cfdcc50d4a4316acc85214237f299c2b5cf974b4de34720baaa9725df778",
+      "source_commit": "75461d9c065af0cd96b41cd1f845c2e920f7ae34",
+      "source_repository": "karikris/BioMiner"
+    }
+  ],
+  "attribution": {
+    "complete": true,
+    "entries": [
+      {
+        "artifact_ids": [
+          "stage-metrics",
+          "query-definitions",
+          "logical-associations",
+          "flickr-candidate-summaries",
+          "duplicate-summaries",
+          "geographic-clusters",
+          "candidate-sets",
+          "reference-readiness",
+          "reference-shortfalls",
+          "biological-negatives",
+          "visual-domain-negatives",
+          "pilot-metadata-snapshot"
+        ],
+        "attribution_id": "biominer-pilot-metadata",
+        "creator": "Kris Kari",
+        "display_text": "BioMiner pilot metadata, copyright (c) 2026 Kris Kari, MIT License.",
+        "license_name": "MIT",
+        "license_uri": "https://opensource.org/license/mit",
+        "source_title": "BioMiner",
+        "source_url": "https://github.com/karikris/BioMiner"
+      },
+      {
+        "artifact_ids": [
+          "run-summary",
+          "pipeline-stages",
+          "selective-decision-metadata",
+          "rights-manifest",
+          "attribution-manifest"
+        ],
+        "attribution_id": "taxalens-truthful-fixture",
+        "creator": "Kris Kari",
+        "display_text": "TaxaLens truthful pilot fixture, copyright (c) 2026 Kris Kari, MIT License.",
+        "license_name": "MIT",
+        "license_uri": "https://opensource.org/license/mit",
+        "source_title": "TaxaLens",
+        "source_url": "https://github.com/karikris/TaxaLens"
+      }
+    ]
+  },
+  "bundle_id": "papilio-demoleus-pilot-75461d9c-v1",
+  "checksums": {
+    "algorithm": "sha256",
+    "canonicalization": "json-sorted-keys-utf8-v1",
+    "inventory_sha256": "4e1b6b3bf8e7ac20dac7c824624bd6583612f7117ca45cf9cf06adf8632d5ef9",
+    "payload_root_sha256": "b842cdbb22c26b1a016d1481e41dd756e4f44938b0e042d1cd89967f90c58a87"
+  },
+  "created_at": "2026-07-15T15:30:00Z",
+  "expected_ui_counts": {
+    "artifact_count": 17,
+    "attribution_count": 2,
+    "openai_replay_trace_count": 0,
+    "screen_items": {
+      "butterfly_dashboard": 1,
+      "evidence_lens": 11,
+      "evidence_observatory": 7,
+      "research_mission": 10
+    },
+    "section_records": {
+      "biological_negatives": 1,
+      "candidate_revisions": 0,
+      "candidate_sets": 5,
+      "comments": 0,
+      "duplicate_summaries": 1,
+      "evaluation_summaries": 0,
+      "flickr_candidate_summaries": 1,
+      "full_frame_visual_input_metadata": 0,
+      "geographic_clusters": 1,
+      "logical_associations": 2,
+      "pipeline_stages": 8,
+      "query_definitions": 1,
+      "reference_readiness": 1,
+      "reference_shortfalls": 1,
+      "run_summary": 1,
+      "selective_decision_metadata": 1,
+      "stage_metrics": 4,
+      "target_aware_score_metadata": 0,
+      "visual_domain_negatives": 1,
+      "yoloe_evidence": 0
+    },
+    "unavailable_section_count": 6
+  },
+  "openai_replay": {
+    "credentials_required": false,
+    "live_requests_allowed": false,
+    "mode": "not_used",
+    "reason": "No OpenAI request or stored OpenAI output is represented in this pilot fixture.",
+    "status": "not_used",
+    "traces": []
+  },
+  "rights": {
+    "all_artifacts_covered": true,
+    "all_media_rights_verified": false,
+    "items": [
+      {
+        "artifact_ids": [
+          "stage-metrics",
+          "query-definitions",
+          "logical-associations",
+          "flickr-candidate-summaries",
+          "duplicate-summaries",
+          "geographic-clusters",
+          "candidate-sets",
+          "reference-readiness",
+          "reference-shortfalls",
+          "biological-negatives",
+          "visual-domain-negatives",
+          "pilot-metadata-snapshot"
+        ],
+        "attribution_required": true,
+        "creator_or_owner": "Kris Kari",
+        "license_name": "MIT",
+        "license_uri": "https://opensource.org/license/mit",
+        "notes": [
+          "No BioMiner image or scientific result artifact is included."
+        ],
+        "rights_id": "biominer-mit-metadata",
+        "source_url": "https://github.com/karikris/BioMiner",
+        "status": "license_checked",
+        "use_scope": "metadata-only judge replay"
+      },
+      {
+        "artifact_ids": [
+          "attribution-manifest",
+          "pipeline-stages",
+          "rights-manifest",
+          "run-summary",
+          "selective-decision-metadata"
+        ],
+        "attribution_required": true,
+        "creator_or_owner": "Kris Kari",
+        "license_name": "MIT",
+        "license_uri": "https://opensource.org/license/mit",
+        "notes": [
+          "No image is included; media rights are not asserted vacuously."
+        ],
+        "rights_id": "taxalens-mit-fixture",
+        "source_url": "https://github.com/karikris/TaxaLens",
+        "status": "license_checked",
+        "use_scope": "truthful fixture structure and replay metadata"
+      }
+    ],
+    "status": "license_checked"
+  },
+  "schema_version": "taxalens-judge-bundle:v1.0.0",
+  "sections": {
+    "biological_negatives": {
+      "artifact_ids": [
+        "biological-negatives"
+      ],
+      "candidate_semantics": "candidate_reference_not_verified_support",
+      "human_review_required": true,
+      "reason": "Committed metadata is present, but payload rows or human review are incomplete.",
+      "scientific_claim_allowed": false,
+      "status": "partial",
+      "verification_status": "unreviewed"
+    },
+    "candidate_revisions": {
+      "artifact_ids": [],
+      "candidate_semantics": "not_applicable",
+      "human_review_required": true,
+      "reason": "No human candidate revision artifact is committed for this pilot.",
+      "scientific_claim_allowed": false,
+      "status": "unavailable",
+      "verification_status": "unavailable"
+    },
+    "candidate_sets": {
+      "artifact_ids": [
+        "candidate-sets"
+      ],
+      "candidate_semantics": "candidate_reference_not_verified_support",
+      "human_review_required": true,
+      "reason": "Committed metadata is present, but payload rows or human review are incomplete.",
+      "scientific_claim_allowed": false,
+      "status": "partial",
+      "verification_status": "unreviewed"
+    },
+    "comments": {
+      "artifact_ids": [],
+      "candidate_semantics": "not_applicable",
+      "human_review_required": true,
+      "reason": "No human review comment artifact is committed for this pilot.",
+      "scientific_claim_allowed": false,
+      "status": "unavailable",
+      "verification_status": "unavailable"
+    },
+    "duplicate_summaries": {
+      "artifact_ids": [
+        "duplicate-summaries"
+      ],
+      "candidate_semantics": "diagnostic_only",
+      "human_review_required": true,
+      "reason": "Committed metadata is present, but payload rows or human review are incomplete.",
+      "scientific_claim_allowed": false,
+      "status": "partial",
+      "verification_status": "metadata_only"
+    },
+    "evaluation_summaries": {
+      "artifact_ids": [],
+      "candidate_semantics": "not_applicable",
+      "human_review_required": true,
+      "reason": "No Phase 13 result artifact is supplied to this fixture.",
+      "scientific_claim_allowed": false,
+      "status": "unavailable",
+      "verification_status": "unavailable"
+    },
+    "flickr_candidate_summaries": {
+      "artifact_ids": [
+        "flickr-candidate-summaries"
+      ],
+      "candidate_semantics": "hypothesis_not_occurrence",
+      "human_review_required": true,
+      "reason": null,
+      "scientific_claim_allowed": false,
+      "status": "available",
+      "verification_status": "metadata_only"
+    },
+    "full_frame_visual_input_metadata": {
+      "artifact_ids": [],
+      "candidate_semantics": "diagnostic_only",
+      "human_review_required": true,
+      "reason": "No admitted image or real pilot full-frame transformation is committed.",
+      "scientific_claim_allowed": false,
+      "status": "unavailable",
+      "verification_status": "unavailable"
+    },
+    "geographic_clusters": {
+      "artifact_ids": [
+        "geographic-clusters"
+      ],
+      "candidate_semantics": "hypothesis_not_occurrence",
+      "human_review_required": true,
+      "reason": "Committed metadata is present, but payload rows or human review are incomplete.",
+      "scientific_claim_allowed": false,
+      "status": "partial",
+      "verification_status": "metadata_only"
+    },
+    "logical_associations": {
+      "artifact_ids": [
+        "logical-associations"
+      ],
+      "candidate_semantics": "hypothesis_not_occurrence",
+      "human_review_required": true,
+      "reason": "Committed metadata is present, but payload rows or human review are incomplete.",
+      "scientific_claim_allowed": false,
+      "status": "partial",
+      "verification_status": "metadata_only"
+    },
+    "pipeline_stages": {
+      "artifact_ids": [
+        "pipeline-stages"
+      ],
+      "candidate_semantics": "diagnostic_only",
+      "human_review_required": true,
+      "reason": null,
+      "scientific_claim_allowed": false,
+      "status": "available",
+      "verification_status": "machine_verified_contract"
+    },
+    "query_definitions": {
+      "artifact_ids": [
+        "query-definitions"
+      ],
+      "candidate_semantics": "hypothesis_not_occurrence",
+      "human_review_required": true,
+      "reason": null,
+      "scientific_claim_allowed": false,
+      "status": "available",
+      "verification_status": "metadata_only"
+    },
+    "reference_readiness": {
+      "artifact_ids": [
+        "reference-readiness"
+      ],
+      "candidate_semantics": "candidate_reference_not_verified_support",
+      "human_review_required": true,
+      "reason": "Committed metadata is present, but payload rows or human review are incomplete.",
+      "scientific_claim_allowed": false,
+      "status": "partial",
+      "verification_status": "human_review_pending"
+    },
+    "reference_shortfalls": {
+      "artifact_ids": [
+        "reference-shortfalls"
+      ],
+      "candidate_semantics": "candidate_reference_not_verified_support",
+      "human_review_required": true,
+      "reason": "Committed metadata is present, but payload rows or human review are incomplete.",
+      "scientific_claim_allowed": false,
+      "status": "partial",
+      "verification_status": "human_review_pending"
+    },
+    "run_summary": {
+      "artifact_ids": [
+        "run-summary"
+      ],
+      "candidate_semantics": "not_applicable",
+      "human_review_required": true,
+      "reason": null,
+      "scientific_claim_allowed": false,
+      "status": "available",
+      "verification_status": "machine_verified_contract"
+    },
+    "selective_decision_metadata": {
+      "artifact_ids": [
+        "selective-decision-metadata"
+      ],
+      "candidate_semantics": "diagnostic_only",
+      "human_review_required": true,
+      "reason": "Committed metadata is present, but payload rows or human review are incomplete.",
+      "scientific_claim_allowed": false,
+      "status": "partial",
+      "verification_status": "human_review_pending"
+    },
+    "stage_metrics": {
+      "artifact_ids": [
+        "stage-metrics"
+      ],
+      "candidate_semantics": "diagnostic_only",
+      "human_review_required": true,
+      "reason": null,
+      "scientific_claim_allowed": false,
+      "status": "available",
+      "verification_status": "metadata_only"
+    },
+    "target_aware_score_metadata": {
+      "artifact_ids": [],
+      "candidate_semantics": "diagnostic_only",
+      "human_review_required": true,
+      "reason": "No real pilot image or candidate visual score artifact is committed.",
+      "scientific_claim_allowed": false,
+      "status": "unavailable",
+      "verification_status": "unavailable"
+    },
+    "visual_domain_negatives": {
+      "artifact_ids": [
+        "visual-domain-negatives"
+      ],
+      "candidate_semantics": "candidate_reference_not_verified_support",
+      "human_review_required": true,
+      "reason": "Committed metadata is present, but payload rows or human review are incomplete.",
+      "scientific_claim_allowed": false,
+      "status": "partial",
+      "verification_status": "unreviewed"
+    },
+    "yoloe_evidence": {
+      "artifact_ids": [],
+      "candidate_semantics": "diagnostic_only",
+      "human_review_required": true,
+      "reason": "BioMiner reports zero YOLOE images processed; no detection artifact is committed.",
+      "scientific_claim_allowed": false,
+      "status": "unavailable",
+      "verification_status": "unavailable"
+    }
+  },
+  "source_revisions": {
+    "biominer_sha": "75461d9c065af0cd96b41cd1f845c2e920f7ae34",
+    "taxalens_sha": "188187d73ca8e0ef2c670bdf6cefcb20c8a59d9d"
+  },
+  "target": {
+    "accepted_taxon_key": "gbif:1938069",
+    "rank": "species",
+    "scientific_name": "Papilio demoleus"
+  },
+  "title": "Truthful Papilio demoleus metadata pilot"
+}

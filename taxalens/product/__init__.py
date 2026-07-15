@@ -48,10 +48,20 @@ from taxalens.product.judge_bundle import (
     load_judge_bundle,
     validate_judge_bundle,
 )
+from taxalens.product.truthful_demo import (
+    DEFAULT_TRUTHFUL_DEMO_ROOT,
+    TRUTHFUL_DEMO_BIOMINER_SHA,
+    TRUTHFUL_DEMO_BUNDLE_ID,
+    TRUTHFUL_DEMO_HERO_ID,
+    TRUTHFUL_DEMO_SCHEMA_VERSION,
+    TRUTHFUL_DEMO_TAXALENS_SHA,
+    build_truthful_demo_fixture,
+)
 
 __all__ = [
     "ArtifactProvenance",
     "ArtifactView",
+    "DEFAULT_TRUTHFUL_DEMO_ROOT",
     "EvidenceExport",
     "EvidenceFacade",
     "ExportFile",
@@ -66,6 +76,11 @@ __all__ = [
     "PipelineView",
     "ProductProvenance",
     "ProductResult",
+    "TRUTHFUL_DEMO_BIOMINER_SHA",
+    "TRUTHFUL_DEMO_BUNDLE_ID",
+    "TRUTHFUL_DEMO_HERO_ID",
+    "TRUTHFUL_DEMO_SCHEMA_VERSION",
+    "TRUTHFUL_DEMO_TAXALENS_SHA",
     "VerifiedHandoff",
     "JUDGE_BUNDLE_SCHEMA_VERSION",
     "JUDGE_BUNDLE_SECTION_NAMES",
@@ -73,6 +88,7 @@ __all__ = [
     "JudgeBundleValidation",
     "compute_inventory_sha256",
     "compute_payload_root_sha256",
+    "build_truthful_demo_fixture",
     "export_evidence",
     "import_biominer_handoff",
     "load_candidate_comparison",

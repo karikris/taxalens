@@ -1,0 +1,63 @@
+[
+  {
+    "record_count": 6,
+    "scientific_claim_allowed": false,
+    "stage_id": "compact-metadata-import",
+    "status": "available",
+    "verification_status": "content_and_cross_references_verified"
+  },
+  {
+    "record_count": 76485,
+    "scientific_claim_allowed": false,
+    "stage_id": "geographic-workload",
+    "status": "metadata_available",
+    "verification_status": "committed_metadata_verified"
+  },
+  {
+    "record_count": 838,
+    "scientific_claim_allowed": false,
+    "stage_id": "reference-candidate-metadata",
+    "status": "metadata_available",
+    "verification_status": "committed_metadata_counts_verified"
+  },
+  {
+    "reason": "No eligible media was admitted to the fixture.",
+    "record_count": 0,
+    "scientific_claim_allowed": false,
+    "stage_id": "licensed-media-selection",
+    "status": "unavailable",
+    "verification_status": "unavailable"
+  },
+  {
+    "reason": "No pilot image was processed by YOLOE.",
+    "record_count": 0,
+    "scientific_claim_allowed": false,
+    "stage_id": "yoloe-detection",
+    "status": "unavailable",
+    "verification_status": "unavailable"
+  },
+  {
+    "reason": "No admitted image exists to transform.",
+    "record_count": 0,
+    "scientific_claim_allowed": false,
+    "stage_id": "full-frame-transformation",
+    "status": "unavailable",
+    "verification_status": "unavailable"
+  },
+  {
+    "reason": "No real candidate visual scores are committed.",
+    "record_count": 0,
+    "scientific_claim_allowed": false,
+    "stage_id": "target-aware-scoring",
+    "status": "unavailable",
+    "verification_status": "unavailable"
+  },
+  {
+    "reason": "Human-verified source media count is zero.",
+    "record_count": 0,
+    "scientific_claim_allowed": false,
+    "stage_id": "human-review",
+    "status": "pending",
+    "verification_status": "human_review_pending"
+  }
+]

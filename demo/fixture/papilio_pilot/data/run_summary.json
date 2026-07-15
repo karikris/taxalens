@@ -1,0 +1,51 @@
+{
+  "candidate_evidence": {
+    "candidate_visual_score_count": 0,
+    "reason": "The committed candidates are planning hypotheses, not verified image support.",
+    "regional_competitor_candidate_count": 5,
+    "status": "metadata_only"
+  },
+  "detection_data": {
+    "reason": "BioMiner reports zero YOLOE images processed for this pilot metadata stage.",
+    "record_count": 0,
+    "status": "unavailable"
+  },
+  "fixture_kind": "truthful_metadata_pilot",
+  "fixture_schema_version": "taxalens-truthful-demo-fixture:v1.0.0",
+  "full_frame_transformations": {
+    "reason": "No pilot media was processed, so no real transformed full frame is available.",
+    "record_count": 0,
+    "status": "unavailable"
+  },
+  "hero_record_id": "papilio-demoleus-pilot-awaiting-review",
+  "hero_state": "awaiting_human_review",
+  "human_review": {
+    "required_before_classification": true,
+    "status": "pending",
+    "verified_source_media_count": 0
+  },
+  "media": {
+    "included_image_count": 0,
+    "licensed_image_count": 0,
+    "reason": "No committed image has both a human-verified label and a fixture rights record.",
+    "status": "unavailable"
+  },
+  "notes": [
+    "The target name identifies the research subject; it is not an image classification.",
+    "All displayed counts are projections of checksum-verified committed BioMiner metadata."
+  ],
+  "run_id": "papilio-demoleus-pilot-metadata-20260715",
+  "schema_smoke_record_included": false,
+  "schema_version": "truthful-demo-run-summary:v1.0.0",
+  "scientific_claim_allowed": false,
+  "status": "metadata_complete_awaiting_human_review_and_additional_sources",
+  "target_classification": {
+    "reason": "No human-verified target image classification is committed.",
+    "status": "unavailable",
+    "value": null
+  },
+  "target_under_study": {
+    "accepted_taxon_key": "gbif:1938069",
+    "scientific_name": "Papilio demoleus"
+  }
+}

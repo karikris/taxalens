@@ -1,0 +1,69 @@
+[
+  {
+    "allowed_transition": "human_review_of_rights-cleared_source_media",
+    "candidate_plan": [
+      {
+        "accepted_taxon_key": "gbif:1937892",
+        "scientific_name": "Papilio memnon"
+      },
+      {
+        "accepted_taxon_key": "gbif:1938088",
+        "scientific_name": "Papilio polytes"
+      },
+      {
+        "accepted_taxon_key": "gbif:1938114",
+        "scientific_name": "Papilio helenus"
+      },
+      {
+        "accepted_taxon_key": "gbif:1937911",
+        "scientific_name": "Papilio paris"
+      },
+      {
+        "accepted_taxon_key": "gbif:8225376",
+        "scientific_name": "Papilio machaon"
+      }
+    ],
+    "candidate_semantics": "diagnostic_only",
+    "candidate_visual_scores": [],
+    "decision": null,
+    "display_label": "Awaiting human review",
+    "evidence_record_id": "papilio-demoleus-pilot-awaiting-review",
+    "gates": [
+      {
+        "gate": "licensed_media_in_fixture",
+        "satisfied": false
+      },
+      {
+        "gate": "real_detection_data",
+        "satisfied": false
+      },
+      {
+        "gate": "real_full_frame_transformation",
+        "satisfied": false
+      },
+      {
+        "gate": "real_candidate_visual_scores",
+        "satisfied": false
+      },
+      {
+        "gate": "human_verified_target_classification",
+        "satisfied": false
+      }
+    ],
+    "human_review_required": true,
+    "image_path": null,
+    "media_id": null,
+    "record_kind": "decision_mechanics_fixture",
+    "schema_smoke_record": false,
+    "schema_version": "truthful-demo-decision-state:v1.0.0",
+    "scientific_claim_allowed": false,
+    "state": "awaiting_human_review",
+    "target_classification": null,
+    "target_under_study": {
+      "accepted_taxon_key": "gbif:1938069",
+      "scientific_name": "Papilio demoleus"
+    },
+    "unavailable_reason": "No committed human-verified target classification or admitted image exists.",
+    "verification_status": "human_review_pending"
+  }
+]

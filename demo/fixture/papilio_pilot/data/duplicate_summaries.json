@@ -1,0 +1,25 @@
+[
+  {
+    "candidate_semantics": "candidate_reference_not_verified_support",
+    "data": {
+      "deduplicated_media_candidate_count": 5,
+      "deduplicated_observation_count": 4,
+      "duplicate_relationship_rows_available": false
+    },
+    "human_review_required": true,
+    "record_id": "reference-metadata-deduplication-summary",
+    "scientific_claim_allowed": false,
+    "source_artifacts": [
+      {
+        "byte_count": 4025,
+        "checksum_verified": true,
+        "imported_path": "pilot_reference_source_manifest.json",
+        "role": "reference_source_manifest",
+        "schema_version": "papilio-demoleus-pilot-reference-source-manifest-v1.0.0",
+        "sha256": "c5b6e809b194c3325735a97a60bbb804059f957b894d73a4c4597c3c66c4ae29",
+        "source_path": "examples/species/papilio_demoleus/pilot_reference_source_manifest.json"
+      }
+    ],
+    "verification_status": "committed_metadata_counts_verified"
+  }
+]

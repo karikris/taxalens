@@ -1,0 +1,67 @@
+[
+  {
+    "candidate": {
+      "accepted_taxon_key": "gbif:1937892",
+      "scientific_name": "Papilio memnon"
+    },
+    "candidate_semantics": "source_taxon_match_not_human_verified_image_label",
+    "human_review_required": true,
+    "maximum_per_species": 50,
+    "minimum_per_species": 20,
+    "record_id": "regional-competitor-1",
+    "scientific_claim_allowed": false,
+    "verification_status": "candidate_plan_verified_not_reference_verified"
+  },
+  {
+    "candidate": {
+      "accepted_taxon_key": "gbif:1938088",
+      "scientific_name": "Papilio polytes"
+    },
+    "candidate_semantics": "source_taxon_match_not_human_verified_image_label",
+    "human_review_required": true,
+    "maximum_per_species": 50,
+    "minimum_per_species": 20,
+    "record_id": "regional-competitor-2",
+    "scientific_claim_allowed": false,
+    "verification_status": "candidate_plan_verified_not_reference_verified"
+  },
+  {
+    "candidate": {
+      "accepted_taxon_key": "gbif:1938114",
+      "scientific_name": "Papilio helenus"
+    },
+    "candidate_semantics": "source_taxon_match_not_human_verified_image_label",
+    "human_review_required": true,
+    "maximum_per_species": 50,
+    "minimum_per_species": 20,
+    "record_id": "regional-competitor-3",
+    "scientific_claim_allowed": false,
+    "verification_status": "candidate_plan_verified_not_reference_verified"
+  },
+  {
+    "candidate": {
+      "accepted_taxon_key": "gbif:1937911",
+      "scientific_name": "Papilio paris"
+    },
+    "candidate_semantics": "source_taxon_match_not_human_verified_image_label",
+    "human_review_required": true,
+    "maximum_per_species": 50,
+    "minimum_per_species": 20,
+    "record_id": "regional-competitor-4",
+    "scientific_claim_allowed": false,
+    "verification_status": "candidate_plan_verified_not_reference_verified"
+  },
+  {
+    "candidate": {
+      "accepted_taxon_key": "gbif:8225376",
+      "scientific_name": "Papilio machaon"
+    },
+    "candidate_semantics": "source_taxon_match_not_human_verified_image_label",
+    "human_review_required": true,
+    "maximum_per_species": 50,
+    "minimum_per_species": 20,
+    "record_id": "regional-competitor-5",
+    "scientific_claim_allowed": false,
+    "verification_status": "candidate_plan_verified_not_reference_verified"
+  }
+]

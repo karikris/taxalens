@@ -1,0 +1,37 @@
+[
+  {
+    "candidate_semantics": "flickr_search_candidate_not_taxonomic_label",
+    "data": {
+      "canonical_photo_count": 13501,
+      "geotagged_photo_count": 13501,
+      "missing_coordinate_record_count": 0,
+      "query_hit_artifact": {
+        "byte_count": 222190,
+        "path": "runs/papilio_demoleus_pilot_geographic_workload_20260715/flickr_query_hits.parquet",
+        "sha256": "sha256:95448f3145d903f7f042fe41d74561475ef050f8df21b318ebacb252484e4f0b"
+      },
+      "query_hit_count": 76485,
+      "source": {
+        "byte_count": 266841863,
+        "input_row_count": 76485,
+        "path": "data/live_runs/papilio_demoleus_global_multilingual_20260609_071759/checkpoints/flickr_metadata_all_hits.jsonl",
+        "sha256": "sha256:fe42f248cab68f6c3f67351800718fb9888b54a44f3b4a651d0f8bfa428c015d"
+      }
+    },
+    "human_review_required": true,
+    "record_id": "flickr-query-hit-summary",
+    "scientific_claim_allowed": false,
+    "source_artifacts": [
+      {
+        "byte_count": 4024,
+        "checksum_verified": true,
+        "imported_path": "pilot_geographic_workload_manifest.json",
+        "role": "geographic_workload_manifest",
+        "schema_version": "papilio-demoleus-pilot-geographic-workload-manifest-v1.0.0",
+        "sha256": "a62abef7cbac8638da219e53e08ab6760bedcd4f49d6396bfa0d1891d96e5cf2",
+        "source_path": "examples/species/papilio_demoleus/pilot_geographic_workload_manifest.json"
+      }
+    ],
+    "verification_status": "committed_metadata_verified"
+  }
+]

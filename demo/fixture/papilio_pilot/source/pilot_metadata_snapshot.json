@@ -1,0 +1,1094 @@
+{
+  "contract_count": 11,
+  "contracts": {
+    "biological_negatives": {
+      "candidate_semantics": "negative_candidate_plan_not_reviewed_negative_label",
+      "data": {
+        "all_groups_resolved": false,
+        "groups": {
+          "broader_papilionidae": {
+            "life_stage": "adult",
+            "maximum_total": 300,
+            "minimum_total": 100,
+            "planned_per_species": 20,
+            "species": [
+              "gbif:1938052",
+              "gbif:1938122",
+              "gbif:1937723",
+              "gbif:1937826",
+              "gbif:7748550",
+              "gbif:1937707",
+              "gbif:1937696",
+              "gbif:4692124",
+              "gbif:1937966",
+              "gbif:1938174"
+            ]
+          },
+          "historical_false_winner_species": {
+            "life_stage": "adult",
+            "maximum_per_species": 50,
+            "minimum_per_species": 20,
+            "species": [
+              "gbif:1937474"
+            ]
+          },
+          "other_insect_or_moth_negatives": {
+            "maximum_total": 200,
+            "minimum_total": 100,
+            "status": "unresolved_requires_registry_linked_taxa"
+          },
+          "reviewed_false_winner_genera": {
+            "life_stage": "adult",
+            "maximum_per_species": 50,
+            "minimum_per_species": 20,
+            "species": [
+              "gbif:5141187",
+              "gbif:1939168",
+              "gbif:1937444",
+              "gbif:1939131",
+              "gbif:1939222"
+            ]
+          }
+        },
+        "reviewed_false_winner_relationship_count": 5,
+        "reviewed_false_winner_relationships": [
+          {
+            "enabled": true,
+            "evidence_note": "Recorded as a current false-winning genus in the reviewed target reference-bank policy.",
+            "evidence_version": "papilio-demoleus-bioclip-pilot-false-winners-v1",
+            "object_scope_id": "Graphium",
+            "object_scope_type": "genus",
+            "relationship_type": "historical_false_positive_genus",
+            "review_status": "reviewed",
+            "reviewed_at": "2026-07-13T00:00:00Z",
+            "reviewed_by": "project-owner",
+            "source": "bioclip_pilot_observation",
+            "source_record_id": "target-reference-bank-policy:false-winning-genus:graphium",
+            "subject_accepted_taxon_key": "gbif:1938069"
+          },
+          {
+            "enabled": true,
+            "evidence_note": "Recorded as a current false-winning genus in the reviewed target reference-bank policy.",
+            "evidence_version": "papilio-demoleus-bioclip-pilot-false-winners-v1",
+            "object_scope_id": "Pachliopta",
+            "object_scope_type": "genus",
+            "relationship_type": "historical_false_positive_genus",
+            "review_status": "reviewed",
+            "reviewed_at": "2026-07-13T00:00:00Z",
+            "reviewed_by": "project-owner",
+            "source": "bioclip_pilot_observation",
+            "source_record_id": "target-reference-bank-policy:false-winning-genus:pachliopta",
+            "subject_accepted_taxon_key": "gbif:1938069"
+          },
+          {
+            "enabled": true,
+            "evidence_note": "Recorded as a current false-winning genus in the reviewed target reference-bank policy.",
+            "evidence_version": "papilio-demoleus-bioclip-pilot-false-winners-v1",
+            "object_scope_id": "Ornithoptera",
+            "object_scope_type": "genus",
+            "relationship_type": "historical_false_positive_genus",
+            "review_status": "reviewed",
+            "reviewed_at": "2026-07-13T00:00:00Z",
+            "reviewed_by": "project-owner",
+            "source": "bioclip_pilot_observation",
+            "source_record_id": "target-reference-bank-policy:false-winning-genus:ornithoptera",
+            "subject_accepted_taxon_key": "gbif:1938069"
+          },
+          {
+            "enabled": true,
+            "evidence_note": "Recorded as a current false-winning genus in the reviewed target reference-bank policy.",
+            "evidence_version": "papilio-demoleus-bioclip-pilot-false-winners-v1",
+            "object_scope_id": "Protographium",
+            "object_scope_type": "genus",
+            "relationship_type": "historical_false_positive_genus",
+            "review_status": "reviewed",
+            "reviewed_at": "2026-07-13T00:00:00Z",
+            "reviewed_by": "project-owner",
+            "source": "bioclip_pilot_observation",
+            "source_record_id": "target-reference-bank-policy:false-winning-genus:protographium",
+            "subject_accepted_taxon_key": "gbif:1938069"
+          },
+          {
+            "enabled": true,
+            "evidence_note": "Recorded as a current false-winning genus in the reviewed target reference-bank policy.",
+            "evidence_version": "papilio-demoleus-bioclip-pilot-false-winners-v1",
+            "object_scope_id": "Losaria",
+            "object_scope_type": "genus",
+            "relationship_type": "historical_false_positive_genus",
+            "review_status": "reviewed",
+            "reviewed_at": "2026-07-13T00:00:00Z",
+            "reviewed_by": "project-owner",
+            "source": "bioclip_pilot_observation",
+            "source_record_id": "target-reference-bank-policy:false-winning-genus:losaria",
+            "subject_accepted_taxon_key": "gbif:1938069"
+          }
+        ]
+      },
+      "human_review_required": true,
+      "scientific_claim_allowed": false,
+      "source_artifacts": [
+        {
+          "byte_count": 8623,
+          "checksum_verified": true,
+          "imported_path": "papilio_demoleus_reference_source_queries.json",
+          "role": "reference_source_queries",
+          "schema_version": "papilio-demoleus-pilot-reference-source-queries-v1.0.0",
+          "sha256": "a94c81070b3a223fc84830e1f3cc0f04d52d47e00fdecc9713f84bea654d7520",
+          "source_path": "config/pilot/papilio_demoleus_reference_source_queries.json"
+        },
+        {
+          "byte_count": 3424,
+          "checksum_verified": true,
+          "imported_path": "papilio_demoleus_competitor_relationships.json",
+          "role": "competitor_relationships",
+          "schema_version": "competitor-relationship-source-v1.0.0",
+          "sha256": "bc71f57add07935c8fb90aaf3f4efcf28b9d5dcee172f8253532409cd47ba4a5",
+          "source_path": "config/candidates/papilio_demoleus_competitor_relationships.json"
+        }
+      ],
+      "verification_status": "partial_candidate_plan_verified"
+    },
+    "candidate_clusters": {
+      "candidate_semantics": "flickr_search_candidate_not_taxonomic_label",
+      "data": {
+        "assignment_artifact": {
+          "byte_count": 633625,
+          "path": "runs/papilio_demoleus_pilot_geographic_workload_20260715/flickr_geo_assignments.parquet",
+          "sha256": "sha256:e12f6ef9582bf707c952c3974c91e9a8f226ca7ce8034cab8ea8c293b70b6f74"
+        },
+        "cluster_artifact": {
+          "byte_count": 22573,
+          "path": "runs/papilio_demoleus_pilot_geographic_workload_20260715/flickr_geo_clusters.parquet",
+          "sha256": "sha256:cba4651b967fae15f586e760859fb11ff608a603f792e338c7661d5563130b35"
+        },
+        "eligible_reference_cluster_count": 76,
+        "fallback_cluster_count": 1,
+        "located_cluster_count": 76,
+        "outlier_record_count": 707,
+        "payload_rows_available": false,
+        "unassigned_geotagged_record_count": 792
+      },
+      "human_review_required": true,
+      "scientific_claim_allowed": false,
+      "source_artifacts": [
+        {
+          "byte_count": 4024,
+          "checksum_verified": true,
+          "imported_path": "pilot_geographic_workload_manifest.json",
+          "role": "geographic_workload_manifest",
+          "schema_version": "papilio-demoleus-pilot-geographic-workload-manifest-v1.0.0",
+          "sha256": "a62abef7cbac8638da219e53e08ab6760bedcd4f49d6396bfa0d1891d96e5cf2",
+          "source_path": "examples/species/papilio_demoleus/pilot_geographic_workload_manifest.json"
+        }
+      ],
+      "verification_status": "summary_verified_payload_not_imported"
+    },
+    "geographic_workload": {
+      "candidate_semantics": "flickr_search_candidate_not_taxonomic_label",
+      "data": {
+        "counts": {
+          "allocated_target_reference_quota": 100,
+          "canonical_photo_count": 13501,
+          "eligible_reference_cluster_count": 76,
+          "fallback_cluster_count": 1,
+          "geotagged_photo_count": 13501,
+          "located_cluster_count": 76,
+          "missing_coordinate_record_count": 0,
+          "outlier_record_count": 707,
+          "query_hit_count": 76485,
+          "unassigned_geotagged_record_count": 792
+        },
+        "execution_constraints": {
+          "large_bioclip_runs": "different_computer_required",
+          "large_yoloe_runs": "different_computer_required",
+          "local_build_verification_max_images": 5
+        },
+        "phase": 14,
+        "reference_quota": {
+          "excluded_fallback_clusters": [
+            "no_geo",
+            "unassigned_geo"
+          ],
+          "minimum_candidate_images": 10,
+          "minimum_fully_satisfied": true,
+          "minimum_per_populated_cluster": 1,
+          "policy_version": "minimum-plus-sqrt-candidates-v1.1.0",
+          "total_reference_quota": 100,
+          "unallocated_reference_quota": 0
+        },
+        "status": "complete",
+        "target": {
+          "accepted_taxon_key": "gbif:1938069",
+          "scientific_name": "Papilio demoleus"
+        },
+        "task": "14.1"
+      },
+      "human_review_required": true,
+      "scientific_claim_allowed": false,
+      "source_artifacts": [
+        {
+          "byte_count": 4024,
+          "checksum_verified": true,
+          "imported_path": "pilot_geographic_workload_manifest.json",
+          "role": "geographic_workload_manifest",
+          "schema_version": "papilio-demoleus-pilot-geographic-workload-manifest-v1.0.0",
+          "sha256": "a62abef7cbac8638da219e53e08ab6760bedcd4f49d6396bfa0d1891d96e5cf2",
+          "source_path": "examples/species/papilio_demoleus/pilot_geographic_workload_manifest.json"
+        }
+      ],
+      "verification_status": "committed_metadata_verified"
+    },
+    "handoff_fingerprints": {
+      "candidate_semantics": "artifact_identity_not_scientific_validation",
+      "data": {
+        "declared_reference_artifacts": {
+          "metadata_report": {
+            "byte_count": 1055,
+            "path": "runs/papilio_demoleus_pilot_reference_candidates_20260715/reference_metadata_report.json",
+            "sha256": "sha256:f0a11c769b74a70169d9af2529212fa875b10469cc653fe5fd1051fd8b7ba2b1"
+          },
+          "reference_media_candidates": {
+            "byte_count": 13083129,
+            "path": "runs/papilio_demoleus_pilot_reference_candidates_20260715/reference_media_candidates.parquet",
+            "sha256": "sha256:d9a4cd37eb8558f822807f753b2d027d37f33bcd9c32274b21516468d1827135"
+          },
+          "reference_observations": {
+            "byte_count": 10797270,
+            "path": "runs/papilio_demoleus_pilot_reference_candidates_20260715/reference_observations.parquet",
+            "sha256": "sha256:193d9d7451eebf75eaaf772fa761ad53cfeca9f04d84dae8c2caffe9fa64882f"
+          },
+          "source_shortfalls_json": {
+            "byte_count": 6589,
+            "path": "runs/papilio_demoleus_pilot_reference_candidates_20260715/reference_source_shortfalls.json",
+            "sha256": "sha256:cadd38791d66e0f1875a35ee398b3203e82969957aa81fc0d69e83f1d08c0a99"
+          },
+          "source_shortfalls_markdown": {
+            "byte_count": 978,
+            "path": "runs/papilio_demoleus_pilot_reference_candidates_20260715/reference_source_shortfalls.md",
+            "sha256": "sha256:4badc1f6691f322c076c1aca2e99ee913a4d633bf7551cc4b2c0675df90ced84"
+          }
+        },
+        "declared_workload_artifacts": {
+          "assignments": {
+            "byte_count": 633625,
+            "path": "runs/papilio_demoleus_pilot_geographic_workload_20260715/flickr_geo_assignments.parquet",
+            "sha256": "sha256:e12f6ef9582bf707c952c3974c91e9a8f226ca7ce8034cab8ea8c293b70b6f74"
+          },
+          "clusters": {
+            "byte_count": 22573,
+            "path": "runs/papilio_demoleus_pilot_geographic_workload_20260715/flickr_geo_clusters.parquet",
+            "sha256": "sha256:cba4651b967fae15f586e760859fb11ff608a603f792e338c7661d5563130b35"
+          },
+          "geography": {
+            "byte_count": 769162,
+            "path": "runs/papilio_demoleus_pilot_geographic_workload_20260715/flickr_geography.parquet",
+            "sha256": "sha256:a3c47a6f213191634f76655d859cdd8555a9b11a4e33a9041209eb23ba7c2bbf"
+          },
+          "query_hits": {
+            "byte_count": 222190,
+            "path": "runs/papilio_demoleus_pilot_geographic_workload_20260715/flickr_query_hits.parquet",
+            "sha256": "sha256:95448f3145d903f7f042fe41d74561475ef050f8df21b318ebacb252484e4f0b"
+          },
+          "workload_report_json": {
+            "byte_count": 327973,
+            "path": "reports/papilio_demoleus_pilot_geographic_workload_20260715/flickr_geographic_workload.json",
+            "sha256": "sha256:14d432831b8f9deee87e88b0acf61ca25a32c509d934c72b531e40861b2f3428"
+          },
+          "workload_report_markdown": {
+            "byte_count": 122540,
+            "path": "reports/papilio_demoleus_pilot_geographic_workload_20260715/flickr_geographic_workload.md",
+            "sha256": "sha256:8a61a6f9c5ee157e8c6da64779cc2d888e67535b2ca28a2e5acba49ca9d66db9"
+          }
+        },
+        "import_manifest_sha256": "7a911f4e3549875321aa9af48b323ab61d2a0ffcc8ff167bd9e798df600b02a4",
+        "imported_files": [
+          {
+            "byte_count": 3424,
+            "checksum_verified": true,
+            "imported_path": "papilio_demoleus_competitor_relationships.json",
+            "role": "competitor_relationships",
+            "schema_version": "competitor-relationship-source-v1.0.0",
+            "sha256": "bc71f57add07935c8fb90aaf3f4efcf28b9d5dcee172f8253532409cd47ba4a5",
+            "source_path": "config/candidates/papilio_demoleus_competitor_relationships.json"
+          },
+          {
+            "byte_count": 9562,
+            "checksum_verified": true,
+            "imported_path": "papilio_demoleus_phase14_experiment_matrix.json",
+            "role": "experiment_matrix",
+            "schema_version": "papilio-demoleus-phase14-experiment-matrix-v1.0.0",
+            "sha256": "5911e367ba1e3d0d0db81f939b9f37fccff07cef86a172842e1d6bb7f124c283",
+            "source_path": "config/pilot/papilio_demoleus_phase14_experiment_matrix.json"
+          },
+          {
+            "byte_count": 3083,
+            "checksum_verified": true,
+            "imported_path": "papilio_demoleus_range_seed.json",
+            "role": "range_seed",
+            "schema_version": "range-seed-v1",
+            "sha256": "712dcb2b32eec87798a527c0299aa8d635a9bd3ef58a44cebf587c82e9293cf1",
+            "source_path": "config/range_seed/papilio_demoleus.json"
+          },
+          {
+            "byte_count": 8623,
+            "checksum_verified": true,
+            "imported_path": "papilio_demoleus_reference_source_queries.json",
+            "role": "reference_source_queries",
+            "schema_version": "papilio-demoleus-pilot-reference-source-queries-v1.0.0",
+            "sha256": "a94c81070b3a223fc84830e1f3cc0f04d52d47e00fdecc9713f84bea654d7520",
+            "source_path": "config/pilot/papilio_demoleus_reference_source_queries.json"
+          },
+          {
+            "byte_count": 4024,
+            "checksum_verified": true,
+            "imported_path": "pilot_geographic_workload_manifest.json",
+            "role": "geographic_workload_manifest",
+            "schema_version": "papilio-demoleus-pilot-geographic-workload-manifest-v1.0.0",
+            "sha256": "a62abef7cbac8638da219e53e08ab6760bedcd4f49d6396bfa0d1891d96e5cf2",
+            "source_path": "examples/species/papilio_demoleus/pilot_geographic_workload_manifest.json"
+          },
+          {
+            "byte_count": 4025,
+            "checksum_verified": true,
+            "imported_path": "pilot_reference_source_manifest.json",
+            "role": "reference_source_manifest",
+            "schema_version": "papilio-demoleus-pilot-reference-source-manifest-v1.0.0",
+            "sha256": "c5b6e809b194c3325735a97a60bbb804059f957b894d73a4c4597c3c66c4ae29",
+            "source_path": "examples/species/papilio_demoleus/pilot_reference_source_manifest.json"
+          }
+        ],
+        "large_payloads_imported": false,
+        "origin_commit": "75461d9c065af0cd96b41cd1f845c2e920f7ae34",
+        "origin_repository": "karikris/BioMiner"
+      },
+      "human_review_required": false,
+      "scientific_claim_allowed": false,
+      "source_artifacts": [
+        {
+          "byte_count": 3424,
+          "checksum_verified": true,
+          "imported_path": "papilio_demoleus_competitor_relationships.json",
+          "role": "competitor_relationships",
+          "schema_version": "competitor-relationship-source-v1.0.0",
+          "sha256": "bc71f57add07935c8fb90aaf3f4efcf28b9d5dcee172f8253532409cd47ba4a5",
+          "source_path": "config/candidates/papilio_demoleus_competitor_relationships.json"
+        },
+        {
+          "byte_count": 9562,
+          "checksum_verified": true,
+          "imported_path": "papilio_demoleus_phase14_experiment_matrix.json",
+          "role": "experiment_matrix",
+          "schema_version": "papilio-demoleus-phase14-experiment-matrix-v1.0.0",
+          "sha256": "5911e367ba1e3d0d0db81f939b9f37fccff07cef86a172842e1d6bb7f124c283",
+          "source_path": "config/pilot/papilio_demoleus_phase14_experiment_matrix.json"
+        },
+        {
+          "byte_count": 3083,
+          "checksum_verified": true,
+          "imported_path": "papilio_demoleus_range_seed.json",
+          "role": "range_seed",
+          "schema_version": "range-seed-v1",
+          "sha256": "712dcb2b32eec87798a527c0299aa8d635a9bd3ef58a44cebf587c82e9293cf1",
+          "source_path": "config/range_seed/papilio_demoleus.json"
+        },
+        {
+          "byte_count": 8623,
+          "checksum_verified": true,
+          "imported_path": "papilio_demoleus_reference_source_queries.json",
+          "role": "reference_source_queries",
+          "schema_version": "papilio-demoleus-pilot-reference-source-queries-v1.0.0",
+          "sha256": "a94c81070b3a223fc84830e1f3cc0f04d52d47e00fdecc9713f84bea654d7520",
+          "source_path": "config/pilot/papilio_demoleus_reference_source_queries.json"
+        },
+        {
+          "byte_count": 4024,
+          "checksum_verified": true,
+          "imported_path": "pilot_geographic_workload_manifest.json",
+          "role": "geographic_workload_manifest",
+          "schema_version": "papilio-demoleus-pilot-geographic-workload-manifest-v1.0.0",
+          "sha256": "a62abef7cbac8638da219e53e08ab6760bedcd4f49d6396bfa0d1891d96e5cf2",
+          "source_path": "examples/species/papilio_demoleus/pilot_geographic_workload_manifest.json"
+        },
+        {
+          "byte_count": 4025,
+          "checksum_verified": true,
+          "imported_path": "pilot_reference_source_manifest.json",
+          "role": "reference_source_manifest",
+          "schema_version": "papilio-demoleus-pilot-reference-source-manifest-v1.0.0",
+          "sha256": "c5b6e809b194c3325735a97a60bbb804059f957b894d73a4c4597c3c66c4ae29",
+          "source_path": "examples/species/papilio_demoleus/pilot_reference_source_manifest.json"
+        }
+      ],
+      "verification_status": "content_and_cross_references_verified"
+    },
+    "query_hit_metrics": {
+      "candidate_semantics": "flickr_search_candidate_not_taxonomic_label",
+      "data": {
+        "canonical_photo_count": 13501,
+        "geotagged_photo_count": 13501,
+        "missing_coordinate_record_count": 0,
+        "query_hit_artifact": {
+          "byte_count": 222190,
+          "path": "runs/papilio_demoleus_pilot_geographic_workload_20260715/flickr_query_hits.parquet",
+          "sha256": "sha256:95448f3145d903f7f042fe41d74561475ef050f8df21b318ebacb252484e4f0b"
+        },
+        "query_hit_count": 76485,
+        "source": {
+          "byte_count": 266841863,
+          "input_row_count": 76485,
+          "path": "data/live_runs/papilio_demoleus_global_multilingual_20260609_071759/checkpoints/flickr_metadata_all_hits.jsonl",
+          "sha256": "sha256:fe42f248cab68f6c3f67351800718fb9888b54a44f3b4a651d0f8bfa428c015d"
+        }
+      },
+      "human_review_required": true,
+      "scientific_claim_allowed": false,
+      "source_artifacts": [
+        {
+          "byte_count": 4024,
+          "checksum_verified": true,
+          "imported_path": "pilot_geographic_workload_manifest.json",
+          "role": "geographic_workload_manifest",
+          "schema_version": "papilio-demoleus-pilot-geographic-workload-manifest-v1.0.0",
+          "sha256": "a62abef7cbac8638da219e53e08ab6760bedcd4f49d6396bfa0d1891d96e5cf2",
+          "source_path": "examples/species/papilio_demoleus/pilot_geographic_workload_manifest.json"
+        }
+      ],
+      "verification_status": "committed_metadata_verified"
+    },
+    "reference_shortfalls": {
+      "candidate_semantics": "source_taxon_match_not_human_verified_image_label",
+      "data": {
+        "group_count": 8,
+        "groups_awaiting_human_review": 1,
+        "groups_with_source_candidate_shortfall": 5,
+        "human_review_status": "not_available_at_metadata_stage",
+        "human_verified_shortfall": 490,
+        "source_candidate_shortfall": 247,
+        "status": "awaiting_human_review_or_additional_sources",
+        "unresolved_group_count": 2,
+        "unresolved_groups": {
+          "domain_negatives": "requires_human_review",
+          "other_insect_or_moth_negatives": "requires_registry_linked_taxa"
+        }
+      },
+      "human_review_required": true,
+      "scientific_claim_allowed": false,
+      "source_artifacts": [
+        {
+          "byte_count": 4025,
+          "checksum_verified": true,
+          "imported_path": "pilot_reference_source_manifest.json",
+          "role": "reference_source_manifest",
+          "schema_version": "papilio-demoleus-pilot-reference-source-manifest-v1.0.0",
+          "sha256": "c5b6e809b194c3325735a97a60bbb804059f957b894d73a4c4597c3c66c4ae29",
+          "source_path": "examples/species/papilio_demoleus/pilot_reference_source_manifest.json"
+        }
+      ],
+      "verification_status": "shortfall_report_verified_unresolved"
+    },
+    "regional_competitors": {
+      "candidate_semantics": "source_taxon_match_not_human_verified_image_label",
+      "data": {
+        "candidate_count": 5,
+        "candidates": [
+          {
+            "accepted_taxon_key": "gbif:1937892",
+            "scientific_name": "Papilio memnon"
+          },
+          {
+            "accepted_taxon_key": "gbif:1938088",
+            "scientific_name": "Papilio polytes"
+          },
+          {
+            "accepted_taxon_key": "gbif:1938114",
+            "scientific_name": "Papilio helenus"
+          },
+          {
+            "accepted_taxon_key": "gbif:1937911",
+            "scientific_name": "Papilio paris"
+          },
+          {
+            "accepted_taxon_key": "gbif:8225376",
+            "scientific_name": "Papilio machaon"
+          }
+        ],
+        "maximum_per_species": 50,
+        "minimum_per_species": 20
+      },
+      "human_review_required": true,
+      "scientific_claim_allowed": false,
+      "source_artifacts": [
+        {
+          "byte_count": 8623,
+          "checksum_verified": true,
+          "imported_path": "papilio_demoleus_reference_source_queries.json",
+          "role": "reference_source_queries",
+          "schema_version": "papilio-demoleus-pilot-reference-source-queries-v1.0.0",
+          "sha256": "a94c81070b3a223fc84830e1f3cc0f04d52d47e00fdecc9713f84bea654d7520",
+          "source_path": "config/pilot/papilio_demoleus_reference_source_queries.json"
+        },
+        {
+          "byte_count": 4025,
+          "checksum_verified": true,
+          "imported_path": "pilot_reference_source_manifest.json",
+          "role": "reference_source_manifest",
+          "schema_version": "papilio-demoleus-pilot-reference-source-manifest-v1.0.0",
+          "sha256": "c5b6e809b194c3325735a97a60bbb804059f957b894d73a4c4597c3c66c4ae29",
+          "source_path": "examples/species/papilio_demoleus/pilot_reference_source_manifest.json"
+        }
+      ],
+      "verification_status": "candidate_plan_verified_not_reference_verified"
+    },
+    "source_media_counts": {
+      "candidate_semantics": "source_taxon_match_not_human_verified_image_label",
+      "data": {
+        "counts": {
+          "checkpoint_media_candidate_row_count": 142878,
+          "checkpoint_observation_row_count": 91180,
+          "deduplicated_media_candidate_count": 5,
+          "deduplicated_observation_count": 4,
+          "eligible_source_media_candidate_count": 838,
+          "fallback_observation_count": 26262,
+          "human_verified_source_media_count": 0,
+          "located_observation_count": 64914,
+          "media_candidate_count": 142873,
+          "observation_count": 91176
+        },
+        "execution_constraints": {
+          "bioclip_images_processed": 0,
+          "branch": "main",
+          "images_downloaded": 0,
+          "large_bioclip_runs": "different_computer_required",
+          "large_yoloe_runs": "different_computer_required",
+          "local_build_verification_max_images": 5,
+          "yoloe_images_processed": 0
+        },
+        "materialization": {
+          "checkpoint_count": 22,
+          "checkpoint_page_count": 314,
+          "command": "biominer references fetch-metadata",
+          "complete_checkpoint_count": 22,
+          "implementation_git_sha": "48cedf0373c9998c591dcd78c9f76958ca1ef1f9",
+          "rate_limit_count": 0,
+          "report_schema_version": "reference-metadata-cli-report-v2",
+          "request_count": 314,
+          "retry_count": 0
+        },
+        "status": "metadata_complete_awaiting_human_review_and_additional_sources"
+      },
+      "human_review_required": true,
+      "scientific_claim_allowed": false,
+      "source_artifacts": [
+        {
+          "byte_count": 4025,
+          "checksum_verified": true,
+          "imported_path": "pilot_reference_source_manifest.json",
+          "role": "reference_source_manifest",
+          "schema_version": "papilio-demoleus-pilot-reference-source-manifest-v1.0.0",
+          "sha256": "c5b6e809b194c3325735a97a60bbb804059f957b894d73a4c4597c3c66c4ae29",
+          "source_path": "examples/species/papilio_demoleus/pilot_reference_source_manifest.json"
+        }
+      ],
+      "verification_status": "committed_metadata_counts_verified"
+    },
+    "target_range_evidence": {
+      "candidate_semantics": "range_seed_for_candidate_planning_not_candidate_verification",
+      "data": {
+        "accepted_taxon_key": "gbif:1938069",
+        "country_count": 40,
+        "region_count": 8,
+        "region_counts_by_status": {
+          "introduced_established": 1,
+          "native_or_long_established": 3,
+          "occurrence_supported": 3,
+          "taxonomically_cautionary": 1
+        },
+        "regions": [
+          {
+            "countries": [
+              {
+                "code": "BD",
+                "name": "Bangladesh"
+              },
+              {
+                "code": "BT",
+                "name": "Bhutan"
+              },
+              {
+                "code": "IN",
+                "name": "India"
+              },
+              {
+                "code": "LK",
+                "name": "Sri Lanka"
+              },
+              {
+                "code": "NP",
+                "name": "Nepal"
+              },
+              {
+                "code": "PK",
+                "name": "Pakistan"
+              }
+            ],
+            "range_status": "native_or_long_established",
+            "region": "South Asia",
+            "requires_occurrence_support": false,
+            "taxonomic_caution": false
+          },
+          {
+            "countries": [
+              {
+                "code": "AE",
+                "name": "United Arab Emirates"
+              },
+              {
+                "code": "BH",
+                "name": "Bahrain"
+              },
+              {
+                "code": "IQ",
+                "name": "Iraq"
+              },
+              {
+                "code": "IR",
+                "name": "Iran"
+              },
+              {
+                "code": "KW",
+                "name": "Kuwait"
+              },
+              {
+                "code": "OM",
+                "name": "Oman"
+              },
+              {
+                "code": "QA",
+                "name": "Qatar"
+              },
+              {
+                "code": "SA",
+                "name": "Saudi Arabia"
+              },
+              {
+                "code": "SY",
+                "name": "Syria"
+              },
+              {
+                "code": "TR",
+                "name": "Turkey"
+              }
+            ],
+            "range_status": "occurrence_supported",
+            "region": "Middle East / West Asia",
+            "requires_occurrence_support": false,
+            "taxonomic_caution": false
+          },
+          {
+            "countries": [
+              {
+                "code": "CN",
+                "name": "China"
+              },
+              {
+                "code": "HK",
+                "name": "Hong Kong"
+              },
+              {
+                "code": "JP",
+                "name": "Japan"
+              },
+              {
+                "code": "MO",
+                "name": "Macau"
+              },
+              {
+                "code": "TW",
+                "name": "Taiwan"
+              }
+            ],
+            "range_status": "occurrence_supported",
+            "region": "East Asia",
+            "requires_occurrence_support": false,
+            "taxonomic_caution": false
+          },
+          {
+            "countries": [
+              {
+                "code": "KH",
+                "name": "Cambodia"
+              },
+              {
+                "code": "LA",
+                "name": "Laos"
+              },
+              {
+                "code": "MM",
+                "name": "Myanmar"
+              },
+              {
+                "code": "TH",
+                "name": "Thailand"
+              },
+              {
+                "code": "VN",
+                "name": "Vietnam"
+              }
+            ],
+            "range_status": "native_or_long_established",
+            "region": "Mainland Southeast Asia",
+            "requires_occurrence_support": false,
+            "taxonomic_caution": false
+          },
+          {
+            "countries": [
+              {
+                "code": "BN",
+                "name": "Brunei"
+              },
+              {
+                "code": "ID",
+                "name": "Indonesia"
+              },
+              {
+                "code": "MY",
+                "name": "Malaysia"
+              },
+              {
+                "code": "PH",
+                "name": "Philippines"
+              },
+              {
+                "code": "SG",
+                "name": "Singapore"
+              },
+              {
+                "code": "TL",
+                "name": "Timor-Leste"
+              }
+            ],
+            "range_status": "native_or_long_established",
+            "region": "Maritime Southeast Asia",
+            "requires_occurrence_support": false,
+            "taxonomic_caution": false
+          },
+          {
+            "countries": [
+              {
+                "code": "CU",
+                "name": "Cuba"
+              },
+              {
+                "code": "DO",
+                "name": "Dominican Republic"
+              },
+              {
+                "code": "HT",
+                "name": "Haiti"
+              },
+              {
+                "code": "JM",
+                "name": "Jamaica"
+              },
+              {
+                "code": "PR",
+                "name": "Puerto Rico"
+              }
+            ],
+            "range_status": "introduced_established",
+            "region": "Caribbean introduced range",
+            "requires_occurrence_support": true,
+            "taxonomic_caution": false
+          },
+          {
+            "countries": [
+              {
+                "code": "SC",
+                "name": "Seychelles"
+              }
+            ],
+            "range_status": "occurrence_supported",
+            "region": "Seychelles / Indian Ocean spread watch",
+            "requires_occurrence_support": true,
+            "taxonomic_caution": false
+          },
+          {
+            "countries": [
+              {
+                "code": "AU",
+                "name": "Australia"
+              },
+              {
+                "code": "PG",
+                "name": "Papua New Guinea"
+              }
+            ],
+            "range_status": "taxonomically_cautionary",
+            "region": "Australia/New Guinea taxonomic caution",
+            "requires_occurrence_support": false,
+            "taxonomic_caution": true
+          }
+        ],
+        "scientific_name": "Papilio demoleus"
+      },
+      "human_review_required": true,
+      "scientific_claim_allowed": false,
+      "source_artifacts": [
+        {
+          "byte_count": 3083,
+          "checksum_verified": true,
+          "imported_path": "papilio_demoleus_range_seed.json",
+          "role": "range_seed",
+          "schema_version": "range-seed-v1",
+          "sha256": "712dcb2b32eec87798a527c0299aa8d635a9bd3ef58a44cebf587c82e9293cf1",
+          "source_path": "config/range_seed/papilio_demoleus.json"
+        }
+      ],
+      "verification_status": "committed_range_seed_verified"
+    },
+    "trust_first_reference_plan": {
+      "candidate_semantics": "source_taxon_match_not_human_verified_image_label",
+      "data": {
+        "acquisition_quotas": {
+          "broader_papilionidae": {
+            "life_stage": "adult",
+            "maximum_total": 300,
+            "minimum_total": 100,
+            "planned_per_species": 20,
+            "species": [
+              "gbif:1938052",
+              "gbif:1938122",
+              "gbif:1937723",
+              "gbif:1937826",
+              "gbif:7748550",
+              "gbif:1937707",
+              "gbif:1937696",
+              "gbif:4692124",
+              "gbif:1937966",
+              "gbif:1938174"
+            ]
+          },
+          "domain_negatives": {
+            "classes": [
+              "illustration",
+              "pinned_specimen",
+              "garden_scene",
+              "fruit_or_flower_closeup",
+              "clutter"
+            ],
+            "status": "unresolved_requires_human_review"
+          },
+          "historical_false_winner_species": {
+            "life_stage": "adult",
+            "maximum_per_species": 50,
+            "minimum_per_species": 20,
+            "species": [
+              "gbif:1937474"
+            ]
+          },
+          "other_insect_or_moth_negatives": {
+            "maximum_total": 200,
+            "minimum_total": 100,
+            "status": "unresolved_requires_registry_linked_taxa"
+          },
+          "reviewed_false_winner_genera": {
+            "life_stage": "adult",
+            "maximum_per_species": 50,
+            "minimum_per_species": 20,
+            "species": [
+              "gbif:5141187",
+              "gbif:1939168",
+              "gbif:1937444",
+              "gbif:1939131",
+              "gbif:1939222"
+            ]
+          },
+          "selected_regional_competitors": {
+            "life_stage": "adult",
+            "maximum_per_species": 50,
+            "minimum_per_species": 20,
+            "species": [
+              "gbif:1937892",
+              "gbif:1938088",
+              "gbif:1938114",
+              "gbif:1937911",
+              "gbif:8225376"
+            ]
+          },
+          "target_adult": {
+            "life_stage": "adult",
+            "maximum_per_species": 100,
+            "minimum_per_species": 50,
+            "species": [
+              "gbif:1938069"
+            ]
+          },
+          "target_caterpillar": {
+            "life_stage": "larva",
+            "maximum_total": 50,
+            "minimum_total": 20,
+            "separate_from_adult_bank": true,
+            "species": [
+              "gbif:1938069"
+            ]
+          }
+        },
+        "label_contract": {
+          "flickr_query_match_is_label": false,
+          "gbif_taxon_match_is_human_image_label": false,
+          "ground_truth": "attributable_human_review_only",
+          "source_candidate_is_human_image_label": false,
+          "uncertain_or_conflicting_review_is_eligible": false
+        },
+        "phase15_default_gate": {
+          "authorized": false,
+          "current_default_must_remain_unchanged": true,
+          "required_evidence": [
+            "phase14.3_reference_bank_ready",
+            "phase14.4_b0_b16_complete",
+            "phase14.5_selection_policy_passed",
+            "phase14.6_reviewed_report_approved"
+          ]
+        },
+        "prerequisite_gates": [
+          {
+            "gate_id": "phase14.1_geographic_workload",
+            "required_artifacts": [
+              "runs/papilio_demoleus_pilot_geographic_workload_20260715/flickr_geo_clusters.parquet",
+              "runs/papilio_demoleus_pilot_geographic_workload_20260715/flickr_geo_assignments.parquet",
+              "examples/species/papilio_demoleus/pilot_geographic_workload_manifest.json"
+            ],
+            "status": "complete"
+          },
+          {
+            "gate_id": "phase14.2_reference_sources",
+            "required_artifacts": [
+              "runs/papilio_demoleus_pilot_reference_candidates_20260715/reference_observations.parquet",
+              "runs/papilio_demoleus_pilot_reference_candidates_20260715/reference_media_candidates.parquet",
+              "runs/papilio_demoleus_pilot_reference_candidates_20260715/reference_source_shortfalls.json"
+            ],
+            "status": "in_progress_metadata_only"
+          },
+          {
+            "gate_id": "phase14.3_human_review_and_freeze",
+            "required_artifacts": [
+              "reference_media_objects.parquet",
+              "reference_media_duplicate_relationships.parquet",
+              "reference_review_queue.parquet",
+              "reference_review_decisions.parquet",
+              "reference_bank_split_assignments.parquet",
+              "reference_support_manifest.parquet",
+              "reference_bank_summary.parquet",
+              "reference_bank_readiness.json"
+            ],
+            "required_checks": [
+              "accepted_taxonomy",
+              "resolved_human_review",
+              "licence_allowed",
+              "attribution_complete",
+              "duplicates_resolved",
+              "adult_larval_and_visual_domain_banks_separate",
+              "geographic_cluster_coverage",
+              "no_cross_split_leakage"
+            ],
+            "status": "blocked_awaiting_human_review"
+          },
+          {
+            "gate_id": "phase14.4_off_machine_benchmark",
+            "required_computer": "external_gpu_computer",
+            "status": "blocked_by_phase14.3"
+          }
+        ],
+        "query_count": 22,
+        "query_scope_policy": {
+          "default": "global_then_assign_to_flickr_clusters",
+          "gbif_occurrence_search_ceiling": 100000,
+          "papilio_machaon": {
+            "reason": "global_still_image_coordinate_count_101059_exceeds_gbif_search_ceiling",
+            "scope": "target_supported_countries",
+            "verified_at": "2026-07-15T00:00:00Z",
+            "verified_scoped_count": 638
+          }
+        },
+        "source_plan": {
+          "human_review_required_before_support_use": true,
+          "path": "config/pilot/papilio_demoleus_reference_source_queries.json",
+          "queried_species_count": 22,
+          "query_count": 22,
+          "registry_identity_required": true,
+          "sha256": "sha256:a94c81070b3a223fc84830e1f3cc0f04d52d47e00fdecc9713f84bea654d7520"
+        }
+      },
+      "human_review_required": true,
+      "scientific_claim_allowed": false,
+      "source_artifacts": [
+        {
+          "byte_count": 8623,
+          "checksum_verified": true,
+          "imported_path": "papilio_demoleus_reference_source_queries.json",
+          "role": "reference_source_queries",
+          "schema_version": "papilio-demoleus-pilot-reference-source-queries-v1.0.0",
+          "sha256": "a94c81070b3a223fc84830e1f3cc0f04d52d47e00fdecc9713f84bea654d7520",
+          "source_path": "config/pilot/papilio_demoleus_reference_source_queries.json"
+        },
+        {
+          "byte_count": 4025,
+          "checksum_verified": true,
+          "imported_path": "pilot_reference_source_manifest.json",
+          "role": "reference_source_manifest",
+          "schema_version": "papilio-demoleus-pilot-reference-source-manifest-v1.0.0",
+          "sha256": "c5b6e809b194c3325735a97a60bbb804059f957b894d73a4c4597c3c66c4ae29",
+          "source_path": "examples/species/papilio_demoleus/pilot_reference_source_manifest.json"
+        },
+        {
+          "byte_count": 9562,
+          "checksum_verified": true,
+          "imported_path": "papilio_demoleus_phase14_experiment_matrix.json",
+          "role": "experiment_matrix",
+          "schema_version": "papilio-demoleus-phase14-experiment-matrix-v1.0.0",
+          "sha256": "5911e367ba1e3d0d0db81f939b9f37fccff07cef86a172842e1d6bb7f124c283",
+          "source_path": "config/pilot/papilio_demoleus_phase14_experiment_matrix.json"
+        }
+      ],
+      "verification_status": "metadata_plan_verified_human_review_blocked"
+    },
+    "visual_domain_negatives": {
+      "candidate_semantics": "visual_domain_class_plan_not_selected_negative_media",
+      "data": {
+        "classes": [
+          "illustration",
+          "pinned_specimen",
+          "garden_scene",
+          "fruit_or_flower_closeup",
+          "clutter"
+        ],
+        "selected_media_count": 0,
+        "selection_artifact_available": false,
+        "status": "unresolved_requires_human_review"
+      },
+      "human_review_required": true,
+      "scientific_claim_allowed": false,
+      "source_artifacts": [
+        {
+          "byte_count": 8623,
+          "checksum_verified": true,
+          "imported_path": "papilio_demoleus_reference_source_queries.json",
+          "role": "reference_source_queries",
+          "schema_version": "papilio-demoleus-pilot-reference-source-queries-v1.0.0",
+          "sha256": "a94c81070b3a223fc84830e1f3cc0f04d52d47e00fdecc9713f84bea654d7520",
+          "source_path": "config/pilot/papilio_demoleus_reference_source_queries.json"
+        }
+      ],
+      "verification_status": "plan_verified_selection_unavailable"
+    }
+  },
+  "metadata_only": true,
+  "origin_commit": "75461d9c065af0cd96b41cd1f845c2e920f7ae34",
+  "origin_repository": "karikris/BioMiner",
+  "schema_version": "taxalens-phase14-pilot-metadata:v1.0.0",
+  "scientific_results_available": false,
+  "target": {
+    "accepted_taxon_key": "gbif:1938069",
+    "scientific_name": "Papilio demoleus"
+  }
+}

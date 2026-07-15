@@ -1,0 +1,45 @@
+{
+  "complete": true,
+  "entries": [
+    {
+      "artifact_ids": [
+        "stage-metrics",
+        "query-definitions",
+        "logical-associations",
+        "flickr-candidate-summaries",
+        "duplicate-summaries",
+        "geographic-clusters",
+        "candidate-sets",
+        "reference-readiness",
+        "reference-shortfalls",
+        "biological-negatives",
+        "visual-domain-negatives",
+        "pilot-metadata-snapshot"
+      ],
+      "attribution_id": "biominer-pilot-metadata",
+      "creator": "Kris Kari",
+      "display_text": "BioMiner pilot metadata, copyright (c) 2026 Kris Kari, MIT License.",
+      "license_name": "MIT",
+      "license_uri": "https://opensource.org/license/mit",
+      "source_title": "BioMiner",
+      "source_url": "https://github.com/karikris/BioMiner"
+    },
+    {
+      "artifact_ids": [
+        "run-summary",
+        "pipeline-stages",
+        "selective-decision-metadata",
+        "rights-manifest",
+        "attribution-manifest"
+      ],
+      "attribution_id": "taxalens-truthful-fixture",
+      "creator": "Kris Kari",
+      "display_text": "TaxaLens truthful pilot fixture, copyright (c) 2026 Kris Kari, MIT License.",
+      "license_name": "MIT",
+      "license_uri": "https://opensource.org/license/mit",
+      "source_title": "TaxaLens",
+      "source_url": "https://github.com/karikris/TaxaLens"
+    }
+  ],
+  "schema_version": "truthful-demo-attribution-manifest:v1.0.0"
+}

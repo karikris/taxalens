@@ -1,0 +1,209 @@
+[
+  {
+    "candidate_semantics": "source_taxon_match_not_human_verified_image_label",
+    "data": {
+      "acquisition_quotas": {
+        "broader_papilionidae": {
+          "life_stage": "adult",
+          "maximum_total": 300,
+          "minimum_total": 100,
+          "planned_per_species": 20,
+          "species": [
+            "gbif:1938052",
+            "gbif:1938122",
+            "gbif:1937723",
+            "gbif:1937826",
+            "gbif:7748550",
+            "gbif:1937707",
+            "gbif:1937696",
+            "gbif:4692124",
+            "gbif:1937966",
+            "gbif:1938174"
+          ]
+        },
+        "domain_negatives": {
+          "classes": [
+            "illustration",
+            "pinned_specimen",
+            "garden_scene",
+            "fruit_or_flower_closeup",
+            "clutter"
+          ],
+          "status": "unresolved_requires_human_review"
+        },
+        "historical_false_winner_species": {
+          "life_stage": "adult",
+          "maximum_per_species": 50,
+          "minimum_per_species": 20,
+          "species": [
+            "gbif:1937474"
+          ]
+        },
+        "other_insect_or_moth_negatives": {
+          "maximum_total": 200,
+          "minimum_total": 100,
+          "status": "unresolved_requires_registry_linked_taxa"
+        },
+        "reviewed_false_winner_genera": {
+          "life_stage": "adult",
+          "maximum_per_species": 50,
+          "minimum_per_species": 20,
+          "species": [
+            "gbif:5141187",
+            "gbif:1939168",
+            "gbif:1937444",
+            "gbif:1939131",
+            "gbif:1939222"
+          ]
+        },
+        "selected_regional_competitors": {
+          "life_stage": "adult",
+          "maximum_per_species": 50,
+          "minimum_per_species": 20,
+          "species": [
+            "gbif:1937892",
+            "gbif:1938088",
+            "gbif:1938114",
+            "gbif:1937911",
+            "gbif:8225376"
+          ]
+        },
+        "target_adult": {
+          "life_stage": "adult",
+          "maximum_per_species": 100,
+          "minimum_per_species": 50,
+          "species": [
+            "gbif:1938069"
+          ]
+        },
+        "target_caterpillar": {
+          "life_stage": "larva",
+          "maximum_total": 50,
+          "minimum_total": 20,
+          "separate_from_adult_bank": true,
+          "species": [
+            "gbif:1938069"
+          ]
+        }
+      },
+      "label_contract": {
+        "flickr_query_match_is_label": false,
+        "gbif_taxon_match_is_human_image_label": false,
+        "ground_truth": "attributable_human_review_only",
+        "source_candidate_is_human_image_label": false,
+        "uncertain_or_conflicting_review_is_eligible": false
+      },
+      "phase15_default_gate": {
+        "authorized": false,
+        "current_default_must_remain_unchanged": true,
+        "required_evidence": [
+          "phase14.3_reference_bank_ready",
+          "phase14.4_b0_b16_complete",
+          "phase14.5_selection_policy_passed",
+          "phase14.6_reviewed_report_approved"
+        ]
+      },
+      "prerequisite_gates": [
+        {
+          "gate_id": "phase14.1_geographic_workload",
+          "required_artifacts": [
+            "runs/papilio_demoleus_pilot_geographic_workload_20260715/flickr_geo_clusters.parquet",
+            "runs/papilio_demoleus_pilot_geographic_workload_20260715/flickr_geo_assignments.parquet",
+            "examples/species/papilio_demoleus/pilot_geographic_workload_manifest.json"
+          ],
+          "status": "complete"
+        },
+        {
+          "gate_id": "phase14.2_reference_sources",
+          "required_artifacts": [
+            "runs/papilio_demoleus_pilot_reference_candidates_20260715/reference_observations.parquet",
+            "runs/papilio_demoleus_pilot_reference_candidates_20260715/reference_media_candidates.parquet",
+            "runs/papilio_demoleus_pilot_reference_candidates_20260715/reference_source_shortfalls.json"
+          ],
+          "status": "in_progress_metadata_only"
+        },
+        {
+          "gate_id": "phase14.3_human_review_and_freeze",
+          "required_artifacts": [
+            "reference_media_objects.parquet",
+            "reference_media_duplicate_relationships.parquet",
+            "reference_review_queue.parquet",
+            "reference_review_decisions.parquet",
+            "reference_bank_split_assignments.parquet",
+            "reference_support_manifest.parquet",
+            "reference_bank_summary.parquet",
+            "reference_bank_readiness.json"
+          ],
+          "required_checks": [
+            "accepted_taxonomy",
+            "resolved_human_review",
+            "licence_allowed",
+            "attribution_complete",
+            "duplicates_resolved",
+            "adult_larval_and_visual_domain_banks_separate",
+            "geographic_cluster_coverage",
+            "no_cross_split_leakage"
+          ],
+          "status": "blocked_awaiting_human_review"
+        },
+        {
+          "gate_id": "phase14.4_off_machine_benchmark",
+          "required_computer": "external_gpu_computer",
+          "status": "blocked_by_phase14.3"
+        }
+      ],
+      "query_count": 22,
+      "query_scope_policy": {
+        "default": "global_then_assign_to_flickr_clusters",
+        "gbif_occurrence_search_ceiling": 100000,
+        "papilio_machaon": {
+          "reason": "global_still_image_coordinate_count_101059_exceeds_gbif_search_ceiling",
+          "scope": "target_supported_countries",
+          "verified_at": "2026-07-15T00:00:00Z",
+          "verified_scoped_count": 638
+        }
+      },
+      "source_plan": {
+        "human_review_required_before_support_use": true,
+        "path": "config/pilot/papilio_demoleus_reference_source_queries.json",
+        "queried_species_count": 22,
+        "query_count": 22,
+        "registry_identity_required": true,
+        "sha256": "sha256:a94c81070b3a223fc84830e1f3cc0f04d52d47e00fdecc9713f84bea654d7520"
+      }
+    },
+    "human_review_required": true,
+    "record_id": "trust-first-reference-query-plan",
+    "scientific_claim_allowed": false,
+    "source_artifacts": [
+      {
+        "byte_count": 8623,
+        "checksum_verified": true,
+        "imported_path": "papilio_demoleus_reference_source_queries.json",
+        "role": "reference_source_queries",
+        "schema_version": "papilio-demoleus-pilot-reference-source-queries-v1.0.0",
+        "sha256": "a94c81070b3a223fc84830e1f3cc0f04d52d47e00fdecc9713f84bea654d7520",
+        "source_path": "config/pilot/papilio_demoleus_reference_source_queries.json"
+      },
+      {
+        "byte_count": 4025,
+        "checksum_verified": true,
+        "imported_path": "pilot_reference_source_manifest.json",
+        "role": "reference_source_manifest",
+        "schema_version": "papilio-demoleus-pilot-reference-source-manifest-v1.0.0",
+        "sha256": "c5b6e809b194c3325735a97a60bbb804059f957b894d73a4c4597c3c66c4ae29",
+        "source_path": "examples/species/papilio_demoleus/pilot_reference_source_manifest.json"
+      },
+      {
+        "byte_count": 9562,
+        "checksum_verified": true,
+        "imported_path": "papilio_demoleus_phase14_experiment_matrix.json",
+        "role": "experiment_matrix",
+        "schema_version": "papilio-demoleus-phase14-experiment-matrix-v1.0.0",
+        "sha256": "5911e367ba1e3d0d0db81f939b9f37fccff07cef86a172842e1d6bb7f124c283",
+        "source_path": "config/pilot/papilio_demoleus_phase14_experiment_matrix.json"
+      }
+    ],
+    "verification_status": "metadata_plan_verified_human_review_blocked"
+  }
+]

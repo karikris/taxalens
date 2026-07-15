@@ -1,0 +1,30 @@
+[
+  {
+    "metric_id": "flickr-query-hits",
+    "metric_kind": "source_metadata_count",
+    "scientific_claim_allowed": false,
+    "value": 76485,
+    "verification_status": "committed_metadata_verified"
+  },
+  {
+    "metric_id": "canonical-flickr-photos",
+    "metric_kind": "source_metadata_count",
+    "scientific_claim_allowed": false,
+    "value": 13501,
+    "verification_status": "committed_metadata_verified"
+  },
+  {
+    "metric_id": "eligible-source-media-candidates",
+    "metric_kind": "source_metadata_count",
+    "scientific_claim_allowed": false,
+    "value": 838,
+    "verification_status": "committed_metadata_counts_verified"
+  },
+  {
+    "metric_id": "human-verified-source-media",
+    "metric_kind": "review_count",
+    "scientific_claim_allowed": false,
+    "value": 0,
+    "verification_status": "committed_metadata_counts_verified"
+  }
+]

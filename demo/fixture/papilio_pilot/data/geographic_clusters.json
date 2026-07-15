@@ -1,0 +1,38 @@
+[
+  {
+    "candidate_semantics": "flickr_search_candidate_not_taxonomic_label",
+    "data": {
+      "assignment_artifact": {
+        "byte_count": 633625,
+        "path": "runs/papilio_demoleus_pilot_geographic_workload_20260715/flickr_geo_assignments.parquet",
+        "sha256": "sha256:e12f6ef9582bf707c952c3974c91e9a8f226ca7ce8034cab8ea8c293b70b6f74"
+      },
+      "cluster_artifact": {
+        "byte_count": 22573,
+        "path": "runs/papilio_demoleus_pilot_geographic_workload_20260715/flickr_geo_clusters.parquet",
+        "sha256": "sha256:cba4651b967fae15f586e760859fb11ff608a603f792e338c7661d5563130b35"
+      },
+      "eligible_reference_cluster_count": 76,
+      "fallback_cluster_count": 1,
+      "located_cluster_count": 76,
+      "outlier_record_count": 707,
+      "payload_rows_available": false,
+      "unassigned_geotagged_record_count": 792
+    },
+    "human_review_required": true,
+    "record_id": "geographic-cluster-summary",
+    "scientific_claim_allowed": false,
+    "source_artifacts": [
+      {
+        "byte_count": 4024,
+        "checksum_verified": true,
+        "imported_path": "pilot_geographic_workload_manifest.json",
+        "role": "geographic_workload_manifest",
+        "schema_version": "papilio-demoleus-pilot-geographic-workload-manifest-v1.0.0",
+        "sha256": "a62abef7cbac8638da219e53e08ab6760bedcd4f49d6396bfa0d1891d96e5cf2",
+        "source_path": "examples/species/papilio_demoleus/pilot_geographic_workload_manifest.json"
+      }
+    ],
+    "verification_status": "summary_verified_payload_not_imported"
+  }
+]

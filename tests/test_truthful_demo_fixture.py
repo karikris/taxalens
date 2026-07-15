@@ -1,0 +1,176 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+import pytest
+from taxalens.product import (
+    TRUTHFUL_DEMO_BIOMINER_SHA,
+    TRUTHFUL_DEMO_BUNDLE_ID,
+    TRUTHFUL_DEMO_HERO_ID,
+    build_truthful_demo_fixture,
+    load_judge_bundle,
+)
+
+FIXTURE_ROOT = Path("demo/fixture/papilio_pilot")
+MANIFEST_PATH = FIXTURE_ROOT / "judge_bundle.json"
+RASTER_SUFFIXES = {".gif", ".jpeg", ".jpg", ".png", ".webp"}
+
+
+def _json(relative_path: str) -> object:
+    return json.loads((FIXTURE_ROOT / relative_path).read_text(encoding="utf-8"))
+
+
+def test_committed_fixture_is_a_valid_checksum_verified_judge_bundle() -> None:
+    loaded = load_judge_bundle(MANIFEST_PATH, verify_files=True)
+
+    assert loaded.validation.bundle_id == TRUTHFUL_DEMO_BUNDLE_ID
+    assert loaded.validation.artifact_count == 17
+    assert loaded.validation.section_count == 20
+    assert loaded.validation.unavailable_section_count == 6
+    assert loaded.validation.replay_trace_count == 0
+    assert loaded.data["source_revisions"]["biominer_sha"] == TRUTHFUL_DEMO_BIOMINER_SHA
+    assert loaded.data["target"] == {
+        "accepted_taxon_key": "gbif:1938069",
+        "scientific_name": "Papilio demoleus",
+        "rank": "species",
+    }
+    assert all(
+        section["scientific_claim_allowed"] is False for section in loaded.data["sections"].values()
+    )
+
+
+def test_hero_truthfully_awaits_review_without_an_image_or_classification() -> None:
+    summary = _json("data/run_summary.json")
+    records = _json("data/selective_decision_metadata.json")
+    assert isinstance(summary, dict)
+    assert isinstance(records, list)
+    assert len(records) == 1
+    hero = records[0]
+
+    assert summary["hero_record_id"] == TRUTHFUL_DEMO_HERO_ID
+    assert summary["hero_state"] == "awaiting_human_review"
+    assert summary["target_classification"] == {
+        "status": "unavailable",
+        "value": None,
+        "reason": "No human-verified target image classification is committed.",
+    }
+    assert summary["media"]["included_image_count"] == 0
+    assert summary["detection_data"]["record_count"] == 0
+    assert summary["full_frame_transformations"]["record_count"] == 0
+    assert summary["schema_smoke_record_included"] is False
+
+    assert hero["evidence_record_id"] == TRUTHFUL_DEMO_HERO_ID
+    assert hero["state"] == "awaiting_human_review"
+    assert hero["target_classification"] is None
+    assert hero["decision"] is None
+    assert hero["media_id"] is None
+    assert hero["image_path"] is None
+    assert hero["candidate_visual_scores"] == []
+    assert hero["schema_smoke_record"] is False
+    assert hero["human_review_required"] is True
+    assert hero["scientific_claim_allowed"] is False
+    assert all(gate["satisfied"] is False for gate in hero["gates"])
+
+
+def test_fixture_uses_real_candidate_metadata_without_promoting_it_to_evidence() -> None:
+    snapshot = _json("source/pilot_metadata_snapshot.json")
+    candidates = _json("data/candidate_sets.json")
+    shortfalls = _json("data/reference_shortfalls.json")
+    metrics = _json("data/stage_metrics.json")
+    assert isinstance(snapshot, dict)
+    assert isinstance(candidates, list)
+    assert isinstance(shortfalls, list)
+    assert isinstance(metrics, list)
+
+    assert snapshot["origin_commit"] == TRUTHFUL_DEMO_BIOMINER_SHA
+    assert snapshot["metadata_only"] is True
+    assert snapshot["scientific_results_available"] is False
+    assert [row["candidate"]["scientific_name"] for row in candidates] == [
+        "Papilio memnon",
+        "Papilio polytes",
+        "Papilio helenus",
+        "Papilio paris",
+        "Papilio machaon",
+    ]
+    assert all(row["scientific_claim_allowed"] is False for row in candidates)
+    assert shortfalls[0]["data"]["source_candidate_shortfall"] == 247
+    assert shortfalls[0]["data"]["human_verified_shortfall"] == 490
+    assert {row["metric_id"]: row["value"] for row in metrics} == {
+        "flickr-query-hits": 76_485,
+        "canonical-flickr-photos": 13_501,
+        "eligible-source-media-candidates": 838,
+        "human-verified-source-media": 0,
+    }
+
+
+def test_rights_manifest_has_no_media_and_covers_every_payload() -> None:
+    loaded = load_judge_bundle(MANIFEST_PATH, verify_files=True)
+    rights = _json("rights_manifest.json")
+    assert isinstance(rights, dict)
+
+    assert rights["media_asset_count"] == 0
+    assert rights["licensed_image_count"] == 0
+    assert rights["included_image_count"] == 0
+    assert rights["all_media_rights_verified"] is False
+    assert loaded.data["rights"]["all_artifacts_covered"] is True
+    assert loaded.data["rights"]["all_media_rights_verified"] is False
+    assert loaded.data["attribution"]["complete"] is True
+    assert not any(path.suffix.lower() in RASTER_SUFFIXES for path in FIXTURE_ROOT.rglob("*"))
+    assert all(
+        artifact["media_type"] == "application/json"
+        for artifact in loaded.data["artifact_inventory"]
+    )
+
+
+def test_unavailable_real_pipeline_outputs_are_named_and_empty() -> None:
+    loaded = load_judge_bundle(MANIFEST_PATH, verify_files=True)
+    expected = {
+        "yoloe_evidence",
+        "full_frame_visual_input_metadata",
+        "target_aware_score_metadata",
+        "comments",
+        "candidate_revisions",
+        "evaluation_summaries",
+    }
+    observed = {
+        name
+        for name, section in loaded.data["sections"].items()
+        if section["status"] == "unavailable"
+    }
+
+    assert observed == expected
+    for name in observed:
+        section = loaded.data["sections"][name]
+        assert section["artifact_ids"] == ()
+        assert section["reason"]
+        assert section["verification_status"] == "unavailable"
+        assert section["human_review_required"] is True
+
+
+def test_builder_reproduces_every_committed_fixture_byte(tmp_path: Path) -> None:
+    generated_root = tmp_path / "papilio_pilot"
+    generated_manifest = build_truthful_demo_fixture(generated_root)
+
+    assert generated_manifest == generated_root / "judge_bundle.json"
+    expected_paths = sorted(
+        path.relative_to(FIXTURE_ROOT) for path in FIXTURE_ROOT.rglob("*.json") if path.is_file()
+    )
+    generated_paths = sorted(
+        path.relative_to(generated_root) for path in generated_root.rglob("*") if path.is_file()
+    )
+    assert generated_paths == expected_paths
+    for relative_path in expected_paths:
+        assert (generated_root / relative_path).read_bytes() == (
+            FIXTURE_ROOT / relative_path
+        ).read_bytes()
+
+
+def test_builder_refuses_to_replace_an_existing_destination_without_opt_in(
+    tmp_path: Path,
+) -> None:
+    destination = tmp_path / "existing"
+    destination.mkdir()
+
+    with pytest.raises(FileExistsError, match="destination already exists"):
+        build_truthful_demo_fixture(destination)

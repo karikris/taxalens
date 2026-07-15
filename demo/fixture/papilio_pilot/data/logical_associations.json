@@ -1,0 +1,289 @@
+[
+  {
+    "candidate_semantics": "range_seed_for_candidate_planning_not_candidate_verification",
+    "data": {
+      "accepted_taxon_key": "gbif:1938069",
+      "country_count": 40,
+      "region_count": 8,
+      "region_counts_by_status": {
+        "introduced_established": 1,
+        "native_or_long_established": 3,
+        "occurrence_supported": 3,
+        "taxonomically_cautionary": 1
+      },
+      "regions": [
+        {
+          "countries": [
+            {
+              "code": "BD",
+              "name": "Bangladesh"
+            },
+            {
+              "code": "BT",
+              "name": "Bhutan"
+            },
+            {
+              "code": "IN",
+              "name": "India"
+            },
+            {
+              "code": "LK",
+              "name": "Sri Lanka"
+            },
+            {
+              "code": "NP",
+              "name": "Nepal"
+            },
+            {
+              "code": "PK",
+              "name": "Pakistan"
+            }
+          ],
+          "range_status": "native_or_long_established",
+          "region": "South Asia",
+          "requires_occurrence_support": false,
+          "taxonomic_caution": false
+        },
+        {
+          "countries": [
+            {
+              "code": "AE",
+              "name": "United Arab Emirates"
+            },
+            {
+              "code": "BH",
+              "name": "Bahrain"
+            },
+            {
+              "code": "IQ",
+              "name": "Iraq"
+            },
+            {
+              "code": "IR",
+              "name": "Iran"
+            },
+            {
+              "code": "KW",
+              "name": "Kuwait"
+            },
+            {
+              "code": "OM",
+              "name": "Oman"
+            },
+            {
+              "code": "QA",
+              "name": "Qatar"
+            },
+            {
+              "code": "SA",
+              "name": "Saudi Arabia"
+            },
+            {
+              "code": "SY",
+              "name": "Syria"
+            },
+            {
+              "code": "TR",
+              "name": "Turkey"
+            }
+          ],
+          "range_status": "occurrence_supported",
+          "region": "Middle East / West Asia",
+          "requires_occurrence_support": false,
+          "taxonomic_caution": false
+        },
+        {
+          "countries": [
+            {
+              "code": "CN",
+              "name": "China"
+            },
+            {
+              "code": "HK",
+              "name": "Hong Kong"
+            },
+            {
+              "code": "JP",
+              "name": "Japan"
+            },
+            {
+              "code": "MO",
+              "name": "Macau"
+            },
+            {
+              "code": "TW",
+              "name": "Taiwan"
+            }
+          ],
+          "range_status": "occurrence_supported",
+          "region": "East Asia",
+          "requires_occurrence_support": false,
+          "taxonomic_caution": false
+        },
+        {
+          "countries": [
+            {
+              "code": "KH",
+              "name": "Cambodia"
+            },
+            {
+              "code": "LA",
+              "name": "Laos"
+            },
+            {
+              "code": "MM",
+              "name": "Myanmar"
+            },
+            {
+              "code": "TH",
+              "name": "Thailand"
+            },
+            {
+              "code": "VN",
+              "name": "Vietnam"
+            }
+          ],
+          "range_status": "native_or_long_established",
+          "region": "Mainland Southeast Asia",
+          "requires_occurrence_support": false,
+          "taxonomic_caution": false
+        },
+        {
+          "countries": [
+            {
+              "code": "BN",
+              "name": "Brunei"
+            },
+            {
+              "code": "ID",
+              "name": "Indonesia"
+            },
+            {
+              "code": "MY",
+              "name": "Malaysia"
+            },
+            {
+              "code": "PH",
+              "name": "Philippines"
+            },
+            {
+              "code": "SG",
+              "name": "Singapore"
+            },
+            {
+              "code": "TL",
+              "name": "Timor-Leste"
+            }
+          ],
+          "range_status": "native_or_long_established",
+          "region": "Maritime Southeast Asia",
+          "requires_occurrence_support": false,
+          "taxonomic_caution": false
+        },
+        {
+          "countries": [
+            {
+              "code": "CU",
+              "name": "Cuba"
+            },
+            {
+              "code": "DO",
+              "name": "Dominican Republic"
+            },
+            {
+              "code": "HT",
+              "name": "Haiti"
+            },
+            {
+              "code": "JM",
+              "name": "Jamaica"
+            },
+            {
+              "code": "PR",
+              "name": "Puerto Rico"
+            }
+          ],
+          "range_status": "introduced_established",
+          "region": "Caribbean introduced range",
+          "requires_occurrence_support": true,
+          "taxonomic_caution": false
+        },
+        {
+          "countries": [
+            {
+              "code": "SC",
+              "name": "Seychelles"
+            }
+          ],
+          "range_status": "occurrence_supported",
+          "region": "Seychelles / Indian Ocean spread watch",
+          "requires_occurrence_support": true,
+          "taxonomic_caution": false
+        },
+        {
+          "countries": [
+            {
+              "code": "AU",
+              "name": "Australia"
+            },
+            {
+              "code": "PG",
+              "name": "Papua New Guinea"
+            }
+          ],
+          "range_status": "taxonomically_cautionary",
+          "region": "Australia/New Guinea taxonomic caution",
+          "requires_occurrence_support": false,
+          "taxonomic_caution": true
+        }
+      ],
+      "scientific_name": "Papilio demoleus"
+    },
+    "human_review_required": true,
+    "record_id": "target-range-planning-hypothesis",
+    "scientific_claim_allowed": false,
+    "source_artifacts": [
+      {
+        "byte_count": 3083,
+        "checksum_verified": true,
+        "imported_path": "papilio_demoleus_range_seed.json",
+        "role": "range_seed",
+        "schema_version": "range-seed-v1",
+        "sha256": "712dcb2b32eec87798a527c0299aa8d635a9bd3ef58a44cebf587c82e9293cf1",
+        "source_path": "config/range_seed/papilio_demoleus.json"
+      }
+    ],
+    "verification_status": "committed_range_seed_verified"
+  },
+  {
+    "candidate_semantics": "negative_candidate_plan_not_reviewed_negative_label",
+    "data": {
+      "relationship_use": "candidate planning only",
+      "reviewed_false_winner_relationship_count": 5
+    },
+    "human_review_required": true,
+    "record_id": "reviewed-false-winner-relationship-plan",
+    "scientific_claim_allowed": false,
+    "source_artifacts": [
+      {
+        "byte_count": 8623,
+        "checksum_verified": true,
+        "imported_path": "papilio_demoleus_reference_source_queries.json",
+        "role": "reference_source_queries",
+        "schema_version": "papilio-demoleus-pilot-reference-source-queries-v1.0.0",
+        "sha256": "a94c81070b3a223fc84830e1f3cc0f04d52d47e00fdecc9713f84bea654d7520",
+        "source_path": "config/pilot/papilio_demoleus_reference_source_queries.json"
+      },
+      {
+        "byte_count": 3424,
+        "checksum_verified": true,
+        "imported_path": "papilio_demoleus_competitor_relationships.json",
+        "role": "competitor_relationships",
+        "schema_version": "competitor-relationship-source-v1.0.0",
+        "sha256": "bc71f57add07935c8fb90aaf3f4efcf28b9d5dcee172f8253532409cd47ba4a5",
+        "source_path": "config/candidates/papilio_demoleus_competitor_relationships.json"
+      }
+    ],
+    "verification_status": "partial_candidate_plan_verified"
+  }
+]

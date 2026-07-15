@@ -1,0 +1,32 @@
+[
+  {
+    "candidate_semantics": "visual_domain_class_plan_not_selected_negative_media",
+    "data": {
+      "classes": [
+        "illustration",
+        "pinned_specimen",
+        "garden_scene",
+        "fruit_or_flower_closeup",
+        "clutter"
+      ],
+      "selected_media_count": 0,
+      "selection_artifact_available": false,
+      "status": "unresolved_requires_human_review"
+    },
+    "human_review_required": true,
+    "record_id": "visual-domain-negative-plan",
+    "scientific_claim_allowed": false,
+    "source_artifacts": [
+      {
+        "byte_count": 8623,
+        "checksum_verified": true,
+        "imported_path": "papilio_demoleus_reference_source_queries.json",
+        "role": "reference_source_queries",
+        "schema_version": "papilio-demoleus-pilot-reference-source-queries-v1.0.0",
+        "sha256": "a94c81070b3a223fc84830e1f3cc0f04d52d47e00fdecc9713f84bea654d7520",
+        "source_path": "config/pilot/papilio_demoleus_reference_source_queries.json"
+      }
+    ],
+    "verification_status": "plan_verified_selection_unavailable"
+  }
+]
