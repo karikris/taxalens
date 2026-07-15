@@ -5,6 +5,21 @@ phase12_status: "pushed-and-eligible-for-committed-migration-only"
 phase13_exclusion: "active-work-excluded-unless-explicitly-pinned"
 recorded_at: "2026-07-15"
 components:
+  - component_id: biominer_target_full_frame
+    source_repository: karikris/BioMiner
+    source_commit: 1535c494f9403e22ed9b163f3ae0ce3706e17f4c
+    source_path: src/biominer/vision/target_full_frame.py
+    destination_path: packages/replay/src/biominer_target_full_frame.py
+    migration_kind: copied
+    reason: Preserve the complete target-aware full-frame orchestration required by the Build Week evidence path.
+    build_week_scope: new
+    source_license: MIT
+    changes:
+      - Redirected internal imports to mechanically preserved TaxaLens modules.
+      - Retained every production scoring-unit, route, image identity, embedding, attention evidence, schema, and no-crop rule.
+    tests:
+      - packages/replay/tests/test_biominer_target_full_frame.py
+    status: migrated
   - component_id: biominer_detection_schema
     source_repository: karikris/BioMiner
     source_commit: 1535c494f9403e22ed9b163f3ae0ce3706e17f4c

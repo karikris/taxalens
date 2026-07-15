@@ -1,5 +1,12 @@
 # UPSTREAM_BIOMINER.md
 
+## Preserved target full-frame orchestration
+
+- `packages/replay/src/biominer_target_full_frame.py` retains the complete committed BioMiner `src/biominer/vision/target_full_frame.py` logic at `1535c494f9403e22ed9b163f3ae0ce3706e17f4c`.
+- Only imports are redirected to preserved TaxaLens contracts; no scoring-unit, route, full-image identity, embedding, attention-evidence, schema-validation, or no-crop policy logic was removed.
+- The complete committed `tests/test_target_full_frame.py` suite is migrated with import-only adaptation.
+- This migration preserves orchestration logic without yet coupling it to a TaxaLens service or UI; that marriage remains a later adapter task.
+
 ## Preserved detection schema contract
 
 - `packages/replay/src/biominer_detection_schema.py` retains the complete committed BioMiner `src/biominer/detection/schema.py` logic at `1535c494f9403e22ed9b163f3ae0ce3706e17f4c`.
