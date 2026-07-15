@@ -1,0 +1,31 @@
+{
+  "biominer": {
+    "branch": "main",
+    "head": "0561906d994d6b9e56e0b6405fdb68272759595f",
+    "path": "/Users/merm0001/Repos/BioMiner",
+    "phase13_signal": false,
+    "status": {
+      "raw": [
+        "?? .DS_Store"
+      ],
+      "staged": [],
+      "untracked": [
+        "?? .DS_Store"
+      ]
+    }
+  },
+  "failures": [],
+  "manifest_path": "/Users/merm0001/Repos/taxalens/provenance/biominer_migration_manifest.yaml",
+  "phase13_excluded": true,
+  "phase13_pinned": true,
+  "pinned_sha": "0561906d994d6b9e56e0b6405fdb68272759595f",
+  "taxalens": {
+    "branch": "main",
+    "head": "e8128e51097665279ae99e37f48d0243de1211cf"
+  },
+  "timestamp": "2026-07-15T11:05:37.722147Z",
+  "warnings": [
+    "BioMiner local HEAD matches pinned SHA 0561906d994d6b9e56e0b6405fdb68272759595f.",
+    "BioMiner has untracked content: .DS_Store."
+  ]
+}

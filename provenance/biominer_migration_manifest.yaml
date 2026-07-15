@@ -1,10 +1,25 @@
 upstream_repository: "karikris/BioMiner"
-pinned_biominer_sha: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+pinned_biominer_sha: "0561906d994d6b9e56e0b6405fdb68272759595f"
 migration_policy: "artifact_contract > api_contract > dependency > extracted > copied"
 phase12_status: "pushed-and-eligible-for-committed-migration-only"
 phase13_exclusion: "active-work-excluded-unless-explicitly-pinned"
 recorded_at: "2026-07-15"
 components:
+  - component_id: biominer_decision_policy
+    source_repository: karikris/BioMiner
+    source_commit: 0561906d994d6b9e56e0b6405fdb68272759595f
+    source_path: src/biominer/ml/decision_policy.py
+    destination_path: packages/replay/src/biominer_decision_policy.py
+    migration_kind: copied
+    reason: Preserve complete precision-constrained selective prediction and calibrated abstention policy for Build Week evidence decisions.
+    build_week_scope: new
+    source_license: MIT
+    changes:
+      - Redirected internal imports to preserved TaxaLens semantic-hash, non-match, target-task, and reference-route contracts.
+      - Retained every production threshold, objective, quality gate, precedence, abstention, provenance, fingerprint, and validation rule.
+    tests:
+      - packages/replay/tests/test_biominer_decision_policy.py
+    status: migrated
   - component_id: biominer_target_aware_output
     source_repository: karikris/BioMiner
     source_commit: 1535c494f9403e22ed9b163f3ae0ce3706e17f4c

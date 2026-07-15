@@ -1,5 +1,11 @@
 # UPSTREAM_BIOMINER.md
 
+## Preserved selective decision policy
+
+- `packages/replay/src/biominer_decision_policy.py` retains the complete committed BioMiner `src/biominer/ml/decision_policy.py` logic at `0561906d994d6b9e56e0b6405fdb68272759595f`.
+- Only imports are redirected to preserved TaxaLens semantic-hash, non-match, target-task, and reference-route contracts; no threshold fitting, precision objective, quality gate, competitor/domain precedence, abstention, provenance, fingerprint, or validation logic was removed.
+- All directly scoped upstream selective-policy tests are migrated. The final calibration-manifest integration tests remain upstream until the complete calibration implementation is migrated.
+
 ## Preserved target-aware output contract
 
 - `packages/replay/src/biominer_target_aware_output.py` retains the complete committed BioMiner `src/biominer/bioclip/target_aware_output.py` logic at `1535c494f9403e22ed9b163f3ae0ce3706e17f4c`.
@@ -91,7 +97,7 @@ TaxaLens treats `karikris/BioMiner` as the upstream research engine and treats t
 ## Pinned SHA
 
 - `biominer_repository`: `karikris/BioMiner`
-- `pinned_sha`: `1535c494f9403e22ed9b163f3ae0ce3706e17f4c`
+- `pinned_sha`: `0561906d994d6b9e56e0b6405fdb68272759595f`
 - `branch`: `main`
 
 ## Contracts consumed (current phase)
