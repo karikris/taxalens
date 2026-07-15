@@ -1,0 +1,41 @@
+{
+  "biominer": {
+    "branch": "main",
+    "head": "75461d9c065af0cd96b41cd1f845c2e920f7ae34",
+    "path": "/home/toffe/github/karikris/BioMiner",
+    "phase13_signal": false,
+    "status": {
+      "raw": [
+        "?? config/papilio_demoleus_flickr_estimator.sh2",
+        "?? config/papilio_demoleus_multilingual_keywords.json",
+        "?? docs/superpowers/",
+        "?? duplicate_query_terms_skipped",
+        "?? logs/",
+        "?? query_terms_added"
+      ],
+      "staged": [],
+      "untracked": [
+        "?? config/papilio_demoleus_flickr_estimator.sh2",
+        "?? config/papilio_demoleus_multilingual_keywords.json",
+        "?? docs/superpowers/",
+        "?? duplicate_query_terms_skipped",
+        "?? logs/",
+        "?? query_terms_added"
+      ]
+    }
+  },
+  "failures": [],
+  "manifest_path": "/home/toffe/github/karikris/taxalens/provenance/biominer_migration_manifest.yaml",
+  "phase13_excluded": true,
+  "phase13_pinned": true,
+  "pinned_sha": "75461d9c065af0cd96b41cd1f845c2e920f7ae34",
+  "taxalens": {
+    "branch": "main",
+    "head": "49ffd2ac309a52cef7724ae8ebac72d15fd8feb5"
+  },
+  "timestamp": "2026-07-15T22:02:26.776571Z",
+  "warnings": [
+    "BioMiner local HEAD matches pinned SHA 75461d9c065af0cd96b41cd1f845c2e920f7ae34.",
+    "BioMiner has untracked content: config/papilio_demoleus_flickr_estimator.sh2, config/papilio_demoleus_multilingual_keywords.json, docs/superpowers/, duplicate_query_terms_skipped, logs/, query_terms_added."
+  ]
+}

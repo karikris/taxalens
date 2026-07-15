@@ -3,6 +3,7 @@ import { EvidenceState } from '../design-system'
 import { EvidenceFunnel } from './EvidenceFunnel'
 import { GeographicWorkloadMap } from './GeographicWorkloadMap'
 import { QueryYieldAnalysis } from './QueryYieldAnalysis'
+import { ReviewedEvaluationState } from './ReviewedEvaluationState'
 import { ReviewPriorityWorklist } from './ReviewPriorityWorklist'
 import { WorkflowEfficiencyReport } from './WorkflowEfficiencyReport'
 import './dashboard.css'
@@ -51,6 +52,8 @@ export function DashboardWorkspace({
       <QueryYieldAnalysis facade={facade} replay={replay} />
 
       <WorkflowEfficiencyReport replay={replay} />
+
+      <ReviewedEvaluationState replay={replay} />
     </section>
   )
 }

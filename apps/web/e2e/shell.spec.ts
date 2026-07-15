@@ -792,7 +792,9 @@ test('maps verified candidate workload without claiming occurrences or review de
   await expect(inspection).toContainText('No materialized review queue')
 
   await page.getByText('Read all 76 candidate clusters as a table').click()
-  await expect(page.getByRole('table').locator('tbody tr')).toHaveCount(76)
+  await expect(
+    page.locator('.geographic-workload').getByRole('table').locator('tbody tr'),
+  ).toHaveCount(76)
   await page.getByText('Inspect workload-map provenance').click()
   const provenance = page.locator('.geographic-workload__provenance')
   await expect(
@@ -979,6 +981,78 @@ test('reports only measured workflow efficiency without inferring avoided work',
   await expect(report.getByText('reference-readiness', { exact: true })).toBeVisible()
   await expect(report.getByText('duplicate-summaries', { exact: true })).toBeVisible()
   await expect(report.getByText('run-summary', { exact: true })).toBeVisible()
+
+  const expectedOrigin = new URL(page.url()).origin
+  expect(
+    requestUrls.filter((url) => {
+      const parsed = new URL(url)
+      return ['http:', 'https:'].includes(parsed.protocol) && parsed.origin !== expectedOrigin
+    }),
+  ).toEqual([])
+  const viewport = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }))
+  expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth)
+})
+
+test('shows the reviewed evaluation state without fabricating precision or accuracy', async ({
+  page,
+}) => {
+  const requestUrls: string[] = []
+  page.on('request', (request) => requestUrls.push(request.url()))
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('./#dashboard')
+
+  const evaluation = page.locator('.reviewed-evaluation')
+  await expect(
+    evaluation.getByRole('heading', { name: 'Current reviewed evaluation state' }),
+  ).toBeVisible()
+  await expect(
+    evaluation.getByText('Evaluation unavailable · reference review blocked'),
+  ).toBeVisible()
+  await expect(evaluation.getByText('0committed reviewed metrics')).toBeVisible()
+
+  const phase13 = evaluation
+    .getByRole('heading', { name: 'Reviewed result boundary' })
+    .locator('xpath=ancestor::article[1]')
+  await expect(phase13).toContainText('No Phase 13 result artifact is supplied to this fixture.')
+  await expect(phase13).toContainText('Result artifacts0')
+  await expect(phase13).toContainText('Valid metrics0')
+
+  const phase14 = evaluation
+    .getByRole('heading', { name: 'Reference-review gate' })
+    .locator('xpath=ancestor::article[1]')
+  await expect(phase14).toContainText('Blocked before evaluation')
+  await expect(phase14).toContainText('Human-verified media0')
+  await expect(phase14).toContainText('Review shortfall490')
+  await expect(phase14).toContainText('Groups awaiting review1')
+  await expect(phase14).toContainText('Unresolved groups2')
+
+  const table = evaluation.getByRole('table', {
+    name: 'Reviewed metric availability and the denominator required for each claim',
+  })
+  await expect(table.locator('tbody tr')).toHaveCount(7)
+  await expect(table.locator('tr[data-metric-state="unavailable"]')).toHaveCount(7)
+  await expect(table.getByText('Unavailable', { exact: true })).toHaveCount(7)
+  await expect(table.getByText('Precision').locator('..')).toContainText('TP / (TP + FP)')
+  await expect(table.getByText('Accuracy').locator('..')).toContainText('(TP + TN) / N')
+
+  const guardrail = evaluation
+    .getByRole('heading', { name: 'No fake precision or accuracy' })
+    .locator('..')
+    .locator('..')
+  await expect(guardrail).toContainText(
+    'No precision, recall, PR-AUC, accuracy, calibration, or coverage value is calculated.',
+  )
+  await evaluation.getByText('Inspect evaluation-state provenance').click()
+  const provenance = evaluation.locator('.reviewed-evaluation__provenance')
+  await expect(provenance.getByText('evaluation_summaries', { exact: true })).toBeVisible()
+  await expect(provenance.getByText('reference-readiness', { exact: true })).toBeVisible()
+  await expect(provenance.getByText('reference-shortfalls', { exact: true })).toBeVisible()
+  await expect(
+    provenance.getByText('selective-decision-metadata', { exact: true }),
+  ).toBeVisible()
 
   const expectedOrigin = new URL(page.url()).origin
   expect(

@@ -199,6 +199,7 @@ describe('loadEvidenceFacade', () => {
         humanVerifiedSourceMediaCount: 0,
         sourceCandidateShortfall: 247,
         humanVerifiedShortfall: 490,
+        groupsAwaitingHumanReview: 1,
         unresolvedGroupCount: 2,
         workflowMeasurements: {
           observedRequestCount: 314,

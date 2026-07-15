@@ -190,6 +190,7 @@ export interface GeographyReferenceEvidenceBoundary {
     readonly humanVerifiedSourceMediaCount: 0
     readonly sourceCandidateShortfall: number
     readonly humanVerifiedShortfall: number
+    readonly groupsAwaitingHumanReview: number
     readonly unresolvedGroupCount: number
     readonly workflowMeasurements: {
       readonly observedRequestCount: number
@@ -1343,6 +1344,11 @@ function projectGeographyReferenceEvidence(
       humanVerifiedShortfall: numberField(
         shortfallData,
         'human_verified_shortfall',
+        'reference_shortfalls.data',
+      ),
+      groupsAwaitingHumanReview: numberField(
+        shortfallData,
+        'groups_awaiting_human_review',
         'reference_shortfalls.data',
       ),
       unresolvedGroupCount: numberField(
