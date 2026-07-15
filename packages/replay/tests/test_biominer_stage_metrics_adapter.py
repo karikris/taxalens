@@ -28,11 +28,13 @@ def test_adapt_stage_metrics_from_fixture() -> None:
     assert detect["cache_hits"] == 0
     assert detect["retries"] == 2
     assert detect["join_type"] == "nearest_neighbour"
+    assert detect["bytes_scanned"] == 10240
+    assert detect["bytes_written"] == 4096
 
     score = next(item for item in stage_metrics if item["stage_id"] == "score_bioclip")
     assert score["rows_out"] == 37
-    assert score["bytes_scanned"] == 10240
-    assert score["bytes_written"] == 4096
+    assert score["bytes_scanned"] is None
+    assert score["bytes_written"] is None
     assert score["cache_misses"] == 2
     assert score["retries"] == 1
     assert score["produced_sha256"] == "sha256:abc123"

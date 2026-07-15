@@ -179,7 +179,7 @@ KNOWN_STAGE_SPECS: dict[str, StageSpec] = {
         "object_detection",
         "nearest_neighbour",
         input_keys=("source_records",),
-        output_keys=("object_detections",),
+        output_keys=("object_detections", "object_scores"),
     ),
     "score_bioclip": StageSpec(
         "visual_scoring",
@@ -292,13 +292,22 @@ def _first_non_empty(value: Any, *, fallback: str | None = None) -> str | None:
     return text or fallback
 
 
-def _to_output_uri(outputs: dict[str, Any]) -> str | None:
+def _to_output_uri(
+    outputs: dict[str, Any], *, preferred_keys: tuple[str, ...] = ()
+) -> str | None:
     if not outputs:
         return None
     for key in ("artifact", "manifest", "path", "uri", "output"):
         if _first_non_empty(outputs.get(key)) is not None:
             return _first_non_empty(outputs.get(key))
-    for value in outputs.values():
+    for key in preferred_keys:
+        maybe = _first_non_empty(outputs.get(key))
+        if maybe is not None:
+            return maybe
+    input_keys = {"input", "source", "state_db", "source_records"}
+    for key, value in outputs.items():
+        if preferred_keys and key in input_keys:
+            continue
         maybe = _first_non_empty(value)
         if maybe is not None:
             return maybe
@@ -365,6 +374,9 @@ def adapt_stage_metrics(
         outputs = record.get("outputs")
         if not isinstance(outputs, dict):
             outputs = {}
+        inputs = record.get("inputs")
+        if not isinstance(inputs, dict):
+            inputs = {}
 
         status = _normalize_status(record.get("status"))
         operation_type, join_type = _stage_operation_and_join(stage, status)
@@ -372,6 +384,8 @@ def adapt_stage_metrics(
 
         if spec is None:
             unknown_stages.append(stage)
+
+        preferred_output_keys = spec.output_keys if spec is not None else ()
 
         stage_rows_in = _pick_int(
             metrics,
@@ -451,8 +465,11 @@ def adapt_stage_metrics(
                 join_type=join_type,
                 input_keys=list(spec.input_keys) if spec is not None else sorted(outputs.keys()),
                 output_keys=list(spec.output_keys) if spec is not None else sorted(outputs.keys()),
-                input_artifact_id=_to_input_artifact_id(outputs),
-                output_artifact_id=_to_output_uri(outputs),
+                input_artifact_id=_to_input_artifact_id(inputs)
+                or _to_input_artifact_id(outputs),
+                output_artifact_id=_to_output_uri(
+                    outputs, preferred_keys=preferred_output_keys
+                ),
                 rows_in=stage_rows_in,
                 rows_out=stage_rows_out,
                 expected_rows=stage_expected_rows,
@@ -463,7 +480,9 @@ def adapt_stage_metrics(
                 cache_hits=stage_cache_hits,
                 cache_misses=stage_cache_misses,
                 retries=stage_retries,
-                artifact_uri=_to_output_uri(outputs),
+                artifact_uri=_to_output_uri(
+                    outputs, preferred_keys=preferred_output_keys
+                ),
                 produced_sha256=_to_str(
                     metrics.get("produced_sha256")
                     or metrics.get("output_sha256")
@@ -479,7 +498,10 @@ def adapt_stage_metrics(
     ]
     if unknown_stages:
         notes.append(
-            "unknown stage names were preserved as-is and mapped with operation=stage_name and join_type=other."
+            "unknown stage names were preserved as-is and mapped with "
+            "operation=stage_name and join_type=other: "
+            + ", ".join(unknown_stages)
+            + "."
         )
     if missing_stage_records:
         notes.append(
