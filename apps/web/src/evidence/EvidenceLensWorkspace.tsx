@@ -7,6 +7,7 @@ import type {
 } from '../data/evidenceFacade'
 import { EvidenceDesignation, EvidenceState, EvidenceTier } from '../design-system'
 import type { DiscoveryProvenanceResult } from './discoveryProvenance'
+import { CandidateSpeciesComparison } from './CandidateSpeciesComparison'
 import { FullFrameInputComparison } from './FullFrameInputComparison'
 import { YoloeRoutingEvidence } from './YoloeRoutingEvidence'
 import './evidence.css'
@@ -140,6 +141,8 @@ export function EvidenceLensWorkspace({
       <YoloeRoutingEvidence replay={replay} />
 
       <FullFrameInputComparison replay={replay} />
+
+      <CandidateSpeciesComparison replay={replay} />
 
       <h3>Explicitly unavailable evidence</h3>
       <ul className="unavailable-evidence-list">

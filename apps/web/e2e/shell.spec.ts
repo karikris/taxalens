@@ -433,3 +433,60 @@ test('compares every full-frame input contract without inventing transformation 
   }))
   expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth)
 })
+
+test('shows candidate-plan reasons while withholding every absent score-derived rank', async ({
+  page,
+}) => {
+  const requestUrls: string[] = []
+  page.on('request', (request) => requestUrls.push(request.url()))
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('./#evidence-lens')
+
+  await expect(
+    page.getByText('All eligible candidates scored; four strongest alternatives displayed.', {
+      exact: true,
+    }),
+  ).toBeVisible()
+  await expect(page.getByText('Unavailable assertion', { exact: true })).toBeVisible()
+  await expect(page.getByText('Target', { exact: true }).locator('..')).toContainText(
+    'Papilio demoleus',
+  )
+  await expect(page.getByText('Total candidate count', { exact: true }).locator('..')).toContainText(
+    '6',
+  )
+  await expect(page.getByText('Target rank', { exact: true }).locator('..')).toContainText(
+    'Unavailable',
+  )
+
+  const displayed = page.getByRole('list', { name: 'Displayed candidate alternatives' })
+  await expect(displayed.locator(':scope > li')).toHaveCount(4)
+  await expect(displayed.getByText('Papilio memnon', { exact: true })).toBeVisible()
+  await expect(displayed.getByText('Papilio polytes', { exact: true })).toBeVisible()
+  await expect(displayed.getByText('Score unavailable', { exact: true })).toHaveCount(4)
+  await expect(displayed.getByText(/not score rank/u)).toHaveCount(4)
+
+  const outcomes = page.getByLabel('Best candidate outcomes')
+  await expect(outcomes.getByText('Best regional competitor', { exact: true })).toBeVisible()
+  await expect(outcomes.getByText('Best non-regional competitor', { exact: true })).toBeVisible()
+  await expect(outcomes.getByText('Best domain negative', { exact: true })).toBeVisible()
+  await expect(outcomes.getByText(/Unavailable\./u)).toHaveCount(3)
+  await expect(
+    page.getByText('Eligible source media candidates', { exact: true }).locator('..'),
+  ).toContainText('838')
+  await expect(
+    page.getByText('Human-verified source media', { exact: true }).locator('..'),
+  ).toContainText('0')
+
+  const expectedOrigin = new URL(page.url()).origin
+  expect(
+    requestUrls.filter((url) => {
+      const parsed = new URL(url)
+      return ['http:', 'https:'].includes(parsed.protocol) && parsed.origin !== expectedOrigin
+    }),
+  ).toEqual([])
+  const viewport = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }))
+  expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth)
+})

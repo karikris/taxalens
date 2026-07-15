@@ -136,6 +136,13 @@ describe('loadEvidenceFacade', () => {
       },
     })
     expect(facade.replay.mission.regions).toHaveLength(8)
+    expect(facade.replay.mission.candidatePolicy.candidates[0]).toEqual({
+      recordId: 'regional-competitor-1',
+      acceptedTaxonKey: 'gbif:1937892',
+      scientificName: 'Papilio memnon',
+      candidateReason: 'source_taxon_match_not_human_verified_image_label',
+      verificationStatus: 'candidate_plan_verified_not_reference_verified',
+    })
     expect(facade.replay.mission.prerequisiteGates).toHaveLength(4)
     expect(facade.replay.mission.pipelineStages).toHaveLength(8)
     expect(facade.replay.mission.pipelineStages[4]).toMatchObject({

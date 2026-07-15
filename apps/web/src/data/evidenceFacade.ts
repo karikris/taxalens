@@ -70,8 +70,11 @@ export interface MissionEvidence {
     readonly minimumPerSpecies: number
     readonly maximumPerSpecies: number
     readonly candidates: readonly {
+      readonly recordId: string
       readonly acceptedTaxonKey: string
       readonly scientificName: string
+      readonly candidateReason: string
+      readonly verificationStatus: string
     }[]
   }
   readonly referenceRequirements: {
@@ -674,6 +677,7 @@ function projectMissionEvidence(
     const row = object(value, `candidate_sets[${index}]`)
     const candidate = object(row.candidate, `candidate_sets[${index}].candidate`)
     return {
+      recordId: stringField(row, 'record_id', `candidate_sets[${index}]`),
       acceptedTaxonKey: stringField(
         candidate,
         'accepted_taxon_key',
@@ -683,6 +687,16 @@ function projectMissionEvidence(
         candidate,
         'scientific_name',
         `candidate_sets[${index}].candidate`,
+      ),
+      candidateReason: stringField(
+        row,
+        'candidate_semantics',
+        `candidate_sets[${index}]`,
+      ),
+      verificationStatus: stringField(
+        row,
+        'verification_status',
+        `candidate_sets[${index}]`,
       ),
     }
   })
