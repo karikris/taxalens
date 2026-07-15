@@ -76,6 +76,38 @@ def test_adapt_reference_review_queue_without_artifact_returns_empty_result() ->
     )
 
 
+def test_adapt_reference_review_queue_falls_back_to_review_queue_on_non_string_reference_review_queue_path(
+    tmp_path: Path,
+) -> None:
+    manifest = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_reference_review_queue.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    manifest["outputs"]["reference_review_queue"] = None
+    manifest["outputs"]["review_queue"] = "reference_review_queue.json"
+
+    manifest_path = tmp_path / "run_manifest_reference_review_queue_fallback.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    (tmp_path / "reference_review_queue.json").write_text(
+        Path("packages/replay/tests/fixtures/reference_review_queue.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+
+    result = adapt_reference_review_queue(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["reference_review_queue_summary"] is not None
+    assert result["reference_review_queue_summary"]["total_records"] == 4
+    assert result["compatibility"]["artifact_key"] == "review_queue"
+    notes = result["compatibility"]["notes"]
+    assert not any("did not declare reference review queue artifact path" in note for note in notes)
+
+
 def test_adapt_reference_review_queue_normalizes_review_status_aliases() -> None:
     manifest = Path(
         "packages/replay/tests/fixtures/run_manifest_reference_review_queue_status_done.json"

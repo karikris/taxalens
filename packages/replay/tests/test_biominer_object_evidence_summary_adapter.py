@@ -198,6 +198,42 @@ def test_adapt_object_evidence_summary_handles_parquet_paths_as_missing(tmp_path
     assert compatibility["notes"][0].startswith("object_evidence artifact is parquet")
 
 
+def test_adapt_object_evidence_summary_falls_back_to_object_evidence_joined_on_non_string_path(
+    tmp_path: Path,
+) -> None:
+    manifest = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_object_evidence_summary.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    manifest["outputs"]["object_evidence"] = {}
+    manifest["outputs"]["object_evidence_joined"] = "object_evidence.json"
+
+    manifest_path = tmp_path / "run_manifest_object_evidence_summary_fallback.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    (tmp_path / "object_evidence.json").write_text(
+        Path("packages/replay/tests/fixtures/object_evidence.json").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    (tmp_path / "photo_summary.json").write_text(
+        Path("packages/replay/tests/fixtures/photo_summary.json").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+
+    result = adapt_object_evidence_summary(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["object_evidence_summary"]["object_evidence_rows"] == 3
+    notes = result["compatibility"]["notes"]
+    assert not any(
+        "did not declare object_evidence artifact path" in note for note in notes
+    )
+    assert not any("failed to parse object_evidence artifact" in note for note in notes)
+
+
 def test_adapt_object_evidence_summary_collects_notes_for_parse_errors(tmp_path: Path) -> None:
     manifest = json.loads(
         Path("packages/replay/tests/fixtures/run_manifest_object_evidence_summary.json").read_text(

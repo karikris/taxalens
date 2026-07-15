@@ -74,8 +74,11 @@ def _resolve_artifact_path(
     if not isinstance(outputs, dict):
         return None
     for key in keys:
-        raw = _first_str(outputs.get(key))
-        if raw is None:
+        value = outputs.get(key)
+        if not isinstance(value, str):
+            continue
+        raw = value.strip()
+        if not raw:
             continue
         path = Path(raw)
         if not path.is_absolute():

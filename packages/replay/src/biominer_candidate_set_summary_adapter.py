@@ -66,12 +66,16 @@ def _artifact_path(payload: dict[str, Any], manifest_path: Path) -> Path | None:
     if not isinstance(outputs, dict):
         return None
     for key in ("target_aware_candidate_scores", "candidate_scores", "target_scores"):
-        raw = _first_str(outputs.get(key))
-        if raw is not None:
-            path = Path(raw)
-            if path.is_absolute():
-                return path
-            return (manifest_path.parent / path).resolve()
+        value = outputs.get(key)
+        if not isinstance(value, str):
+            continue
+        raw = value.strip()
+        if not raw:
+            continue
+        path = Path(raw)
+        if path.is_absolute():
+            return path
+        return (manifest_path.parent / path).resolve()
     return None
 
 

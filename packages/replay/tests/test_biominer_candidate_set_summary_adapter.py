@@ -148,6 +148,47 @@ def test_adapt_candidate_set_summaries_falls_back_to_candidate_scores_key(tmp_pa
     assert summaries[0]["total_candidates"] == 2
 
 
+def test_adapt_candidate_set_summaries_falls_back_to_candidate_scores_when_primary_key_non_string(
+    tmp_path: Path,
+) -> None:
+    manifest = json.loads(
+        Path(
+            "packages/replay/tests/fixtures/run_manifest_target_aware_candidate_scores.json"
+        ).read_text(encoding="utf-8")
+    )
+    manifest["outputs"]["target_aware_candidate_scores"] = []
+    manifest["outputs"]["candidate_scores"] = "candidate_scores_fallback.json"
+
+    manifest_path = tmp_path / "run_manifest_target_aware_candidate_scores_fallback.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    (tmp_path / "candidate_scores_fallback.json").write_text(
+        json.dumps(
+            {
+                "candidates": [
+                    {
+                        "flickr_photo_id": "photo-010",
+                        "accepted_taxon_key": "gbif:77777",
+                        "scientific_name": "Fallback Candidate",
+                        "target_candidate": True,
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    result = adapt_candidate_set_summaries(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert len(result["candidate_set_summaries"]) == 1
+    assert result["candidate_set_summaries"][0]["media_id"] == "photo-010"
+    assert result["candidate_set_summaries"][0]["total_candidates"] == 1
+    assert result["compatibility"]["source_artifact"].endswith("candidate_scores_fallback.json")
+    notes = result["compatibility"]["notes"]
+    assert not any("candidate score artifact" in note for note in notes)
+
 def test_adapt_candidate_set_summaries_falls_back_to_target_scores_key(tmp_path: Path) -> None:
     manifest = json.loads(
         Path(

@@ -104,8 +104,11 @@ def _to_int(value: Any) -> int | None:
 def _safe_path(manifest_path: Path, key: str, outputs: Any) -> tuple[Path, str] | None:
     if not isinstance(outputs, dict):
         return None
-    raw = _to_str(outputs.get(key))
-    if raw is None:
+    value = outputs.get(key)
+    if not isinstance(value, str):
+        return None
+    raw = value.strip()
+    if not raw:
         return None
     path = Path(raw)
     if not path.is_absolute():
