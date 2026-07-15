@@ -147,8 +147,8 @@ def _extract_rows(payload: Any) -> list[dict[str, Any]]:
 
 def _map_label(row: dict[str, Any]) -> str | None:
     decision = _first_str(
-        row.get("classification_decision")
-        or row.get("decision")
+        row.get("decision")
+        or row.get("classification_decision")
         or row.get("decision_code")
     )
     if decision:
@@ -281,8 +281,8 @@ def adapt_target_aware_candidate_scores(
                 ),
                 calibrated_score=_pick_float(
                     row,
-                    "regional_calibrated_probability",
                     "calibrated_probability",
+                    "regional_calibrated_probability",
                     "calibrated_non_target_probability",
                     "target_competitor_margin",
                 ),
