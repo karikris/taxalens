@@ -3,8 +3,8 @@ import { lazy, Suspense, useEffect, useState } from 'react'
 import {
   loadEvidenceFacade,
   type EvidenceFacade,
-  type ReplayEvidence,
 } from './data/evidenceFacade'
+import { DashboardWorkspace } from './dashboard'
 import { EvidenceState } from './design-system'
 import { EvidenceLensWorkspace } from './evidence'
 import type { ReplayLaunchReceipt } from './mission'
@@ -156,32 +156,6 @@ function ReplayView({
     case 'evidence-lens':
       return <EvidenceLensWorkspace facade={facade} replay={replay} />
     case 'dashboard':
-      return <DashboardView replay={replay} />
+      return <DashboardWorkspace replay={replay} />
   }
-}
-
-function DashboardView({ replay }: { readonly replay: ReplayEvidence }) {
-  return (
-    <section className="detail-panel" aria-labelledby="dashboard-title">
-      <p className="eyebrow">Client runtime</p>
-      <h2 id="dashboard-title">Verified local data boundary</h2>
-      <p className="lede">
-        Checksum-verified JSON opens the shell. Four pinned Parquet artifacts are available for an
-        explicit, on-demand DuckDB-Wasm replay in the Observatory; no worker starts at bootstrap.
-      </p>
-      <EvidenceState state="available" title="Credential-free replay">
-        This view uses only same-origin static assets and does not contact a live backend.
-      </EvidenceState>
-      <dl className="evidence-facts">
-        <div>
-          <dt>Data mode</dt>
-          <dd>{replay.verification.dataMode.replaceAll('-', ' ')}</dd>
-        </div>
-        <div>
-          <dt>Fallback reason</dt>
-          <dd>{replay.verification.fallbackReason.replaceAll('_', ' ')}</dd>
-        </div>
-      </dl>
-    </section>
-  )
 }

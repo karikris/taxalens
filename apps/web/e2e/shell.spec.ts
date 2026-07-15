@@ -689,3 +689,61 @@ test('downloads a deterministic five-file evidence audit boundary without remote
   }))
   expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth)
 })
+
+test('shows an evidence funnel without comparing unlike stage units', async ({ page }) => {
+  const requestUrls: string[] = []
+  page.on('request', (request) => requestUrls.push(request.url()))
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('./#dashboard')
+
+  await expect(page.getByRole('heading', { name: 'Evidence funnel' })).toBeVisible()
+  await expect(page.getByText('Workflow counts, not confirmed occurrences')).toBeVisible()
+  const funnel = page.getByRole('list', { name: 'Evidence funnel stages' })
+  await expect(funnel.locator(':scope > li')).toHaveCount(7)
+  for (const label of [
+    'Query hits',
+    'Canonical photos',
+    'Unique content',
+    'Route counts',
+    'Candidate states',
+    'Decision states',
+    'Review queue state',
+  ]) {
+    await expect(funnel.getByRole('heading', { name: label, exact: true })).toBeVisible()
+  }
+
+  const stage = (label: string) =>
+    funnel.getByRole('heading', { name: label, exact: true }).locator('xpath=ancestor::article[1]')
+  await expect(stage('Query hits')).toContainText('76,485')
+  await expect(stage('Query hits')).toContainText('query associations')
+  await expect(stage('Canonical photos')).toContainText('13,501')
+  await expect(stage('Unique content')).toContainText('Unavailable')
+  await expect(stage('Unique content')).toContainText('duplicate relationship rows are not committed')
+  await expect(stage('Route counts')).toContainText('Verified zero')
+  await expect(stage('Candidate states')).toContainText('6')
+  await expect(stage('Candidate states')).toContainText('One target plus 5 regional competitor hypotheses')
+  await expect(stage('Decision states')).toContainText('Verified zero')
+  await expect(stage('Review queue state')).toContainText('no materialized or ranked review-queue artifact')
+  await expect(page.locator('.evidence-funnel')).not.toContainText('%')
+
+  await stage('Query hits').getByText('Inspect provenance for Query hits').click()
+  await expect(stage('Query hits').getByText('stage-metrics', { exact: true })).toBeVisible()
+  await expect(stage('Query hits')).toContainText(
+    '04f083e24f9aa994aa549d4312dc4a1c4acf59c65d6244fd772fff9b92e0dd2d',
+  )
+  await page.getByText('Read complete textual alternative').click()
+  await expect(page.getByText(/These counts have unlike units/u)).toBeVisible()
+
+  const expectedOrigin = new URL(page.url()).origin
+  expect(
+    requestUrls.filter((url) => {
+      const parsed = new URL(url)
+      return ['http:', 'https:'].includes(parsed.protocol) && parsed.origin !== expectedOrigin
+    }),
+  ).toEqual([])
+  const viewport = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }))
+  expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth)
+})
