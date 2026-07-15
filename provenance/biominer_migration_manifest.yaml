@@ -5,6 +5,21 @@ phase12_status: "pushed-and-eligible-for-committed-migration-only"
 phase13_exclusion: "active-work-excluded-unless-explicitly-pinned"
 recorded_at: "2026-07-15"
 components:
+  - component_id: biominer_target_aware_output
+    source_repository: karikris/BioMiner
+    source_commit: 1535c494f9403e22ed9b163f3ae0ce3706e17f4c
+    source_path: src/biominer/bioclip/target_aware_output.py
+    destination_path: packages/replay/src/biominer_target_aware_output.py
+    migration_kind: copied
+    reason: Preserve complete target-aware score artifact, validation, and persistence contracts for Build Week replay and Evidence Lens provenance.
+    build_week_scope: new
+    source_license: MIT
+    changes:
+      - Redirected internal imports to preserved TaxaLens semantic-hash, non-match, and Parquet modules.
+      - Retained every production schema, identity, candidate, nested evidence, provenance, numeric, decision, abstention, confirmation, validation, and writer rule.
+    tests:
+      - packages/replay/tests/test_biominer_target_aware_output.py
+    status: migrated
   - component_id: biominer_storage_parquet
     source_repository: karikris/BioMiner
     source_commit: 1535c494f9403e22ed9b163f3ae0ce3706e17f4c

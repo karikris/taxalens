@@ -1,5 +1,11 @@
 # UPSTREAM_BIOMINER.md
 
+## Preserved target-aware output contract
+
+- `packages/replay/src/biominer_target_aware_output.py` retains the complete committed BioMiner `src/biominer/bioclip/target_aware_output.py` logic at `1535c494f9403e22ed9b163f3ae0ce3706e17f4c`.
+- Only imports are redirected to preserved TaxaLens semantic-hash, non-match, and Parquet modules; no physical schema, identity, candidate projection, nested evidence, provenance, numeric, decision, abstention, target-confirmation, validation, or writer logic was removed.
+- The complete committed `tests/test_target_aware_output.py` suite is migrated with import-only adaptation.
+
 ## Preserved Parquet storage helper
 
 - `packages/replay/src/biominer_storage_parquet.py` is a mechanical copy of committed BioMiner `src/biominer/storage/parquet.py` at `1535c494f9403e22ed9b163f3ae0ce3706e17f4c`.
