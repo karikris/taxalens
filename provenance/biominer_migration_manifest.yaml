@@ -138,3 +138,18 @@ components:
     tests:
       - "packages/replay/tests/test_biominer_object_evidence_summary_adapter.py"
     status: "migrated"
+  - component_id: "biominer_evidence_review_policy"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    source_path: "src/biominer/evidence/review_policy.py"
+    destination_path: "packages/replay/src/biominer_evidence_review_policy.py"
+    migration_kind: "copied"
+    reason: "Preserve the committed evidence-state policy that determines which records are actionable for comment review."
+    build_week_scope: "new"
+    source_license: "MIT License, copyright 2026 Kris Kari"
+    changes:
+      - "Copied all policy constants, branches, and exports without semantic changes"
+      - "Added a source path, commit, and licence provenance docstring"
+    tests:
+      - "packages/replay/tests/test_biominer_evidence_review_policy.py"
+    status: "migrated"

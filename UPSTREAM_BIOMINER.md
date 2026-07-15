@@ -41,6 +41,10 @@ TaxaLens treats `karikris/BioMiner` as the upstream research engine and treats t
   `src/biominer/evidence/metrics.py`)
   has been consumed through `packages/replay/src/biominer_object_evidence_summary_adapter.py` with
   fixture-backed tests in `packages/replay/tests/test_biominer_object_evidence_summary_adapter.py`.
+- Evidence comment-review eligibility policy (`src/biominer/evidence/review_policy.py`)
+  has been copied intact into
+  `packages/replay/src/biominer_evidence_review_policy.py` with exhaustive policy
+  tests in `packages/replay/tests/test_biominer_evidence_review_policy.py`.
 
 - Future migrations should be implemented as contracts and adapters with source SHAs recorded per component.
 
