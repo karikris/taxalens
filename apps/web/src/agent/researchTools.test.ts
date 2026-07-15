@@ -116,6 +116,16 @@ describe('research evidence tool registry', () => {
       VALID_CALLS.inspect_reference_status,
       replay,
     )
+    const decision = await executeResearchTool(
+      'explain_decision',
+      VALID_CALLS.explain_decision,
+      replay,
+    )
+    const fullFrame = await executeResearchTool(
+      'inspect_stage',
+      { stage_id: 'full-frame-transformation' },
+      replay,
+    )
 
     expect(factValues(coverage)).toMatchObject({
       query_definition_count: 22,
@@ -123,6 +133,9 @@ describe('research evidence tool registry', () => {
       observed_request_count: 314,
       query_hit_count: 76_485,
       canonical_photo_count: 13_501,
+      fallback_cluster_count: 1,
+      outlier_record_count: 707,
+      unassigned_geotagged_record_count: 792,
     })
     expect(coverage.limitations.join(' ')).toContain('not taxonomic observations')
     expect(factValues(mission)).toMatchObject({
@@ -132,13 +145,18 @@ describe('research evidence tool registry', () => {
       phase15_authorized: false,
     })
     expect(comparison.records).toHaveLength(6)
-    expect(factValues(comparison)).toMatchObject({ scored_candidate_count: 0 })
+    expect(factValues(comparison)).toMatchObject({
+      scored_candidate_count: 0,
+      strongest_competitor: null,
+    })
     expect(factValues(references)).toMatchObject({
       eligible_source_media_count: 838,
       human_verified_source_media_count: 0,
       source_candidate_shortfall: 247,
       human_verified_shortfall: 490,
     })
+    expect(factValues(decision)).toMatchObject({ abstention_status: 'not_evaluated' })
+    expect(factValues(fullFrame)).toMatchObject({ embedding_reuse_count: null })
   })
 
   it('returns cited unavailable and blocked results for valid unsupported lookups', async () => {

@@ -9,6 +9,17 @@ export {
 export { AgentWorkspace } from './AgentWorkspace'
 export { AgentReplayWorkspace } from './AgentReplayWorkspace'
 export {
+  INITIAL_AGENT_CASE_THRESHOLD,
+  INITIAL_AGENT_EVALUATION_CASES,
+  INITIAL_AGENT_EVALUATION_THRESHOLD,
+  INITIAL_AGENT_EVALUATION_VERSION,
+  runInitialAgentEvaluation,
+  type AgentEvaluationCaseResult,
+  type AgentEvaluationCheck,
+  type AgentEvaluationTopic,
+  type InitialAgentEvaluationReport,
+} from './agentEvaluation'
+export {
   loadStoredAnalystReplay,
   STORED_ANALYST_REQUEST_VERSION,
   StoredAnalystReplayError,

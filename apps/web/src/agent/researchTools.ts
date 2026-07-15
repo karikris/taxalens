@@ -393,16 +393,36 @@ function inspectQueryCoverage(
       fact('query_hit_count', 'Flickr query-hit associations', replay.observatory.flickrQueryHitCount, 'metadata'),
       fact('canonical_photo_count', 'Canonical source-photo candidates', replay.observatory.canonicalPhotoCount, 'metadata'),
       fact('registry_identity_required', 'Registry identity required', replay.mission.queryPolicy.registryIdentityRequired),
+      fact(
+        'fallback_cluster_count',
+        'Fallback geography clusters',
+        replay.geographyReference.geography.fallbackClusterCount,
+        'metadata',
+      ),
+      fact(
+        'outlier_record_count',
+        'Geographic outlier records',
+        replay.geographyReference.geography.outlierRecordCount,
+        'metadata',
+      ),
+      fact(
+        'unassigned_geotagged_record_count',
+        'Unassigned geotagged records',
+        replay.geographyReference.geography.unassignedGeotaggedRecordCount,
+        'metadata',
+      ),
     ],
     artifactIds: [
       'query-definitions',
       'flickr-candidate-summaries',
       'biominer-flickr-query-hits-parquet',
+      'geographic-clusters',
       'reference-readiness',
       'stage-metrics',
     ],
     limitations: [
       'Query hits and canonical photos are search candidates, not taxonomic observations.',
+      'Fallback and unassigned geography are workload buckets; missing geography is unknown, not evidence of absence.',
       'The committed artifacts do not join every query definition to a physical request ledger.',
     ],
   })
@@ -504,6 +524,7 @@ function inspectStage(stageId: string, replay: ReplayEvidence): ResearchToolResu
       : stage.status === 'pending'
         ? 'pending'
         : 'metadata'
+  const embeddingReuseUnavailable = stage.stageId === 'full-frame-transformation'
   return result({
     tool: 'inspect_stage',
     status,
@@ -513,6 +534,9 @@ function inspectStage(stageId: string, replay: ReplayEvidence): ResearchToolResu
       fact('record_count', 'Committed record count', stage.recordCount, recordStatus === 'metadata' ? 'metadata' : recordStatus === 'pending' ? 'blocked' : 'unavailable'),
       fact('verification_status', 'Verification status', stage.verificationStatus, recordStatus === 'metadata' ? 'verified' : recordStatus === 'pending' ? 'blocked' : 'unavailable'),
       fact('scientific_claim_allowed', 'Scientific claim allowed', stage.scientificClaimAllowed, stage.scientificClaimAllowed ? 'verified' : 'blocked'),
+      ...(embeddingReuseUnavailable
+        ? [fact('embedding_reuse_count', 'Reused embeddings', null, 'unavailable')]
+        : []),
     ],
     records: [
       record(
@@ -523,8 +547,17 @@ function inspectStage(stageId: string, replay: ReplayEvidence): ResearchToolResu
         ['pipeline-stages'],
       ),
     ],
-    artifactIds: ['pipeline-stages', 'stage-metrics'],
-    limitations: ['Stage availability does not by itself establish a scientific result.'],
+    artifactIds: [
+      'pipeline-stages',
+      'stage-metrics',
+      ...(embeddingReuseUnavailable ? ['run-summary'] : []),
+    ],
+    limitations: [
+      'Stage availability does not by itself establish a scientific result.',
+      ...(embeddingReuseUnavailable
+        ? ['No embedding artifact, cache-hit field, or reuse-event ledger is committed.']
+        : []),
+    ],
   })
 }
 
@@ -578,6 +611,7 @@ function compareCandidates(recordId: string, replay: ReplayEvidence): ResearchTo
       fact('total_candidate_count', 'Target plus alternatives', comparison.totalCandidateCount, 'metadata'),
       fact('alternative_candidate_count', 'Regional alternatives', comparison.alternativeCandidateCount, 'metadata'),
       fact('scored_candidate_count', 'Scored candidates', comparison.scoredCandidateCount, 'unavailable'),
+      fact('strongest_competitor', 'Strongest competitor', null, 'unavailable'),
       fact('human_verified_source_media_count', 'Human-verified source media', comparison.referenceCoverage.humanVerifiedSourceMediaCount, 'blocked'),
     ],
     records: [
@@ -616,6 +650,7 @@ function explainDecision(recordId: string, replay: ReplayEvidence): ResearchTool
     facts: [
       fact('state', 'Review state', decision.state, 'blocked'),
       fact('decision_status', 'Decision status', decision.decisionStatus, 'unavailable'),
+      fact('abstention_status', 'Abstention status', 'not_evaluated', 'unavailable'),
       fact('candidate_visual_score_count', 'Candidate visual scores', decision.candidateVisualScoreCount, 'unavailable'),
       fact('unsatisfied_gate_count', 'Unsatisfied gates', decision.gates.length, 'blocked'),
       fact('allowed_transition', 'Allowed transition', decision.allowedTransition, 'blocked'),
