@@ -1,3 +1,5 @@
+import { readFile } from 'node:fs/promises'
+
 import { expect, test } from '@playwright/test'
 
 test('serves the truthful shell entirely from the static origin', async ({ page }) => {
@@ -613,6 +615,66 @@ test('shows a truthful lifecycle ledger without fabricated event times or commen
   await expect(
     ledger.getByRole('heading', { name: 'Export' }).locator('xpath=ancestor::article[1]'),
   ).toContainText('22 / 22 checksum-verified artifacts')
+
+  const expectedOrigin = new URL(page.url()).origin
+  expect(
+    requestUrls.filter((url) => {
+      const parsed = new URL(url)
+      return ['http:', 'https:'].includes(parsed.protocol) && parsed.origin !== expectedOrigin
+    }),
+  ).toEqual([])
+  const viewport = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }))
+  expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth)
+})
+
+test('downloads a deterministic five-file evidence audit boundary without remote requests', async ({
+  page,
+}) => {
+  const requestUrls: string[] = []
+  page.on('request', (request) => requestUrls.push(request.url()))
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('./#evidence-lens')
+
+  await expect(page.getByRole('heading', { name: 'Export evidence' })).toBeVisible()
+  await expect(page.getByText('Unsigned manifest', { exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Prepare local audit bundle' }).click()
+
+  await expect(page.getByText('Five audit files prepared locally', { exact: true })).toBeVisible()
+  const files = page.getByRole('list', { name: 'Prepared evidence export files' })
+  await expect(files.locator(':scope > li')).toHaveCount(5)
+  for (const label of [
+    'Download JSON evidence',
+    'Download CSV summary',
+    'Download Source Parquet',
+    'Download Checksum manifest',
+    'Download Provenance report',
+  ]) {
+    await expect(files.getByRole('button', { name: label })).toBeVisible()
+  }
+  await expect(files).toContainText(
+    '95448f3145d903f7f042fe41d74561475ef050f8df21b318ebacb252484e4f0b',
+  )
+  await expect(
+    page.getByText(/verified BioMiner Flickr query-hit source, not a serialization/u),
+  ).toBeVisible()
+
+  const downloadPromise = page.waitForEvent('download')
+  await files.getByRole('button', { name: 'Download JSON evidence' }).click()
+  const download = await downloadPromise
+  expect(download.suggestedFilename()).toBe(
+    'taxalens-papilio-demoleus-awaiting-human-review.evidence.json',
+  )
+  const downloadedPath = await download.path()
+  expect(downloadedPath).not.toBeNull()
+  const evidence = JSON.parse(await readFile(downloadedPath!, 'utf8')) as {
+    scientificClaimAllowed: boolean
+    ledger: { events: readonly unknown[] }
+  }
+  expect(evidence.scientificClaimAllowed).toBe(false)
+  expect(evidence.ledger.events).toHaveLength(10)
 
   const expectedOrigin = new URL(page.url()).origin
   expect(

@@ -132,7 +132,7 @@ export function buildEvidenceLedger(replay: ReplayEvidence): EvidenceLedgerModel
       10,
       'Export',
       'available',
-      `Static judge bundle contains ${replay.verifiedArtifactCount} / ${replay.artifactCount} checksum-verified artifacts. A user-generated evidence export is not yet recorded.`,
+      `Static judge bundle contains ${replay.verifiedArtifactCount} / ${replay.artifactCount} checksum-verified artifacts. A local audit export can package this boundary without recording new evidence.`,
       'inventory_and_payload_verified',
       ['rights-manifest', 'attribution-manifest'],
       replay.bundleCreatedAt,

@@ -1468,6 +1468,101 @@
   font-size: var(--tl-text-sm);
 }
 
+.evidence-export {
+  display: grid;
+  gap: var(--tl-space-3);
+  padding: clamp(var(--tl-space-3), 3vw, var(--tl-space-4));
+  background: var(--tl-surface-paper);
+  border: 1px solid var(--tl-line);
+  border-top: 4px solid var(--tl-blue-800);
+  border-radius: var(--tl-radius-sm);
+}
+
+.evidence-export__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--tl-space-3);
+}
+
+.evidence-export__heading h3 {
+  margin: 0;
+}
+
+.evidence-export__heading p:last-child {
+  max-width: var(--tl-reading-width);
+  margin: var(--tl-space-2) 0 0;
+  color: var(--tl-ink-muted);
+}
+
+.evidence-export__heading button,
+.evidence-export__ready li > button {
+  flex: 0 0 auto;
+  min-height: 2.75rem;
+  padding: var(--tl-space-2) var(--tl-space-3);
+  color: var(--tl-surface-paper);
+  font-weight: 800;
+  background: var(--tl-brand-strong);
+  border: 1px solid var(--tl-brand-strong);
+  border-radius: var(--tl-radius-sm);
+  cursor: pointer;
+}
+
+.evidence-export__heading button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.evidence-export__status,
+.evidence-export__boundary {
+  margin: 0;
+  padding: var(--tl-space-2);
+  color: var(--tl-ink-muted);
+  background: var(--tl-surface-subtle);
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.evidence-export__ready {
+  display: grid;
+  gap: var(--tl-space-3);
+}
+
+.evidence-export__ready > ul {
+  display: grid;
+  gap: var(--tl-space-2);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.evidence-export__ready li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tl-space-3);
+  min-width: 0;
+  padding: var(--tl-space-2);
+  background: var(--tl-surface-subtle);
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.evidence-export__ready li > div {
+  display: grid;
+  gap: var(--tl-space-1);
+  min-width: 0;
+}
+
+.evidence-export__ready li > div > code,
+.evidence-export__ready li small code {
+  overflow-wrap: anywhere;
+}
+
+.evidence-export__ready li small {
+  color: var(--tl-ink-muted);
+}
+
 @media (max-width: 44rem) {
   .discovery-evidence__heading,
   .provenance-card__heading,
@@ -1480,12 +1575,16 @@
   .selective-decision__heading,
   .geography-reference__heading,
   .geography-reference__shortfalls,
-  .evidence-ledger__heading {
+  .evidence-ledger__heading,
+  .evidence-export__heading,
+  .evidence-export__ready li {
     display: grid;
     grid-template-columns: 1fr;
   }
 
-  .discovery-evidence__run {
+  .discovery-evidence__run,
+  .evidence-export__heading button,
+  .evidence-export__ready li > button {
     width: 100%;
   }
 
