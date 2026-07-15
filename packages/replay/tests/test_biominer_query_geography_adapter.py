@@ -639,7 +639,9 @@ def test_adapt_query_geography_artifacts_rejects_invalid_manifest_json(tmp_path:
         "packages/replay/tests/fixtures/run_manifest_query_geography_status_passed.json"
     ).read_text(encoding="utf-8")
     invalid_manifest = tmp_path / "invalid_query_geography_manifest.json"
-    invalid_manifest.write_text(manifest_text.rstrip("}"), encoding="utf-8")
+    invalid_manifest.write_text(
+        manifest_text.rstrip().removesuffix("}"), encoding="utf-8"
+    )
 
     try:
         adapt_query_geography_artifacts(
@@ -647,7 +649,7 @@ def test_adapt_query_geography_artifacts_rejects_invalid_manifest_json(tmp_path:
             biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
         )
     except QueryGeographyAdapterError as exc:
-        assert "not valid JSON" in str(exc).lower()
+        assert "not valid json" in str(exc).lower()
     else:
         assert False
 
