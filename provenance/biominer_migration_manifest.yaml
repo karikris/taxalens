@@ -5,6 +5,36 @@ phase12_status: "pushed-and-eligible-for-committed-migration-only"
 phase13_exclusion: "active-work-excluded-unless-explicitly-pinned"
 recorded_at: "2026-07-15"
 components:
+  - component_id: biominer_calibration_probability_contract
+    source_repository: karikris/BioMiner
+    source_commit: 1535c494f9403e22ed9b163f3ae0ce3706e17f4c
+    source_path: src/biominer/ml/calibration.py
+    destination_path: packages/replay/src/biominer_calibration_contract.py
+    migration_kind: extracted
+    reason: Share the stable calibrated-output vocabulary without partially copying the dependency-heavy calibration implementation.
+    build_week_scope: new
+    source_license: MIT
+    changes:
+      - Extracted the exact CALIBRATED_PROBABILITY_KIND value as an independently tested contract.
+      - Left calibration fitting, loading, reporting, and artifact logic intact upstream.
+    tests:
+      - packages/replay/tests/test_biominer_ml_contracts.py
+    status: migrated
+  - component_id: biominer_training_task_contract
+    source_repository: karikris/BioMiner
+    source_commit: 1535c494f9403e22ed9b163f3ae0ce3706e17f4c
+    source_path: src/biominer/ml/training_features.py
+    destination_path: packages/replay/src/biominer_training_task_contract.py
+    migration_kind: extracted
+    reason: Share the stable target-task vocabulary without partially copying the dependency-heavy training-feature implementation.
+    build_week_scope: new
+    source_license: MIT
+    changes:
+      - Extracted the exact immutable TARGET_TASKS value as an independently tested contract.
+      - Left feature construction, validation, and training-table logic intact upstream.
+    tests:
+      - packages/replay/tests/test_biominer_ml_contracts.py
+    status: migrated
   - component_id: biominer_visual_input_fusion
     source_repository: karikris/BioMiner
     source_commit: 1535c494f9403e22ed9b163f3ae0ce3706e17f4c

@@ -1,5 +1,11 @@
 # UPSTREAM_BIOMINER.md
 
+## Extracted ML scoring vocabularies
+
+- `packages/replay/src/biominer_calibration_contract.py` extracts the exact `CALIBRATED_PROBABILITY_KIND` value from committed BioMiner `src/biominer/ml/calibration.py` at `1535c494f9403e22ed9b163f3ae0ce3706e17f4c`.
+- `packages/replay/src/biominer_training_task_contract.py` extracts the exact immutable `TARGET_TASKS` vocabulary from committed BioMiner `src/biominer/ml/training_features.py` at the same SHA.
+- These are narrow stable-contract extractions. Calibration fitting, artifact loading, feature construction, and training-table logic remain intact upstream for later whole-module migration.
+
 ## Preserved visual-input fusion
 
 - `packages/replay/src/biominer_visual_input_fusion.py` retains the complete committed BioMiner `src/biominer/bioclip/visual_input_fusion.py` logic at `1535c494f9403e22ed9b163f3ae0ce3706e17f4c`.
