@@ -115,6 +115,40 @@ def test_adapt_reference_readiness_without_artifact_returns_empty_result() -> No
     )
 
 
+def test_adapt_reference_readiness_falls_back_to_reference_readiness_output_when_primary_key_non_string(
+    tmp_path: Path,
+) -> None:
+    manifest = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    manifest["outputs"] = {
+        "reference_readiness_manifest": {},
+        "reference_readiness": "reference_bank_readiness.json",
+    }
+
+    manifest_path = tmp_path / "run_manifest_reference_readiness_fallback.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    (tmp_path / "reference_bank_readiness.json").write_text(
+        Path("packages/replay/tests/fixtures/reference_bank_readiness.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+
+    result = adapt_reference_readiness(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f8403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    summary = result["reference_readiness_summary"]
+    assert summary is not None
+    assert summary["status"] == "ready_with_documented_shortfalls"
+    assert result["compatibility"]["artifact_key"] == "reference_readiness"
+    assert result["compatibility"]["artifact_path"].endswith("reference_bank_readiness.json")
+
+
 def test_adapt_reference_readiness_normalizes_status_aliases(tmp_path: Path) -> None:
     run_payload = json.loads(
         Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(

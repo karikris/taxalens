@@ -208,9 +208,13 @@ def _artifact_path(payload: dict[str, Any], manifest_path: Path) -> tuple[Path, 
         "reference_readiness_file",
         "readiness",
     ):
-        raw = _to_str(outputs.get(key))
-        if raw is not None:
-            return _resolve_output_path(manifest_path, raw), key
+        value = outputs.get(key)
+        if not isinstance(value, str):
+            continue
+        raw = value.strip()
+        if not raw:
+            continue
+        return _resolve_output_path(manifest_path, raw), key
     return None
 
 

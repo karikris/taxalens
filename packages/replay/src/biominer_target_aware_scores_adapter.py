@@ -106,11 +106,16 @@ def _artifact_path(payload: dict[str, Any], manifest_path: Path) -> Path | None:
     outputs = payload.get("outputs")
     if not isinstance(outputs, dict):
         return None
-    path_value = (
-        _pick_str(outputs, "target_aware_candidate_scores")
-        or _pick_str(outputs, "candidate_scores")
-        or _pick_str(outputs, "target_scores")
-    )
+    path_value: str | None = None
+    for key in ("target_aware_candidate_scores", "candidate_scores", "target_scores"):
+        raw = outputs.get(key)
+        if not isinstance(raw, str):
+            continue
+        stripped = raw.strip()
+        if not stripped:
+            continue
+        path_value = stripped
+        break
     if path_value is None:
         return None
     path = Path(path_value)
