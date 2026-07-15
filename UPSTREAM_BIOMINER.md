@@ -1,5 +1,11 @@
 # UPSTREAM_BIOMINER.md
 
+## Preserved detector base contract
+
+- `packages/replay/src/biominer_detector_base.py` is a mechanical copy of committed BioMiner `src/biominer/detection/detector_base.py` at `1535c494f9403e22ed9b163f3ae0ce3706e17f4c`.
+- The complete image, detection-candidate, label, prompt, mask, protocol, and fake-backend logic is retained for later full-frame integration; TaxaLens adds no semantic adapter behavior inside the copied module.
+- Broader BioMiner detector pipeline, schema, sidecar, and backend tests remain upstream until their complete implementation dependencies are migrated.
+
 ## Upstream engine summary
 
 TaxaLens treats `karikris/BioMiner` as the upstream research engine and treats this repository as the product, replay, and evidence-observability layer.

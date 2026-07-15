@@ -5,6 +5,21 @@ phase12_status: "pushed-and-eligible-for-committed-migration-only"
 phase13_exclusion: "active-work-excluded-unless-explicitly-pinned"
 recorded_at: "2026-07-15"
 components:
+  - component_id: biominer_detector_base
+    source_repository: karikris/BioMiner
+    source_commit: 1535c494f9403e22ed9b163f3ae0ce3706e17f4c
+    source_path: src/biominer/detection/detector_base.py
+    destination_path: packages/replay/src/biominer_detector_base.py
+    migration_kind: copied
+    reason: Preserve the complete detector image and candidate contract required by later full-frame target-aware migrations.
+    build_week_scope: new
+    source_license: MIT
+    changes:
+      - Added only a TaxaLens provenance header; production source remains mechanically identical.
+      - Kept integration concerns outside the copied module so later detector dependencies can be migrated intact.
+    tests:
+      - packages/replay/tests/test_biominer_detector_base.py
+    status: migrated
   - component_id: "biominer_run_manifest_adapter"
     source_repository: "karikris/BioMiner"
     source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
