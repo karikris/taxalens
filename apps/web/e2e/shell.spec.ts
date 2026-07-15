@@ -270,3 +270,61 @@ test('executes the eight real DuckDB-Wasm Parquet operations and inspects their 
   }))
   expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth)
 })
+
+test('traces every discovery association without inventing source rights or duplicates', async ({
+  page,
+}) => {
+  const requestUrls: string[] = []
+  page.on('request', (request) => requestUrls.push(request.url()))
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('./#evidence-lens')
+
+  await expect(page.getByText('Discovery query not yet executed')).toBeVisible()
+  await expect(page.getByRole('img', { name: 'Licensed source image unavailable' })).toContainText(
+    '0 included · 0 licensed',
+  )
+  await page.getByRole('button', { name: 'Inspect verified discovery record' }).click()
+
+  await expect(page.getByRole('heading', { name: 'Source flickr:55081300254' })).toBeVisible({
+    timeout: 60_000,
+  })
+  await expect(page.getByText('181 associations', { exact: true })).toBeVisible()
+  await expect(
+    page.getByText(
+      'sha256:ddce85e192e3fe8548a75681f0dff6b6f0d00bb818eca891521faa0197274e40',
+    ),
+  ).toBeVisible()
+  await expect(page.getByText('Creator', { exact: true }).locator('..')).toContainText(
+    'Unavailable',
+  )
+  await expect(page.getByText('Licence', { exact: true }).locator('..')).toContainText(
+    'Unavailable',
+  )
+  await expect(page.getByText('Attribution', { exact: true }).locator('..')).toContainText(
+    'Unavailable',
+  )
+  await expect(page.getByText('Duplicate group', { exact: true }).locator('..')).toContainText(
+    'duplicate relationship rows are unavailable',
+  )
+
+  await page.getByText('Inspect all 181 query associations', { exact: true }).click()
+  const associations = page.getByRole('list', { name: 'Discovery query associations' })
+  await expect(associations.locator(':scope > li')).toHaveCount(181)
+  const firstAssociation = associations.locator(':scope > li').first()
+  await expect(firstAssociation).toContainText('broad butterfly')
+  await expect(firstAssociation).toContainText('Papilio demoleus Schmetterling')
+  await expect(firstAssociation).toContainText('broad')
+  await expect(firstAssociation).toContainText('text')
+
+  const expectedOrigin = new URL(page.url()).origin
+  const remoteRequests = requestUrls.filter((url) => {
+    const parsed = new URL(url)
+    return ['http:', 'https:'].includes(parsed.protocol) && parsed.origin !== expectedOrigin
+  })
+  expect(remoteRequests).toEqual([])
+  const viewport = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }))
+  expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth)
+})

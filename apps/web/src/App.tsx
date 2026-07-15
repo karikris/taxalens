@@ -5,7 +5,8 @@ import {
   type EvidenceFacade,
   type ReplayEvidence,
 } from './data/evidenceFacade'
-import { EvidenceDesignation, EvidenceState, EvidenceTier } from './design-system'
+import { EvidenceState } from './design-system'
+import { EvidenceLensWorkspace } from './evidence'
 import type { ReplayLaunchReceipt } from './mission'
 import { ObservatoryWorkspace } from './observatory'
 import { AppShell, type ShellView } from './shell'
@@ -153,49 +154,10 @@ function ReplayView({
         <ObservatoryWorkspace facade={facade} replay={replay} replayLaunch={replayLaunch} />
       )
     case 'evidence-lens':
-      return <EvidenceLensView replay={replay} />
+      return <EvidenceLensWorkspace facade={facade} replay={replay} />
     case 'dashboard':
       return <DashboardView replay={replay} />
   }
-}
-
-function EvidenceLensView({ replay }: { readonly replay: ReplayEvidence }) {
-  return (
-    <section className="detail-panel" aria-labelledby="evidence-title">
-      <p className="eyebrow">Evidence boundary</p>
-      <h2 id="evidence-title">No scientific result is promoted</h2>
-      <EvidenceState state="review" title="Human decision required">
-        The hero remains {replay.heroState.replaceAll('_', ' ')} and scientific claims are not allowed.
-      </EvidenceState>
-      <div className="evidence-boundary">
-        <EvidenceDesignation kind="candidate" />
-        <EvidenceTier tier="unavailable" />
-      </div>
-      <dl className="evidence-facts">
-        <div>
-          <dt>Hero record</dt>
-          <dd>{replay.heroRecordId}</dd>
-        </div>
-        <div>
-          <dt>Scientific claim</dt>
-          <dd>{replay.scientificClaimAllowed ? 'Allowed' : 'Not allowed'}</dd>
-        </div>
-        <div>
-          <dt>Unavailable sections</dt>
-          <dd>{replay.unavailableSectionCount}</dd>
-        </div>
-      </dl>
-      <h3>Explicitly unavailable evidence</h3>
-      <ul className="unavailable-evidence-list">
-        {replay.unavailableSections.map((section) => (
-          <li key={section.name}>
-            <strong>{section.name.replaceAll('_', ' ')}</strong>
-            <span>{section.reason}</span>
-          </li>
-        ))}
-      </ul>
-    </section>
-  )
 }
 
 function DashboardView({ replay }: { readonly replay: ReplayEvidence }) {

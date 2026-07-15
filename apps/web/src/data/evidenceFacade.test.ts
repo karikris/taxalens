@@ -159,6 +159,19 @@ describe('loadEvidenceFacade', () => {
       humanCommentCount: 0,
       finalEvidenceCount: 0,
     })
+    expect(facade.replay.discovery).toEqual({
+      media: {
+        status: 'unavailable',
+        includedImageCount: 0,
+        licensedImageCount: 0,
+        reason: 'No committed image has both a human-verified label and a fixture rights record.',
+      },
+      duplicateRelationships: {
+        available: false,
+        reason:
+          'The verified duplicate summary contains counts only; duplicate relationship rows are unavailable.',
+      },
+    })
     expect(facade.replay.verification).toMatchObject({
       inventoryChecksumVerified: true,
       payloadRootChecksumVerified: true,
@@ -217,6 +230,15 @@ describe('loadEvidenceFacade', () => {
     })
     expect(analytics.receipt).toMatchObject({
       schemaVersion: 'taxalens-biominer-analytics-import:v1.0.0',
+      originCommit: replayEvidenceContract.biominerSha,
+    })
+    const discovery = facade.loadDiscoveryProvenanceInput()
+    expect(discovery.artifacts.map(({ artifactId }) => artifactId)).toEqual([
+      'biominer-flickr-query-hits-parquet',
+      'biominer-flickr-geography-parquet',
+    ])
+    expect(discovery.boundary).toBe(facade.replay.discovery)
+    expect(discovery.receipt).toMatchObject({
       originCommit: replayEvidenceContract.biominerSha,
     })
     const firstByte = analytics.artifacts[0]?.bytes[0]

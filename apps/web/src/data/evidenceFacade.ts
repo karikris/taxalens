@@ -131,6 +131,7 @@ export interface ReplayEvidence extends ReplayIdentity {
   readonly title: string
   readonly mission: MissionEvidence
   readonly observatory: ObservatoryEvidence
+  readonly discovery: DiscoveryEvidenceBoundary
   readonly rightsStatus: string
   readonly artifactCount: number
   readonly verifiedArtifactCount: number
@@ -148,6 +149,19 @@ export interface ReplayEvidence extends ReplayIdentity {
     readonly dataMode: 'verified-json-bootstrap'
     readonly fallbackReason: 'analytics_on_demand'
     readonly wasmStarted: false
+  }
+}
+
+export interface DiscoveryEvidenceBoundary {
+  readonly media: {
+    readonly status: 'unavailable'
+    readonly includedImageCount: 0
+    readonly licensedImageCount: 0
+    readonly reason: string
+  }
+  readonly duplicateRelationships: {
+    readonly available: false
+    readonly reason: string
   }
 }
 
@@ -178,6 +192,12 @@ export interface AnalyticsReplayInput {
     readonly originCommit: string
     readonly sourceManifestSha256: string
   }
+}
+
+export interface DiscoveryProvenanceInput {
+  readonly artifacts: readonly ParquetArtifactInput[]
+  readonly boundary: DiscoveryEvidenceBoundary
+  readonly receipt: AnalyticsReplayInput['receipt']
 }
 
 export interface AnalyticsArtifactProvenance {
@@ -230,6 +250,7 @@ interface VerifiedArtifact {
 export interface EvidenceFacade {
   readonly replay: ReplayEvidence
   loadAnalyticsReplayInput(): AnalyticsReplayInput
+  loadDiscoveryProvenanceInput(): DiscoveryProvenanceInput
   loadSection(
     name: JudgeBundleSectionName,
     parquetReader?: ParquetReader,
@@ -991,6 +1012,63 @@ function projectObservatoryEvidence(
   })
 }
 
+function projectDiscoveryEvidence(
+  artifacts: ReadonlyMap<string, VerifiedArtifact>,
+): DiscoveryEvidenceBoundary {
+  const runSummary = object(artifactJsonForRole(artifacts, 'run_summary'), 'run_summary')
+  const media = object(runSummary.media, 'run_summary.media')
+  const includedImageCount = numberField(
+    media,
+    'included_image_count',
+    'run_summary.media',
+  )
+  const licensedImageCount = numberField(
+    media,
+    'licensed_image_count',
+    'run_summary.media',
+  )
+  if (
+    stringField(media, 'status', 'run_summary.media') !== 'unavailable' ||
+    includedImageCount !== 0 ||
+    licensedImageCount !== 0
+  ) {
+    throw new EvidenceFacadeError('Discovery media differs from the truthful no-image boundary')
+  }
+
+  const duplicateRows = array(
+    artifactJsonForRole(artifacts, 'duplicate_summaries'),
+    'duplicate_summaries',
+  )
+  if (duplicateRows.length !== 1) {
+    throw new EvidenceFacadeError('Duplicate summary must contain exactly one verified row')
+  }
+  const duplicateRow = object(duplicateRows[0], 'duplicate_summaries[0]')
+  const duplicateData = object(duplicateRow.data, 'duplicate_summaries[0].data')
+  if (
+    booleanField(
+      duplicateData,
+      'duplicate_relationship_rows_available',
+      'duplicate_summaries[0].data',
+    )
+  ) {
+    throw new EvidenceFacadeError('Truthful fixture cannot expose absent duplicate relationships')
+  }
+
+  return deepFreeze({
+    media: {
+      status: 'unavailable',
+      includedImageCount: 0,
+      licensedImageCount: 0,
+      reason: stringField(media, 'reason', 'run_summary.media'),
+    },
+    duplicateRelationships: {
+      available: false,
+      reason:
+        'The verified duplicate summary contains counts only; duplicate relationship rows are unavailable.',
+    },
+  })
+}
+
 function validateAnalyticsArtifacts(artifacts: ReadonlyMap<string, VerifiedArtifact>): void {
   const receiptArtifact = artifacts.get(ANALYTICS_RECEIPT_ID)
   if (receiptArtifact?.json === undefined) {
@@ -1113,6 +1191,23 @@ class VerifiedEvidenceFacade implements EvidenceFacade {
         originCommit: EXPECTED_BIOMINER_SHA,
         sourceManifestSha256: ANALYTICS_SOURCE_MANIFEST_SHA,
       }),
+    })
+  }
+
+  loadDiscoveryProvenanceInput(): DiscoveryProvenanceInput {
+    const analytics = this.loadAnalyticsReplayInput()
+    const artifactIds = new Set([
+      'biominer-flickr-query-hits-parquet',
+      'biominer-flickr-geography-parquet',
+    ])
+    const artifacts = analytics.artifacts.filter(({ artifactId }) => artifactIds.has(artifactId))
+    if (artifacts.length !== 2) {
+      throw new EvidenceFacadeError('Discovery provenance requires two verified Parquet artifacts')
+    }
+    return Object.freeze({
+      artifacts: Object.freeze(artifacts),
+      boundary: this.replay.discovery,
+      receipt: analytics.receipt,
     })
   }
 
@@ -1252,6 +1347,7 @@ export async function loadEvidenceFacade(
   validateAnalyticsArtifacts(artifacts)
   const mission = projectMissionEvidence(artifacts)
   const observatory = projectObservatoryEvidence(artifacts, manifest)
+  const discovery = projectDiscoveryEvidence(artifacts)
   const unavailableSections = Object.freeze(
     JUDGE_BUNDLE_SECTION_NAMES.map((name) => sections[name]).filter(
       (section) => section.status === 'unavailable',
@@ -1263,6 +1359,7 @@ export async function loadEvidenceFacade(
     title: manifest.title,
     mission,
     observatory,
+    discovery,
     target: {
       acceptedTaxonKey: manifest.target.accepted_taxon_key,
       scientificName: manifest.target.scientific_name,
