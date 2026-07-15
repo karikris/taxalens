@@ -1,5 +1,11 @@
 # UPSTREAM_BIOMINER.md
 
+## Preserved detection routing contract
+
+- `packages/replay/src/biominer_detection_routing.py` is a mechanical copy of committed BioMiner `src/biominer/detection/routing.py` at `1535c494f9403e22ed9b163f3ae0ce3706e17f4c`.
+- The complete domain routing, score/review/exclude policy, validation, threshold, fail-closed, and fingerprint logic is retained; it routes detector evidence and does not make a species decision.
+- All directly scoped upstream routing tests are retained. Tests that begin exercising BioMiner `detection.policy` remain upstream until that complete module is migrated.
+
 ## Preserved detector base contract
 
 - `packages/replay/src/biominer_detector_base.py` is a mechanical copy of committed BioMiner `src/biominer/detection/detector_base.py` at `1535c494f9403e22ed9b163f3ae0ce3706e17f4c`.
