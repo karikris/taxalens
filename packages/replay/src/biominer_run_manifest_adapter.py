@@ -125,14 +125,34 @@ def _run_summary_from_payload(
     if not isinstance(outputs, dict):
         outputs = {}
 
-    stage_names = [
-        _stage_name(record) for record in payload.get("stages", ()) if isinstance(record, dict)
-    ]
+    notes = []
+    query_counts = payload.get("query_counts")
+    if not isinstance(query_counts, dict):
+        if query_counts is not None:
+            notes.append(
+                "Manifest query_counts field was malformed; defaulted to empty query counts."
+            )
+        query_counts = {}
+
+    evidence_counts = payload.get("evidence_counts")
+    if not isinstance(evidence_counts, dict):
+        if evidence_counts is not None:
+            notes.append(
+                "Manifest evidence_counts field was malformed; defaulted to empty evidence counts."
+            )
+        evidence_counts = {}
+
+    stages = payload.get("stages")
+    if not isinstance(stages, list):
+        if stages is not None:
+            notes.append("Manifest stages field was malformed; defaulted to empty stages.")
+        stages = []
+
+    stage_names = [_stage_name(record) for record in stages if isinstance(record, dict)]
     missing_stage_names = tuple(
         name for name in stage_names if not isinstance(name, str) or not name.strip()
     )
 
-    notes = []
     if not isinstance(payload.get("metrics"), dict):
         notes.append("Manifest metrics field was missing or malformed; defaulted to empty metrics.")
     if not isinstance(payload.get("outputs"), dict):
@@ -153,9 +173,9 @@ def _run_summary_from_payload(
         "status": _normalize_status(payload.get("status")) or "unknown",
         "started_at": _required_str(payload, "started_at"),
         "completed_at": _required_str(payload, "ended_at"),
-        "records_in": _required_int(payload.get("query_counts", {}), "total", fallback=None),
-        "records_out": _required_int(payload.get("evidence_counts", {}), "kept", fallback=None),
-        "stage_count": _required_int({"x": len(payload.get("stages", ()) or ())}, "x", fallback=None),
+        "records_in": _required_int(query_counts, "total", fallback=None),
+        "records_out": _required_int(evidence_counts, "kept", fallback=None),
+        "stage_count": _required_int({"x": len(stages)}, "x", fallback=None),
         "expected_output_artifacts": list(outputs.keys()) if outputs else [],
         "notes": _list_of_strings(payload.get("notes")) if isinstance(payload.get("notes"), list) else None,
     }

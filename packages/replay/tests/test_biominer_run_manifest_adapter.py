@@ -283,3 +283,31 @@ def test_adapt_run_manifest_non_object_outputs_is_treated_as_missing_payload(tmp
         in result["compatibility"]["notes"]
     )
     assert "outputs" not in result["compatibility"]["missing_fields"]
+
+
+def test_adapt_run_manifest_malformed_nested_payloads_default_without_crashing(
+    tmp_path: Path,
+) -> None:
+    manifest_payload = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest.json").read_text(encoding="utf-8")
+    )
+    manifest_payload["query_counts"] = []
+    manifest_payload["evidence_counts"] = "invalid"
+    manifest_payload["stages"] = 3
+
+    manifest_path = tmp_path / "run_manifest_malformed_nested_payloads.json"
+    manifest_path.write_text(json.dumps(manifest_payload), encoding="utf-8")
+
+    result = adapt_run_manifest(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["run_summary"]["records_in"] is None
+    assert result["run_summary"]["records_out"] is None
+    assert result["run_summary"]["stage_count"] == 0
+    assert result["compatibility"]["notes"] == [
+        "Manifest query_counts field was malformed; defaulted to empty query counts.",
+        "Manifest evidence_counts field was malformed; defaulted to empty evidence counts.",
+        "Manifest stages field was malformed; defaulted to empty stages.",
+    ]
