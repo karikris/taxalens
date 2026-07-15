@@ -97,6 +97,45 @@ Every imported or adapted component is pinned to a full committed SHA. Staged,
 untracked, or otherwise uncommitted upstream work is excluded until explicitly
 re-evaluated and approved.
 
+### BioMiner integration is artifact-first
+
+Broad BioMiner module copying is frozen. TaxaLens first consumes a committed
+artifact, then a versioned schema, a thin adapter, a stable BioMiner command, or
+a small shared package. Copying source requires an explicit finding that every
+earlier option is unsuitable. Existing copied modules remain historical,
+provenance-bound compatibility contracts rather than a migration template.
+
+### Product consumers use a TaxaLens facade
+
+UI and analyst code consume stable TaxaLens product contracts with provenance
+and explicit availability. They do not import BioMiner implementation modules
+or reimplement biological policy. Missing, incompatible, blocked, or unreviewed
+evidence stays visibly unavailable.
+
+### Phase 14 metadata remains candidate evidence
+
+Geographic workload, search hits, source-media candidates, competitor plans,
+negative candidates, and shortfall reports describe research workload. They do
+not establish occurrences, support images, identities, calibration, or model
+success. Candidate/reference product contracts record candidate semantics,
+verification status, human-review requirement, and whether a scientific claim
+is allowed.
+
+### Legacy family-first output is diagnostic only
+
+Family-first filtering and reranking may be shown as a labelled historical
+baseline or engineering diagnostic. It cannot drive the TaxaLens target-aware
+species decision, recover unavailable evidence, prune the target, or replace
+complete configured candidate scoring.
+
+### Scientific claims remain blocked until their gates pass
+
+No Papilio Phase 14 classification, verified reference bank, calibrated
+probability, ablation winner, precision, recall, accuracy, or final evaluation
+is available until attributable human review, rights checks, immutable
+leakage-safe splits, model selection, calibration selection, and final-test
+publication are committed and independently verified.
+
 ## Change control
 
 Changes to these decisions require explicit human approval and corresponding

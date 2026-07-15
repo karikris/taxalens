@@ -1,5 +1,29 @@
 # UPSTREAM_BIOMINER.md
 
+## Frozen product boundary
+
+- Current reviewed BioMiner handoff SHA: `75461d9c065af0cd96b41cd1f845c2e920f7ae34` on `main`.
+- Boundary version: `artifact-first-product-boundary-v1.0.0`.
+- Broad BioMiner module copying is frozen. Existing copied modules remain as provenance-bound compatibility contracts; they are not precedent for more copies.
+- New integration order is: committed artifact, versioned schema, thin adapter, stable BioMiner command, small shared package, and copied source only after an explicit documented finding that every earlier option is unsuitable.
+- BioMiner remains the scientific engine. TaxaLens owns the product facade, deterministic replay, browser analytics, evidence lineage, review operations, exports, and judge experience.
+- The TaxaLens web application and other product consumers must use the TaxaLens evidence facade. They must not import `biominer_*` implementation modules directly.
+- Product decisions use target-aware evidence only. Family-first output is legacy diagnostic/baseline evidence and cannot produce or replace a TaxaLens species decision.
+
+The pin identifies the latest reviewed upstream handoff boundary. Each historical
+migration below retains its own exact source commit; updating the boundary pin
+does not rewrite component provenance.
+
+## Phase 13 and Phase 14 availability
+
+- Phase 13 evaluation schemas and machinery are committed, but no real reviewed Papilio evaluation result bundle is committed for TaxaLens to display.
+- Phase 14 geographic workload and positive/competitor reference-source metadata are committed as compact manifests.
+- Phase 14 search and source-media rows are candidates, not occurrences, truth labels, or verified support.
+- Human-verified source media count is zero at the pinned handoff.
+- Human review, immutable leakage-safe split freeze, ablations, calibration selection, and final evaluation remain blocked.
+- A present path, candidate count, source-provider verification, or taxon match does not make a scientific claim available.
+- Missing or blocked evidence must be returned as an explicit unavailable/review state through the product facade.
+
 ## Preserved selective decision policy
 
 - `packages/replay/src/biominer_decision_policy.py` retains the complete committed BioMiner `src/biominer/ml/decision_policy.py` logic at `0561906d994d6b9e56e0b6405fdb68272759595f`.
@@ -28,7 +52,7 @@
 
 - `packages/replay/src/biominer_calibration_contract.py` extracts the exact `CALIBRATED_PROBABILITY_KIND` value from committed BioMiner `src/biominer/ml/calibration.py` at `1535c494f9403e22ed9b163f3ae0ce3706e17f4c`.
 - `packages/replay/src/biominer_training_task_contract.py` extracts the exact immutable `TARGET_TASKS` vocabulary from committed BioMiner `src/biominer/ml/training_features.py` at the same SHA.
-- These are narrow stable-contract extractions. Calibration fitting, artifact loading, feature construction, and training-table logic remain intact upstream for later whole-module migration.
+- These are narrow stable-contract extractions. Calibration fitting, artifact loading, feature construction, and training-table logic remain intact upstream and must enter TaxaLens through committed artifacts, versioned schemas, or a stable BioMiner interface.
 
 ## Preserved visual-input fusion
 
@@ -41,7 +65,7 @@
 
 - `packages/replay/src/biominer_reference_routes.py` extracts the exact immutable `REFERENCE_ROUTES` vocabulary from committed BioMiner `src/biominer/references/readiness.py` at `1535c494f9403e22ed9b163f3ae0ce3706e17f4c`.
 - This is a narrow stable-contract extraction used by several scoring and prompt modules; it is not represented as migration of the 4,000-line reference-readiness publication subsystem.
-- The full readiness implementation and its acquisition, deduplication, review, schema, reporting, and storage dependencies remain preserved upstream for later whole-chain migration.
+- The full readiness implementation and its acquisition, deduplication, review, schema, reporting, and storage dependencies remain in BioMiner. TaxaLens consumes their committed manifests and explicit handoffs.
 
 ## Preserved target full-frame orchestration
 
@@ -67,7 +91,7 @@
 
 - `packages/replay/src/biominer_detection_policy.py` retains the complete committed BioMiner `src/biominer/detection/policy.py` logic at `1535c494f9403e22ed9b163f3ae0ce3706e17f4c`.
 - The only compatibility edit redirects the internal routing import to TaxaLens's preserved routing module; no policy fields, defaults, validation, eligibility rules, or runtime profiles were removed.
-- Integration with detector pipeline, sidecars, and target full-frame orchestration remains deferred until those complete modules are migrated.
+- Integration with detector pipeline, sidecars, and target full-frame orchestration remains an upstream engine responsibility exposed through artifacts and the TaxaLens facade.
 
 ## Preserved detection routing contract
 
@@ -79,7 +103,7 @@
 
 - `packages/replay/src/biominer_detector_base.py` is a mechanical copy of committed BioMiner `src/biominer/detection/detector_base.py` at `1535c494f9403e22ed9b163f3ae0ce3706e17f4c`.
 - The complete image, detection-candidate, label, prompt, mask, protocol, and fake-backend logic is retained for later full-frame integration; TaxaLens adds no semantic adapter behavior inside the copied module.
-- Broader BioMiner detector pipeline, schema, sidecar, and backend tests remain upstream until their complete implementation dependencies are migrated.
+- Broader BioMiner detector pipeline, sidecar, and backend behavior remains upstream and is not planned for source migration.
 
 ## Upstream engine summary
 
@@ -88,16 +112,18 @@ TaxaLens treats `karikris/BioMiner` as the upstream research engine and treats t
 ## Migratable boundary
 
 - BioMiner is the upstream contract source for evidence artifacts and workflow metadata.
-- BioMiner Phase 12 has been pushed and can be selectively consumed when referenced by a committed SHA.
-- Phase 12 migration must use committed, pushed SHAs only.
-- BioMiner Phase 13 is currently active/in-progress and is excluded unless a commit is explicitly pinned and verified as committed.
+- Only committed, pushed BioMiner content referenced by a full SHA is eligible.
+- Phase 13 code/schema availability does not make reviewed evaluation outputs available.
+- Phase 14 compact metadata manifests may be consumed with candidate and review semantics preserved.
+- Large run artifacts require an explicit content-addressed handoff archive, expected SHA-256, embedded inventory, source SHA, and verified receipt.
 - TaxaLens does not import staged, uncommitted, or locally modified BioMiner work.
-- Adapters should prefer committed artifact contracts and stable interfaces before any code extraction.
+- TaxaLens does not list remote prefixes or local run directories to discover a handoff.
+- No further broad module copying is approved.
 
 ## Pinned SHA
 
 - `biominer_repository`: `karikris/BioMiner`
-- `pinned_sha`: `0561906d994d6b9e56e0b6405fdb68272759595f`
+- `pinned_sha`: `75461d9c065af0cd96b41cd1f845c2e920f7ae34`
 - `branch`: `main`
 
 ## Contracts consumed (current phase)
@@ -136,15 +162,20 @@ TaxaLens treats `karikris/BioMiner` as the upstream research engine and treats t
   golden-vector and failure-mode suite in
   `packages/replay/tests/test_biominer_semantic_hash.py`.
 
-- Future migrations should be implemented as contracts and adapters with source SHAs recorded per component.
+- Future integrations must use the frozen priority order and record source SHAs, artifact fingerprints, schema versions, availability, rights, and candidate/reference semantics.
 
 ## Excluded work
 
 - Any staged/uncommitted BioMiner files and changes are excluded.
-- Any unpinned or in-progress Phase 13 materials are excluded.
+- Any unpinned, unreviewed, or unmaterialized Phase 13 result is excluded.
+- Any unverified Phase 14 reference, unfinished model result, calibration selection, or final evaluation is excluded.
+- Any legacy family-first result is excluded from the TaxaLens target-aware decision path.
 
 ## Compatibility constraints
 
 - Do not assume local BioMiner staging state in production mapping.
-- All mapping must run from local fixture files and committed artifact outputs.
+- All mapping must run from committed artifact outputs, verified handoffs, or deterministic fixtures that are labelled as fixtures.
+- Every product-facing result must pass through a TaxaLens facade and include provenance plus an explicit availability state.
+- Candidate/reference contracts must state candidate semantics, verification status, human-review requirement, and whether a scientific claim is allowed.
+- Only human-verified, rights-checked references may support a production decision.
 - No source-image collections, model weights, or credentials are to be committed into TaxaLens.
