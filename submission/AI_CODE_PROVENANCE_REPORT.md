@@ -2,7 +2,7 @@
 
 **Audit status:** Evidence-based snapshot. It states gaps rather than inferring historical model identities.
 **Audited:** 2026-07-16 (Australia/Sydney)
-**TaxaLens snapshot:** 5dd705fdcf76fa46ddc523724c54c89541a912de
+**TaxaLens code snapshot:** f063469d15364f3d9ec3667a1c2d5314ed5c62f0
 **BioMiner snapshot:** 75461d9c065af0cd96b41cd1f845c2e920f7ae34
 
 ## Judge summary
@@ -128,7 +128,7 @@ The defensible lower bounds are therefore **GPT-5.6 >= 8.22%, GPT-5.5 >= 0%, Spa
 | TaxaLens last delivery commit | 1,080 (8.22%) | 8,173 (62.18%) | 3,891 (29.60%) | Records the last TaxaLens delivery commit; it cannot establish the original writer of copied code. |
 | Original semantic source after exact mapping | 1,080 (8.22%) | 177 (1.35%) | 11,887 (90.44%) | The appropriate authorship view. Upstream BioMiner has no model trailers, so copied source remains unallocated. |
 
-TaxaLens has 223 commits: 7 explicitly GPT-5.6 Sol, 27 marked unavailable-in-session-context, and 189 without an AI-primary-model trailer. BioMiner has 807 commits, all without an AI-primary-model trailer. This explains why retrospective model attribution cannot be completed from Git.
+At the audited code snapshot, TaxaLens has 225 commits: 9 explicitly GPT-5.6 Sol, 27 marked unavailable-in-session-context, and 189 without an AI-primary-model trailer. BioMiner has 807 commits, all without an AI-primary-model trailer. This explains why retrospective model attribution cannot be completed from Git.
 
 ### Verified GPT-5.6 Sol functional scope
 
@@ -144,7 +144,7 @@ The 1,080 GPT-5.6 Sol ELOC are complete current files, not an inferred subset:
 | packages/replay/src/__init__.py | 1 | Replay package bootstrap. |
 | **Total** | **1,080** | **Current TaxaLens product facade and shell.** |
 
-The seven commits record session 019f65d0-3ca9-7870-9eb2-37c14ed02517. This audit verifies that the ID is recorded in the commits only. The entrant must still run /feedback in the relevant session and provide the resulting Session ID under the Rules.
+The nine GPT-5.6 Sol commits record session 019f65d0-3ca9-7870-9eb2-37c14ed02517. This audit verifies that the ID is recorded in the commits only. The entrant must still run /feedback in the relevant session and provide the resulting Session ID under the Rules.
 
 The verification scripts, TypeScript replay contracts, and 11 adapter modules have no recoverable exact model attribution in current Git history. They remain labelled **model unavailable**, even where commits describe Codex assistance.
 
