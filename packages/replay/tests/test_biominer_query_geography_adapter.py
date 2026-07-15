@@ -4227,3 +4227,66 @@ def test_adapt_query_geography_artifacts_ignores_blank_buckets(
     assert len(result["query_definitions"]) == 3
     assert result["query_definition_summary"]["query_definitions_by_source"] == {"registry": 1}
     assert result["query_definition_summary"]["query_definitions_by_rank"] == {"species": 1}
+
+
+def test_adapt_query_geography_artifacts_treats_non_string_query_definition_output_values_as_missing_artifact(
+    tmp_path: Path,
+) -> None:
+    source_manifest = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    source_manifest["outputs"]["query_definitions"] = {"path": "query_definitions.json"}
+    source_manifest["outputs"]["flickr_query_definitions"] = []
+
+    manifest_path = tmp_path / "run_manifest_query_geography_non_string_query_output.json"
+    manifest_path.write_text(json.dumps(source_manifest), encoding="utf-8")
+
+    (tmp_path / "taxon_geographic_spread.json").write_text(
+        Path("packages/replay/tests/fixtures/taxon_geographic_spread.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "geographic_occurrence_evidence.json").write_text(
+        Path("packages/replay/tests/fixtures/geographic_occurrence_evidence.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "geographic_spread_manifest.json").write_text(
+        Path("packages/replay/tests/fixtures/geographic_spread_manifest.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "taxon_geographic_summary.json").write_text(
+        Path("packages/replay/tests/fixtures/taxon_geographic_summary.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "geographic_summary_manifest.json").write_text(
+        Path("packages/replay/tests/fixtures/geographic_summary_manifest_passed.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "geographic_qa_findings.json").write_text(
+        Path("packages/replay/tests/fixtures/geographic_qa_findings.json").read_text(
+            encoding="utf-8"
+        ),
+        encoding="utf-8",
+    )
+
+    result = adapt_query_geography_artifacts(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["query_definitions"] == []
+    assert result["compatibility"]["query_definition_rows_read"] == 0
+    assert result["query_definition_summary"]["query_definition_artifact_path"] is None
+    notes = result["compatibility"]["notes"]
+    assert any("did not declare query definition artifact path" in note for note in notes)
