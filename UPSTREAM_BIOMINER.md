@@ -1,5 +1,11 @@
 # UPSTREAM_BIOMINER.md
 
+## Preserved detection policy and runtime profiles
+
+- `packages/replay/src/biominer_detection_policy.py` retains the complete committed BioMiner `src/biominer/detection/policy.py` logic at `1535c494f9403e22ed9b163f3ae0ce3706e17f4c`.
+- The only compatibility edit redirects the internal routing import to TaxaLens's preserved routing module; no policy fields, defaults, validation, eligibility rules, or runtime profiles were removed.
+- Integration with detector pipeline, sidecars, and target full-frame orchestration remains deferred until those complete modules are migrated.
+
 ## Preserved detection routing contract
 
 - `packages/replay/src/biominer_detection_routing.py` is a mechanical copy of committed BioMiner `src/biominer/detection/routing.py` at `1535c494f9403e22ed9b163f3ae0ce3706e17f4c`.
