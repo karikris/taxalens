@@ -152,7 +152,7 @@ class EvidenceFacade:
 
     @staticmethod
     def _find_root(manifest: Path) -> Path:
-        seeds = (Path.cwd(), manifest if manifest.is_dir() else manifest.parent)
+        seeds = (manifest if manifest.is_dir() else manifest.parent, Path.cwd())
         checked: set[Path] = set()
         for seed in seeds:
             for candidate in (seed, *seed.parents):
