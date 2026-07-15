@@ -1,0 +1,63 @@
+{
+  "schema_version": "taxalens-biominer-compact-import:v1.0.0",
+  "origin_repository": "karikris/BioMiner",
+  "origin_commit": "75461d9c065af0cd96b41cd1f845c2e920f7ae34",
+  "license": "MIT",
+  "attribution": "Copyright (c) 2026 Kris Kari",
+  "import_policy": {
+    "committed_git_objects_only": true,
+    "source_bytes_preserved": true,
+    "untracked_sources_used": false,
+    "scientific_results_claimed": false
+  },
+  "files": [
+    {
+      "role": "competitor_relationships",
+      "source_path": "config/candidates/papilio_demoleus_competitor_relationships.json",
+      "imported_path": "papilio_demoleus_competitor_relationships.json",
+      "byte_count": 3424,
+      "sha256": "bc71f57add07935c8fb90aaf3f4efcf28b9d5dcee172f8253532409cd47ba4a5",
+      "schema_version": "competitor-relationship-source-v1.0.0"
+    },
+    {
+      "role": "experiment_matrix",
+      "source_path": "config/pilot/papilio_demoleus_phase14_experiment_matrix.json",
+      "imported_path": "papilio_demoleus_phase14_experiment_matrix.json",
+      "byte_count": 9562,
+      "sha256": "5911e367ba1e3d0d0db81f939b9f37fccff07cef86a172842e1d6bb7f124c283",
+      "schema_version": "papilio-demoleus-phase14-experiment-matrix-v1.0.0"
+    },
+    {
+      "role": "range_seed",
+      "source_path": "config/range_seed/papilio_demoleus.json",
+      "imported_path": "papilio_demoleus_range_seed.json",
+      "byte_count": 3083,
+      "sha256": "712dcb2b32eec87798a527c0299aa8d635a9bd3ef58a44cebf587c82e9293cf1",
+      "schema_version": "range-seed-v1"
+    },
+    {
+      "role": "reference_source_queries",
+      "source_path": "config/pilot/papilio_demoleus_reference_source_queries.json",
+      "imported_path": "papilio_demoleus_reference_source_queries.json",
+      "byte_count": 8623,
+      "sha256": "a94c81070b3a223fc84830e1f3cc0f04d52d47e00fdecc9713f84bea654d7520",
+      "schema_version": "papilio-demoleus-pilot-reference-source-queries-v1.0.0"
+    },
+    {
+      "role": "geographic_workload_manifest",
+      "source_path": "examples/species/papilio_demoleus/pilot_geographic_workload_manifest.json",
+      "imported_path": "pilot_geographic_workload_manifest.json",
+      "byte_count": 4024,
+      "sha256": "a62abef7cbac8638da219e53e08ab6760bedcd4f49d6396bfa0d1891d96e5cf2",
+      "schema_version": "papilio-demoleus-pilot-geographic-workload-manifest-v1.0.0"
+    },
+    {
+      "role": "reference_source_manifest",
+      "source_path": "examples/species/papilio_demoleus/pilot_reference_source_manifest.json",
+      "imported_path": "pilot_reference_source_manifest.json",
+      "byte_count": 4025,
+      "sha256": "c5b6e809b194c3325735a97a60bbb804059f957b894d73a4c4597c3c66c4ae29",
+      "schema_version": "papilio-demoleus-pilot-reference-source-manifest-v1.0.0"
+    }
+  ]
+}
