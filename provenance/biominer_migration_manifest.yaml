@@ -5,6 +5,21 @@ phase12_status: "pushed-and-eligible-for-committed-migration-only"
 phase13_exclusion: "active-work-excluded-unless-explicitly-pinned"
 recorded_at: "2026-07-15"
 components:
+  - component_id: biominer_nonmatch
+    source_repository: karikris/BioMiner
+    source_commit: 1535c494f9403e22ed9b163f3ae0ce3706e17f4c
+    source_path: src/biominer/ml/nonmatch.py
+    destination_path: packages/replay/src/biominer_nonmatch.py
+    migration_kind: copied
+    reason: Preserve complete competitor and non-match evidence aggregation for target-aware Build Week decisions.
+    build_week_scope: new
+    source_license: MIT
+    changes:
+      - Redirected internal imports to preserved TaxaLens semantic-hash and stable ML/reference vocabularies.
+      - Retained every production target, competitor, domain-negative, calibrated, margin, identity, outcome, fingerprint, and validation rule.
+    tests:
+      - packages/replay/tests/test_biominer_nonmatch.py
+    status: migrated
   - component_id: biominer_calibration_probability_contract
     source_repository: karikris/BioMiner
     source_commit: 1535c494f9403e22ed9b163f3ae0ce3706e17f4c

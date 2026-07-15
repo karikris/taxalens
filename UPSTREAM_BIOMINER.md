@@ -1,5 +1,11 @@
 # UPSTREAM_BIOMINER.md
 
+## Preserved non-match evidence scoring
+
+- `packages/replay/src/biominer_nonmatch.py` retains the complete committed BioMiner `src/biominer/ml/nonmatch.py` logic at `1535c494f9403e22ed9b163f3ae0ce3706e17f4c`.
+- Only imports are redirected to preserved TaxaLens semantic-hash, calibration-output, target-task, and reference-route contracts; no target, competitor, domain-negative, calibrated, margin, identity, outcome, fingerprint, or validation logic was removed.
+- The complete committed `tests/test_nonmatch_scoring.py` suite is migrated with import-only adaptation.
+
 ## Extracted ML scoring vocabularies
 
 - `packages/replay/src/biominer_calibration_contract.py` extracts the exact `CALIBRATED_PROBABILITY_KIND` value from committed BioMiner `src/biominer/ml/calibration.py` at `1535c494f9403e22ed9b163f3ae0ce3706e17f4c`.
