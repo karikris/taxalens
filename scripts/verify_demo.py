@@ -7,7 +7,12 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
-from typing import Dict, List
+
+from taxalens.product.truthful_demo_verifier import (
+    DEFAULT_TRUTHFUL_DEMO_MANIFEST,
+    TruthfulDemoVerificationError,
+    verify_truthful_demo,
+)
 
 REQUIRED_FIELDS = {
     "demo_id",
@@ -40,7 +45,7 @@ def read_json(path: Path):
         return json.load(f)
 
 
-def validate_artifacts(repo_root: Path, manifest: Dict[str, object], failures: List[str]) -> None:
+def validate_artifacts(repo_root: Path, manifest: dict[str, object], failures: list[str]) -> None:
     artifacts = manifest.get("artifacts", [])
     if not isinstance(artifacts, list):
         failures.append("`artifacts` must be a list.")
@@ -71,10 +76,14 @@ def validate_artifacts(repo_root: Path, manifest: Dict[str, object], failures: L
             continue
         actual_sha = sha256sum(file_path)
         if actual_sha != expected_sha:
-            failures.append(f"Checksum mismatch for {path}: expected {expected_sha}, got {actual_sha}.")
+            failures.append(
+                f"Checksum mismatch for {path}: expected {expected_sha}, got {actual_sha}."
+            )
 
 
-def validate_expected_counts(manifest: Dict[str, object], repo_root: Path, failures: List[str]) -> None:
+def validate_expected_counts(
+    manifest: dict[str, object], repo_root: Path, failures: list[str]
+) -> None:
     expected = manifest.get("expected_counts", {})
     if not isinstance(expected, dict):
         failures.append("`expected_counts` must be an object.")
@@ -84,7 +93,11 @@ def validate_expected_counts(manifest: Dict[str, object], repo_root: Path, failu
     stage_metrics = expected.get("stage_metrics")
     evidence_records = expected.get("evidence_records")
 
-    for key, expected_count in [("run_records", run_records), ("stage_metrics", stage_metrics), ("evidence_records", evidence_records)]:
+    for key, expected_count in [
+        ("run_records", run_records),
+        ("stage_metrics", stage_metrics),
+        ("evidence_records", evidence_records),
+    ]:
         if expected_count is None:
             continue
         if not isinstance(expected_count, int):
@@ -117,11 +130,12 @@ def validate_expected_counts(manifest: Dict[str, object], repo_root: Path, failu
         records = read_json(repo_root / str(evidence_path))
         if isinstance(records, list) and len(records) != evidence_records:
             failures.append(
-                f"evidence_records length mismatch: expected {evidence_records}, found {len(records)}."
+                "evidence_records length mismatch: "
+                f"expected {evidence_records}, found {len(records)}."
             )
 
 
-def validate_rights(manifest: Dict[str, object], failures: List[str]) -> None:
+def validate_rights(manifest: dict[str, object], failures: list[str]) -> None:
     rights = manifest.get("rights_summary")
     if not isinstance(rights, dict):
         failures.append("`rights_summary` must be an object.")
@@ -131,7 +145,7 @@ def validate_rights(manifest: Dict[str, object], failures: List[str]) -> None:
         failures.append(f"Unexpected rights status: {status}")
 
 
-def validate_hero_record(repo_root: Path, manifest: Dict[str, object], failures: List[str]) -> None:
+def validate_hero_record(repo_root: Path, manifest: dict[str, object], failures: list[str]) -> None:
     hero_record_id = manifest.get("hero_record_id")
     if not hero_record_id:
         failures.append("`hero_record_id` is required.")
@@ -159,13 +173,18 @@ def validate_hero_record(repo_root: Path, manifest: Dict[str, object], failures:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("manifest", default="demo/manifests/demo_manifest.example.json", nargs="?", help="Path to demo manifest")
+    parser.add_argument(
+        "manifest",
+        default=str(DEFAULT_TRUTHFUL_DEMO_MANIFEST),
+        nargs="?",
+        help="Path to a truthful judge bundle or legacy smoke manifest",
+    )
     parser.add_argument("--require-phase13-excluded", action="store_true", default=True)
     args = parser.parse_args()
 
     repo_root = Path(__file__).resolve().parents[1]
     manifest_path = repo_root / args.manifest
-    failures: List[str] = []
+    failures: list[str] = []
 
     if not manifest_path.exists():
         raise SystemExit(f"Manifest missing: {manifest_path}")
@@ -173,6 +192,19 @@ def main() -> None:
     manifest = read_json(manifest_path)
     if not isinstance(manifest, dict):
         raise SystemExit("Manifest file is not a JSON object.")
+
+    if manifest_path.name == "judge_bundle.json" or "artifact_inventory" in manifest:
+        try:
+            result = verify_truthful_demo(manifest_path)
+        except TruthfulDemoVerificationError as error:
+            raise SystemExit(f"Truthful demo verification failed: {error}") from error
+        print(
+            "Truthful demo verification passed: "
+            f"bundle={result.bundle_id}, artifacts={result.artifact_count}, "
+            f"records={result.total_section_record_count}, media={result.media_asset_count}, "
+            f"hero={result.hero_state}."
+        )
+        return
 
     missing = REQUIRED_FIELDS - set(manifest)
     if missing:

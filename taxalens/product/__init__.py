@@ -57,11 +57,19 @@ from taxalens.product.truthful_demo import (
     TRUTHFUL_DEMO_TAXALENS_SHA,
     build_truthful_demo_fixture,
 )
+from taxalens.product.truthful_demo_verifier import (
+    DEFAULT_TRUTHFUL_DEMO_MANIFEST,
+    TruthfulDemoFailure,
+    TruthfulDemoVerification,
+    TruthfulDemoVerificationError,
+    verify_truthful_demo,
+)
 
 __all__ = [
     "ArtifactProvenance",
     "ArtifactView",
     "DEFAULT_TRUTHFUL_DEMO_ROOT",
+    "DEFAULT_TRUTHFUL_DEMO_MANIFEST",
     "EvidenceExport",
     "EvidenceFacade",
     "ExportFile",
@@ -81,6 +89,9 @@ __all__ = [
     "TRUTHFUL_DEMO_HERO_ID",
     "TRUTHFUL_DEMO_SCHEMA_VERSION",
     "TRUTHFUL_DEMO_TAXALENS_SHA",
+    "TruthfulDemoFailure",
+    "TruthfulDemoVerification",
+    "TruthfulDemoVerificationError",
     "VerifiedHandoff",
     "JUDGE_BUNDLE_SCHEMA_VERSION",
     "JUDGE_BUNDLE_SECTION_NAMES",
@@ -106,4 +117,5 @@ __all__ = [
     "normalize_sha256",
     "validate_judge_bundle",
     "verify_biominer_handoff_archive",
+    "verify_truthful_demo",
 ]

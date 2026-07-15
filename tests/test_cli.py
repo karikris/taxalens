@@ -20,11 +20,13 @@ def test_demo_verify_runs_existing_verifier() -> None:
     assert main(["demo", "verify"]) == 0
 
 
-def test_demo_build_labels_contract_smoke_fixture(capsys) -> None:
+def test_demo_build_labels_truthful_fixture(capsys) -> None:
     assert main(["demo", "build"]) == 0
     output = capsys.readouterr().out
     payload = json.loads(output[output.index("{") :])
-    assert payload["status"] == "verified_existing_fixture"
+    assert payload["status"] == "verified_truthful_fixture"
+    assert payload["manifest"] == "demo/fixture/papilio_pilot/judge_bundle.json"
+    assert payload["hero_state"] == "awaiting_human_review"
     assert payload["scientific_claim_allowed"] is False
 
 

@@ -13,6 +13,7 @@ from pathlib import Path
 from taxalens import __version__
 
 _SHA_PATTERN = re.compile(r'(?m)^pinned_biominer_sha:\s*["\']([0-9a-f]{40})["\']\s*$')
+_TRUTHFUL_DEMO_MANIFEST = "demo/fixture/papilio_pilot/judge_bundle.json"
 
 
 def _project_root() -> Path:
@@ -74,6 +75,7 @@ def _doctor(_args: argparse.Namespace) -> int:
     required = (
         "AGENTS.md",
         "demo/manifests/demo_manifest.example.json",
+        _TRUTHFUL_DEMO_MANIFEST,
         "provenance/biominer_migration_manifest.yaml",
         "scripts/verify_demo.py",
         "scripts/verify_provenance.py",
@@ -106,13 +108,23 @@ def _demo_build(args: argparse.Namespace) -> int:
     verification = _run_script(root, "scripts/verify_demo.py", args.manifest)
     if verification:
         return verification
+    if args.manifest != _TRUTHFUL_DEMO_MANIFEST:
+        payload = {
+            "status": "verified_existing_fixture",
+            "manifest": args.manifest,
+            "scientific_claim_allowed": False,
+            "note": "The supplied legacy fixture passed its schema-smoke verification.",
+        }
+        print(json.dumps(payload, indent=2, sort_keys=True))
+        return 0
     payload = {
-        "status": "verified_existing_fixture",
+        "status": "verified_truthful_fixture",
         "manifest": args.manifest,
+        "hero_state": "awaiting_human_review",
         "scientific_claim_allowed": False,
         "note": (
-            "The current artifact is a contract-smoke fixture; the truthful "
-            "Papilio judge bundle is not built yet."
+            "The Papilio pilot is metadata-only: no admitted image or human-verified "
+            "target classification is present."
         ),
     }
     print(json.dumps(payload, indent=2, sort_keys=True))
@@ -162,11 +174,11 @@ def build_parser() -> argparse.ArgumentParser:
     demo_commands = demo.add_subparsers(dest="demo_command", required=True)
 
     verify = demo_commands.add_parser("verify", help="Verify a committed demo manifest")
-    verify.add_argument("manifest", nargs="?", default="demo/manifests/demo_manifest.example.json")
+    verify.add_argument("manifest", nargs="?", default=_TRUTHFUL_DEMO_MANIFEST)
     verify.set_defaults(handler=_demo_verify)
 
     build = demo_commands.add_parser("build", help="Validate the currently committed demo fixture")
-    build.add_argument("manifest", nargs="?", default="demo/manifests/demo_manifest.example.json")
+    build.add_argument("manifest", nargs="?", default=_TRUTHFUL_DEMO_MANIFEST)
     build.set_defaults(handler=_demo_build)
 
     replay = demo_commands.add_parser("replay", help="Start the local judge replay when available")
