@@ -1,3 +1,7 @@
+import { readFileSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
 const FIXTURE_PREFIX = '../../../../demo/fixture/papilio_pilot/'
 
 const fixtureModules = import.meta.glob<string>(
@@ -9,17 +13,43 @@ const fixtureModules = import.meta.glob<string>(
   },
 )
 
-export const committedFixtureFiles: Readonly<Record<string, string>> = Object.freeze(
-  Object.fromEntries(
+const parquetPaths = [
+  'analytics/flickr_geo_assignments.parquet',
+  'analytics/flickr_geo_clusters.parquet',
+  'analytics/flickr_geography.parquet',
+  'analytics/flickr_query_hits.parquet',
+] as const
+const fixtureDirectory = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  '../../../../demo/fixture/papilio_pilot',
+)
+
+const binaryFixtureFiles = Object.fromEntries(
+  parquetPaths.map((path) => [
+    path,
+    Uint8Array.from(readFileSync(resolve(fixtureDirectory, path))),
+  ]),
+)
+
+export const committedFixtureFiles: Readonly<
+  Record<string, string | Uint8Array<ArrayBuffer>>
+> = Object.freeze({
+  ...Object.fromEntries(
     Object.entries(fixtureModules).map(([path, contents]) => [
       path.replace(FIXTURE_PREFIX, ''),
       contents,
     ]),
   ),
-)
+  ...binaryFixtureFiles,
+})
+
+const committedManifest = committedFixtureFiles['judge_bundle.json']
+if (typeof committedManifest !== 'string') {
+  throw new Error('Committed judge bundle JSON fixture is missing')
+}
 
 export const committedJudgeBundle = JSON.parse(
-  committedFixtureFiles['judge_bundle.json'] ?? '{}',
+  committedManifest,
 ) as Record<string, unknown>
 
 export function createCommittedFixtureFetcher(

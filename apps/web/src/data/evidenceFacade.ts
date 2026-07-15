@@ -144,9 +144,26 @@ export interface ReplayEvidence extends ReplayIdentity {
     readonly inventoryChecksumVerified: true
     readonly payloadRootChecksumVerified: true
     readonly artifactChecksumsVerified: true
-    readonly dataMode: 'verified-json-fallback'
-    readonly fallbackReason: 'parquet_unavailable'
+    readonly dataMode: 'verified-json-bootstrap'
+    readonly fallbackReason: 'analytics_on_demand'
     readonly wasmStarted: false
+  }
+}
+
+export interface AnalyticsCandidateInput {
+  readonly acceptedTaxonKey: string
+  readonly scientificName: string
+  readonly evidenceRole: 'target_under_study' | 'regional_competitor_hypothesis'
+  readonly scientificClaimAllowed: false
+}
+
+export interface AnalyticsReplayInput {
+  readonly artifacts: readonly ParquetArtifactInput[]
+  readonly candidates: readonly AnalyticsCandidateInput[]
+  readonly receipt: {
+    readonly schemaVersion: 'taxalens-biominer-analytics-import:v1.0.0'
+    readonly originCommit: string
+    readonly sourceManifestSha256: string
   }
 }
 
@@ -192,6 +209,7 @@ interface VerifiedArtifact {
 
 export interface EvidenceFacade {
   readonly replay: ReplayEvidence
+  loadAnalyticsReplayInput(): AnalyticsReplayInput
   loadSection(
     name: JudgeBundleSectionName,
     parquetReader?: ParquetReader,
@@ -338,6 +356,35 @@ function isJsonArtifact(artifact: JudgeBundleArtifact): boolean {
 
 function isParquetArtifact(artifact: JudgeBundleArtifact): boolean {
   return artifact.path.endsWith('.parquet') || artifact.media_type.includes('parquet')
+}
+
+const ANALYTICS_ARTIFACT_IDS = Object.freeze([
+  'biominer-flickr-query-hits-parquet',
+  'biominer-flickr-geography-parquet',
+  'biominer-flickr-geo-assignments-parquet',
+  'biominer-flickr-geo-clusters-parquet',
+] as const)
+
+const ANALYTICS_RECEIPT_ID = 'biominer-analytics-import-receipt'
+const ANALYTICS_RECEIPT_SCHEMA = 'taxalens-biominer-analytics-import:v1.0.0' as const
+const ANALYTICS_SOURCE_MANIFEST_SHA =
+  'a62abef7cbac8638da219e53e08ab6760bedcd4f49d6396bfa0d1891d96e5cf2'
+
+function assertParquetMagic(bytes: Uint8Array<ArrayBuffer>, artifactId: string): void {
+  const last = bytes.byteLength - 4
+  if (
+    bytes.byteLength < 8 ||
+    bytes[0] !== 0x50 ||
+    bytes[1] !== 0x41 ||
+    bytes[2] !== 0x52 ||
+    bytes[3] !== 0x31 ||
+    bytes[last] !== 0x50 ||
+    bytes[last + 1] !== 0x41 ||
+    bytes[last + 2] !== 0x52 ||
+    bytes[last + 3] !== 0x31
+  ) {
+    throw new EvidenceFacadeError(`${artifactId} is not a complete Parquet artifact`)
+  }
 }
 
 function comparePaths(left: { readonly path: string }, right: { readonly path: string }): number {
@@ -924,6 +971,68 @@ function projectObservatoryEvidence(
   })
 }
 
+function validateAnalyticsArtifacts(artifacts: ReadonlyMap<string, VerifiedArtifact>): void {
+  const receiptArtifact = artifacts.get(ANALYTICS_RECEIPT_ID)
+  if (receiptArtifact?.json === undefined) {
+    throw new EvidenceFacadeError('Verified bundle has no analytics import receipt')
+  }
+  const receipt = object(receiptArtifact.json, 'analytics_import_receipt')
+  if (
+    stringField(receipt, 'schema_version', 'analytics_import_receipt') !==
+      ANALYTICS_RECEIPT_SCHEMA ||
+    stringField(receipt, 'origin_repository', 'analytics_import_receipt') !==
+      'karikris/BioMiner' ||
+    stringField(receipt, 'origin_commit', 'analytics_import_receipt') !== EXPECTED_BIOMINER_SHA ||
+    receipt.scientific_claim_allowed !== false
+  ) {
+    throw new EvidenceFacadeError('Analytics receipt is outside the bounded BioMiner replay')
+  }
+  const sourceManifest = object(receipt.source_manifest, 'analytics_import_receipt.source_manifest')
+  if (
+    stringField(sourceManifest, 'sha256', 'analytics_import_receipt.source_manifest') !==
+    ANALYTICS_SOURCE_MANIFEST_SHA
+  ) {
+    throw new EvidenceFacadeError('Analytics source-manifest checksum differs')
+  }
+  const rows = array(receipt.artifacts, 'analytics_import_receipt.artifacts')
+  const byId = new Map(
+    rows.map((value, index) => {
+      const row = object(value, `analytics_import_receipt.artifacts[${index}]`)
+      return [stringField(row, 'artifact_id', `analytics_import_receipt.artifacts[${index}]`), row]
+    }),
+  )
+  if (
+    byId.size !== ANALYTICS_ARTIFACT_IDS.length ||
+    [...byId.keys()].some(
+      (artifactId) =>
+        !ANALYTICS_ARTIFACT_IDS.includes(
+          artifactId as (typeof ANALYTICS_ARTIFACT_IDS)[number],
+        ),
+    )
+  ) {
+    throw new EvidenceFacadeError('Analytics receipt artifact set differs')
+  }
+  for (const artifactId of ANALYTICS_ARTIFACT_IDS) {
+    const verified = artifacts.get(artifactId)
+    const row = byId.get(artifactId)
+    if (verified === undefined || row === undefined) {
+      throw new EvidenceFacadeError(`Analytics artifact ${artifactId} is missing`)
+    }
+    const descriptor = verified.descriptor
+    if (
+      descriptor.media_type !== 'application/vnd.apache.parquet' ||
+      descriptor.path !== stringField(row, 'fixture_path', artifactId) ||
+      descriptor.sha256 !== stringField(row, 'sha256', artifactId) ||
+      descriptor.bytes !== numberField(row, 'byte_count', artifactId) ||
+      descriptor.record_count !== numberField(row, 'record_count', artifactId) ||
+      descriptor.schema_version !== stringField(row, 'schema_version', artifactId)
+    ) {
+      throw new EvidenceFacadeError(`${artifactId} differs from the analytics import receipt`)
+    }
+    assertParquetMagic(verified.bytes, artifactId)
+  }
+}
+
 class VerifiedEvidenceFacade implements EvidenceFacade {
   readonly replay: ReplayEvidence
   readonly #artifacts: ReadonlyMap<string, VerifiedArtifact>
@@ -931,6 +1040,43 @@ class VerifiedEvidenceFacade implements EvidenceFacade {
   constructor(replay: ReplayEvidence, artifacts: ReadonlyMap<string, VerifiedArtifact>) {
     this.replay = replay
     this.#artifacts = artifacts
+  }
+
+  loadAnalyticsReplayInput(): AnalyticsReplayInput {
+    const artifacts = ANALYTICS_ARTIFACT_IDS.map((artifactId) => {
+      const artifact = this.#artifacts.get(artifactId)
+      if (artifact === undefined) {
+        throw new EvidenceFacadeError(`${artifactId} was not verified`)
+      }
+      return Object.freeze({
+        artifactId,
+        mediaType: artifact.descriptor.media_type,
+        path: artifact.descriptor.path,
+        bytes: artifact.bytes.slice(),
+      })
+    })
+    const candidates: AnalyticsCandidateInput[] = [
+      {
+        acceptedTaxonKey: this.replay.target.acceptedTaxonKey,
+        scientificName: this.replay.target.scientificName,
+        evidenceRole: 'target_under_study',
+        scientificClaimAllowed: false,
+      },
+      ...this.replay.mission.candidatePolicy.candidates.map((candidate) => ({
+        ...candidate,
+        evidenceRole: 'regional_competitor_hypothesis' as const,
+        scientificClaimAllowed: false as const,
+      })),
+    ]
+    return Object.freeze({
+      artifacts: Object.freeze(artifacts),
+      candidates: deepFreeze(candidates),
+      receipt: Object.freeze({
+        schemaVersion: ANALYTICS_RECEIPT_SCHEMA,
+        originCommit: EXPECTED_BIOMINER_SHA,
+        sourceManifestSha256: ANALYTICS_SOURCE_MANIFEST_SHA,
+      }),
+    })
   }
 
   async loadSection(
@@ -1038,6 +1184,8 @@ export async function loadEvidenceFacade(
       : undefined
     if (json !== undefined) {
       assertRecordCount(descriptor, json)
+    } else if (isParquetArtifact(descriptor)) {
+      assertParquetMagic(bytes, descriptor.artifact_id)
     }
     artifacts.set(
       descriptor.artifact_id,
@@ -1060,6 +1208,7 @@ export async function loadEvidenceFacade(
   }
 
   const sections = projectSections(manifest)
+  validateAnalyticsArtifacts(artifacts)
   const mission = projectMissionEvidence(artifacts)
   const observatory = projectObservatoryEvidence(artifacts, manifest)
   const unavailableSections = Object.freeze(
@@ -1095,8 +1244,8 @@ export async function loadEvidenceFacade(
       inventoryChecksumVerified: true,
       payloadRootChecksumVerified: true,
       artifactChecksumsVerified: true,
-      dataMode: 'verified-json-fallback',
-      fallbackReason: 'parquet_unavailable',
+      dataMode: 'verified-json-bootstrap',
+      fallbackReason: 'analytics_on_demand',
       wasmStarted: false,
     },
   })

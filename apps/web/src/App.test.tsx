@@ -29,17 +29,19 @@ describe('TaxaLens scaffold', () => {
     expect(screen.getByText(/no live backend/u)).toBeInTheDocument()
   })
 
-  it('shows complete checksum verification and the deterministic JSON fallback', async () => {
+  it('shows complete checksum verification and the on-demand analytics boundary', async () => {
     window.location.hash = '#observatory'
     render(<App />)
 
-    expect(await screen.findByText('17 / 17 verified')).toBeInTheDocument()
+    expect(await screen.findByText('22 / 22 verified')).toBeInTheDocument()
     expect(screen.getByText('Inventory and payload verified')).toBeInTheDocument()
 
     window.location.hash = '#dashboard'
     window.dispatchEvent(new HashChangeEvent('hashchange'))
-    expect(await screen.findByRole('heading', { name: 'Verified JSON fallback' })).toBeInTheDocument()
-    expect(screen.getByText('parquet unavailable')).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: 'Verified local data boundary' }),
+    ).toBeInTheDocument()
+    expect(screen.getByText('analytics on demand')).toBeInTheDocument()
   })
 
   it('renders an assertive local-load failure with an accessible retry action', async () => {

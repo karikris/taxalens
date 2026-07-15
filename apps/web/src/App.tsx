@@ -114,7 +114,7 @@ function ReplayContent({
 
   return (
     <ReplayView
-      replay={state.facade.replay}
+      facade={state.facade}
       view={view}
       replayLaunch={replayLaunch}
       onReplayLaunch={onReplayLaunch}
@@ -123,16 +123,17 @@ function ReplayContent({
 }
 
 function ReplayView({
+  facade,
   onReplayLaunch,
-  replay,
   replayLaunch,
   view,
 }: {
+  readonly facade: EvidenceFacade
   readonly onReplayLaunch: (receipt: ReplayLaunchReceipt) => void
-  readonly replay: ReplayEvidence
   readonly replayLaunch: ReplayLaunchReceipt | null
   readonly view: ShellView
 }) {
+  const replay = facade.replay
   switch (view) {
     case 'mission':
       return (
@@ -148,7 +149,9 @@ function ReplayView({
         </Suspense>
       )
     case 'observatory':
-      return <ObservatoryWorkspace replay={replay} replayLaunch={replayLaunch} />
+      return (
+        <ObservatoryWorkspace facade={facade} replay={replay} replayLaunch={replayLaunch} />
+      )
     case 'evidence-lens':
       return <EvidenceLensView replay={replay} />
     case 'dashboard':
@@ -199,10 +202,10 @@ function DashboardView({ replay }: { readonly replay: ReplayEvidence }) {
   return (
     <section className="detail-panel" aria-labelledby="dashboard-title">
       <p className="eyebrow">Client runtime</p>
-      <h2 id="dashboard-title">Verified JSON fallback</h2>
+      <h2 id="dashboard-title">Verified local data boundary</h2>
       <p className="lede">
-        Parquet is unavailable in this bundle, so the facade deterministically uses checksum-verified
-        JSON. DuckDB-Wasm was not started.
+        Checksum-verified JSON opens the shell. Four pinned Parquet artifacts are available for an
+        explicit, on-demand DuckDB-Wasm replay in the Observatory; no worker starts at bootstrap.
       </p>
       <EvidenceState state="available" title="Credential-free replay">
         This view uses only same-origin static assets and does not contact a live backend.

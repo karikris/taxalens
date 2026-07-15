@@ -18,8 +18,19 @@ const manifest = JSON.parse(sourceManifestBytes.toString('utf8'))
 if (manifest.bundle_id !== 'papilio-demoleus-pilot-75461d9c-v1') {
   throw new Error('Static build contains an unexpected bundle ID')
 }
-if (manifest.artifact_inventory.length !== 17) {
-  throw new Error('Static build expects exactly 17 fixture artifacts')
+if (manifest.artifact_inventory.length !== 22) {
+  throw new Error('Static build expects exactly 22 fixture artifacts')
+}
+
+const parquetExtension = await readFile(
+  resolve(buildRoot, 'assets/parquet.duckdb_extension.wasm'),
+)
+if (
+  parquetExtension.byteLength !== 2_867_304 ||
+  createHash('sha256').update(parquetExtension).digest('hex') !==
+    '0785c6c95d003eff4faa7b3b4b660f02c9c92f6d68d135ddf330d42e3a650600'
+) {
+  throw new Error('Built same-origin DuckDB Parquet extension differs from the pinned signed asset')
 }
 
 for (const artifact of manifest.artifact_inventory) {

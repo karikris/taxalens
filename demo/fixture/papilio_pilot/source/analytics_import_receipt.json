@@ -1,0 +1,117 @@
+{
+  "artifacts": [
+    {
+      "artifact_id": "biominer-flickr-query-hits-parquet",
+      "byte_count": 222190,
+      "columns": [
+        "source",
+        "flickr_photo_id",
+        "query_hash",
+        "query_tier",
+        "search_term"
+      ],
+      "fixture_path": "analytics/flickr_query_hits.parquet",
+      "imported_path": "demo/source/biominer_phase14/analytics/flickr_query_hits.parquet",
+      "record_count": 76485,
+      "schema_version": "biominer-flickr-query-hits-parquet:v1.0.0",
+      "sha256": "95448f3145d903f7f042fe41d74561475ef050f8df21b318ebacb252484e4f0b",
+      "source_artifact_key": "query_hits",
+      "source_path": "runs/papilio_demoleus_pilot_geographic_workload_20260715/flickr_query_hits.parquet"
+    },
+    {
+      "artifact_id": "biominer-flickr-geography-parquet",
+      "byte_count": 769162,
+      "columns": [
+        "schema_version",
+        "source",
+        "flickr_photo_id",
+        "source_record_hash",
+        "latitude",
+        "longitude",
+        "coordinate_accuracy",
+        "coordinate_source",
+        "geotag_available",
+        "country_code",
+        "admin1",
+        "coarse_cell_id",
+        "regional_cell_id",
+        "local_cell_id",
+        "coordinate_quality",
+        "geography_warning",
+        "geography_warnings",
+        "geography_config_fingerprint"
+      ],
+      "fixture_path": "analytics/flickr_geography.parquet",
+      "imported_path": "demo/source/biominer_phase14/analytics/flickr_geography.parquet",
+      "record_count": 13501,
+      "schema_version": "biominer-flickr-geography-parquet:v1.0.0",
+      "sha256": "a3c47a6f213191634f76655d859cdd8555a9b11a4e33a9041209eb23ba7c2bbf",
+      "source_artifact_key": "geography",
+      "source_path": "runs/papilio_demoleus_pilot_geographic_workload_20260715/flickr_geography.parquet"
+    },
+    {
+      "artifact_id": "biominer-flickr-geo-assignments-parquet",
+      "byte_count": 633625,
+      "columns": [
+        "schema_version",
+        "source",
+        "flickr_photo_id",
+        "source_record_hash",
+        "target_accepted_taxon_key",
+        "geo_cluster_id",
+        "distance_to_medoid_km",
+        "assignment_method",
+        "coordinate_quality",
+        "fallback_scope",
+        "outlier",
+        "cluster_configuration_hash"
+      ],
+      "fixture_path": "analytics/flickr_geo_assignments.parquet",
+      "imported_path": "demo/source/biominer_phase14/analytics/flickr_geo_assignments.parquet",
+      "record_count": 13501,
+      "schema_version": "biominer-flickr-geo-assignments-parquet:v1.0.0",
+      "sha256": "e12f6ef9582bf707c952c3974c91e9a8f226ca7ce8034cab8ea8c293b70b6f74",
+      "source_artifact_key": "assignments",
+      "source_path": "runs/papilio_demoleus_pilot_geographic_workload_20260715/flickr_geo_assignments.parquet"
+    },
+    {
+      "artifact_id": "biominer-flickr-geo-clusters-parquet",
+      "byte_count": 22573,
+      "columns": [
+        "schema_version",
+        "geo_cluster_id",
+        "target_accepted_taxon_key",
+        "member_image_count",
+        "member_cell_count",
+        "member_cell_ids",
+        "centroid",
+        "medoid",
+        "radius_quantiles_km",
+        "bounding_geometry",
+        "countries",
+        "admin_regions",
+        "source_resolution",
+        "cluster_method",
+        "cluster_configuration_hash",
+        "candidate_distribution_only",
+        "created_at"
+      ],
+      "fixture_path": "analytics/flickr_geo_clusters.parquet",
+      "imported_path": "demo/source/biominer_phase14/analytics/flickr_geo_clusters.parquet",
+      "record_count": 77,
+      "schema_version": "biominer-flickr-geo-clusters-parquet:v1.0.0",
+      "sha256": "cba4651b967fae15f586e760859fb11ff608a603f792e338c7661d5563130b35",
+      "source_artifact_key": "clusters",
+      "source_path": "runs/papilio_demoleus_pilot_geographic_workload_20260715/flickr_geo_clusters.parquet"
+    }
+  ],
+  "candidate_semantics": "flickr_search_candidate_not_taxonomic_label",
+  "origin_commit": "75461d9c065af0cd96b41cd1f845c2e920f7ae34",
+  "origin_repository": "karikris/BioMiner",
+  "schema_version": "taxalens-biominer-analytics-import:v1.0.0",
+  "scientific_claim_allowed": false,
+  "source_manifest": {
+    "path": "examples/species/papilio_demoleus/pilot_geographic_workload_manifest.json",
+    "sha256": "a62abef7cbac8638da219e53e08ab6760bedcd4f49d6396bfa0d1891d96e5cf2"
+  }
+}

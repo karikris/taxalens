@@ -29,6 +29,9 @@ TRUTHFUL_DEMO_BIOMINER_SHA = "75461d9c065af0cd96b41cd1f845c2e920f7ae34"
 TRUTHFUL_DEMO_TAXALENS_SHA = "188187d73ca8e0ef2c670bdf6cefcb20c8a59d9d"
 TRUTHFUL_DEMO_HERO_ID = "papilio-demoleus-pilot-awaiting-review"
 DEFAULT_TRUTHFUL_DEMO_ROOT = Path("demo/fixture/papilio_pilot")
+DEFAULT_ANALYTICS_IMPORT_MANIFEST = Path(
+    "demo/source/biominer_phase14/analytics_import_manifest.json"
+)
 
 _BIOMINER_REPOSITORY = "karikris/BioMiner"
 _TAXALENS_REPOSITORY = "karikris/TaxaLens"
@@ -42,8 +45,9 @@ class _ArtifactSpec:
     schema_version: str
     source_repository: str
     source_commit: str
-    payload: object
+    payload: object | bytes
     record_count: int
+    media_type: str = "application/json"
 
 
 def _pilot_contract(pilot: dict[str, Any], name: str) -> dict[str, Any]:
@@ -496,6 +500,101 @@ def _metadata_payloads(pilot: dict[str, Any]) -> list[_ArtifactSpec]:
     return specs
 
 
+def _analytics_payloads(import_manifest: str | Path) -> list[_ArtifactSpec]:
+    """Load only analytics bytes covered by the pinned BioMiner import receipt."""
+
+    manifest_path = Path(import_manifest)
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if not isinstance(manifest, dict):
+        raise ValueError("analytics import manifest must be an object")
+    if manifest.get("schema_version") != "taxalens-biominer-analytics-import:v1.0.0":
+        raise ValueError("analytics import manifest schema version differs")
+    if manifest.get("origin_repository") != _BIOMINER_REPOSITORY:
+        raise ValueError("analytics import manifest requires the BioMiner origin")
+    if manifest.get("origin_commit") != TRUTHFUL_DEMO_BIOMINER_SHA:
+        raise ValueError("analytics import manifest requires the pinned BioMiner revision")
+    if manifest.get("scientific_claim_allowed") is not False:
+        raise ValueError("analytics import cannot authorize a scientific claim")
+    source_manifest = manifest.get("source_manifest")
+    if not isinstance(source_manifest, dict) or source_manifest.get("sha256") != (
+        "a62abef7cbac8638da219e53e08ab6760bedcd4f49d6396bfa0d1891d96e5cf2"
+    ):
+        raise ValueError("analytics import lacks the pinned BioMiner source-manifest checksum")
+
+    artifacts = manifest.get("artifacts")
+    if not isinstance(artifacts, list) or len(artifacts) != 4:
+        raise ValueError("analytics import must contain exactly four Parquet artifacts")
+    specs = [
+        _ArtifactSpec(
+            artifact_id="biominer-analytics-import-receipt",
+            path="source/analytics_import_receipt.json",
+            role="other",
+            schema_version="taxalens-biominer-analytics-import:v1.0.0",
+            source_repository=_TAXALENS_REPOSITORY,
+            source_commit=TRUTHFUL_DEMO_TAXALENS_SHA,
+            payload=manifest,
+            record_count=1,
+        )
+    ]
+    seen_ids: set[str] = set()
+    repository_root = Path(__file__).resolve().parents[2]
+    for index, raw in enumerate(artifacts):
+        if not isinstance(raw, dict):
+            raise ValueError(f"analytics artifacts[{index}] must be an object")
+        artifact_id = raw.get("artifact_id")
+        imported_path = raw.get("imported_path")
+        fixture_path = raw.get("fixture_path")
+        schema_version = raw.get("schema_version")
+        expected_sha = raw.get("sha256")
+        expected_bytes = raw.get("byte_count")
+        record_count = raw.get("record_count")
+        if not all(
+            isinstance(value, str) and value
+            for value in (artifact_id, imported_path, fixture_path, schema_version, expected_sha)
+        ):
+            raise ValueError(f"analytics artifacts[{index}] text fields are incomplete")
+        assert isinstance(artifact_id, str)
+        assert isinstance(imported_path, str)
+        assert isinstance(fixture_path, str)
+        assert isinstance(schema_version, str)
+        assert isinstance(expected_sha, str)
+        if artifact_id in seen_ids:
+            raise ValueError(f"duplicate analytics artifact id: {artifact_id}")
+        seen_ids.add(artifact_id)
+        if not isinstance(expected_bytes, int) or isinstance(expected_bytes, bool):
+            raise ValueError(f"{artifact_id} byte_count must be an integer")
+        if not isinstance(record_count, int) or isinstance(record_count, bool):
+            raise ValueError(f"{artifact_id} record_count must be an integer")
+        source_path = Path(imported_path)
+        output_path = Path(fixture_path)
+        if (
+            source_path.is_absolute()
+            or output_path.is_absolute()
+            or ".." in source_path.parts
+            or ".." in output_path.parts
+        ):
+            raise ValueError(f"{artifact_id} paths must stay within the repository and fixture")
+        content = (repository_root / source_path).read_bytes()
+        if len(content) != expected_bytes or hashlib.sha256(content).hexdigest() != expected_sha:
+            raise ValueError(f"{artifact_id} imported bytes differ from the pinned receipt")
+        if content[:4] != b"PAR1" or content[-4:] != b"PAR1":
+            raise ValueError(f"{artifact_id} is not a complete Parquet artifact")
+        specs.append(
+            _ArtifactSpec(
+                artifact_id=artifact_id,
+                path=output_path.as_posix(),
+                role="other",
+                schema_version=schema_version,
+                source_repository=_BIOMINER_REPOSITORY,
+                source_commit=TRUTHFUL_DEMO_BIOMINER_SHA,
+                payload=content,
+                record_count=record_count,
+                media_type="application/vnd.apache.parquet",
+            )
+        )
+    return specs
+
+
 def _canonical_file_bytes(payload: object) -> bytes:
     return (json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode()
 
@@ -647,6 +746,7 @@ def build_truthful_demo_fixture(
     destination: str | Path = DEFAULT_TRUTHFUL_DEMO_ROOT,
     *,
     import_manifest: str | Path = DEFAULT_IMPORT_MANIFEST,
+    analytics_import_manifest: str | Path = DEFAULT_ANALYTICS_IMPORT_MANIFEST,
     replace: bool = False,
 ) -> Path:
     """Build, checksum, and validate the deterministic truthful pilot fixture."""
@@ -666,7 +766,7 @@ def build_truthful_demo_fixture(
         shutil.rmtree(root)
     root.mkdir(parents=True)
 
-    specs = _metadata_payloads(pilot)
+    specs = [*_metadata_payloads(pilot), *_analytics_payloads(analytics_import_manifest)]
     biominer_ids = [
         spec.artifact_id for spec in specs if spec.source_repository == _BIOMINER_REPOSITORY
     ]
@@ -777,7 +877,11 @@ def build_truthful_demo_fixture(
     inventory: list[dict[str, object]] = []
     record_counts: dict[str, int] = {}
     for spec in sorted(specs, key=lambda item: item.artifact_id):
-        content = _canonical_file_bytes(spec.payload)
+        content = (
+            spec.payload
+            if isinstance(spec.payload, bytes)
+            else _canonical_file_bytes(spec.payload)
+        )
         path = root / spec.path
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(content)
@@ -785,7 +889,7 @@ def build_truthful_demo_fixture(
             {
                 "artifact_id": spec.artifact_id,
                 "path": spec.path,
-                "media_type": "application/json",
+                "media_type": spec.media_type,
                 "role": spec.role,
                 "sha256": hashlib.sha256(content).hexdigest(),
                 "bytes": len(content),
@@ -890,6 +994,7 @@ def build_truthful_demo_fixture(
 
 
 __all__ = [
+    "DEFAULT_ANALYTICS_IMPORT_MANIFEST",
     "DEFAULT_TRUTHFUL_DEMO_ROOT",
     "TRUTHFUL_DEMO_BIOMINER_SHA",
     "TRUTHFUL_DEMO_BUNDLE_ID",

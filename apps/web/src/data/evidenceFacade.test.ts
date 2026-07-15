@@ -43,7 +43,7 @@ async function parquetFixtureOverrides(): Promise<
   Readonly<Record<string, string | Uint8Array<ArrayBuffer>>>
 > {
   const manifest = structuredClone(committedJudgeBundle) as unknown as JudgeBundleContract
-  const parquetBytes = new TextEncoder().encode('PAR1-taxalens-test')
+  const parquetBytes = new TextEncoder().encode('PAR1-taxalens-testPAR1')
   const artifactId = 'run-summary-parquet'
   manifest.artifact_inventory.push({
     artifact_id: artifactId,
@@ -90,8 +90,8 @@ describe('loadEvidenceFacade', () => {
 
     expect(facade.replay.bundleId).toBe(replayEvidenceContract.bundleId)
     expect(facade.replay.target.scientificName).toBe('Papilio demoleus')
-    expect(facade.replay.artifactCount).toBe(17)
-    expect(facade.replay.verifiedArtifactCount).toBe(17)
+    expect(facade.replay.artifactCount).toBe(22)
+    expect(facade.replay.verifiedArtifactCount).toBe(22)
     expect(facade.replay.unavailableSections).toHaveLength(6)
     expect(facade.replay.sections.yoloe_evidence.status).toBe('unavailable')
     expect(facade.replay.mission).toMatchObject({
@@ -151,8 +151,8 @@ describe('loadEvidenceFacade', () => {
       inventoryChecksumVerified: true,
       payloadRootChecksumVerified: true,
       artifactChecksumsVerified: true,
-      dataMode: 'verified-json-fallback',
-      fallbackReason: 'parquet_unavailable',
+      dataMode: 'verified-json-bootstrap',
+      fallbackReason: 'analytics_on_demand',
       wasmStarted: false,
     })
 
@@ -173,11 +173,38 @@ describe('loadEvidenceFacade', () => {
     })
     const unavailable = await facade.loadSection('yoloe_evidence')
     expect(unavailable).toMatchObject({ status: 'unavailable', mode: 'unavailable' })
+
+    const analytics = facade.loadAnalyticsReplayInput()
+    expect(analytics.artifacts.map(({ artifactId }) => artifactId)).toEqual([
+      'biominer-flickr-query-hits-parquet',
+      'biominer-flickr-geography-parquet',
+      'biominer-flickr-geo-assignments-parquet',
+      'biominer-flickr-geo-clusters-parquet',
+    ])
+    expect(analytics.artifacts.reduce((total, artifact) => total + artifact.bytes.byteLength, 0)).toBe(
+      1_647_550,
+    )
+    expect(analytics.candidates).toHaveLength(6)
+    expect(analytics.candidates[0]).toMatchObject({
+      acceptedTaxonKey: 'gbif:1938069',
+      evidenceRole: 'target_under_study',
+      scientificClaimAllowed: false,
+    })
+    expect(analytics.receipt).toMatchObject({
+      schemaVersion: 'taxalens-biominer-analytics-import:v1.0.0',
+      originCommit: replayEvidenceContract.biominerSha,
+    })
+    const firstByte = analytics.artifacts[0]?.bytes[0]
+    if (analytics.artifacts[0] === undefined) {
+      throw new Error('Analytics fixture has no query-hit Parquet bytes')
+    }
+    analytics.artifacts[0].bytes[0] = 0
+    expect(facade.loadAnalyticsReplayInput().artifacts[0]?.bytes[0]).toBe(firstByte)
   })
 
   it('stops before display when an artifact has the right length but the wrong checksum', async () => {
     const original = committedFixtureFiles['data/run_summary.json']
-    if (original === undefined) {
+    if (typeof original !== 'string') {
       throw new Error('Committed run summary fixture is missing')
     }
     const tampered = original.replace('awaiting_human_review', 'awaiting_human_rexiew')
@@ -224,7 +251,7 @@ describe('loadEvidenceFacade', () => {
     ).resolves.toMatchObject({
       mode: 'parquet-wasm',
       fallbackReason: null,
-      value: { bytes: 18 },
+      value: { bytes: 22 },
     })
   })
 

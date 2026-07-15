@@ -1,6 +1,9 @@
-import type { ReplayEvidence } from '../data/evidenceFacade'
+import { useState } from 'react'
+
+import type { AnalyticsReplayInput, EvidenceFacade, ReplayEvidence } from '../data/evidenceFacade'
 import { EvidenceState } from '../design-system'
 import type { ReplayLaunchReceipt } from '../mission'
+import type { AnalyticsReplayResult } from './analyticsReplay'
 import { buildPipelineStages, type PipelineStageStatus } from './pipelineModel'
 import './observatory.css'
 
@@ -11,6 +14,15 @@ const STATUS_PRESENTATION: Readonly<
   partial: { label: 'Partial metadata', marker: '~' },
   unavailable: { label: 'Unavailable', marker: '—' },
   review: { label: 'Awaiting review', marker: 'RV' },
+}
+
+export type AnalyticsReplayExecutor = (
+  input: AnalyticsReplayInput,
+) => Promise<AnalyticsReplayResult>
+
+const defaultAnalyticsReplayExecutor: AnalyticsReplayExecutor = async (input) => {
+  const { executeAnalyticsReplay } = await import('./analyticsReplay')
+  return executeAnalyticsReplay(input)
 }
 
 function ReplayReceipt({ receipt }: { readonly receipt: ReplayLaunchReceipt }) {
@@ -81,13 +93,35 @@ function ReplayReceipt({ receipt }: { readonly receipt: ReplayLaunchReceipt }) {
 }
 
 export function ObservatoryWorkspace({
+  facade,
   replay,
   replayLaunch,
+  executeReplay = defaultAnalyticsReplayExecutor,
 }: {
+  readonly facade: EvidenceFacade
   readonly replay: ReplayEvidence
   readonly replayLaunch: ReplayLaunchReceipt | null
+  readonly executeReplay?: AnalyticsReplayExecutor
 }) {
   const stages = buildPipelineStages(replay)
+  const [analytics, setAnalytics] = useState<
+    | { readonly kind: 'idle' }
+    | { readonly kind: 'running' }
+    | { readonly kind: 'complete'; readonly result: AnalyticsReplayResult }
+    | { readonly kind: 'error'; readonly message: string }
+  >({ kind: 'idle' })
+
+  const runAnalytics = () => {
+    setAnalytics({ kind: 'running' })
+    void executeReplay(facade.loadAnalyticsReplayInput())
+      .then((result) => setAnalytics({ kind: 'complete', result }))
+      .catch((reason: unknown) =>
+        setAnalytics({
+          kind: 'error',
+          message: reason instanceof Error ? reason.message : 'The local analytics replay failed.',
+        }),
+      )
+  }
 
   return (
     <div className="observatory-workspace">
@@ -109,6 +143,55 @@ export function ObservatoryWorkspace({
       ) : (
         <ReplayReceipt receipt={replayLaunch} />
       )}
+
+      <section className="analytics-replay" aria-labelledby="analytics-replay-title">
+        <div className="analytics-replay__heading">
+          <div>
+            <p className="eyebrow">DuckDB-Wasm · verified Parquet</p>
+            <h2 id="analytics-replay-title">Judge replay analytics</h2>
+            <p>
+              Execute eight local SQL operations over the four checksum-verified BioMiner
+              artifacts. The worker starts only when requested and makes no remote data request.
+            </p>
+          </div>
+          <button
+            className="analytics-replay__run"
+            type="button"
+            disabled={analytics.kind === 'running'}
+            onClick={runAnalytics}
+          >
+            {analytics.kind === 'running' ? 'Running local replay…' : 'Run verified analytics'}
+          </button>
+        </div>
+
+        <div className="analytics-replay__boundary">
+          <strong>Metadata analytics only</strong>
+          <span>Matrix scoring is not executed or described as a hash join.</span>
+          <span>Scientific claim: not allowed</span>
+        </div>
+        <p className="analytics-replay__count-note">
+          The pipeline’s 22 registry-linked species plans are distinct from the 556 materialized
+          Flickr query hashes measured by this replay.
+        </p>
+
+        <div aria-live="polite">
+          {analytics.kind === 'idle' ? (
+            <EvidenceState state="review" title="Analytics not yet executed">
+              The verified Parquet bytes are ready; DuckDB-Wasm remains stopped.
+            </EvidenceState>
+          ) : analytics.kind === 'running' ? (
+            <EvidenceState state="loading" title="Executing local query plans">
+              Registering four in-memory Parquet files and inspecting each DuckDB plan.
+            </EvidenceState>
+          ) : analytics.kind === 'error' ? (
+            <EvidenceState state="failure" title="Analytics replay stopped">
+              {analytics.message}
+            </EvidenceState>
+          ) : (
+            <AnalyticsResults result={analytics.result} />
+          )}
+        </div>
+      </section>
 
       <figure
         className="pipeline-figure"
@@ -173,6 +256,63 @@ export function ObservatoryWorkspace({
           fixture records no output, while “unavailable” means the producing evidence is absent.
         </p>
       </figure>
+    </div>
+  )
+}
+
+function AnalyticsResults({ result }: { readonly result: AnalyticsReplayResult }) {
+  return (
+    <div className="analytics-results">
+      <EvidenceState state="available" title="Eight analytical operations completed">
+        DuckDB {result.engineVersion} read {result.registeredArtifactCount} verified Parquet files (
+        {result.registeredBytes.toLocaleString('en-US')} bytes) entirely in the browser.
+      </EvidenceState>
+      <dl className="analytics-results__facts">
+        <div>
+          <dt>Backend</dt>
+          <dd>{result.backend}</dd>
+        </div>
+        <div>
+          <dt>DuckDB-Wasm package</dt>
+          <dd>{result.packageVersion}</dd>
+        </div>
+        <div>
+          <dt>Operations</dt>
+          <dd>{result.operationCount} / 8 complete</dd>
+        </div>
+        <div>
+          <dt>Matrix scoring</dt>
+          <dd>{result.matrixScoringExecuted ? 'Executed' : 'Not executed'}</dd>
+        </div>
+      </dl>
+      <ol className="analytics-results__operations" aria-label="Completed analytical operations">
+        {result.operations.map((operation) => (
+          <li key={operation.operationId}>
+            <div className="analytics-results__operation-heading">
+              <div>
+                <code>{operation.operationId}</code>
+                <h3>{operation.label}</h3>
+              </div>
+              <strong>{operation.outputRows.toLocaleString('en-US')} rows out</strong>
+            </div>
+            <p>
+              {operation.inputRows.toLocaleString('en-US')} rows from{' '}
+              <code>{operation.inputRelation}</code> → <code>{operation.outputRelation}</code>
+            </p>
+            <div className="analytics-results__operators" aria-label="Observed query-plan operators">
+              {operation.planOperators.length === 0 ? (
+                <span>No named operator surfaced</span>
+              ) : (
+                operation.planOperators.map((operator) => <span key={operator}>{operator}</span>)
+              )}
+            </div>
+            <details>
+              <summary>Inspect DuckDB EXPLAIN plan</summary>
+              <pre>{operation.explainPlan}</pre>
+            </details>
+          </li>
+        ))}
+      </ol>
     </div>
   )
 }

@@ -88,6 +88,13 @@ class TruthfulDemoVerification:
 _EXPECTED_ARTIFACT_VERSIONS = {
     "attribution-manifest": "truthful-demo-attribution-manifest:v1.0.0",
     "biological-negatives": "truthful-demo-biological-negative-plan:v1.0.0",
+    "biominer-analytics-import-receipt": "taxalens-biominer-analytics-import:v1.0.0",
+    "biominer-flickr-geo-assignments-parquet": (
+        "biominer-flickr-geo-assignments-parquet:v1.0.0"
+    ),
+    "biominer-flickr-geo-clusters-parquet": "biominer-flickr-geo-clusters-parquet:v1.0.0",
+    "biominer-flickr-geography-parquet": "biominer-flickr-geography-parquet:v1.0.0",
+    "biominer-flickr-query-hits-parquet": "biominer-flickr-query-hits-parquet:v1.0.0",
     "candidate-sets": "truthful-demo-candidate-set:v1.0.0",
     "duplicate-summaries": "truthful-demo-duplicate-summary:v1.0.0",
     "flickr-candidate-summaries": "truthful-demo-flickr-candidate-summary:v1.0.0",
@@ -131,6 +138,7 @@ def verify_truthful_demo(
     inventory, artifacts, payloads = _verify_inventory(bundle, root, manifest.resolve())
     _verify_versions(bundle, artifacts, payloads)
     _verify_biominer_sha(bundle, artifacts, payloads)
+    _verify_analytics_receipt(artifacts, payloads)
     _verify_references(bundle, artifacts, payloads)
     _verify_counts(bundle, artifacts, payloads)
     _verify_rights(bundle, artifacts, payloads)
@@ -234,16 +242,34 @@ def _verify_inventory(
                 f"SHA-256 is {actual_digest}, expected {expected_digest}",
                 relative,
             )
-        try:
-            payload = json.loads(
-                content,
-                object_pairs_hook=_reject_duplicate_keys,
-                parse_constant=_reject_non_json_constant,
-            )
-        except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        media_type = artifact.get("media_type")
+        if media_type == "application/json" or (
+            isinstance(media_type, str) and media_type.endswith("+json")
+        ):
+            try:
+                payload = json.loads(
+                    content,
+                    object_pairs_hook=_reject_duplicate_keys,
+                    parse_constant=_reject_non_json_constant,
+                )
+            except (UnicodeDecodeError, json.JSONDecodeError) as error:
+                _fail(
+                    TruthfulDemoFailure.CONTRACT_VIOLATION,
+                    f"artifact is not strict UTF-8 JSON: {error}",
+                    relative,
+                )
+        elif media_type == "application/vnd.apache.parquet":
+            if content[:4] != b"PAR1" or content[-4:] != b"PAR1":
+                _fail(
+                    TruthfulDemoFailure.CONTRACT_VIOLATION,
+                    "artifact does not have complete Parquet magic bytes",
+                    relative,
+                )
+            payload = content
+        else:
             _fail(
                 TruthfulDemoFailure.CONTRACT_VIOLATION,
-                f"artifact is not strict UTF-8 JSON: {error}",
+                f"unsupported truthful-fixture media type: {media_type!r}",
                 relative,
             )
         inventory.append(artifact)
@@ -330,6 +356,84 @@ def _verify_biominer_sha(
             TruthfulDemoFailure.MISSING_BIOMINER_SHA,
             "pilot metadata snapshot lacks the pinned source SHA",
             "source/pilot_metadata_snapshot.json",
+        )
+
+
+def _verify_analytics_receipt(
+    artifacts: Mapping[str, Mapping[str, Any]],
+    payloads: Mapping[str, object],
+) -> None:
+    receipt = _object(
+        payloads["biominer-analytics-import-receipt"], "analytics_import_receipt"
+    )
+    if receipt.get("origin_repository") != "karikris/BioMiner" or receipt.get(
+        "origin_commit"
+    ) != TRUTHFUL_DEMO_BIOMINER_SHA:
+        _fail(
+            TruthfulDemoFailure.MISSING_BIOMINER_SHA,
+            "analytics receipt does not identify the pinned BioMiner revision",
+            "source/analytics_import_receipt.json",
+        )
+    if receipt.get("scientific_claim_allowed") is not False:
+        _fail(
+            TruthfulDemoFailure.UNSUPPORTED_GOLD_RESULT,
+            "analytics import cannot authorize a scientific claim",
+            "source/analytics_import_receipt.json",
+        )
+    source_manifest = _object(receipt.get("source_manifest"), "analytics source_manifest")
+    if source_manifest.get("sha256") != (
+        "a62abef7cbac8638da219e53e08ab6760bedcd4f49d6396bfa0d1891d96e5cf2"
+    ):
+        _fail(
+            TruthfulDemoFailure.CHECKSUM_MISMATCH,
+            "analytics receipt lacks the pinned BioMiner manifest checksum",
+            "source/analytics_import_receipt.json",
+        )
+
+    rows = _array(receipt.get("artifacts"), "analytics receipt artifacts")
+    expected_ids = {
+        "biominer-flickr-query-hits-parquet",
+        "biominer-flickr-geography-parquet",
+        "biominer-flickr-geo-assignments-parquet",
+        "biominer-flickr-geo-clusters-parquet",
+    }
+    observed_ids: set[str] = set()
+    for index, raw in enumerate(rows):
+        row = _object(raw, f"analytics receipt artifacts[{index}]")
+        artifact_id = _required_text(row.get("artifact_id"), "analytics artifact_id")
+        observed_ids.add(artifact_id)
+        artifact = artifacts.get(artifact_id)
+        if artifact is None:
+            _fail(
+                TruthfulDemoFailure.ORPHANED_ID,
+                f"analytics receipt references missing artifact {artifact_id}",
+                "source/analytics_import_receipt.json",
+            )
+        comparisons = {
+            "path": row.get("fixture_path"),
+            "sha256": row.get("sha256"),
+            "bytes": row.get("byte_count"),
+            "record_count": row.get("record_count"),
+            "schema_version": row.get("schema_version"),
+        }
+        for field, expected in comparisons.items():
+            if artifact.get(field) != expected:
+                _fail(
+                    TruthfulDemoFailure.CHECKSUM_MISMATCH,
+                    f"{artifact_id} {field} differs from the analytics receipt",
+                    "source/analytics_import_receipt.json",
+                )
+        if artifact.get("media_type") != "application/vnd.apache.parquet":
+            _fail(
+                TruthfulDemoFailure.CONTRACT_VIOLATION,
+                f"{artifact_id} must be a Parquet artifact",
+                f"artifact:{artifact_id}.media_type",
+            )
+    if observed_ids != expected_ids:
+        _fail(
+            TruthfulDemoFailure.ORPHANED_ID,
+            "analytics receipt artifact set differs from the bounded replay",
+            "source/analytics_import_receipt.json",
         )
 
 
@@ -423,12 +527,25 @@ def _verify_counts(
     payloads: Mapping[str, object],
 ) -> None:
     observed_counts: dict[str, int] = {}
+    analytics_receipt = _object(
+        payloads["biominer-analytics-import-receipt"], "analytics_import_receipt"
+    )
+    analytics_counts = {
+        _required_text(
+            _object(row, "analytics row").get("artifact_id"), "artifact_id"
+        ): _required_nonnegative_int(
+            _object(row, "analytics row").get("record_count"), "record_count"
+        )
+        for row in _array(analytics_receipt.get("artifacts"), "analytics artifacts")
+    }
     for artifact_id, artifact in artifacts.items():
         declared = _required_nonnegative_int(
             artifact.get("record_count"), f"artifact:{artifact_id}.record_count"
         )
         payload = payloads[artifact_id]
-        if artifact.get("role") == "attribution":
+        if isinstance(payload, bytes):
+            observed = analytics_counts.get(artifact_id, -1)
+        elif artifact.get("role") == "attribution":
             observed = len(_array(_object(payload, artifact_id).get("entries"), "entries"))
         elif isinstance(payload, list):
             observed = len(payload)

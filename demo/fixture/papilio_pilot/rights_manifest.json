@@ -16,7 +16,11 @@
         "reference-shortfalls",
         "biological-negatives",
         "visual-domain-negatives",
-        "pilot-metadata-snapshot"
+        "pilot-metadata-snapshot",
+        "biominer-flickr-query-hits-parquet",
+        "biominer-flickr-geography-parquet",
+        "biominer-flickr-geo-assignments-parquet",
+        "biominer-flickr-geo-clusters-parquet"
       ],
       "attribution_required": true,
       "creator_or_owner": "Kris Kari",
@@ -32,6 +36,7 @@
         "run-summary",
         "pipeline-stages",
         "selective-decision-metadata",
+        "biominer-analytics-import-receipt",
         "rights-manifest",
         "attribution-manifest"
       ],

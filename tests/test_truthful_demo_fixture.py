@@ -25,7 +25,7 @@ def test_committed_fixture_is_a_valid_checksum_verified_judge_bundle() -> None:
     loaded = load_judge_bundle(MANIFEST_PATH, verify_files=True)
 
     assert loaded.validation.bundle_id == TRUTHFUL_DEMO_BUNDLE_ID
-    assert loaded.validation.artifact_count == 17
+    assert loaded.validation.artifact_count == 22
     assert loaded.validation.section_count == 20
     assert loaded.validation.unavailable_section_count == 6
     assert loaded.validation.replay_trace_count == 0
@@ -117,10 +117,9 @@ def test_rights_manifest_has_no_media_and_covers_every_payload() -> None:
     assert loaded.data["rights"]["all_media_rights_verified"] is False
     assert loaded.data["attribution"]["complete"] is True
     assert not any(path.suffix.lower() in RASTER_SUFFIXES for path in FIXTURE_ROOT.rglob("*"))
-    assert all(
-        artifact["media_type"] == "application/json"
-        for artifact in loaded.data["artifact_inventory"]
-    )
+    media_types = [artifact["media_type"] for artifact in loaded.data["artifact_inventory"]]
+    assert media_types.count("application/json") == 18
+    assert media_types.count("application/vnd.apache.parquet") == 4
 
 
 def test_unavailable_real_pipeline_outputs_are_named_and_empty() -> None:
@@ -154,7 +153,7 @@ def test_builder_reproduces_every_committed_fixture_byte(tmp_path: Path) -> None
 
     assert generated_manifest == generated_root / "judge_bundle.json"
     expected_paths = sorted(
-        path.relative_to(FIXTURE_ROOT) for path in FIXTURE_ROOT.rglob("*.json") if path.is_file()
+        path.relative_to(FIXTURE_ROOT) for path in FIXTURE_ROOT.rglob("*") if path.is_file()
     )
     generated_paths = sorted(
         path.relative_to(generated_root) for path in generated_root.rglob("*") if path.is_file()

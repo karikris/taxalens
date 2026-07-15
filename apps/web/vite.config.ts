@@ -18,6 +18,14 @@ export default defineConfig({
     emptyOutDir: true,
     assetsInlineLimit: 0,
     target: 'baseline-widely-available',
+    rollupOptions: {
+      output: {
+        assetFileNames: (assetInfo) =>
+          assetInfo.names.includes('parquet.duckdb_extension.wasm')
+            ? 'assets/parquet.duckdb_extension.wasm'
+            : 'assets/[name]-[hash][extname]',
+      },
+    },
   },
   server: {
     host: '127.0.0.1',

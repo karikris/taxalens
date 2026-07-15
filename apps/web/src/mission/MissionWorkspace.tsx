@@ -229,8 +229,8 @@ function PlanResult({
           <p className="eyebrow">Replay launch</p>
           <h4 id="replay-launch-title">Open the submitted fixture</h4>
           <p>
-            Launch reuses the 17 checksum-verified local artifacts bound to this fingerprint. It
-            makes no remote request and performs no scientific work.
+            Launch reuses the checksum-verified local artifact inventory bound to this fingerprint.
+            It makes no remote request and performs no scientific work.
           </p>
         </div>
         <div className="mission-launch__actions">

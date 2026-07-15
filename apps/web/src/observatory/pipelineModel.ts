@@ -43,7 +43,7 @@ export function buildPipelineStages(replay: ReplayEvidence): readonly PipelineSt
       stageId: 'query-compilation',
       label: 'Query Compilation',
       count: counts.physicalQueryCount,
-      unit: 'physical queries',
+      unit: 'registry-linked species plans',
       status: 'verified',
       detail: 'Every registry-linked query definition is committed and checksum verified.',
       sourceSections: ['query_definitions'],

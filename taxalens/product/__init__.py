@@ -49,6 +49,7 @@ from taxalens.product.judge_bundle import (
     validate_judge_bundle,
 )
 from taxalens.product.truthful_demo import (
+    DEFAULT_ANALYTICS_IMPORT_MANIFEST,
     DEFAULT_TRUTHFUL_DEMO_ROOT,
     TRUTHFUL_DEMO_BIOMINER_SHA,
     TRUTHFUL_DEMO_BUNDLE_ID,
@@ -68,6 +69,7 @@ from taxalens.product.truthful_demo_verifier import (
 __all__ = [
     "ArtifactProvenance",
     "ArtifactView",
+    "DEFAULT_ANALYTICS_IMPORT_MANIFEST",
     "DEFAULT_TRUTHFUL_DEMO_ROOT",
     "DEFAULT_TRUTHFUL_DEMO_MANIFEST",
     "EvidenceExport",

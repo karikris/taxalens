@@ -66,12 +66,12 @@ test('navigates the evidence views and guided tour from the keyboard', async ({ 
   await expect(page.getByRole('heading', { name: 'Papilio demoleus' })).toBeVisible()
 })
 
-test('shows only checksum-verified evidence with explicit fallback and unavailable states', async ({
+test('shows only checksum-verified evidence with explicit analytics and unavailable states', async ({
   page,
 }) => {
   await page.goto('./#observatory')
 
-  await expect(page.getByText('17 / 17 verified')).toBeVisible()
+  await expect(page.getByText('22 / 22 verified')).toBeVisible()
   await expect(page.getByText('Inventory and payload verified')).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Evidence pipeline' })).toBeVisible()
   const pipeline = page.getByRole('list', { name: 'Evidence pipeline stages' })
@@ -86,9 +86,9 @@ test('shows only checksum-verified evidence with explicit fallback and unavailab
   await expect(page.locator('.unavailable-evidence-list > li')).toHaveCount(6)
 
   await page.getByRole('link', { name: 'Dashboard' }).click()
-  await expect(page.getByRole('heading', { name: 'Verified JSON fallback' })).toBeVisible()
-  await expect(page.getByText('parquet unavailable')).toBeVisible()
-  await expect(page.getByText(/DuckDB-Wasm was not started/u)).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Verified local data boundary' })).toBeVisible()
+  await expect(page.getByText('analytics on demand')).toBeVisible()
+  await expect(page.getByText(/no worker starts at bootstrap/u)).toBeVisible()
 })
 
 test('configures a bounded mission without enabling unsupported live work', async ({ page }) => {
@@ -135,7 +135,54 @@ test('configures a bounded mission without enabling unsupported live work', asyn
     'page',
   )
   await expect(page.locator('.replay-launch-receipt').getByText(/^sha256:[0-9a-f]{64}$/u)).toBeVisible()
-  await expect(page.getByText('17 / 17 verified')).toBeVisible()
+  await expect(page.getByText('22 / 22 verified')).toBeVisible()
   await expect(page.getByText('Fixture replay only · no live actions · no remote requests')).toBeVisible()
   expect(requestUrls).toHaveLength(requestsBeforeLaunch)
+})
+
+test('executes the eight real DuckDB-Wasm Parquet operations and inspects their plans', async ({
+  page,
+}) => {
+  const requestUrls: string[] = []
+  page.on('request', (request) => requestUrls.push(request.url()))
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('./#observatory')
+
+  await expect(page.getByText('Analytics not yet executed')).toBeVisible()
+  await page.getByRole('button', { name: 'Run verified analytics' }).click()
+  await expect(page.getByText('Eight analytical operations completed')).toBeVisible({
+    timeout: 60_000,
+  })
+
+  const operations = page.getByRole('list', { name: 'Completed analytical operations' })
+  await expect(operations.locator(':scope > li')).toHaveCount(8)
+  const operation = (operationId: string) =>
+    operations.getByText(operationId, { exact: true }).locator('xpath=ancestor::li[1]')
+  const physical = operation('physical-query-deduplication')
+  await expect(physical).toContainText('556 rows out')
+  const fanback = operation('logical-association-fan-back')
+  await expect(fanback).toContainText('76,485 rows out')
+  const sourceJoin = operation('source-id-hash-join')
+  await expect(sourceJoin).toContainText('HASH_JOIN')
+  const antiJoin = operation('duplicate-anti-join')
+  await expect(antiJoin).toContainText('13,501 rows out')
+  await expect(antiJoin).toContainText('ANTI')
+  const candidates = operation('candidate-set-union')
+  await expect(candidates).toContainText('6 rows out')
+  const assembly = operation('evidence-assembly')
+  await expect(assembly).toContainText('1 rows out')
+  await expect(page.getByText('Not executed', { exact: true })).toBeVisible()
+  await expect(page.getByText('Scientific claim: not allowed')).toBeVisible()
+
+  const expectedOrigin = new URL(page.url()).origin
+  const remoteRequests = requestUrls.filter((url) => {
+    const parsed = new URL(url)
+    return ['http:', 'https:'].includes(parsed.protocol) && parsed.origin !== expectedOrigin
+  })
+  expect(remoteRequests).toEqual([])
+  const viewport = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }))
+  expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth)
 })

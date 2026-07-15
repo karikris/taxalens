@@ -2,14 +2,14 @@
   "artifact_inventory": [
     {
       "artifact_id": "attribution-manifest",
-      "bytes": 1442,
+      "bytes": 1677,
       "media_type": "application/json",
       "path": "attribution_manifest.json",
       "record_count": 2,
       "required": true,
       "role": "attribution",
       "schema_version": "truthful-demo-attribution-manifest:v1.0.0",
-      "sha256": "bf7810a9f18a7f1ff9f34fb60776dbaba48eb2107ae62e43f1091b3a41b56fe6",
+      "sha256": "c24791ec06e79b2716f73fe9c8184a66c3f517739b4b6d95093a6f0b6e5c3ece",
       "source_commit": "188187d73ca8e0ef2c670bdf6cefcb20c8a59d9d",
       "source_repository": "karikris/TaxaLens"
     },
@@ -23,6 +23,71 @@
       "role": "biological_negatives",
       "schema_version": "truthful-demo-biological-negative-plan:v1.0.0",
       "sha256": "e852579b22ea630f5ddf3e977f6d5493160a26841cc6617cea1d8838752494d9",
+      "source_commit": "75461d9c065af0cd96b41cd1f845c2e920f7ae34",
+      "source_repository": "karikris/BioMiner"
+    },
+    {
+      "artifact_id": "biominer-analytics-import-receipt",
+      "bytes": 4371,
+      "media_type": "application/json",
+      "path": "source/analytics_import_receipt.json",
+      "record_count": 1,
+      "required": true,
+      "role": "other",
+      "schema_version": "taxalens-biominer-analytics-import:v1.0.0",
+      "sha256": "ad4f57815f7e37e703569d31f73d98000c14f1d9484015ad8cda4c3b1017b4a7",
+      "source_commit": "188187d73ca8e0ef2c670bdf6cefcb20c8a59d9d",
+      "source_repository": "karikris/TaxaLens"
+    },
+    {
+      "artifact_id": "biominer-flickr-geo-assignments-parquet",
+      "bytes": 633625,
+      "media_type": "application/vnd.apache.parquet",
+      "path": "analytics/flickr_geo_assignments.parquet",
+      "record_count": 13501,
+      "required": true,
+      "role": "other",
+      "schema_version": "biominer-flickr-geo-assignments-parquet:v1.0.0",
+      "sha256": "e12f6ef9582bf707c952c3974c91e9a8f226ca7ce8034cab8ea8c293b70b6f74",
+      "source_commit": "75461d9c065af0cd96b41cd1f845c2e920f7ae34",
+      "source_repository": "karikris/BioMiner"
+    },
+    {
+      "artifact_id": "biominer-flickr-geo-clusters-parquet",
+      "bytes": 22573,
+      "media_type": "application/vnd.apache.parquet",
+      "path": "analytics/flickr_geo_clusters.parquet",
+      "record_count": 77,
+      "required": true,
+      "role": "other",
+      "schema_version": "biominer-flickr-geo-clusters-parquet:v1.0.0",
+      "sha256": "cba4651b967fae15f586e760859fb11ff608a603f792e338c7661d5563130b35",
+      "source_commit": "75461d9c065af0cd96b41cd1f845c2e920f7ae34",
+      "source_repository": "karikris/BioMiner"
+    },
+    {
+      "artifact_id": "biominer-flickr-geography-parquet",
+      "bytes": 769162,
+      "media_type": "application/vnd.apache.parquet",
+      "path": "analytics/flickr_geography.parquet",
+      "record_count": 13501,
+      "required": true,
+      "role": "other",
+      "schema_version": "biominer-flickr-geography-parquet:v1.0.0",
+      "sha256": "a3c47a6f213191634f76655d859cdd8555a9b11a4e33a9041209eb23ba7c2bbf",
+      "source_commit": "75461d9c065af0cd96b41cd1f845c2e920f7ae34",
+      "source_repository": "karikris/BioMiner"
+    },
+    {
+      "artifact_id": "biominer-flickr-query-hits-parquet",
+      "bytes": 222190,
+      "media_type": "application/vnd.apache.parquet",
+      "path": "analytics/flickr_query_hits.parquet",
+      "record_count": 76485,
+      "required": true,
+      "role": "other",
+      "schema_version": "biominer-flickr-query-hits-parquet:v1.0.0",
+      "sha256": "95448f3145d903f7f042fe41d74561475ef050f8df21b318ebacb252484e4f0b",
       "source_commit": "75461d9c065af0cd96b41cd1f845c2e920f7ae34",
       "source_repository": "karikris/BioMiner"
     },
@@ -158,14 +223,14 @@
     },
     {
       "artifact_id": "rights-manifest",
-      "bytes": 2024,
+      "bytes": 2259,
       "media_type": "application/json",
       "path": "rights_manifest.json",
       "record_count": 1,
       "required": true,
       "role": "rights",
       "schema_version": "truthful-demo-rights-manifest:v1.0.0",
-      "sha256": "5e1b9a97620489db48cc27a129de50bffb4ac3f0f66e78d4ab54a884b9c776cc",
+      "sha256": "a54ce3b8e7915c0f9487cb9ccefc2229ed0855825d4c3f28fe726f176c385cf3",
       "source_commit": "188187d73ca8e0ef2c670bdf6cefcb20c8a59d9d",
       "source_repository": "karikris/TaxaLens"
     },
@@ -238,7 +303,11 @@
           "reference-shortfalls",
           "biological-negatives",
           "visual-domain-negatives",
-          "pilot-metadata-snapshot"
+          "pilot-metadata-snapshot",
+          "biominer-flickr-query-hits-parquet",
+          "biominer-flickr-geography-parquet",
+          "biominer-flickr-geo-assignments-parquet",
+          "biominer-flickr-geo-clusters-parquet"
         ],
         "attribution_id": "biominer-pilot-metadata",
         "creator": "Kris Kari",
@@ -253,6 +322,7 @@
           "run-summary",
           "pipeline-stages",
           "selective-decision-metadata",
+          "biominer-analytics-import-receipt",
           "rights-manifest",
           "attribution-manifest"
         ],
@@ -270,12 +340,12 @@
   "checksums": {
     "algorithm": "sha256",
     "canonicalization": "json-sorted-keys-utf8-v1",
-    "inventory_sha256": "3a1be72b2b8904b5781b3a504eb9e25209ba3730a4db9a26ad0317e481c7eb41",
-    "payload_root_sha256": "13ad52509c1b6f7881d7d428dc2479524130a937176f26da4816a35779bd5c11"
+    "inventory_sha256": "8783f8f991f05337cd87c94da0a91937dc7f6b45841bec2458046ff6d342baaa",
+    "payload_root_sha256": "90543af7167025e0095ab68a811a578c547178ba971459e5141c40773b7a17a9"
   },
   "created_at": "2026-07-15T15:30:00Z",
   "expected_ui_counts": {
-    "artifact_count": 17,
+    "artifact_count": 22,
     "attribution_count": 2,
     "openai_replay_trace_count": 0,
     "screen_items": {
@@ -333,7 +403,11 @@
           "reference-shortfalls",
           "biological-negatives",
           "visual-domain-negatives",
-          "pilot-metadata-snapshot"
+          "pilot-metadata-snapshot",
+          "biominer-flickr-query-hits-parquet",
+          "biominer-flickr-geography-parquet",
+          "biominer-flickr-geo-assignments-parquet",
+          "biominer-flickr-geo-clusters-parquet"
         ],
         "attribution_required": true,
         "creator_or_owner": "Kris Kari",
@@ -350,6 +424,7 @@
       {
         "artifact_ids": [
           "attribution-manifest",
+          "biominer-analytics-import-receipt",
           "pipeline-stages",
           "rights-manifest",
           "run-summary",
