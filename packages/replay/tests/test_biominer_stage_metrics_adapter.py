@@ -359,3 +359,28 @@ def test_adapt_stage_metrics_skips_non_string_input_artifact_value_and_falls_bac
     assert metric["operation_type"] == "object_detection"
     assert metric["input_artifact_id"] == "staging/source_records.parquet"
     assert metric["output_artifact_id"] == "staging/object_detections.parquet"
+
+
+def test_adapt_stage_metrics_returns_none_when_no_string_outputs(tmp_path: Path) -> None:
+    payload = {
+        "stages": [
+            {
+                "stage": "detect_objects",
+                "status": "complete",
+                "outputs": {"input": {"artifact": "invalid"}, "path": 123, "object_scores": []},
+            }
+        ]
+    }
+
+    manifest_path = tmp_path / "run_manifest_stage_metrics_no_string_outputs.json"
+    manifest_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    result = adapt_stage_metrics(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    metric = result["stage_metrics"][0]
+    assert metric["input_artifact_id"] is None
+    assert metric["output_artifact_id"] is None
+    assert metric["artifact_uri"] is None
