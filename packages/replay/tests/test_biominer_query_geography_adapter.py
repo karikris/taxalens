@@ -4290,3 +4290,57 @@ def test_adapt_query_geography_artifacts_treats_non_string_query_definition_outp
     assert result["query_definition_summary"]["query_definition_artifact_path"] is None
     notes = result["compatibility"]["notes"]
     assert any("did not declare query definition artifact path" in note for note in notes)
+
+
+def test_adapt_query_geography_artifacts_treats_all_output_values_as_non_string_paths(tmp_path: Path) -> None:
+    source_manifest = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    source_manifest["outputs"]["query_definitions"] = {"path": "query_definitions.json"}
+    source_manifest["outputs"]["flickr_query_definitions"] = []
+    source_manifest["outputs"]["taxon_geographic_spread"] = {"path": "taxon_geographic_spread.json"}
+    source_manifest["outputs"]["geographic_spread"] = None
+    source_manifest["outputs"]["geographic_occurrence_evidence"] = {"path": "geographic_occurrence_evidence.json"}
+    source_manifest["outputs"]["occurrence_evidence"] = 0
+    source_manifest["outputs"]["geographic_spread_manifest"] = []
+    source_manifest["outputs"]["taxon_geographic_summary"] = {"path": "taxon_geographic_summary.json"}
+    source_manifest["outputs"]["geographic_summary"] = {}
+    source_manifest["outputs"]["geographic_summary_manifest"] = []
+    source_manifest["outputs"]["geographic_summary_manifest_file"] = 1
+    source_manifest["outputs"]["geographic_qa_findings"] = []
+    source_manifest["outputs"]["taxon_geographic_qa_findings"] = {"path": "geographic_qa_findings.json"}
+
+    manifest_path = tmp_path / "run_manifest_query_geography_all_outputs_non_string.json"
+    manifest_path.write_text(json.dumps(source_manifest), encoding="utf-8")
+
+    result = adapt_query_geography_artifacts(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["query_definitions"] == []
+    assert result["geographic_spread_rows"] == []
+    assert result["geographic_occurrence_evidence_rows"] == []
+    assert result["taxon_geographic_summary_rows"] == []
+    assert result["compatibility"]["query_definition_rows_read"] == 0
+    assert result["compatibility"]["taxon_geographic_spread_rows_read"] == 0
+    assert result["compatibility"]["geographic_occurrence_evidence_rows_read"] == 0
+    assert result["compatibility"]["taxon_geographic_summary_rows_read"] == 0
+    assert result["query_definition_summary"]["query_definition_artifact_path"] is None
+    assert result["geographic_spread_manifest_summary"]["taxon_geographic_spread_artifact_path"] is None
+    assert result["geographic_spread_manifest_summary"]["geographic_occurrence_evidence_artifact_path"] is None
+    assert result["geographic_summary_manifest_summary"]["taxon_geographic_summary_artifact_path"] is None
+    assert result["geographic_summary_manifest_summary"]["geographic_qa_findings_artifact_path"] is None
+
+    notes = result["compatibility"]["notes"]
+    assert any("did not declare query definition artifact path" in note for note in notes)
+    assert any("did not declare taxon_geographic_spread artifact path" in note for note in notes)
+    assert any(
+        "did not declare geographic_occurrence_evidence artifact path" in note
+        for note in notes
+    )
+    assert any("did not declare taxon_geographic_summary artifact path" in note for note in notes)
+    assert any("did not declare geographic_spread_manifest artifact path" in note for note in notes)
+    assert any("did not declare geographic_summary_manifest artifact path" in note for note in notes)
