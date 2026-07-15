@@ -156,6 +156,6 @@ function ReplayView({
     case 'evidence-lens':
       return <EvidenceLensWorkspace facade={facade} replay={replay} />
     case 'dashboard':
-      return <DashboardWorkspace replay={replay} />
+      return <DashboardWorkspace facade={facade} replay={replay} />
   }
 }

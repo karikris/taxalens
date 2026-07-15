@@ -747,3 +747,71 @@ test('shows an evidence funnel without comparing unlike stage units', async ({ p
   }))
   expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth)
 })
+
+test('maps verified candidate workload without claiming occurrences or review density', async ({
+  page,
+}) => {
+  const requestUrls: string[] = []
+  page.on('request', (request) => requestUrls.push(request.url()))
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('./#dashboard')
+
+  await expect(page.getByRole('heading', { name: 'Geographic workload map' })).toBeVisible()
+  await expect(page.getByText('Candidate distribution only', { exact: true })).toBeVisible()
+  await expect(page.getByText('Cluster payload not yet queried', { exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Load verified workload map' }).click()
+
+  await expect(page.getByText('Candidate workload plotted locally', { exact: true })).toBeVisible({
+    timeout: 60_000,
+  })
+  const metrics = page.locator('.geographic-workload__metrics')
+  await expect(metrics.getByText('Candidate clusters').locator('..')).toContainText('76')
+  await expect(metrics.getByText('No-geo').locator('..')).toContainText('0')
+  await expect(metrics.getByText('Unassigned geotags').locator('..')).toContainText('792')
+  await expect(metrics.getByText('Outliers').locator('..')).toContainText('707')
+  await expect(metrics.getByText('Reference shortfalls').locator('..')).toContainText(
+    '247 source · 490 review',
+  )
+  await expect(metrics.getByText('Review density').locator('..')).toContainText('Unavailable')
+
+  const map = page.getByRole('img', {
+    name: '76 candidate workload cluster centroids on an equirectangular coordinate plane',
+  })
+  await expect(map).toBeVisible()
+  await expect(map.locator('circle[data-cluster="candidate-workload"]')).toHaveCount(76)
+  await expect(map.locator('circle[data-selected="true"]')).toHaveCount(1)
+  const selector = page.getByLabel('Inspect candidate cluster')
+  await expect(selector.locator('option')).toHaveCount(76)
+  await selector.selectOption('geo:be72642ae1a67685c5a68725')
+  const inspection = page.getByRole('heading', { name: 'Selected workload cluster' }).locator('..')
+  await expect(inspection).toContainText('geo:be72642ae1a67685c5a68725')
+  await expect(inspection).toContainText('59.369775, 17.159598')
+  await expect(inspection).toContainText('437 records')
+  await expect(inspection).toContainText('52.120 km · not uncertainty')
+  await expect(inspection).toContainText('Unavailable — no H3 output committed')
+  await expect(inspection).toContainText('No materialized review queue')
+
+  await page.getByText('Read all 76 candidate clusters as a table').click()
+  await expect(page.getByRole('table').locator('tbody tr')).toHaveCount(76)
+  await page.getByText('Inspect workload-map provenance').click()
+  const provenance = page.locator('.geographic-workload__provenance')
+  await expect(
+    provenance.getByText('biominer-flickr-geo-assignments-parquet', { exact: true }),
+  ).toBeVisible()
+  await expect(
+    provenance.getByText('biominer-flickr-geo-clusters-parquet', { exact: true }),
+  ).toBeVisible()
+
+  const expectedOrigin = new URL(page.url()).origin
+  expect(
+    requestUrls.filter((url) => {
+      const parsed = new URL(url)
+      return ['http:', 'https:'].includes(parsed.protocol) && parsed.origin !== expectedOrigin
+    }),
+  ).toEqual([])
+  const viewport = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }))
+  expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth)
+})

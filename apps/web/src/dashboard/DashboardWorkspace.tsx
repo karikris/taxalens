@@ -1,9 +1,16 @@
-import type { ReplayEvidence } from '../data/evidenceFacade'
+import type { EvidenceFacade, ReplayEvidence } from '../data/evidenceFacade'
 import { EvidenceState } from '../design-system'
 import { EvidenceFunnel } from './EvidenceFunnel'
+import { GeographicWorkloadMap } from './GeographicWorkloadMap'
 import './dashboard.css'
 
-export function DashboardWorkspace({ replay }: { readonly replay: ReplayEvidence }) {
+export function DashboardWorkspace({
+  facade,
+  replay,
+}: {
+  readonly facade: EvidenceFacade
+  readonly replay: ReplayEvidence
+}) {
   return (
     <section className="detail-panel dashboard-workspace" aria-labelledby="dashboard-title">
       <p className="eyebrow">First butterfly dashboard</p>
@@ -33,6 +40,8 @@ export function DashboardWorkspace({ replay }: { readonly replay: ReplayEvidence
       </dl>
 
       <EvidenceFunnel replay={replay} />
+
+      <GeographicWorkloadMap facade={facade} replay={replay} />
     </section>
   )
 }
