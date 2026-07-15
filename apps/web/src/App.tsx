@@ -20,6 +20,11 @@ const DashboardWorkspace = lazy(async () => {
   return { default: module.DashboardWorkspace }
 })
 
+const AgentWorkspace = lazy(async () => {
+  const module = await import('./agent/AgentWorkspace')
+  return { default: module.AgentWorkspace }
+})
+
 type LoadState =
   | { readonly kind: 'loading' }
   | { readonly kind: 'ready'; readonly facade: EvidenceFacade }
@@ -170,6 +175,19 @@ function ReplayView({
           }
         >
           <DashboardWorkspace facade={facade} replay={replay} />
+        </Suspense>
+      )
+    case 'agent':
+      return (
+        <Suspense
+          fallback={
+            <EvidenceState state="loading" title="Opening agent trace">
+              The verified evidence bundle is already loaded; only the public trace interface is
+              pending.
+            </EvidenceState>
+          }
+        >
+          <AgentWorkspace replay={replay} />
         </Suspense>
       )
   }

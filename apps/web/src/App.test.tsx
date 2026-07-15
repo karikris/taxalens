@@ -44,6 +44,19 @@ describe('TaxaLens scaffold', () => {
     expect(screen.getByText('analytics on demand')).toBeInTheDocument()
   })
 
+  it('opens a truthful Agent Trace workspace without simulating a live session', async () => {
+    window.location.hash = '#agent'
+    render(<App />)
+
+    expect(
+      await screen.findByRole('heading', { name: 'GPT-5.6 Sol research analyst' }),
+    ).toBeInTheDocument()
+    expect(screen.getByText('gpt-5.6-sol')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'No analyst session loaded' })).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('No live call or stored output')
+    expect(screen.getByText(/chain-of-thought are neither collected/u)).toBeInTheDocument()
+  })
+
   it('renders an assertive local-load failure with an accessible retry action', async () => {
     vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockResolvedValue(jsonResponse({}, 404)))
 

@@ -34,6 +34,12 @@ const TOUR_STEPS: readonly TourStep[] = [
     description:
       'Review the credential-free client runtime. The shell reports replay mechanics without inventing evaluation results.',
   },
+  {
+    view: 'agent',
+    title: 'Agent Trace',
+    description:
+      'Audit the public request, plan, tools, artifact citations, structured output, answer, and budgets without exposing private reasoning.',
+  },
 ]
 
 interface GuidedTourProps {

@@ -44,7 +44,7 @@ test('navigates the evidence views and guided tour from the keyboard', async ({ 
   await tourTrigger.focus()
   await page.keyboard.press('Enter')
   await expect(page.getByRole('dialog', { name: 'Mission' })).toBeVisible()
-  await expect(page.getByText('Guided tour · Step 1 of 4')).toBeVisible()
+  await expect(page.getByText('Guided tour · Step 1 of 5')).toBeVisible()
 
   await page.keyboard.press('Escape')
   await expect(page.getByRole('dialog')).toBeHidden()
@@ -57,6 +57,17 @@ test('navigates the evidence views and guided tour from the keyboard', async ({ 
   await expect(
     page.getByRole('heading', { name: 'No scientific result is promoted' }),
   ).toBeVisible()
+
+  const agentTrace = page.getByRole('link', { name: 'Agent Trace' })
+  await agentTrace.focus()
+  await page.keyboard.press('Enter')
+  await expect(agentTrace).toHaveAttribute('aria-current', 'page')
+  await expect(
+    page.getByRole('heading', { name: 'GPT-5.6 Sol research analyst' }),
+  ).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'No analyst session loaded' })).toBeVisible()
+  await expect(page.getByText('gpt-5.6-sol', { exact: true })).toBeVisible()
+  await expect(page.getByText(/does not yet contain an analyst trace/u)).toBeVisible()
 
   const reset = page.getByRole('button', { name: 'Reset replay' })
   await reset.focus()

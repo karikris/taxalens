@@ -62,16 +62,16 @@ describe('AppShell', () => {
     expect(mission).toHaveAttribute('aria-current', 'page')
   })
 
-  it('provides a labelled four-step tour that can navigate to a view', () => {
+  it('provides a labelled five-step tour that can navigate to a view', () => {
     renderShell()
 
     fireEvent.click(screen.getByRole('button', { name: 'Guided tour' }))
     expect(screen.getByRole('dialog', { name: 'Mission' })).toBeInTheDocument()
-    expect(screen.getByText('Guided tour · Step 1 of 4')).toBeInTheDocument()
+    expect(screen.getByText('Guided tour · Step 1 of 5')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Next: Observatory' }))
     expect(screen.getByRole('dialog', { name: 'Observatory' })).toBeInTheDocument()
-    expect(screen.getByText('Guided tour · Step 2 of 4')).toBeInTheDocument()
+    expect(screen.getByText('Guided tour · Step 2 of 5')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Visit Observatory' }))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()

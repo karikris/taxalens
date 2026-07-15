@@ -1,4 +1,13 @@
 export {
+  buildPublicAgentTrace,
+  PUBLIC_AGENT_TRACE_VERSION,
+  PublicAgentTraceError,
+  type PublicAgentTrace,
+  type PublicAgentTraceMode,
+  type PublicAgentTraceTool,
+} from './agentTraceModel'
+export { AgentWorkspace } from './AgentWorkspace'
+export {
   buildResponsesRequest,
   ResearchAnalystError,
   runResearchAnalyst,
