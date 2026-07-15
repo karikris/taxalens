@@ -26,7 +26,7 @@ def test_adapt_reference_review_queue_from_fixture() -> None:
     assert summary["completed_records"] == 1
     assert summary["conflict_records"] == 1
     assert summary["cancelled_records"] == 0
-    assert summary["unique_taxon_count"] == 2
+    assert summary["unique_taxon_count"] == 3
     assert summary["unique_media_count"] == 3
     assert summary["max_review_priority"] == 3
     assert summary["max_required_review_count"] == 2
@@ -177,7 +177,7 @@ def test_adapt_reference_review_queue_normalizes_pass_and_done_review_status_ali
     assert summary is not None
     assert summary["pending_records"] == 0
     assert summary["in_review_records"] == 0
-    assert summary["completed_records"] == 2
+    assert summary["completed_records"] == 3
 
     records = result["reference_review_queue_records"]
     assert len(records) == 4

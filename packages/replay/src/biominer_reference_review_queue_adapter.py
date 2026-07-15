@@ -52,7 +52,7 @@ class ReviewQueueSummaryContract(TypedDict):
     max_required_review_count: int | None
 
 
-def _load_payload(path: Path) -> list[dict[str, Any]] | None:
+def _load_payload(path: Path) -> list[Any] | None:
     try:
         raw = json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError as exc:
@@ -65,14 +65,14 @@ def _load_payload(path: Path) -> list[dict[str, Any]] | None:
     if isinstance(raw, dict):
         return _extract_records_from_dict(raw)
     if isinstance(raw, list):
-        return [item for item in raw if isinstance(item, dict)]
+        return raw
     return None
 
 
-def _extract_records_from_dict(payload: dict[str, Any]) -> list[dict[str, Any]]:
+def _extract_records_from_dict(payload: dict[str, Any]) -> list[Any]:
     rows = payload.get("rows") or payload.get("review_queue")
     if isinstance(rows, list):
-        return [item for item in rows if isinstance(item, dict)]
+        return rows
     return []
 
 
