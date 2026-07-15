@@ -27,6 +27,8 @@ export function AppShell({ replay, globalError, onReset, renderView }: AppShellP
     shellViewFromHash(window.location.hash),
   )
   const mainRef = useRef<HTMLElement>(null)
+  const [pendingTourTarget, setPendingTourTarget] = useState<string | null>(null)
+  const [tourRevision, setTourRevision] = useState(0)
 
   useEffect(() => {
     function handleHashChange() {
@@ -37,12 +39,51 @@ export function AppShell({ replay, globalError, onReset, renderView }: AppShellP
     return () => window.removeEventListener('hashchange', handleHashChange)
   }, [])
 
-  function visitView(view: ShellView) {
+  useEffect(() => {
+    if (pendingTourTarget === null || mainRef.current === null) {
+      return
+    }
+    const main = mainRef.current
+    const focusTarget = () => {
+      const target = document.getElementById(pendingTourTarget)
+      if (!(target instanceof HTMLElement)) {
+        return false
+      }
+      target.focus()
+      target.scrollIntoView?.({ block: 'start' })
+      setPendingTourTarget(null)
+      return true
+    }
+    if (focusTarget()) {
+      return
+    }
+    const observer = new MutationObserver(() => {
+      if (focusTarget()) {
+        observer.disconnect()
+      }
+    })
+    observer.observe(main, { childList: true, subtree: true })
+    const timeout = window.setTimeout(() => {
+      observer.disconnect()
+      main.focus()
+      setPendingTourTarget(null)
+    }, 2_000)
+    return () => {
+      observer.disconnect()
+      window.clearTimeout(timeout)
+    }
+  }, [activeView, pendingTourTarget])
+
+  function visitView(view: ShellView, targetId?: string) {
     if (window.location.hash !== `#${view}`) {
       window.history.pushState(null, '', `#${view}`)
     }
     setActiveView(view)
-    window.requestAnimationFrame(() => mainRef.current?.focus())
+    if (targetId === undefined) {
+      window.requestAnimationFrame(() => mainRef.current?.focus())
+    } else {
+      setPendingTourTarget(targetId)
+    }
   }
 
   function resetShell() {
@@ -52,6 +93,8 @@ export function AppShell({ replay, globalError, onReset, renderView }: AppShellP
       `${window.location.pathname}${window.location.search}`,
     )
     setActiveView('mission')
+    setPendingTourTarget(null)
+    setTourRevision((value) => value + 1)
     onReset()
     window.requestAnimationFrame(() => mainRef.current?.focus())
   }
@@ -71,7 +114,7 @@ export function AppShell({ replay, globalError, onReset, renderView }: AppShellP
           <span className="replay-indicator" data-mode="replay">
             Static replay · no live backend
           </span>
-          <GuidedTour onVisit={visitView} />
+          <GuidedTour key={tourRevision} onVisit={visitView} />
           <Button className="shell-action" onPress={resetShell}>
             Reset replay
           </Button>

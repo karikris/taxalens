@@ -1692,6 +1692,11 @@
   border-radius: var(--tl-radius-sm);
 }
 
+.research-outputs:focus-visible {
+  outline: 3px solid var(--tl-focus);
+  outline-offset: var(--tl-space-2);
+}
+
 .research-outputs__heading {
   display: flex;
   align-items: flex-start;

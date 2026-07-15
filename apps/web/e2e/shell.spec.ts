@@ -40,15 +40,17 @@ test('preserves hierarchy at a narrow viewport and honors reduced motion', async
 test('navigates the evidence views and guided tour from the keyboard', async ({ page }) => {
   await page.goto('./')
 
-  const tourTrigger = page.getByRole('button', { name: 'Guided tour' })
+  const tourTrigger = page.getByRole('button', { name: 'Start 90-second judge tour' })
   await tourTrigger.focus()
   await page.keyboard.press('Enter')
-  await expect(page.getByRole('dialog', { name: 'Mission' })).toBeVisible()
-  await expect(page.getByText('Guided tour · Step 1 of 5')).toBeVisible()
+  await expect(page.getByRole('dialog', { name: 'Research Mission' })).toBeVisible()
+  await expect(page.getByText('90-second judge tour · Step 1 of 5')).toBeVisible()
 
   await page.keyboard.press('Escape')
   await expect(page.getByRole('dialog')).toBeHidden()
-  await expect(tourTrigger).toBeFocused()
+  await expect(
+    page.getByRole('button', { name: 'Resume 90-second judge tour' }),
+  ).toBeFocused()
 
   const evidenceLens = page.getByRole('link', { name: 'Evidence Lens' })
   await evidenceLens.focus()

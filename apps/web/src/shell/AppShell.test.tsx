@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import type { ReplayIdentity } from '../data/evidenceFacade'
@@ -65,20 +65,81 @@ describe('AppShell', () => {
   it('provides a labelled five-step tour that can navigate to a view', () => {
     renderShell()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Guided tour' }))
-    expect(screen.getByRole('dialog', { name: 'Mission' })).toBeInTheDocument()
-    expect(screen.getByText('Guided tour · Step 1 of 5')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Start 90-second judge tour' }))
+    expect(screen.getByRole('dialog', { name: 'Research Mission' })).toBeInTheDocument()
+    expect(screen.getByText('90-second judge tour · Step 1 of 5')).toBeInTheDocument()
+    expect(screen.getByText('Suggested time: 15 seconds · Total route: 90 seconds')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Next: Observatory' }))
     expect(screen.getByRole('dialog', { name: 'Observatory' })).toBeInTheDocument()
-    expect(screen.getByText('Guided tour · Step 2 of 5')).toBeInTheDocument()
+    expect(screen.getByText('90-second judge tour · Step 2 of 5')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Visit Observatory' }))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Resume 90-second judge tour' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Observatory' })).toHaveAttribute(
       'aria-current',
       'page',
     )
+  })
+
+  it('supports previous, reset, skip, replay, and completion transitions', () => {
+    const onReset = vi.fn()
+    renderShell({ onReset })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Start 90-second judge tour' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Next: Observatory' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Previous' }))
+    expect(screen.getByRole('dialog', { name: 'Research Mission' })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next: Observatory' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Reset tour' }))
+    expect(screen.getByRole('dialog', { name: 'Research Mission' })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Skip tour' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Replay 90-second judge tour' }))
+    expect(screen.getByRole('dialog', { name: 'Research Mission' })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next: Observatory' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Next: Evidence Lens' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Next: Dashboard' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Next: Export' }))
+    expect(screen.getByRole('dialog', { name: 'Export' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Finish tour' }))
+    expect(screen.getByRole('button', { name: 'Replay 90-second judge tour' })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reset replay' }))
+    expect(onReset).toHaveBeenCalledOnce()
+    expect(screen.getByRole('button', { name: 'Start 90-second judge tour' })).toBeInTheDocument()
+  })
+
+  it('routes the Export step to its focusable dashboard target', async () => {
+    render(
+      <AppShell
+        replay={replay}
+        globalError={undefined}
+        onReset={vi.fn()}
+        renderView={(view) =>
+          view === 'dashboard' ? (
+            <section id="research-outputs" tabIndex={-1}>Export research outputs</section>
+          ) : (
+            <h2>{view} view</h2>
+          )
+        }
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Start 90-second judge tour' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Next: Observatory' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Next: Evidence Lens' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Next: Dashboard' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Next: Export' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Visit Export' }))
+
+    const exportTarget = screen.getByText('Export research outputs')
+    await waitFor(() => expect(exportTarget).toHaveFocus())
+    expect(screen.getByRole('button', { name: 'Replay 90-second judge tour' })).toBeInTheDocument()
   })
 
   it('renders the global replay error and delegates retry', () => {

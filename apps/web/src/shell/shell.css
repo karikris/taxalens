@@ -266,6 +266,7 @@ footer {
   background: transparent;
   border: 0;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .tour-dialog__content {
@@ -276,6 +277,13 @@ footer {
   max-width: var(--tl-reading-width);
   margin-bottom: 0;
   color: var(--tl-ink-muted);
+}
+
+.tour-dialog__content .tour-dialog__timing {
+  margin-top: var(--tl-space-3);
+  color: var(--tl-brand-strong);
+  font-family: var(--tl-font-mono);
+  font-size: var(--tl-text-xs);
 }
 
 .tour-dialog__progress {
@@ -323,6 +331,11 @@ footer {
   margin-right: auto;
   color: var(--tl-brand);
   background: transparent;
+}
+
+.tour-dialog__button--secondary {
+  color: var(--tl-brand);
+  background: var(--tl-surface-paper);
 }
 
 .tour-dialog__button[data-disabled] {

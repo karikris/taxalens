@@ -80,7 +80,12 @@ export function ResearchOutputsPanel({
   }
 
   return (
-    <section className="research-outputs" aria-labelledby="research-outputs-title">
+    <section
+      id="research-outputs"
+      className="research-outputs"
+      aria-labelledby="research-outputs-title"
+      tabIndex={-1}
+    >
       <div className="research-outputs__heading">
         <div>
           <p className="eyebrow">Portable research handoff</p>
