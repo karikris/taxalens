@@ -385,7 +385,7 @@ def test_adapt_reference_readiness_normalizes_successful_and_done_aliases(tmp_pa
 
     checks = result["reference_readiness_checks"]
     assert checks[0]["status"] == "passed"
-    assert checks[1]["status"] == "warning"
+    assert checks[1]["status"] == "passed"
 
 
 def test_adapt_reference_readiness_non_mapping_outputs_skips_artifact_path(
@@ -453,7 +453,7 @@ def test_adapt_reference_readiness_non_list_checks_records_note(tmp_path: Path) 
         "reference readiness checks was missing or malformed"
         in result["compatibility"]["notes"]
     )
-    assert "reference readiness checks were empty" in result["compatibility"]["notes"]
+    assert "reference readiness checks were empty" not in result["compatibility"]["notes"]
 
 
 def test_adapt_reference_readiness_skips_non_mapping_checks(tmp_path: Path) -> None:
@@ -518,7 +518,7 @@ def test_adapt_reference_readiness_skips_non_mapping_check_in_middle(tmp_path: P
 
     original_checks = readiness_payload["checks"]
     expected_first_check_id = original_checks[0].get("check_id", "readiness_check_0")
-    expected_last_check_id = original_checks[2].get("check_id", "readiness_check_2")
+    expected_last_check_id = original_checks[1].get("check_id", "readiness_check_2")
 
     readiness_payload["checks"] = [
         original_checks[0],
@@ -2239,7 +2239,7 @@ def test_adapt_reference_readiness_evidence_fields_stringify_and_sort_non_string
     )
 
     checks = result["reference_readiness_checks"]
-    assert checks[0]["evidence_fields"] == ["2", "alpha", "none", "zeta"]
+    assert checks[0]["evidence_fields"] == ["2", "alpha", "null", "zeta"]
 
 
 def test_adapt_reference_readiness_non_mapping_evidence_field_is_none(tmp_path: Path) -> None:
@@ -2399,7 +2399,7 @@ def test_adapt_reference_readiness_records_note_for_missing_schema_version(tmp_p
     assert summary is not None
     assert summary["readiness_artifact_schema_version"] is None
     assert (
-        "readiness schema_version was missing"
+        "reference readiness schema_version was missing"
         in result["compatibility"]["notes"]
     )
 

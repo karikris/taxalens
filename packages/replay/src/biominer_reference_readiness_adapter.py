@@ -227,7 +227,7 @@ def _artifact_meta(payload: Any) -> tuple[str | None, str | None]:
 
 
 def _adapt_check(check: Any, index: int, notes: list[str]) -> ReferenceReadinessCheckContract | None:
-    if not isinstance(check, dict):
+    if not isinstance(check, dict) or not check:
         notes.append(f"non_mapping_readiness_check_{index}")
         return None
 
@@ -285,10 +285,10 @@ def adapt_reference_readiness(
     run_payload = _load_payload(manifest_path)
     if "schema_version" in run_payload:
         manifest_schema_version = run_payload.get("schema_version")
-        if isinstance(manifest_schema_version, bool) or manifest_schema_version not in (
-            1,
-            "1",
-        ):
+        valid_schema_version = (
+            type(manifest_schema_version) is int and manifest_schema_version == 1
+        ) or (type(manifest_schema_version) is str and manifest_schema_version == "1")
+        if not valid_schema_version:
             # Keep to committed contract behavior only.
             raise ReferenceReadinessAdapterError("Unsupported run manifest schema version")
 
@@ -448,7 +448,7 @@ def adapt_reference_readiness(
     if not candidate_set_ids:
         notes.append("reference readiness payload had no candidate_set_ids")
 
-    if not checks_rows:
+    if isinstance(raw_checks, list) and not checks_rows:
         notes.append("reference readiness checks were empty")
 
     compatibility_notes = [*notes]
