@@ -7,6 +7,7 @@ import { buildEvidenceLedger } from '../evidence/evidenceLedgerModel'
 import { createMissionDraft, generateEvidencePlan } from '../mission/missionPlan'
 
 export const RESEARCH_TOOL_RESULT_VERSION = 'taxalens-research-tool-result:v1.0.0' as const
+const MAX_ARTIFACT_CITATIONS = 32
 
 export const RESEARCH_TOOL_NAMES = Object.freeze([
   'resolve_taxon',
@@ -841,7 +842,7 @@ function validateResultBounds(resultValue: ResearchToolResult): void {
 function boundedArtifactIds(values: readonly string[]): boolean {
   return (
     values.length > 0 &&
-    values.length <= 22 &&
+    values.length <= MAX_ARTIFACT_CITATIONS &&
     new Set(values).size === values.length &&
     values.every((value) => boundedText(value, 160))
   )

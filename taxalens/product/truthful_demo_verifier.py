@@ -109,6 +109,8 @@ _EXPECTED_ARTIFACT_VERSIONS = {
     "run-summary": "truthful-demo-run-summary:v1.0.0",
     "selective-decision-metadata": "truthful-demo-decision-state:v1.0.0",
     "stage-metrics": "truthful-demo-metadata-metric:v1.0.0",
+    "stored-analyst-request": "taxalens-stored-analyst-request:v1.0.0",
+    "stored-analyst-run": "taxalens-research-analyst-run:v1.0.0",
     "visual-domain-negatives": "truthful-demo-visual-domain-negative-plan:v1.0.0",
 }
 _PLACEHOLDER_PATTERN = re.compile(
@@ -139,6 +141,7 @@ def verify_truthful_demo(
     _verify_versions(bundle, artifacts, payloads)
     _verify_biominer_sha(bundle, artifacts, payloads)
     _verify_analytics_receipt(artifacts, payloads)
+    _verify_openai_replay(bundle, artifacts, payloads)
     _verify_references(bundle, artifacts, payloads)
     _verify_counts(bundle, artifacts, payloads)
     _verify_rights(bundle, artifacts, payloads)
@@ -435,6 +438,182 @@ def _verify_analytics_receipt(
             "analytics receipt artifact set differs from the bounded replay",
             "source/analytics_import_receipt.json",
         )
+
+
+def _verify_openai_replay(
+    bundle: Mapping[str, Any],
+    artifacts: Mapping[str, Mapping[str, Any]],
+    payloads: Mapping[str, object],
+) -> None:
+    replay = _object(bundle.get("openai_replay"), "openai_replay")
+    traces = _array(replay.get("traces"), "openai_replay.traces")
+    expected = _object(bundle.get("expected_ui_counts"), "expected_ui_counts")
+    if (
+        replay.get("status") != "available"
+        or replay.get("mode") != "stored_structured_outputs_only"
+        or replay.get("credentials_required") is not False
+        or replay.get("live_requests_allowed") is not False
+        or len(traces) != 1
+        or expected.get("openai_replay_trace_count") != 1
+    ):
+        _fail(
+            TruthfulDemoFailure.CONTRACT_VIOLATION,
+            "truthful fixture requires one credential-free stored analyst trace",
+            "openai_replay",
+        )
+
+    trace = _object(traces[0], "openai_replay.traces[0]")
+    request_id = _required_text(
+        trace.get("request_artifact_id"), "openai_replay.traces[0].request_artifact_id"
+    )
+    response_id = _required_text(
+        trace.get("response_artifact_id"), "openai_replay.traces[0].response_artifact_id"
+    )
+    if (
+        trace.get("trace_id") != "papilio-target-resolution-stored-replay"
+        or trace.get("sequence") != 1
+        or trace.get("model") != "gpt-5.6-sol"
+        or trace.get("occurred_at") is not None
+        or trace.get("stored_output_only") is not True
+        or request_id != "stored-analyst-request"
+        or response_id != "stored-analyst-run"
+        or artifacts[request_id].get("role") != "openai_replay_traces"
+        or artifacts[response_id].get("role") != "openai_replay_traces"
+        or trace.get("prompt_sha256") != artifacts[request_id].get("sha256")
+        or trace.get("response_sha256") != artifacts[response_id].get("sha256")
+    ):
+        _fail(
+            TruthfulDemoFailure.CONTRACT_VIOLATION,
+            "stored analyst trace does not match its checksum-bound artifacts",
+            "openai_replay.traces[0]",
+        )
+
+    request = _object(payloads[request_id], str(artifacts[request_id]["path"]))
+    run = _object(payloads[response_id], str(artifacts[response_id]["path"]))
+    target = _object(bundle.get("target"), "target")
+    request_target = _object(request.get("target"), "stored request target")
+    storage = _object(request.get("storage"), "stored request storage")
+    output = _object(run.get("output"), "stored run output")
+    output_target = _object(output.get("target"), "stored run output target")
+    if (
+        request.get("schemaVersion") != "taxalens-stored-analyst-request:v1.0.0"
+        or request.get("requestKind") != "evidence_explanation"
+        or request.get("reasoningEffort") != "medium"
+        or storage
+        != {
+            "credentialsRequired": False,
+            "liveRequestExecuted": False,
+            "storedOutputOnly": True,
+        }
+        or request_target.get("acceptedTaxonKey") != target.get("accepted_taxon_key")
+        or request_target.get("scientificName") != target.get("scientific_name")
+        or run.get("schemaVersion") != "taxalens-research-analyst-run:v1.0.0"
+        or run.get("model") != "gpt-5.6-sol"
+        or run.get("reasoningEffort") != request.get("reasoningEffort")
+        or run.get("responseStatus") != "completed"
+        or output.get("requestKind") != request.get("requestKind")
+        or output_target.get("acceptedTaxonKey") != target.get("accepted_taxon_key")
+        or output_target.get("scientificName") != target.get("scientific_name")
+        or output.get("scientificClaimAllowed") is not False
+        or output.get("unsupportedClaimsRejected") is not True
+    ):
+        _fail(
+            TruthfulDemoFailure.CONTRACT_VIOLATION,
+            "stored analyst request or output changed the bounded public contract",
+            "agent stored replay",
+        )
+
+    receipts = _array(run.get("toolReceipts"), "stored run toolReceipts")
+    results = _array(run.get("toolResults"), "stored run toolResults")
+    response_ids = _string_array(run.get("responseIds"), "stored run responseIds")
+    budget = _object(run.get("budget"), "stored run budget")
+    request_budget = _object(request.get("budget"), "stored request budget")
+    if (
+        len(receipts) != 1
+        or len(results) != 1
+        or len(response_ids) != 2
+        or any(not re.fullmatch(r"stored-replay-turn-[0-9]{2}", item) for item in response_ids)
+        or budget.get("usedToolCalls") != len(receipts)
+        or budget.get("usedResponseTurns") != len(response_ids)
+        or budget.get("maxToolCalls") != request_budget.get("maxToolCalls")
+        or budget.get("maxResponseTurns") != request_budget.get("maxResponseTurns")
+        or budget.get("exhausted") is not False
+    ):
+        _fail(
+            TruthfulDemoFailure.CONTRACT_VIOLATION,
+            "stored analyst trace counts or budgets differ",
+            "agent/stored_analyst_run.json",
+        )
+
+    known = set(artifacts)
+    returned_ids: set[str] = set()
+    for index, (raw_receipt, raw_result) in enumerate(zip(receipts, results, strict=True)):
+        receipt = _object(raw_receipt, f"stored receipt[{index}]")
+        result = _object(raw_result, f"stored result[{index}]")
+        receipt_ids = set(
+            _string_array(receipt.get("artifactIds"), f"stored receipt[{index}].artifactIds")
+        )
+        result_ids = set(
+            _string_array(result.get("artifactIds"), f"stored result[{index}].artifactIds")
+        )
+        if (
+            receipt.get("sequence") != index + 1
+            or (index == 0 and receipt.get("tool") != "resolve_taxon")
+            or receipt.get("tool") != result.get("tool")
+            or receipt.get("resultStatus") != result.get("status")
+            or receipt_ids != result_ids
+            or not result_ids.issubset(known)
+            or result.get("scientificClaimAllowed") is not False
+        ):
+            _fail(
+                TruthfulDemoFailure.CONTRACT_VIOLATION,
+                "stored tool receipt and public result differ",
+                f"agent tool trace[{index}]",
+            )
+        returned_ids.update(result_ids)
+
+    nested_ids = {
+        artifact_id
+        for collection_name in ("plan", "evidenceBackedClaims", "unavailableEvidence")
+        for raw in _array(output.get(collection_name), f"stored output {collection_name}")
+        for artifact_id in _string_array(
+            _object(raw, f"stored output {collection_name} item").get("artifactIds"),
+            f"stored output {collection_name} artifactIds",
+        )
+    }
+    approval = _object(output.get("approvalBoundary"), "stored output approvalBoundary")
+    nested_ids.update(
+        artifact_id
+        for raw in _array(approval.get("items"), "stored output approval items")
+        for artifact_id in _string_array(
+            _object(raw, "stored approval item").get("artifactIds"),
+            "stored approval item artifactIds",
+        )
+    )
+    output_ids = set(_string_array(output.get("artifactIds"), "stored output artifactIds"))
+    if output_ids != nested_ids or not output_ids.issubset(returned_ids):
+        _fail(
+            TruthfulDemoFailure.ORPHANED_ID,
+            "stored output citations are not covered by its deterministic tool results",
+            "agent/stored_analyst_run.json",
+        )
+
+    forbidden_keys = {
+        "privateReasoning",
+        "private_reasoning",
+        "encrypted_content",
+        "chainOfThought",
+        "chain_of_thought",
+        "rawResponseItems",
+    }
+    for location, mapping in _walk_mappings(run, "agent/stored_analyst_run.json"):
+        present = forbidden_keys.intersection(mapping)
+        if present:
+            _fail(
+                TruthfulDemoFailure.CONTRACT_VIOLATION,
+                f"stored public output contains private fields: {sorted(present)}",
+                location,
+            )
 
 
 def _verify_references(

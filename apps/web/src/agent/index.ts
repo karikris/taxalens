@@ -7,6 +7,12 @@ export {
   type PublicAgentTraceTool,
 } from './agentTraceModel'
 export { AgentWorkspace } from './AgentWorkspace'
+export { AgentReplayWorkspace } from './AgentReplayWorkspace'
+export {
+  loadStoredAnalystReplay,
+  STORED_ANALYST_REQUEST_VERSION,
+  StoredAnalystReplayError,
+} from './storedAnalystReplay'
 export {
   buildResponsesRequest,
   ResearchAnalystError,

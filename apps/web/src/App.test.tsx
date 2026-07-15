@@ -33,7 +33,7 @@ describe('TaxaLens scaffold', () => {
     window.location.hash = '#observatory'
     render(<App />)
 
-    expect(await screen.findByText('22 / 22 verified')).toBeInTheDocument()
+    expect(await screen.findByText('24 / 24 verified')).toBeInTheDocument()
     expect(screen.getByText('Inventory and payload verified')).toBeInTheDocument()
 
     window.location.hash = '#dashboard'
@@ -44,7 +44,7 @@ describe('TaxaLens scaffold', () => {
     expect(screen.getByText('analytics on demand')).toBeInTheDocument()
   })
 
-  it('opens a truthful Agent Trace workspace without simulating a live session', async () => {
+  it('opens the stored Agent Trace without simulating a live session', async () => {
     window.location.hash = '#agent'
     render(<App />)
 
@@ -52,8 +52,14 @@ describe('TaxaLens scaffold', () => {
       await screen.findByRole('heading', { name: 'GPT-5.6 Sol research analyst' }),
     ).toBeInTheDocument()
     expect(screen.getByText('gpt-5.6-sol')).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'No analyst session loaded' })).toBeInTheDocument()
-    expect(screen.getByRole('status')).toHaveTextContent('No live call or stored output')
+    expect(
+      await screen.findByRole('heading', { name: 'Replayed analyst session' }),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Stored output · no live call')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'resolve_taxon' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Answer' })).toBeInTheDocument()
+    expect(screen.getAllByText(/This target resolution is not an occurrence/u)).toHaveLength(2)
+    expect(screen.queryByRole('heading', { name: 'No analyst session loaded' })).not.toBeInTheDocument()
     expect(screen.getByText(/chain-of-thought are neither collected/u)).toBeInTheDocument()
   })
 

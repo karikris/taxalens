@@ -1,0 +1,19 @@
+{
+  "budget": {
+    "maxResponseTurns": 3,
+    "maxToolCalls": 4
+  },
+  "reasoningEffort": "medium",
+  "request": "What target does this verified replay resolve?",
+  "requestKind": "evidence_explanation",
+  "schemaVersion": "taxalens-stored-analyst-request:v1.0.0",
+  "storage": {
+    "credentialsRequired": false,
+    "liveRequestExecuted": false,
+    "storedOutputOnly": true
+  },
+  "target": {
+    "acceptedTaxonKey": "gbif:1938069",
+    "scientificName": "Papilio demoleus"
+  }
+}

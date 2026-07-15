@@ -25,10 +25,10 @@ def test_committed_fixture_is_a_valid_checksum_verified_judge_bundle() -> None:
     loaded = load_judge_bundle(MANIFEST_PATH, verify_files=True)
 
     assert loaded.validation.bundle_id == TRUTHFUL_DEMO_BUNDLE_ID
-    assert loaded.validation.artifact_count == 22
+    assert loaded.validation.artifact_count == 24
     assert loaded.validation.section_count == 20
     assert loaded.validation.unavailable_section_count == 6
-    assert loaded.validation.replay_trace_count == 0
+    assert loaded.validation.replay_trace_count == 1
     assert loaded.data["source_revisions"]["biominer_sha"] == TRUTHFUL_DEMO_BIOMINER_SHA
     assert loaded.data["target"] == {
         "accepted_taxon_key": "gbif:1938069",
@@ -118,8 +118,45 @@ def test_rights_manifest_has_no_media_and_covers_every_payload() -> None:
     assert loaded.data["attribution"]["complete"] is True
     assert not any(path.suffix.lower() in RASTER_SUFFIXES for path in FIXTURE_ROOT.rglob("*"))
     media_types = [artifact["media_type"] for artifact in loaded.data["artifact_inventory"]]
-    assert media_types.count("application/json") == 18
+    assert media_types.count("application/json") == 20
     assert media_types.count("application/vnd.apache.parquet") == 4
+
+
+def test_stored_agent_replay_is_public_credential_free_and_checksum_bound() -> None:
+    loaded = load_judge_bundle(MANIFEST_PATH, verify_files=True)
+    request = _json("agent/stored_analyst_request.json")
+    run = _json("agent/stored_analyst_run.json")
+    assert isinstance(request, dict)
+    assert isinstance(run, dict)
+
+    replay = loaded.data["openai_replay"]
+    assert replay["status"] == "available"
+    assert replay["mode"] == "stored_structured_outputs_only"
+    assert replay["credentials_required"] is False
+    assert replay["live_requests_allowed"] is False
+    assert len(replay["traces"]) == 1
+    trace = replay["traces"][0]
+    assert trace["occurred_at"] is None
+    assert trace["stored_output_only"] is True
+    assert trace["prompt_sha256"] == next(
+        item["sha256"]
+        for item in loaded.data["artifact_inventory"]
+        if item["artifact_id"] == "stored-analyst-request"
+    )
+    assert trace["response_sha256"] == next(
+        item["sha256"]
+        for item in loaded.data["artifact_inventory"]
+        if item["artifact_id"] == "stored-analyst-run"
+    )
+    assert request["storage"] == {
+        "credentialsRequired": False,
+        "liveRequestExecuted": False,
+        "storedOutputOnly": True,
+    }
+    assert run["responseIds"] == ["stored-replay-turn-01", "stored-replay-turn-02"]
+    assert run["toolReceipts"][0]["tool"] == "resolve_taxon"
+    assert run["toolResults"][0]["artifactIds"] == ["query-definitions"]
+    assert run["output"]["scientificClaimAllowed"] is False
 
 
 def test_unavailable_real_pipeline_outputs_are_named_and_empty() -> None:

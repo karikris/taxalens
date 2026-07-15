@@ -10,6 +10,12 @@ export const PUBLIC_AGENT_TRACE_VERSION = 'taxalens-public-agent-trace:v1.0.0' a
 
 export type PublicAgentTraceMode = 'live' | 'stored_replay'
 
+export interface StoredReplayTraceSource {
+  readonly traceId: string
+  readonly requestArtifactId: string
+  readonly responseArtifactId: string
+}
+
 export interface PublicAgentTraceTool {
   readonly sequence: number
   readonly callId: string
@@ -25,6 +31,17 @@ export interface PublicAgentTrace {
   readonly model: typeof RESEARCH_ANALYST_MODEL
   readonly reasoningEffort: 'medium' | 'high'
   readonly responseStatus: 'completed'
+  readonly source:
+    | { readonly kind: 'live' }
+    | {
+        readonly kind: 'stored_replay'
+        readonly traceId: string
+        readonly requestArtifactId: string
+        readonly responseArtifactId: string
+        readonly storedOutputOnly: true
+        readonly liveRequestExecuted: false
+        readonly credentialsRequired: false
+      }
   readonly request: {
     readonly kind: ResearchAnalystRequestKind
     readonly text: string
@@ -57,6 +74,7 @@ export function buildPublicAgentTrace(
     readonly requestKind: ResearchAnalystRequestKind
     readonly request: string
     readonly run: ResearchAnalystRun
+    readonly storedReplay?: StoredReplayTraceSource
   },
   replay: ReplayEvidence,
 ): PublicAgentTrace {
@@ -85,6 +103,9 @@ export function buildPublicAgentTrace(
   const inventory = new Map(
     replay.artifactInventory.map((artifact) => [artifact.artifactId, artifact] as const),
   )
+  if (input.run.toolReceipts[0]?.tool !== 'resolve_taxon') {
+    throw new PublicAgentTraceError('Public trace must begin with replay-target resolution')
+  }
   const tools = input.run.toolReceipts.map((receipt, index) => {
     const result = input.run.toolResults[index]
     if (
@@ -123,9 +144,61 @@ export function buildPublicAgentTrace(
     inventory,
     'final structured output',
   )
+  const nestedOutputArtifactIds = uniqueSorted([
+    ...input.run.output.plan.flatMap(({ artifactIds }) => artifactIds),
+    ...input.run.output.evidenceBackedClaims.flatMap(({ artifactIds }) => artifactIds),
+    ...input.run.output.unavailableEvidence.flatMap(({ artifactIds }) => artifactIds),
+    ...input.run.output.approvalBoundary.items.flatMap(({ artifactIds }) => artifactIds),
+  ])
+  if (!sameSet(input.run.output.artifactIds, nestedOutputArtifactIds)) {
+    throw new PublicAgentTraceError('Top-level output citations do not cover nested citations')
+  }
+  const returnedArtifactIds = new Set(tools.flatMap(({ artifactIds }) => artifactIds))
+  if (outputArtifactIds.some((artifactId) => !returnedArtifactIds.has(artifactId))) {
+    throw new PublicAgentTraceError('Final output cites evidence not returned in this run')
+  }
+  let source: PublicAgentTrace['source']
+  let sourceArtifactIds: readonly string[] = []
+  if (input.mode === 'stored_replay') {
+    const stored = input.storedReplay
+    if (
+      stored === undefined ||
+      stored.traceId.trim().length === 0 ||
+      stored.requestArtifactId === stored.responseArtifactId
+    ) {
+      throw new PublicAgentTraceError('Stored replay source metadata is incomplete')
+    }
+    sourceArtifactIds = uniqueSorted([
+      stored.requestArtifactId,
+      stored.responseArtifactId,
+    ])
+    assertVerifiedArtifactIds(sourceArtifactIds, inventory, 'stored replay source')
+    if (
+      sourceArtifactIds.some(
+        (artifactId) => inventory.get(artifactId)?.role !== 'openai_replay_traces',
+      )
+    ) {
+      throw new PublicAgentTraceError('Stored replay source is not a replay-trace artifact')
+    }
+    source = {
+      kind: 'stored_replay' as const,
+      traceId: stored.traceId,
+      requestArtifactId: stored.requestArtifactId,
+      responseArtifactId: stored.responseArtifactId,
+      storedOutputOnly: true as const,
+      liveRequestExecuted: false as const,
+      credentialsRequired: false as const,
+    }
+  } else {
+    if (input.storedReplay !== undefined) {
+      throw new PublicAgentTraceError('Live trace cannot claim stored replay provenance')
+    }
+    source = { kind: 'live' as const }
+  }
   const artifactIds = uniqueSorted([
     ...tools.flatMap(({ artifactIds }) => artifactIds),
     ...outputArtifactIds,
+    ...sourceArtifactIds,
   ])
   const artifacts = artifactIds.map((artifactId) => {
     const artifact = inventory.get(artifactId)
@@ -141,6 +214,7 @@ export function buildPublicAgentTrace(
     model: RESEARCH_ANALYST_MODEL,
     reasoningEffort: input.run.reasoningEffort,
     responseStatus: 'completed' as const,
+    source,
     request: {
       kind: input.requestKind,
       text: request,

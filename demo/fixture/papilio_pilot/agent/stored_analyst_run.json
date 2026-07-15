@@ -1,0 +1,121 @@
+{
+  "budget": {
+    "exhausted": false,
+    "maxResponseTurns": 3,
+    "maxToolCalls": 4,
+    "usedResponseTurns": 2,
+    "usedToolCalls": 1
+  },
+  "model": "gpt-5.6-sol",
+  "output": {
+    "answer": "The stored replay verifies that Papilio demoleus (gbif:1938069) is the declared research target. This target resolution is not an occurrence, image classification, or scientific result.",
+    "approvalBoundary": {
+      "approvalRequired": false,
+      "externalActionsExecuted": false,
+      "items": [],
+      "liveWorkApproved": false
+    },
+    "artifactIds": [
+      "query-definitions"
+    ],
+    "evidenceBackedClaims": [
+      {
+        "artifactIds": [
+          "query-definitions"
+        ],
+        "claim": "Papilio demoleus is the declared replay target with accepted key gbif:1938069.",
+        "claimType": "provenance_fact",
+        "id": "resolved-target"
+      }
+    ],
+    "limitations": [
+      "The trace establishes replay identity only; it does not establish biological support."
+    ],
+    "plan": [
+      {
+        "action": "Resolve the checksum-verified replay target.",
+        "approvalRequired": false,
+        "artifactIds": [
+          "query-definitions"
+        ],
+        "sequence": 1,
+        "status": "complete",
+        "tool": "resolve_taxon"
+      }
+    ],
+    "requestKind": "evidence_explanation",
+    "schemaVersion": "taxalens-research-analyst-output:v1.0.0",
+    "scientificClaimAllowed": false,
+    "target": {
+      "acceptedTaxonKey": "gbif:1938069",
+      "resolutionStatus": "verified_replay_target",
+      "scientificName": "Papilio demoleus"
+    },
+    "unavailableEvidence": [],
+    "unsupportedClaimsRejected": true
+  },
+  "reasoningEffort": "medium",
+  "responseIds": [
+    "stored-replay-turn-01",
+    "stored-replay-turn-02"
+  ],
+  "responseStatus": "completed",
+  "schemaVersion": "taxalens-research-analyst-run:v1.0.0",
+  "toolReceipts": [
+    {
+      "arguments": {
+        "query": "Papilio demoleus"
+      },
+      "artifactIds": [
+        "query-definitions"
+      ],
+      "callId": "stored-replay-call-01",
+      "resultStatus": "available",
+      "sequence": 1,
+      "tool": "resolve_taxon"
+    }
+  ],
+  "toolResults": [
+    {
+      "artifactIds": [
+        "query-definitions"
+      ],
+      "bundleId": "papilio-demoleus-pilot-75461d9c-v1",
+      "facts": [
+        {
+          "id": "accepted_taxon_key",
+          "label": "Accepted taxon key",
+          "status": "verified",
+          "value": "gbif:1938069"
+        },
+        {
+          "id": "scientific_name",
+          "label": "Scientific name",
+          "status": "verified",
+          "value": "Papilio demoleus"
+        },
+        {
+          "id": "rank",
+          "label": "Taxonomic rank",
+          "status": "verified",
+          "value": "species"
+        },
+        {
+          "id": "registry",
+          "label": "Source registry",
+          "status": "verified",
+          "value": "BioMiner butterflies registry"
+        }
+      ],
+      "limitations": [
+        "Resolution is limited to the committed replay target; no live registry lookup occurs."
+      ],
+      "records": [],
+      "schemaVersion": "taxalens-research-tool-result:v1.0.0",
+      "scientificClaimAllowed": false,
+      "status": "available",
+      "summary": "Papilio demoleus resolves to gbif:1938069.",
+      "tool": "resolve_taxon"
+    }
+  ]
+}

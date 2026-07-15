@@ -7,9 +7,13 @@ import './agent.css'
 export function AgentWorkspace({
   replay,
   trace,
+  traceState,
 }: {
   readonly replay: ReplayEvidence
   readonly trace?: PublicAgentTrace
+  readonly traceState?:
+    | { readonly kind: 'loading' }
+    | { readonly kind: 'error'; readonly message: string }
 }) {
   return (
     <div className="agent-workspace">
@@ -48,7 +52,24 @@ export function AgentWorkspace({
         </aside>
       </section>
 
-      {trace === undefined ? (
+      {traceState?.kind === 'loading' ? (
+        <section className="detail-panel" aria-labelledby="agent-loading-title">
+          <p className="eyebrow">Stored trace verification</p>
+          <h2 id="agent-loading-title">Opening analyst replay</h2>
+          <EvidenceState state="loading" title="Checking stored request and output">
+            Artifact checksums are already verified. TaxaLens is validating the public run and
+            replaying its recorded read-only tool calls locally.
+          </EvidenceState>
+        </section>
+      ) : traceState?.kind === 'error' ? (
+        <section className="detail-panel" aria-labelledby="agent-error-title">
+          <p className="eyebrow">Stored trace rejected</p>
+          <h2 id="agent-error-title">Analyst replay unavailable</h2>
+          <EvidenceState state="blocked" title="Stored output failed validation">
+            {traceState.message} No stored answer is displayed, and no live request was attempted.
+          </EvidenceState>
+        </section>
+      ) : trace === undefined ? (
         <NoAgentSession />
       ) : (
         <AgentTrace trace={trace} />
@@ -90,6 +111,28 @@ function NoAgentSession() {
 function AgentTrace({ trace }: { readonly trace: PublicAgentTrace }) {
   return (
     <div className="agent-trace">
+      {trace.source.kind === 'stored_replay' ? (
+        <section className="detail-panel agent-replay-source" aria-labelledby="agent-replay-title">
+          <p className="eyebrow">Credential-free stored replay</p>
+          <h2 id="agent-replay-title">Replayed analyst session</h2>
+          <EvidenceState state="available" title="Stored output · no live call">
+            The public request, tool trace, and structured output were loaded from two
+            checksum-verified fixture artifacts. No API request or browser credential was used.
+          </EvidenceState>
+          <dl className="agent-inline-facts">
+            <div><dt>Trace</dt><dd><code>{trace.source.traceId}</code></dd></div>
+            <div><dt>Origin</dt><dd>Stored artifacts</dd></div>
+            <div><dt>Live request</dt><dd>No</dd></div>
+            <div><dt>Credential</dt><dd>Not required</dd></div>
+          </dl>
+          <ArtifactLinks
+            artifactIds={[
+              trace.source.requestArtifactId,
+              trace.source.responseArtifactId,
+            ]}
+          />
+        </section>
+      ) : null}
       <section className="detail-panel agent-trace__request" aria-labelledby="agent-request-title">
         <div className="agent-section-heading">
           <div>

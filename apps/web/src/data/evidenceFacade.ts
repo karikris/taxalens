@@ -12,11 +12,31 @@ import {
 } from '../../../../packages/contracts/src/judge_bundle_contract'
 
 const EXPECTED_BUNDLE_ID = 'papilio-demoleus-pilot-75461d9c-v1'
-const EXPECTED_TAXALENS_SHA = '188187d73ca8e0ef2c670bdf6cefcb20c8a59d9d'
+const EXPECTED_TAXALENS_SHA = '77cd51e7a61945ffef9f0603b9ecd960460abaa9'
 const EXPECTED_BIOMINER_SHA = '75461d9c065af0cd96b41cd1f845c2e920f7ae34'
 
 type JsonPrimitive = boolean | null | number | string
 export type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue }
+
+export interface StoredOpenAIReplayArtifact {
+  readonly artifactId: string
+  readonly path: string
+  readonly sha256: string
+  readonly value: JsonValue
+}
+
+export interface StoredOpenAIReplayTrace {
+  readonly traceId: string
+  readonly sequence: number
+  readonly stageId: string | null
+  readonly model: string
+  readonly occurredAt: string | null
+  readonly requestArtifact: StoredOpenAIReplayArtifact
+  readonly responseArtifact: StoredOpenAIReplayArtifact
+  readonly storedOutputOnly: true
+  readonly credentialsRequired: false
+  readonly liveRequestsAllowed: false
+}
 
 export interface EvidenceSectionState {
   readonly name: JudgeBundleSectionName
@@ -320,6 +340,7 @@ interface VerifiedArtifact {
 
 export interface EvidenceFacade {
   readonly replay: ReplayEvidence
+  loadStoredOpenAIReplay(): readonly StoredOpenAIReplayTrace[]
   loadAnalyticsReplayInput(): AnalyticsReplayInput
   loadDiscoveryProvenanceInput(): DiscoveryProvenanceInput
   loadSection(
@@ -623,6 +644,52 @@ async function assertManifestSemantics(manifest: JudgeBundleContract): Promise<v
   }
   if (manifest.openai_replay.traces.length !== manifest.expected_ui_counts.openai_replay_trace_count) {
     throw new EvidenceFacadeError('OpenAI replay trace count differs from expected UI count')
+  }
+  if (
+    manifest.openai_replay.status === 'available' &&
+    (manifest.openai_replay.mode !== 'stored_structured_outputs_only' ||
+      manifest.openai_replay.traces.length === 0 ||
+      manifest.openai_replay.reason === null)
+  ) {
+    throw new EvidenceFacadeError('Available OpenAI replay lacks a stored-output declaration')
+  }
+  if (
+    manifest.openai_replay.status === 'not_used' &&
+    (manifest.openai_replay.mode !== 'not_used' || manifest.openai_replay.traces.length !== 0)
+  ) {
+    throw new EvidenceFacadeError('Unused OpenAI replay must not declare stored traces')
+  }
+  const replayTraceIds = new Set<string>()
+  const replayTraceSequences = new Set<number>()
+  for (const trace of manifest.openai_replay.traces) {
+    const requestArtifact =
+      trace.request_artifact_id === null
+        ? undefined
+        : inventoryById.get(trace.request_artifact_id)
+    const responseArtifact =
+      trace.response_artifact_id === null
+        ? undefined
+        : inventoryById.get(trace.response_artifact_id)
+    if (
+      replayTraceIds.has(trace.trace_id) ||
+      replayTraceSequences.has(trace.sequence) ||
+      trace.model === null ||
+      requestArtifact === undefined ||
+      responseArtifact === undefined ||
+      requestArtifact.artifact_id === responseArtifact.artifact_id ||
+      requestArtifact.role !== 'openai_replay_traces' ||
+      responseArtifact.role !== 'openai_replay_traces' ||
+      requestArtifact.media_type !== 'application/json' ||
+      responseArtifact.media_type !== 'application/json' ||
+      requestArtifact.record_count !== 1 ||
+      responseArtifact.record_count !== 1 ||
+      trace.prompt_sha256 !== requestArtifact.sha256 ||
+      trace.response_sha256 !== responseArtifact.sha256
+    ) {
+      throw new EvidenceFacadeError('Stored OpenAI replay trace is incomplete or inconsistent')
+    }
+    replayTraceIds.add(trace.trace_id)
+    replayTraceSequences.add(trace.sequence)
   }
   if (!manifest.rights.all_artifacts_covered || !manifest.attribution.complete) {
     throw new EvidenceFacadeError('Truthful replay requires complete rights and attribution coverage')
@@ -1509,13 +1576,72 @@ function validateAnalyticsArtifacts(artifacts: ReadonlyMap<string, VerifiedArtif
   }
 }
 
+function projectStoredOpenAIReplay(
+  manifest: JudgeBundleContract,
+  artifacts: ReadonlyMap<string, VerifiedArtifact>,
+): readonly StoredOpenAIReplayTrace[] {
+  if (manifest.openai_replay.status !== 'available') {
+    return Object.freeze([])
+  }
+  return deepFreeze(
+    [...manifest.openai_replay.traces]
+      .sort((left, right) => left.sequence - right.sequence)
+      .map((trace) => {
+        if (
+          trace.model === null ||
+          trace.request_artifact_id === null ||
+          trace.response_artifact_id === null
+        ) {
+          throw new EvidenceFacadeError('Stored OpenAI replay trace references are incomplete')
+        }
+        const request = artifacts.get(trace.request_artifact_id)
+        const response = artifacts.get(trace.response_artifact_id)
+        if (request?.json === undefined || response?.json === undefined) {
+          throw new EvidenceFacadeError('Stored OpenAI replay JSON was not verified')
+        }
+        return {
+          traceId: trace.trace_id,
+          sequence: trace.sequence,
+          stageId: trace.stage_id,
+          model: trace.model,
+          occurredAt: trace.occurred_at,
+          requestArtifact: {
+            artifactId: request.descriptor.artifact_id,
+            path: request.descriptor.path,
+            sha256: request.descriptor.sha256,
+            value: request.json,
+          },
+          responseArtifact: {
+            artifactId: response.descriptor.artifact_id,
+            path: response.descriptor.path,
+            sha256: response.descriptor.sha256,
+            value: response.json,
+          },
+          storedOutputOnly: true as const,
+          credentialsRequired: false as const,
+          liveRequestsAllowed: false as const,
+        }
+      }),
+  )
+}
+
 class VerifiedEvidenceFacade implements EvidenceFacade {
   readonly replay: ReplayEvidence
   readonly #artifacts: ReadonlyMap<string, VerifiedArtifact>
+  readonly #storedOpenAIReplay: readonly StoredOpenAIReplayTrace[]
 
-  constructor(replay: ReplayEvidence, artifacts: ReadonlyMap<string, VerifiedArtifact>) {
+  constructor(
+    replay: ReplayEvidence,
+    artifacts: ReadonlyMap<string, VerifiedArtifact>,
+    storedOpenAIReplay: readonly StoredOpenAIReplayTrace[],
+  ) {
     this.replay = replay
     this.#artifacts = artifacts
+    this.#storedOpenAIReplay = storedOpenAIReplay
+  }
+
+  loadStoredOpenAIReplay(): readonly StoredOpenAIReplayTrace[] {
+    return this.#storedOpenAIReplay
   }
 
   loadAnalyticsReplayInput(): AnalyticsReplayInput {
@@ -1725,6 +1851,7 @@ export async function loadEvidenceFacade(
 
   const sections = projectSections(manifest)
   validateAnalyticsArtifacts(artifacts)
+  const storedOpenAIReplay = projectStoredOpenAIReplay(manifest, artifacts)
   const mission = projectMissionEvidence(artifacts)
   const observatory = projectObservatoryEvidence(artifacts, manifest)
   const discovery = projectDiscoveryEvidence(artifacts)
@@ -1782,7 +1909,7 @@ export async function loadEvidenceFacade(
       wasmStarted: false,
     },
   })
-  return Object.freeze(new VerifiedEvidenceFacade(replay, artifacts))
+  return Object.freeze(new VerifiedEvidenceFacade(replay, artifacts, storedOpenAIReplay))
 }
 
 export const replayEvidenceContract = Object.freeze({

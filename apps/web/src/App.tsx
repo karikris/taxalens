@@ -20,9 +20,9 @@ const DashboardWorkspace = lazy(async () => {
   return { default: module.DashboardWorkspace }
 })
 
-const AgentWorkspace = lazy(async () => {
-  const module = await import('./agent/AgentWorkspace')
-  return { default: module.AgentWorkspace }
+const AgentReplayWorkspace = lazy(async () => {
+  const module = await import('./agent/AgentReplayWorkspace')
+  return { default: module.AgentReplayWorkspace }
 })
 
 type LoadState =
@@ -187,7 +187,7 @@ function ReplayView({
             </EvidenceState>
           }
         >
-          <AgentWorkspace replay={replay} />
+          <AgentReplayWorkspace facade={facade} />
         </Suspense>
       )
   }

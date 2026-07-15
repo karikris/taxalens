@@ -37,6 +37,7 @@ const MAX_TOOL_CALLS = 12
 const MAX_RESPONSE_TURNS = 10
 const MAX_REQUEST_LENGTH = 8_000
 const MAX_OUTPUT_TOKENS = 8_000
+const MAX_ARTIFACT_CITATIONS = 32
 
 const BASE_INSTRUCTIONS = `You are the TaxaLens research analyst. Produce a concise public plan and explanation from checksum-verified evidence only.
 
@@ -494,7 +495,7 @@ function validateOutputBounds(output: ResearchAnalystOutput): void {
 function boundedArtifactIds(values: readonly string[]): boolean {
   return (
     values.length > 0 &&
-    values.length <= 22 &&
+    values.length <= MAX_ARTIFACT_CITATIONS &&
     new Set(values).size === values.length &&
     values.every((value) => boundedText(value, 160))
   )

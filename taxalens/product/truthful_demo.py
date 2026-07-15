@@ -26,7 +26,7 @@ TRUTHFUL_DEMO_SCHEMA_VERSION = "taxalens-truthful-demo-fixture:v1.0.0"
 TRUTHFUL_DEMO_BUNDLE_ID = "papilio-demoleus-pilot-75461d9c-v1"
 TRUTHFUL_DEMO_CREATED_AT = "2026-07-15T15:30:00Z"
 TRUTHFUL_DEMO_BIOMINER_SHA = "75461d9c065af0cd96b41cd1f845c2e920f7ae34"
-TRUTHFUL_DEMO_TAXALENS_SHA = "188187d73ca8e0ef2c670bdf6cefcb20c8a59d9d"
+TRUTHFUL_DEMO_TAXALENS_SHA = "77cd51e7a61945ffef9f0603b9ecd960460abaa9"
 TRUTHFUL_DEMO_HERO_ID = "papilio-demoleus-pilot-awaiting-review"
 DEFAULT_TRUTHFUL_DEMO_ROOT = Path("demo/fixture/papilio_pilot")
 DEFAULT_ANALYTICS_IMPORT_MANIFEST = Path(
@@ -595,6 +595,166 @@ def _analytics_payloads(import_manifest: str | Path) -> list[_ArtifactSpec]:
     return specs
 
 
+def _stored_agent_payloads() -> list[_ArtifactSpec]:
+    """Build the public, credential-free analyst request and run artifacts."""
+
+    artifact_ids = ["query-definitions"]
+    request = {
+        "schemaVersion": "taxalens-stored-analyst-request:v1.0.0",
+        "requestKind": "evidence_explanation",
+        "request": "What target does this verified replay resolve?",
+        "reasoningEffort": "medium",
+        "budget": {
+            "maxToolCalls": 4,
+            "maxResponseTurns": 3,
+        },
+        "target": {
+            "acceptedTaxonKey": "gbif:1938069",
+            "scientificName": "Papilio demoleus",
+        },
+        "storage": {
+            "storedOutputOnly": True,
+            "liveRequestExecuted": False,
+            "credentialsRequired": False,
+        },
+    }
+    tool_result = {
+        "schemaVersion": "taxalens-research-tool-result:v1.0.0",
+        "tool": "resolve_taxon",
+        "status": "available",
+        "bundleId": TRUTHFUL_DEMO_BUNDLE_ID,
+        "summary": "Papilio demoleus resolves to gbif:1938069.",
+        "facts": [
+            {
+                "id": "accepted_taxon_key",
+                "label": "Accepted taxon key",
+                "value": "gbif:1938069",
+                "status": "verified",
+            },
+            {
+                "id": "scientific_name",
+                "label": "Scientific name",
+                "value": "Papilio demoleus",
+                "status": "verified",
+            },
+            {
+                "id": "rank",
+                "label": "Taxonomic rank",
+                "value": "species",
+                "status": "verified",
+            },
+            {
+                "id": "registry",
+                "label": "Source registry",
+                "value": "BioMiner butterflies registry",
+                "status": "verified",
+            },
+        ],
+        "records": [],
+        "artifactIds": artifact_ids,
+        "limitations": [
+            "Resolution is limited to the committed replay target; no live registry lookup occurs."
+        ],
+        "scientificClaimAllowed": False,
+    }
+    output = {
+        "schemaVersion": "taxalens-research-analyst-output:v1.0.0",
+        "requestKind": "evidence_explanation",
+        "target": {
+            "acceptedTaxonKey": "gbif:1938069",
+            "scientificName": "Papilio demoleus",
+            "resolutionStatus": "verified_replay_target",
+        },
+        "plan": [
+            {
+                "sequence": 1,
+                "action": "Resolve the checksum-verified replay target.",
+                "tool": "resolve_taxon",
+                "status": "complete",
+                "approvalRequired": False,
+                "artifactIds": artifact_ids,
+            }
+        ],
+        "evidenceBackedClaims": [
+            {
+                "id": "resolved-target",
+                "claim": (
+                    "Papilio demoleus is the declared replay target with accepted key "
+                    "gbif:1938069."
+                ),
+                "claimType": "provenance_fact",
+                "artifactIds": artifact_ids,
+            }
+        ],
+        "unavailableEvidence": [],
+        "approvalBoundary": {
+            "liveWorkApproved": False,
+            "externalActionsExecuted": False,
+            "approvalRequired": False,
+            "items": [],
+        },
+        "answer": (
+            "The stored replay verifies that Papilio demoleus (gbif:1938069) is the declared "
+            "research target. This target resolution is not an occurrence, image "
+            "classification, or scientific result."
+        ),
+        "limitations": [
+            "The trace establishes replay identity only; it does not establish biological support."
+        ],
+        "artifactIds": artifact_ids,
+        "unsupportedClaimsRejected": True,
+        "scientificClaimAllowed": False,
+    }
+    run = {
+        "schemaVersion": "taxalens-research-analyst-run:v1.0.0",
+        "model": "gpt-5.6-sol",
+        "reasoningEffort": "medium",
+        "responseStatus": "completed",
+        "output": output,
+        "budget": {
+            "maxToolCalls": 4,
+            "usedToolCalls": 1,
+            "maxResponseTurns": 3,
+            "usedResponseTurns": 2,
+            "exhausted": False,
+        },
+        "toolReceipts": [
+            {
+                "sequence": 1,
+                "callId": "stored-replay-call-01",
+                "tool": "resolve_taxon",
+                "arguments": {"query": "Papilio demoleus"},
+                "resultStatus": "available",
+                "artifactIds": artifact_ids,
+            }
+        ],
+        "toolResults": [tool_result],
+        "responseIds": ["stored-replay-turn-01", "stored-replay-turn-02"],
+    }
+    return [
+        _ArtifactSpec(
+            artifact_id="stored-analyst-request",
+            path="agent/stored_analyst_request.json",
+            role="openai_replay_traces",
+            schema_version="taxalens-stored-analyst-request:v1.0.0",
+            source_repository=_TAXALENS_REPOSITORY,
+            source_commit=TRUTHFUL_DEMO_TAXALENS_SHA,
+            payload=request,
+            record_count=1,
+        ),
+        _ArtifactSpec(
+            artifact_id="stored-analyst-run",
+            path="agent/stored_analyst_run.json",
+            role="openai_replay_traces",
+            schema_version="taxalens-research-analyst-run:v1.0.0",
+            source_repository=_TAXALENS_REPOSITORY,
+            source_commit=TRUTHFUL_DEMO_TAXALENS_SHA,
+            payload=run,
+            record_count=1,
+        ),
+    ]
+
+
 def _canonical_file_bytes(payload: object) -> bytes:
     return (json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode()
 
@@ -766,7 +926,11 @@ def build_truthful_demo_fixture(
         shutil.rmtree(root)
     root.mkdir(parents=True)
 
-    specs = [*_metadata_payloads(pilot), *_analytics_payloads(analytics_import_manifest)]
+    specs = [
+        *_metadata_payloads(pilot),
+        *_analytics_payloads(analytics_import_manifest),
+        *_stored_agent_payloads(),
+    ]
     biominer_ids = [
         spec.artifact_id for spec in specs if spec.source_repository == _BIOMINER_REPOSITORY
     ]
@@ -906,6 +1070,12 @@ def build_truthful_demo_fixture(
     sections = _sections()
     section_records = {name: record_counts.get(name, 0) for name in JUDGE_BUNDLE_SECTION_NAMES}
     all_ids = [row["artifact_id"] for row in inventory]
+    request_descriptor = next(
+        row for row in inventory if row["artifact_id"] == "stored-analyst-request"
+    )
+    response_descriptor = next(
+        row for row in inventory if row["artifact_id"] == "stored-analyst-run"
+    )
     bundle = {
         "schema_version": JUDGE_BUNDLE_SCHEMA_VERSION,
         "bundle_id": TRUTHFUL_DEMO_BUNDLE_ID,
@@ -954,14 +1124,28 @@ def build_truthful_demo_fixture(
             "entries": attribution_payload["entries"],
         },
         "openai_replay": {
-            "status": "not_used",
-            "mode": "not_used",
+            "status": "available",
+            "mode": "stored_structured_outputs_only",
             "credentials_required": False,
             "live_requests_allowed": False,
             "reason": (
-                "No OpenAI request or stored OpenAI output is represented in this pilot fixture."
+                "A public request, deterministic tool trace, and structured analyst output are "
+                "stored for credential-free replay; no live request is issued by the fixture."
             ),
-            "traces": [],
+            "traces": [
+                {
+                    "trace_id": "papilio-target-resolution-stored-replay",
+                    "sequence": 1,
+                    "stage_id": "agent-evidence-explanation",
+                    "model": "gpt-5.6-sol",
+                    "occurred_at": None,
+                    "request_artifact_id": "stored-analyst-request",
+                    "response_artifact_id": "stored-analyst-run",
+                    "prompt_sha256": request_descriptor["sha256"],
+                    "response_sha256": response_descriptor["sha256"],
+                    "stored_output_only": True,
+                }
+            ],
         },
         "expected_ui_counts": {
             "section_records": section_records,
@@ -973,7 +1157,7 @@ def build_truthful_demo_fixture(
             },
             "artifact_count": len(inventory),
             "attribution_count": len(attribution_payload["entries"]),
-            "openai_replay_trace_count": 0,
+            "openai_replay_trace_count": 1,
             "unavailable_section_count": sum(
                 section["status"] == "unavailable" for section in sections.values()
             ),

@@ -91,12 +91,31 @@ describe('loadEvidenceFacade', () => {
     expect(facade.replay.bundleId).toBe(replayEvidenceContract.bundleId)
     expect(facade.replay.bundleCreatedAt).toBe('2026-07-15T15:30:00Z')
     expect(facade.replay.target.scientificName).toBe('Papilio demoleus')
-    expect(facade.replay.artifactCount).toBe(22)
-    expect(facade.replay.verifiedArtifactCount).toBe(22)
+    expect(facade.replay.artifactCount).toBe(24)
+    expect(facade.replay.verifiedArtifactCount).toBe(24)
     expect(facade.replay.unavailableSections).toHaveLength(6)
     expect(facade.replay.sections.yoloe_evidence.status).toBe('unavailable')
-    expect(facade.replay.artifactInventory).toHaveLength(22)
+    expect(facade.replay.artifactInventory).toHaveLength(24)
     expect(facade.replay.artifactInventory.every(({ verified }) => verified)).toBe(true)
+    expect(facade.loadStoredOpenAIReplay()).toMatchObject([
+      {
+        traceId: 'papilio-target-resolution-stored-replay',
+        sequence: 1,
+        model: 'gpt-5.6-sol',
+        occurredAt: null,
+        storedOutputOnly: true,
+        credentialsRequired: false,
+        liveRequestsAllowed: false,
+        requestArtifact: {
+          artifactId: 'stored-analyst-request',
+          path: 'agent/stored_analyst_request.json',
+        },
+        responseArtifact: {
+          artifactId: 'stored-analyst-run',
+          path: 'agent/stored_analyst_run.json',
+        },
+      },
+    ])
     expect(
       facade.replay.artifactInventory.find(
         ({ artifactId }) => artifactId === 'biominer-flickr-query-hits-parquet',

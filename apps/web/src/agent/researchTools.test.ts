@@ -80,7 +80,7 @@ describe('research evidence tool registry', () => {
     ])
     for (const result of results) {
       expect(result.artifactIds.length).toBeGreaterThan(0)
-      expect(result.artifactIds.length).toBeLessThanOrEqual(22)
+      expect(result.artifactIds.length).toBeLessThanOrEqual(32)
       expect(result.artifactIds.every((artifactId) => inventory.has(artifactId))).toBe(true)
       expect(
         result.records.every(({ artifactIds }) =>

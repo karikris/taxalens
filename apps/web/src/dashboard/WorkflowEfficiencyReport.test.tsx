@@ -44,7 +44,7 @@ describe('WorkflowEfficiencyReport', () => {
     const completeness = within(metrics)
       .getByRole('heading', { name: 'Evidence completeness' })
       .closest('article')
-    expect(completeness).toHaveTextContent('22 of 22 artifacts verified')
+    expect(completeness).toHaveTextContent('24 of 24 artifacts verified')
     expect(completeness).toHaveTextContent('Available sections5')
     expect(completeness).toHaveTextContent('Partial sections9')
     expect(completeness).toHaveTextContent('Unavailable sections6')

@@ -65,9 +65,18 @@ test('navigates the evidence views and guided tour from the keyboard', async ({ 
   await expect(
     page.getByRole('heading', { name: 'GPT-5.6 Sol research analyst' }),
   ).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'No analyst session loaded' })).toBeVisible()
-  await expect(page.getByText('gpt-5.6-sol', { exact: true })).toBeVisible()
-  await expect(page.getByText(/does not yet contain an analyst trace/u)).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Replayed analyst session' })).toBeVisible()
+  await expect(page.getByText('gpt-5.6-sol', { exact: true }).first()).toBeVisible()
+  await expect(page.getByText('Stored output · no live call')).toBeVisible()
+  await expect(page.getByText('What target does this verified replay resolve?')).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'resolve_taxon' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Answer' })).toBeVisible()
+  await expect(
+    page.locator('.agent-answer').getByText(/This target resolution is not an occurrence/u),
+  ).toBeVisible()
+  await expect(page.getByText('stored-analyst-request', { exact: true }).first()).toBeVisible()
+  await expect(page.getByText('stored-analyst-run', { exact: true }).first()).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'No analyst session loaded' })).toBeHidden()
 
   const reset = page.getByRole('button', { name: 'Reset replay' })
   await reset.focus()
@@ -84,7 +93,7 @@ test('shows only checksum-verified evidence with explicit analytics and unavaila
 }) => {
   await page.goto('./#observatory')
 
-  await expect(page.getByText('22 / 22 verified')).toBeVisible()
+  await expect(page.getByText('24 / 24 verified')).toBeVisible()
   await expect(page.getByText('Inventory and payload verified')).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Evidence pipeline' })).toBeVisible()
   const pipeline = page.getByRole('list', { name: 'Evidence pipeline stages' })
@@ -170,7 +179,7 @@ test('configures a bounded mission without enabling unsupported live work', asyn
     'page',
   )
   await expect(page.locator('.replay-launch-receipt').getByText(/^sha256:[0-9a-f]{64}$/u)).toBeVisible()
-  await expect(page.getByText('22 / 22 verified')).toBeVisible()
+  await expect(page.getByText('24 / 24 verified')).toBeVisible()
   await expect(page.getByText('Fixture replay only · no live actions · no remote requests')).toBeVisible()
   expect(requestUrls).toHaveLength(requestsBeforeLaunch)
 })
@@ -625,7 +634,7 @@ test('shows a truthful lifecycle ledger without fabricated event times or commen
   await expect(ledger.getByRole('time')).toHaveCount(1)
   await expect(
     ledger.getByRole('heading', { name: 'Export' }).locator('xpath=ancestor::article[1]'),
-  ).toContainText('22 / 22 checksum-verified artifacts')
+  ).toContainText('24 / 24 checksum-verified artifacts')
 
   const expectedOrigin = new URL(page.url()).origin
   expect(
@@ -976,7 +985,7 @@ test('reports only measured workflow efficiency without inferring avoided work',
   await expect(metric('Embedding reuse')).toContainText('No embedding artifact')
   await expect(metric('Restart efficiency')).toContainText('Complete checkpoints22 of 22')
   await expect(metric('Restart efficiency')).toContainText('Checkpoint pages314')
-  await expect(metric('Evidence completeness')).toContainText('22 of 22 artifacts verified')
+  await expect(metric('Evidence completeness')).toContainText('24 of 24 artifacts verified')
   await expect(metric('Evidence completeness')).toContainText('Available sections5')
   await expect(metric('Evidence completeness')).toContainText('Partial sections9')
   await expect(metric('Evidence completeness')).toContainText('Unavailable sections6')

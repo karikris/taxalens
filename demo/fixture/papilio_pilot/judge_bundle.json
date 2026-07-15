@@ -2,15 +2,15 @@
   "artifact_inventory": [
     {
       "artifact_id": "attribution-manifest",
-      "bytes": 1677,
+      "bytes": 1741,
       "media_type": "application/json",
       "path": "attribution_manifest.json",
       "record_count": 2,
       "required": true,
       "role": "attribution",
       "schema_version": "truthful-demo-attribution-manifest:v1.0.0",
-      "sha256": "c24791ec06e79b2716f73fe9c8184a66c3f517739b4b6d95093a6f0b6e5c3ece",
-      "source_commit": "188187d73ca8e0ef2c670bdf6cefcb20c8a59d9d",
+      "sha256": "b37af8f11e4ddd075003042f001c0ef9f6d2dbd97317e6d255b7f750ee19c032",
+      "source_commit": "77cd51e7a61945ffef9f0603b9ecd960460abaa9",
       "source_repository": "karikris/TaxaLens"
     },
     {
@@ -36,7 +36,7 @@
       "role": "other",
       "schema_version": "taxalens-biominer-analytics-import:v1.0.0",
       "sha256": "ad4f57815f7e37e703569d31f73d98000c14f1d9484015ad8cda4c3b1017b4a7",
-      "source_commit": "188187d73ca8e0ef2c670bdf6cefcb20c8a59d9d",
+      "source_commit": "77cd51e7a61945ffef9f0603b9ecd960460abaa9",
       "source_repository": "karikris/TaxaLens"
     },
     {
@@ -179,7 +179,7 @@
       "role": "pipeline_stages",
       "schema_version": "truthful-demo-pipeline-stage:v1.0.0",
       "sha256": "82b51bfe2fc5776ddb97659d4622bf7d2585a2c4ecc8128ff783ce9fa68b69ad",
-      "source_commit": "188187d73ca8e0ef2c670bdf6cefcb20c8a59d9d",
+      "source_commit": "77cd51e7a61945ffef9f0603b9ecd960460abaa9",
       "source_repository": "karikris/TaxaLens"
     },
     {
@@ -223,15 +223,15 @@
     },
     {
       "artifact_id": "rights-manifest",
-      "bytes": 2259,
+      "bytes": 2323,
       "media_type": "application/json",
       "path": "rights_manifest.json",
       "record_count": 1,
       "required": true,
       "role": "rights",
       "schema_version": "truthful-demo-rights-manifest:v1.0.0",
-      "sha256": "a54ce3b8e7915c0f9487cb9ccefc2229ed0855825d4c3f28fe726f176c385cf3",
-      "source_commit": "188187d73ca8e0ef2c670bdf6cefcb20c8a59d9d",
+      "sha256": "9641afa1c8c39c0d4325a46e676bfe1931dd60cc2c4c5c0010bb681836bd625c",
+      "source_commit": "77cd51e7a61945ffef9f0603b9ecd960460abaa9",
       "source_repository": "karikris/TaxaLens"
     },
     {
@@ -244,7 +244,7 @@
       "role": "run_summary",
       "schema_version": "truthful-demo-run-summary:v1.0.0",
       "sha256": "2071c4bc54fb3dd084a231726d228ca8c0d78679f39eed335d856048dac97573",
-      "source_commit": "188187d73ca8e0ef2c670bdf6cefcb20c8a59d9d",
+      "source_commit": "77cd51e7a61945ffef9f0603b9ecd960460abaa9",
       "source_repository": "karikris/TaxaLens"
     },
     {
@@ -257,7 +257,7 @@
       "role": "selective_decision_metadata",
       "schema_version": "truthful-demo-decision-state:v1.0.0",
       "sha256": "6906410a5715674987df35b92bfc7836779d5514e3a52b68cb61437b07581743",
-      "source_commit": "188187d73ca8e0ef2c670bdf6cefcb20c8a59d9d",
+      "source_commit": "77cd51e7a61945ffef9f0603b9ecd960460abaa9",
       "source_repository": "karikris/TaxaLens"
     },
     {
@@ -272,6 +272,32 @@
       "sha256": "04f083e24f9aa994aa549d4312dc4a1c4acf59c65d6244fd772fff9b92e0dd2d",
       "source_commit": "75461d9c065af0cd96b41cd1f845c2e920f7ae34",
       "source_repository": "karikris/BioMiner"
+    },
+    {
+      "artifact_id": "stored-analyst-request",
+      "bytes": 484,
+      "media_type": "application/json",
+      "path": "agent/stored_analyst_request.json",
+      "record_count": 1,
+      "required": true,
+      "role": "openai_replay_traces",
+      "schema_version": "taxalens-stored-analyst-request:v1.0.0",
+      "sha256": "2f157b29f5aed3b09580c329115836c1fc3af806e1c4332885974c257b4a9331",
+      "source_commit": "77cd51e7a61945ffef9f0603b9ecd960460abaa9",
+      "source_repository": "karikris/TaxaLens"
+    },
+    {
+      "artifact_id": "stored-analyst-run",
+      "bytes": 3367,
+      "media_type": "application/json",
+      "path": "agent/stored_analyst_run.json",
+      "record_count": 1,
+      "required": true,
+      "role": "openai_replay_traces",
+      "schema_version": "taxalens-research-analyst-run:v1.0.0",
+      "sha256": "eceb683f0457eec40b3a8614fda54c90932998849c20c71f916a7106868c0187",
+      "source_commit": "77cd51e7a61945ffef9f0603b9ecd960460abaa9",
+      "source_repository": "karikris/TaxaLens"
     },
     {
       "artifact_id": "visual-domain-negatives",
@@ -323,6 +349,8 @@
           "pipeline-stages",
           "selective-decision-metadata",
           "biominer-analytics-import-receipt",
+          "stored-analyst-request",
+          "stored-analyst-run",
           "rights-manifest",
           "attribution-manifest"
         ],
@@ -340,14 +368,14 @@
   "checksums": {
     "algorithm": "sha256",
     "canonicalization": "json-sorted-keys-utf8-v1",
-    "inventory_sha256": "8783f8f991f05337cd87c94da0a91937dc7f6b45841bec2458046ff6d342baaa",
-    "payload_root_sha256": "90543af7167025e0095ab68a811a578c547178ba971459e5141c40773b7a17a9"
+    "inventory_sha256": "02fe3eda46b4e4d41ac07a58d2ef8c3d1691061f784e18032e7b6cb737731f43",
+    "payload_root_sha256": "cc9fb1fbbc6c9131bc3f33459ee57d390328899f91a931891e6369dfd468cac2"
   },
   "created_at": "2026-07-15T15:30:00Z",
   "expected_ui_counts": {
-    "artifact_count": 22,
+    "artifact_count": 24,
     "attribution_count": 2,
-    "openai_replay_trace_count": 0,
+    "openai_replay_trace_count": 1,
     "screen_items": {
       "butterfly_dashboard": 1,
       "evidence_lens": 11,
@@ -381,10 +409,23 @@
   "openai_replay": {
     "credentials_required": false,
     "live_requests_allowed": false,
-    "mode": "not_used",
-    "reason": "No OpenAI request or stored OpenAI output is represented in this pilot fixture.",
-    "status": "not_used",
-    "traces": []
+    "mode": "stored_structured_outputs_only",
+    "reason": "A public request, deterministic tool trace, and structured analyst output are stored for credential-free replay; no live request is issued by the fixture.",
+    "status": "available",
+    "traces": [
+      {
+        "model": "gpt-5.6-sol",
+        "occurred_at": null,
+        "prompt_sha256": "2f157b29f5aed3b09580c329115836c1fc3af806e1c4332885974c257b4a9331",
+        "request_artifact_id": "stored-analyst-request",
+        "response_artifact_id": "stored-analyst-run",
+        "response_sha256": "eceb683f0457eec40b3a8614fda54c90932998849c20c71f916a7106868c0187",
+        "sequence": 1,
+        "stage_id": "agent-evidence-explanation",
+        "stored_output_only": true,
+        "trace_id": "papilio-target-resolution-stored-replay"
+      }
+    ]
   },
   "rights": {
     "all_artifacts_covered": true,
@@ -428,7 +469,9 @@
           "pipeline-stages",
           "rights-manifest",
           "run-summary",
-          "selective-decision-metadata"
+          "selective-decision-metadata",
+          "stored-analyst-request",
+          "stored-analyst-run"
         ],
         "attribution_required": true,
         "creator_or_owner": "Kris Kari",
@@ -658,7 +701,7 @@
   },
   "source_revisions": {
     "biominer_sha": "75461d9c065af0cd96b41cd1f845c2e920f7ae34",
-    "taxalens_sha": "188187d73ca8e0ef2c670bdf6cefcb20c8a59d9d"
+    "taxalens_sha": "77cd51e7a61945ffef9f0603b9ecd960460abaa9"
   },
   "target": {
     "accepted_taxon_key": "gbif:1938069",
