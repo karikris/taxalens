@@ -7,6 +7,7 @@ import type {
 } from '../data/evidenceFacade'
 import { EvidenceDesignation, EvidenceState, EvidenceTier } from '../design-system'
 import type { DiscoveryProvenanceResult } from './discoveryProvenance'
+import { YoloeRoutingEvidence } from './YoloeRoutingEvidence'
 import './evidence.css'
 
 export type DiscoveryProvenanceExecutor = (
@@ -134,6 +135,8 @@ export function EvidenceLensWorkspace({
           )}
         </div>
       </section>
+
+      <YoloeRoutingEvidence replay={replay} />
 
       <h3>Explicitly unavailable evidence</h3>
       <ul className="unavailable-evidence-list">

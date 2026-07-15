@@ -226,9 +226,188 @@
   overflow-wrap: anywhere;
 }
 
+.yoloe-routing {
+  display: grid;
+  gap: var(--tl-space-3);
+  padding: clamp(var(--tl-space-3), 3vw, var(--tl-space-4));
+  background: var(--tl-surface-paper);
+  border: 1px solid var(--tl-state-unavailable-line);
+  border-top: 4px solid var(--tl-state-unavailable-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.yoloe-routing__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--tl-space-3);
+}
+
+.yoloe-routing__heading h3 {
+  margin: 0;
+}
+
+.yoloe-routing__heading > strong {
+  flex: 0 0 auto;
+  padding: var(--tl-space-1) var(--tl-space-2);
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-xs);
+  background: var(--tl-state-unavailable-bg);
+  border: 1px solid var(--tl-state-unavailable-line);
+  border-radius: var(--tl-radius-pill);
+}
+
+.yoloe-routing__principle {
+  margin: 0;
+  padding: var(--tl-space-3);
+  color: var(--tl-state-review-ink);
+  font-family: var(--tl-font-editorial);
+  font-size: var(--tl-text-md);
+  font-weight: 600;
+  background: var(--tl-state-review-bg);
+  border: 1px solid var(--tl-state-review-line);
+  border-left: 4px solid var(--tl-state-review-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.yoloe-routing .tl-scientific-figure {
+  margin: 0;
+}
+
+.yoloe-routing .tl-scientific-figure__plot {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(14rem, 1fr);
+  gap: var(--tl-space-3);
+}
+
+.yoloe-routing__canvas {
+  display: grid;
+  place-items: center;
+  min-height: 18rem;
+  padding: var(--tl-space-4);
+  color: var(--tl-ink-muted);
+  text-align: center;
+  background:
+    linear-gradient(var(--tl-state-unavailable-bg), var(--tl-state-unavailable-bg)),
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 1rem,
+      var(--tl-line) 1rem,
+      var(--tl-line) 1.08rem
+    );
+  border: 2px dashed var(--tl-state-unavailable-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.yoloe-routing__canvas span {
+  max-width: 14rem;
+  font-weight: 800;
+}
+
+.yoloe-routing__layers {
+  display: grid;
+  align-content: start;
+  gap: var(--tl-space-2);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.yoloe-routing__layers li {
+  display: grid;
+  grid-template-columns: 1.5rem minmax(0, 1fr);
+  gap: var(--tl-space-2);
+  padding: var(--tl-space-2);
+  background: var(--tl-state-unavailable-bg);
+  border: 1px dashed var(--tl-state-unavailable-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.yoloe-routing__layer-marker {
+  display: block;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.1rem;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 0.2rem,
+    currentcolor 0.2rem,
+    currentcolor 0.26rem
+  );
+  border: 2px solid currentcolor;
+}
+
+.yoloe-routing__layers li > div > strong,
+.yoloe-routing__layers li > div > span,
+.yoloe-routing__layers li > div > small {
+  display: block;
+}
+
+.yoloe-routing__layers li > div > span {
+  margin-top: var(--tl-space-1);
+  font-size: var(--tl-text-xs);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.yoloe-routing__layers li > div > small {
+  margin-top: var(--tl-space-1);
+  color: var(--tl-ink-muted);
+}
+
+.yoloe-routing__facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--tl-space-2);
+  margin: 0;
+}
+
+.yoloe-routing__facts > div {
+  min-width: 0;
+  padding: var(--tl-space-3);
+  background: var(--tl-state-unavailable-bg);
+  border: 1px dashed var(--tl-state-unavailable-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.yoloe-routing__facts dt {
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-xs);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.yoloe-routing__facts dd {
+  margin: var(--tl-space-1) 0 0;
+}
+
+.yoloe-routing__facts dd strong,
+.yoloe-routing__facts dd span {
+  display: block;
+}
+
+.yoloe-routing__facts dd strong {
+  font-size: var(--tl-text-sm);
+}
+
+.yoloe-routing__facts dd span {
+  margin-top: var(--tl-space-1);
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-sm);
+}
+
+.yoloe-routing__boundary {
+  margin: 0;
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-sm);
+}
+
 @media (max-width: 44rem) {
   .discovery-evidence__heading,
-  .provenance-card__heading {
+  .provenance-card__heading,
+  .yoloe-routing__heading {
     display: grid;
   }
 
@@ -237,7 +416,16 @@
   }
 
   .provenance-card__facts,
-  .query-associations dl {
+  .query-associations dl,
+  .yoloe-routing__facts {
     grid-template-columns: 1fr;
+  }
+
+  .yoloe-routing .tl-scientific-figure__plot {
+    grid-template-columns: 1fr;
+  }
+
+  .yoloe-routing__canvas {
+    min-height: 12rem;
   }
 }

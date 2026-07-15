@@ -328,3 +328,59 @@ test('traces every discovery association without inventing source rights or dupl
   }))
   expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth)
 })
+
+test('shows the complete unavailable YOLOE routing contract without a synthetic overlay', async ({
+  page,
+}) => {
+  const requestUrls: string[] = []
+  page.on('request', (request) => requestUrls.push(request.url()))
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('./#evidence-lens')
+
+  await expect(
+    page.getByText('YOLOE routes evidence; it does not identify species.', { exact: true }),
+  ).toBeVisible()
+  const figure = page.getByRole('figure', {
+    name: 'Original image, detection box, and segmentation mask',
+  })
+  await expect(figure).toContainText('Evidence unavailable')
+  await expect(
+    page.getByRole('img', {
+      name: 'YOLOE image, detection box, and segmentation mask unavailable',
+    }),
+  ).toBeVisible()
+  await expect(page.locator('.yoloe-routing img')).toHaveCount(0)
+
+  const layers = page.getByRole('list', { name: 'YOLOE visual layers' })
+  await expect(layers.locator(':scope > li')).toHaveCount(3)
+  await expect(layers.getByText('Original full image', { exact: true })).toBeVisible()
+  await expect(layers.getByText('Detection box', { exact: true })).toBeVisible()
+  await expect(layers.getByText('Segmentation mask', { exact: true })).toBeVisible()
+
+  const attributes = page.getByRole('group', { name: 'YOLOE routing attributes' })
+  await expect(attributes.locator(':scope > div')).toHaveCount(6)
+  for (const label of [
+    'Route',
+    'Visual domain',
+    'Life stage',
+    'Subject area',
+    'Multiple organisms',
+    'Route reason',
+  ]) {
+    await expect(attributes.getByText(label, { exact: true })).toBeVisible()
+  }
+  await expect(attributes.getByText('Unavailable', { exact: true })).toHaveCount(6)
+
+  const expectedOrigin = new URL(page.url()).origin
+  expect(
+    requestUrls.filter((url) => {
+      const parsed = new URL(url)
+      return ['http:', 'https:'].includes(parsed.protocol) && parsed.origin !== expectedOrigin
+    }),
+  ).toEqual([])
+  const viewport = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }))
+  expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth)
+})
