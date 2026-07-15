@@ -29,6 +29,17 @@ def test_adapt_run_manifest_rejects_invalid_biominer_sha() -> None:
         assert False
 
 
+def test_adapt_run_manifest_rejects_non_hex_biominer_sha() -> None:
+    fixture = Path("packages/replay/tests/fixtures/run_manifest.json")
+
+    try:
+        adapt_run_manifest(manifest_path=fixture, biominer_commit="z" * 40)
+    except RunManifestAdapterError as exc:
+        assert "hexadecimal SHA" in str(exc)
+    else:
+        assert False
+
+
 def test_adapt_run_manifest_normalizes_completed_alias(tmp_path: Path) -> None:
     source = Path("packages/replay/tests/fixtures/run_manifest.json")
     payload = json.loads(source.read_text(encoding="utf-8"))
