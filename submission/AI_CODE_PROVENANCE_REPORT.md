@@ -13,6 +13,7 @@ TaxaLens is a new, product-facing evidence and replay layer built on the indepen
 - **2,965 ELOC (22.56%)** are TaxaLens adapters constrained by 11 pinned BioMiner artifact contracts. They are local adapter bodies, not copied engine code.
 - **2,159 ELOC (16.43%)** are TaxaLens-native product, CLI, contract, and verification code.
 - **1,080 ELOC (8.22%)** are verifiably attributed by current Git trailers to GPT-5.6 Sol. They comprise the entire current TaxaLens Python product package and CLI, plus a replay-package bootstrap.
+- Within the 2,159-line TaxaLens-native product/tooling category, that is **50.02%**. It is not represented as proof that GPT-5.6 built a majority of all Build Week functionality, because adapter-model provenance is unavailable.
 - There is **no committed model evidence** assigning a current production line to GPT-5.5 or Spark 5.3. That is an evidence gap, not a claim that those models were unused.
 
 The [OpenAI Build Week Rules](https://openai.devpost.com/rules) require pre-existing projects to distinguish prior work from the Build Week extension with dated evidence. They also require a README/video explanation of Codex and GPT-5.6 use and the majority-core Codex /feedback Session ID. This document supplies the code-origin part of that evidence; it does not replace the required working project, video, README, or session ID.
