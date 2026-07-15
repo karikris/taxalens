@@ -5,6 +5,21 @@ phase12_status: "pushed-and-eligible-for-committed-migration-only"
 phase13_exclusion: "active-work-excluded-unless-explicitly-pinned"
 recorded_at: "2026-07-15"
 components:
+  - component_id: biominer_full_frame_attention
+    source_repository: karikris/BioMiner
+    source_commit: 1535c494f9403e22ed9b163f3ae0ce3706e17f4c
+    source_path: src/biominer/vision/full_frame_attention.py
+    destination_path: packages/replay/src/biominer_full_frame_attention.py
+    migration_kind: copied
+    reason: Preserve the complete canvas-retaining attention and visual-input contract required by target-aware Build Week evidence.
+    build_week_scope: new
+    source_license: MIT
+    changes:
+      - Redirected semantic-hash and decoded-image imports to mechanically preserved TaxaLens modules.
+      - Retained every production transformation, geometry, mask, quality, evidence, fingerprint, and preprocessing rule.
+    tests:
+      - packages/replay/tests/test_biominer_full_frame_attention.py
+    status: migrated
   - component_id: biominer_detection_policy
     source_repository: karikris/BioMiner
     source_commit: 1535c494f9403e22ed9b163f3ae0ce3706e17f4c

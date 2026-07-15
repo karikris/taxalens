@@ -1,5 +1,12 @@
 # UPSTREAM_BIOMINER.md
 
+## Preserved full-frame attention contract
+
+- `packages/replay/src/biominer_full_frame_attention.py` retains the complete committed BioMiner `src/biominer/vision/full_frame_attention.py` logic at `1535c494f9403e22ed9b163f3ae0ce3706e17f4c`.
+- Only the semantic-hash and decoded-image imports are redirected to their preserved TaxaLens copies; no canvas, geometry, mask, quality, fingerprint, evidence, or preprocessing logic was removed.
+- The complete committed `tests/test_full_frame_attention.py` suite is migrated with import-only adaptation.
+- Pillow is an explicit runtime prerequisite for this module. TaxaLens does not yet have a Python dependency manifest, so installation and locking remain a later repository-packaging task rather than an implicit dependency change here.
+
 ## Preserved detection policy and runtime profiles
 
 - `packages/replay/src/biominer_detection_policy.py` retains the complete committed BioMiner `src/biominer/detection/policy.py` logic at `1535c494f9403e22ed9b163f3ae0ce3706e17f4c`.
