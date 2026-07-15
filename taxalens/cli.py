@@ -11,6 +11,13 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from taxalens import __version__
+from taxalens.product.local_replay import (
+    DEFAULT_LOCAL_REPLAY_PORT,
+    LocalReplayError,
+    prepare_local_replay,
+    serve_local_replay,
+)
+from taxalens.product.truthful_demo_verifier import TruthfulDemoVerificationError
 
 _SHA_PATTERN = re.compile(r'(?m)^pinned_biominer_sha:\s*["\']([0-9a-f]{40})["\']\s*$')
 _TRUTHFUL_DEMO_MANIFEST = "demo/fixture/papilio_pilot/judge_bundle.json"
@@ -132,16 +139,28 @@ def _demo_build(args: argparse.Namespace) -> int:
 
 
 def _demo_replay(args: argparse.Namespace) -> int:
-    payload = {
-        "status": "unavailable",
-        "open_requested": bool(args.open),
-        "reason": (
-            "The judge web application is not implemented yet; complete Task 9.1 "
-            "before claiming local replay."
-        ),
-    }
-    print(json.dumps(payload, indent=2, sort_keys=True))
-    return 2
+    try:
+        build = prepare_local_replay(_project_root())
+        return serve_local_replay(
+            build,
+            port=args.port,
+            open_browser=bool(args.open),
+        )
+    except (LocalReplayError, TruthfulDemoVerificationError, RuntimeError) as error:
+        print(
+            json.dumps(
+                {
+                    "status": "unavailable",
+                    "open_requested": bool(args.open),
+                    "credentials_required": False,
+                    "reason": str(error),
+                },
+                indent=2,
+                sort_keys=True,
+            ),
+            file=sys.stderr,
+        )
+        return 2
 
 
 def _provenance_verify(args: argparse.Namespace) -> int:
@@ -181,8 +200,14 @@ def build_parser() -> argparse.ArgumentParser:
     build.add_argument("manifest", nargs="?", default=_TRUTHFUL_DEMO_MANIFEST)
     build.set_defaults(handler=_demo_build)
 
-    replay = demo_commands.add_parser("replay", help="Start the local judge replay when available")
+    replay = demo_commands.add_parser("replay", help="Verify and start the local judge replay")
     replay.add_argument("--open", action="store_true", help="Open the replay in a browser")
+    replay.add_argument(
+        "--port",
+        type=int,
+        default=DEFAULT_LOCAL_REPLAY_PORT,
+        help="Loopback port; use 0 to select an ephemeral port",
+    )
     replay.set_defaults(handler=_demo_replay)
 
     provenance = commands.add_parser("provenance", help="Inspect TaxaLens provenance")

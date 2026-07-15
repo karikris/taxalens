@@ -48,6 +48,15 @@ from taxalens.product.judge_bundle import (
     load_judge_bundle,
     validate_judge_bundle,
 )
+from taxalens.product.local_replay import (
+    DEFAULT_LOCAL_REPLAY_MANIFEST,
+    DEFAULT_LOCAL_REPLAY_PORT,
+    LocalReplayBuild,
+    LocalReplayError,
+    LocalReplayServer,
+    prepare_local_replay,
+    serve_local_replay,
+)
 from taxalens.product.truthful_demo import (
     DEFAULT_ANALYTICS_IMPORT_MANIFEST,
     DEFAULT_TRUTHFUL_DEMO_ROOT,
@@ -120,4 +129,11 @@ __all__ = [
     "validate_judge_bundle",
     "verify_biominer_handoff_archive",
     "verify_truthful_demo",
+    "DEFAULT_LOCAL_REPLAY_MANIFEST",
+    "DEFAULT_LOCAL_REPLAY_PORT",
+    "LocalReplayBuild",
+    "LocalReplayError",
+    "LocalReplayServer",
+    "prepare_local_replay",
+    "serve_local_replay",
 ]
