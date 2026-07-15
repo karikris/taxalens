@@ -154,6 +154,25 @@ test('executes the eight real DuckDB-Wasm Parquet operations and inspects their 
     timeout: 60_000,
   })
 
+  const researchOperations = page.getByRole('list', { name: 'Research operation explanations' })
+  await expect(researchOperations.locator(':scope > li')).toHaveCount(8)
+  const physicalResearch = researchOperations
+    .getByText('physical-query-deduplication', { exact: true })
+    .locator('xpath=ancestor::li[1]')
+  await expect(physicalResearch).toContainText('What occurred')
+  await expect(physicalResearch).toContainText('Records entering')
+  await expect(physicalResearch).toContainText('76,485 from flickr_query_hits')
+  await expect(physicalResearch).toContainText('556 in physical_queries')
+  await expect(physicalResearch).toContainText('User consequence')
+
+  const researchTab = page.getByRole('tab', { name: 'Research mode' })
+  await researchTab.focus()
+  await researchTab.press('ArrowRight')
+  await expect(page.getByRole('tab', { name: 'Engineering mode' })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  )
+
   const operations = page.getByRole('list', { name: 'Completed analytical operations' })
   await expect(operations.locator(':scope > li')).toHaveCount(8)
   const operation = (operationId: string) =>
@@ -164,6 +183,17 @@ test('executes the eight real DuckDB-Wasm Parquet operations and inspects their 
   await expect(fanback).toContainText('76,485 rows out')
   const sourceJoin = operation('source-id-hash-join')
   await expect(sourceJoin).toContainText('HASH_JOIN')
+  await expect(sourceJoin).toContainText('Keys')
+  await expect(sourceJoin).toContainText('source · flickr_photo_id')
+  await expect(sourceJoin).toContainText('Nulls')
+  await expect(sourceJoin).toContainText('Elapsed time')
+  await expect(sourceJoin).toContainText('verified source artifact bytes')
+  await expect(sourceJoin).toContainText('measured Parquet row groups')
+  await expect(sourceJoin).toContainText('fresh DuckDB worker memory; no persistent cache')
+  await expect(sourceJoin).toContainText(
+    '95448f3145d903f7f042fe41d74561475ef050f8df21b318ebacb252484e4f0b',
+  )
+  await expect(sourceJoin).toContainText('75461d9c065af0cd96b41cd1f845c2e920f7ae34')
   const antiJoin = operation('duplicate-anti-join')
   await expect(antiJoin).toContainText('13,501 rows out')
   await expect(antiJoin).toContainText('ANTI')

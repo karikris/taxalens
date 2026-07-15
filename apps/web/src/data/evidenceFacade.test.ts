@@ -184,6 +184,19 @@ describe('loadEvidenceFacade', () => {
     expect(analytics.artifacts.reduce((total, artifact) => total + artifact.bytes.byteLength, 0)).toBe(
       1_647_550,
     )
+    expect(analytics.artifacts[0]).toMatchObject({
+      sizeBytes: 222_190,
+      recordCount: 76_485,
+      sha256: '95448f3145d903f7f042fe41d74561475ef050f8df21b318ebacb252484e4f0b',
+      producerSha: replayEvidenceContract.biominerSha,
+    })
+    expect(analytics.candidateArtifact).toMatchObject({
+      artifactId: 'candidate-sets',
+      sizeBytes: 2_280,
+      recordCount: 5,
+      sha256: 'cd36c310150c0ca9c63e0adf690519a0afb5428b68c7eb064f8b4e6749cb0791',
+      producerSha: replayEvidenceContract.biominerSha,
+    })
     expect(analytics.candidates).toHaveLength(6)
     expect(analytics.candidates[0]).toMatchObject({
       acceptedTaxonKey: 'gbif:1938069',

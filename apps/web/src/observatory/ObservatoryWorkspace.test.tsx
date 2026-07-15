@@ -60,6 +60,27 @@ describe('ObservatoryWorkspace', () => {
         outputRelation: `output_${index}`,
         inputRows: index + 1,
         outputRows: index + 1,
+        whatOccurred: `Measured operation ${index}`,
+        why: 'To preserve inspectable evidence lineage.',
+        userConsequence: 'The result remains reviewable.',
+        keys: ['source_id'],
+        cardinality: 'One input record to one output record.',
+        nullRows: 0,
+        sourceArtifactBytes: 222_190,
+        parquetRowGroups: 1,
+        cache: 'fresh DuckDB worker memory; no persistent cache',
+        artifacts: [
+          {
+            artifactId: 'biominer-flickr-query-hits-parquet',
+            mediaType: 'application/vnd.apache.parquet',
+            path: 'analytics/flickr_query_hits.parquet',
+            sizeBytes: 222_190,
+            sha256: '95448f3145d903f7f042fe41d74561475ef050f8df21b318ebacb252484e4f0b',
+            recordCount: 76_485,
+            producerSha: '75461d9c065af0cd96b41cd1f845c2e920f7ae34',
+            parquetRowGroups: 1,
+          },
+        ],
         planOperators: operationId === 'source-id-hash-join' ? ['HASH_JOIN'] : [],
         explainPlan: `plan ${index}`,
         elapsedMilliseconds: 1,
@@ -83,10 +104,22 @@ describe('ObservatoryWorkspace', () => {
     expect(await screen.findByText('Eight analytical operations completed')).toBeInTheDocument()
     expect(executeReplay).toHaveBeenCalledTimes(1)
     expect(
-      within(screen.getByRole('list', { name: 'Completed analytical operations' })).getAllByRole(
+      within(screen.getByRole('list', { name: 'Research operation explanations' })).getAllByRole(
         'listitem',
       ),
     ).toHaveLength(8)
+    expect(screen.getAllByText('What occurred')).toHaveLength(8)
+
+    const researchTab = screen.getByRole('tab', { name: 'Research mode' })
+    researchTab.focus()
+    fireEvent.keyDown(researchTab, { key: 'ArrowRight' })
+    const engineeringTab = screen.getByRole('tab', { name: 'Engineering mode' })
+    expect(engineeringTab).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('list', { name: 'Completed analytical operations' }).children).toHaveLength(
+      8,
+    )
+    expect(screen.getAllByText('Checksum')).toHaveLength(8)
+    expect(screen.getAllByText('Producer SHA')).toHaveLength(8)
     expect(screen.getByText('Not executed', { exact: true })).toBeInTheDocument()
   })
 })

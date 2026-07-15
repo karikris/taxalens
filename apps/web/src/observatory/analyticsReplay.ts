@@ -1,6 +1,6 @@
 import type { AsyncDuckDBConnection } from '@duckdb/duckdb-wasm'
 
-import type { AnalyticsReplayInput } from '../data/evidenceFacade'
+import type { AnalyticsArtifactProvenance, AnalyticsReplayInput } from '../data/evidenceFacade'
 import {
   createDuckDbRuntime,
   DUCKDB_ENGINE_VERSION,
@@ -25,9 +25,23 @@ export interface AnalyticsOperationResult {
   readonly outputRelation: string
   readonly inputRows: number
   readonly outputRows: number
+  readonly whatOccurred: string
+  readonly why: string
+  readonly userConsequence: string
+  readonly keys: readonly string[]
+  readonly cardinality: string
+  readonly nullRows: number
+  readonly sourceArtifactBytes: number
+  readonly parquetRowGroups: number
+  readonly cache: 'fresh DuckDB worker memory; no persistent cache'
+  readonly artifacts: readonly AnalyticsArtifactInspection[]
   readonly planOperators: readonly string[]
   readonly explainPlan: string
   readonly elapsedMilliseconds: number
+}
+
+export interface AnalyticsArtifactInspection extends AnalyticsArtifactProvenance {
+  readonly parquetRowGroups: number | null
 }
 
 export interface AnalyticsReplayResult {
@@ -49,8 +63,21 @@ interface OperationDefinition {
   readonly outputRelation: string
   readonly inputCountSql: string
   readonly outputCountSql: string
+  readonly nullCountSql: string
+  readonly whatOccurred: string
+  readonly why: string
+  readonly userConsequence: string
+  readonly keys: readonly string[]
+  readonly cardinality: string
+  readonly artifactIds: readonly string[]
   readonly statement: string
 }
+
+const QUERY_HITS_ARTIFACT = 'biominer-flickr-query-hits-parquet'
+const GEOGRAPHY_ARTIFACT = 'biominer-flickr-geography-parquet'
+const ASSIGNMENTS_ARTIFACT = 'biominer-flickr-geo-assignments-parquet'
+const CLUSTERS_ARTIFACT = 'biominer-flickr-geo-clusters-parquet'
+const CANDIDATES_ARTIFACT = 'candidate-sets'
 
 const OPERATIONS: readonly OperationDefinition[] = Object.freeze([
   {
@@ -60,6 +87,14 @@ const OPERATIONS: readonly OperationDefinition[] = Object.freeze([
     outputRelation: 'physical_queries',
     inputCountSql: 'SELECT count(*) AS row_count FROM flickr_query_hits',
     outputCountSql: 'SELECT count(*) AS row_count FROM physical_queries',
+    nullCountSql:
+      'SELECT count(*) FILTER (WHERE source IS NULL OR query_hash IS NULL) AS row_count FROM physical_queries',
+    whatOccurred: 'Repeated logical query associations were reduced to distinct physical queries.',
+    why: 'One source query hash should be executed once even when several logical plans reuse it.',
+    userConsequence: 'The replay separates reusable retrieval work from the associations it serves.',
+    keys: ['source', 'query_hash'],
+    cardinality: 'Many logical query associations to one row per source and query hash.',
+    artifactIds: [QUERY_HITS_ARTIFACT],
     statement: `CREATE TEMP TABLE physical_queries AS
       SELECT
         source,
@@ -77,6 +112,15 @@ const OPERATIONS: readonly OperationDefinition[] = Object.freeze([
     outputRelation: 'logical_association_fanback',
     inputCountSql: 'SELECT count(*) AS row_count FROM physical_queries',
     outputCountSql: 'SELECT count(*) AS row_count FROM logical_association_fanback',
+    nullCountSql: `SELECT count(*) FILTER (
+      WHERE source IS NULL OR flickr_photo_id IS NULL OR query_hash IS NULL
+    ) AS row_count FROM logical_association_fanback`,
+    whatOccurred: 'Distinct physical queries were linked back to every recorded photo association.',
+    why: 'Deduplicating retrieval must not discard the logical evidence relationships it produced.',
+    userConsequence: 'Each observed photo retains the query context needed for later inspection.',
+    keys: ['source', 'query_hash'],
+    cardinality: 'One physical query to many logical photo associations.',
+    artifactIds: [QUERY_HITS_ARTIFACT],
     statement: `CREATE TEMP TABLE logical_association_fanback AS
       SELECT
         hits.source,
@@ -96,6 +140,15 @@ const OPERATIONS: readonly OperationDefinition[] = Object.freeze([
     outputRelation: 'source_id_join',
     inputCountSql: 'SELECT count(*) AS row_count FROM logical_association_fanback',
     outputCountSql: 'SELECT count(*) AS row_count FROM source_id_join',
+    nullCountSql: `SELECT count(*) FILTER (
+      WHERE source IS NULL OR flickr_photo_id IS NULL OR source_record_hash IS NULL
+    ) AS row_count FROM source_id_join`,
+    whatOccurred: 'Query associations were joined to canonical geography records by source identity.',
+    why: 'Coordinates must remain bound to the exact source photo rather than a display label.',
+    userConsequence: 'Geographic evidence can be traced to a stable source-record hash.',
+    keys: ['source', 'flickr_photo_id'],
+    cardinality: 'Many query associations to one canonical source record per association.',
+    artifactIds: [QUERY_HITS_ARTIFACT, GEOGRAPHY_ARTIFACT],
     statement: `CREATE TEMP TABLE source_id_join AS
       SELECT
         fanback.source,
@@ -119,6 +172,15 @@ const OPERATIONS: readonly OperationDefinition[] = Object.freeze([
     outputRelation: 'canonical_source_rows',
     inputCountSql: 'SELECT count(*) AS row_count FROM source_id_join',
     outputCountSql: 'SELECT count(*) AS row_count FROM canonical_source_rows',
+    nullCountSql: `SELECT count(*) FILTER (
+      WHERE source IS NULL OR flickr_photo_id IS NULL OR query_hash IS NULL
+    ) AS row_count FROM canonical_source_rows`,
+    whatOccurred: 'Repeated source-photo associations were excluded with an anti-join.',
+    why: 'A source photo can appear through several query paths but should remain one canonical record.',
+    userConsequence: 'Downstream cluster counts are not inflated by repeated query associations.',
+    keys: ['source', 'flickr_photo_id', 'query_hash'],
+    cardinality: 'Many associations to one retained row per source photo.',
+    artifactIds: [QUERY_HITS_ARTIFACT, GEOGRAPHY_ARTIFACT],
     statement: `CREATE TEMP TABLE canonical_source_rows AS
       WITH ranked_associations AS (
         SELECT
@@ -149,6 +211,27 @@ const OPERATIONS: readonly OperationDefinition[] = Object.freeze([
     outputRelation: 'spatial_cluster_join',
     inputCountSql: 'SELECT count(*) AS row_count FROM canonical_source_rows',
     outputCountSql: 'SELECT count(*) AS row_count FROM spatial_cluster_join',
+    nullCountSql: `SELECT count(*) FILTER (
+      WHERE source IS NULL OR flickr_photo_id IS NULL OR source_record_hash IS NULL
+        OR target_accepted_taxon_key IS NULL OR geo_cluster_id IS NULL
+    ) AS row_count FROM spatial_cluster_join`,
+    whatOccurred: 'Canonical photos were joined to their spatial assignments and cluster summaries.',
+    why: 'Assignment rows and cluster definitions must agree on the target and cluster identity.',
+    userConsequence: 'The replay exposes location structure as diagnostic metadata, not a species claim.',
+    keys: [
+      'source',
+      'flickr_photo_id',
+      'source_record_hash',
+      'target_accepted_taxon_key',
+      'geo_cluster_id',
+    ],
+    cardinality: 'One canonical photo to one assignment and one matching cluster definition.',
+    artifactIds: [
+      QUERY_HITS_ARTIFACT,
+      GEOGRAPHY_ARTIFACT,
+      ASSIGNMENTS_ARTIFACT,
+      CLUSTERS_ARTIFACT,
+    ],
     statement: `CREATE TEMP TABLE spatial_cluster_join AS
       SELECT
         canonical.source,
@@ -177,6 +260,15 @@ const OPERATIONS: readonly OperationDefinition[] = Object.freeze([
     outputRelation: 'candidate_union',
     inputCountSql: 'SELECT count(*) AS row_count FROM verified_candidate_inputs',
     outputCountSql: 'SELECT count(*) AS row_count FROM candidate_union',
+    nullCountSql: `SELECT count(*) FILTER (
+      WHERE acceptedTaxonKey IS NULL OR scientificName IS NULL OR evidenceRole IS NULL
+    ) AS row_count FROM candidate_union`,
+    whatOccurred: 'The target under study and regional competitor hypotheses were combined.',
+    why: 'Both evidence roles must enter later diagnostics without being mistaken for verified labels.',
+    userConsequence: 'The interface preserves competing hypotheses and keeps scientific claims disabled.',
+    keys: ['acceptedTaxonKey', 'evidenceRole'],
+    cardinality: 'One target hypothesis plus five regional competitor hypotheses.',
+    artifactIds: [CANDIDATES_ARTIFACT],
     statement: `CREATE TEMP TABLE candidate_union AS
       SELECT *
       FROM verified_candidate_inputs
@@ -193,6 +285,21 @@ const OPERATIONS: readonly OperationDefinition[] = Object.freeze([
     outputRelation: 'replay_stage_aggregation',
     inputCountSql: 'SELECT 6 AS row_count',
     outputCountSql: 'SELECT count(*) AS row_count FROM replay_stage_aggregation',
+    nullCountSql: `SELECT count(*) FILTER (
+      WHERE stage_id IS NULL OR output_rows IS NULL
+    ) AS row_count FROM replay_stage_aggregation`,
+    whatOccurred: 'The output counts from six materialized replay stages were assembled.',
+    why: 'A compact stage ledger makes row-count changes inspectable across the analytical path.',
+    userConsequence: 'Reviewers can see where records expand, contract, or remain stable.',
+    keys: ['stage_id'],
+    cardinality: 'Six materialized relations to six stage-total rows.',
+    artifactIds: [
+      QUERY_HITS_ARTIFACT,
+      GEOGRAPHY_ARTIFACT,
+      ASSIGNMENTS_ARTIFACT,
+      CLUSTERS_ARTIFACT,
+      CANDIDATES_ARTIFACT,
+    ],
     statement: `CREATE TEMP TABLE replay_stage_aggregation AS
       SELECT 'physical-query-deduplication' AS stage_id, count(*) AS output_rows
         FROM physical_queries
@@ -216,6 +323,21 @@ const OPERATIONS: readonly OperationDefinition[] = Object.freeze([
       (SELECT count(*) FROM candidate_union) +
       (SELECT count(*) FROM replay_stage_aggregation) AS row_count`,
     outputCountSql: 'SELECT count(*) AS row_count FROM diagnostic_evidence_assembly',
+    nullCountSql: `SELECT count(*) FILTER (
+      WHERE assembly_id IS NULL OR verification_status IS NULL
+    ) AS row_count FROM diagnostic_evidence_assembly`,
+    whatOccurred: 'Candidate and stage diagnostics were assembled into one replay receipt row.',
+    why: 'The replay needs a bounded outcome that records analytical coverage and claim status.',
+    userConsequence: 'The result can be inspected without presenting an automated identification.',
+    keys: ['assembly_id'],
+    cardinality: 'Six candidates and six stage totals to one diagnostic receipt.',
+    artifactIds: [
+      QUERY_HITS_ARTIFACT,
+      GEOGRAPHY_ARTIFACT,
+      ASSIGNMENTS_ARTIFACT,
+      CLUSTERS_ARTIFACT,
+      CANDIDATES_ARTIFACT,
+    ],
     statement: `CREATE TEMP TABLE diagnostic_evidence_assembly AS
       SELECT
         'papilio-demoleus-pilot-analytics-replay' AS assembly_id,
@@ -302,6 +424,35 @@ export async function executeAnalyticsReplay(
     await connection.query(`SET autoinstall_known_extensions = false;
       SET autoload_known_extensions = false;
       LOAD ${sqlLiteral(parquetExtensionUrl)}`)
+    const artifactInspections = new Map<string, AnalyticsArtifactInspection>()
+    for (const artifact of input.artifacts) {
+      const fileName = fileNames[artifact.artifactId]
+      if (fileName === undefined) {
+        throw new Error(`No registered filename exists for ${artifact.artifactId}`)
+      }
+      const parquetRowGroups = scalarCount(
+        await connection.query(
+          `SELECT count(DISTINCT row_group_id) AS row_count FROM parquet_metadata(${sqlLiteral(fileName)})`,
+        ),
+      )
+      artifactInspections.set(
+        artifact.artifactId,
+        Object.freeze({
+          artifactId: artifact.artifactId,
+          mediaType: artifact.mediaType,
+          path: artifact.path,
+          sizeBytes: artifact.sizeBytes,
+          sha256: artifact.sha256,
+          recordCount: artifact.recordCount,
+          producerSha: artifact.producerSha,
+          parquetRowGroups,
+        }),
+      )
+    }
+    artifactInspections.set(
+      input.candidateArtifact.artifactId,
+      Object.freeze({ ...input.candidateArtifact, parquetRowGroups: null }),
+    )
     await connection.query(`CREATE VIEW flickr_query_hits AS
       SELECT * FROM read_parquet('flickr_query_hits.parquet')`)
     await connection.query(`CREATE VIEW flickr_geography AS
@@ -327,6 +478,14 @@ export async function executeAnalyticsReplay(
       await connection.query(operation.statement)
       const elapsedMilliseconds = performance.now() - started
       const outputRows = scalarCount(await connection.query(operation.outputCountSql))
+      const nullRows = scalarCount(await connection.query(operation.nullCountSql))
+      const artifacts = operation.artifactIds.map((artifactId) => {
+        const artifact = artifactInspections.get(artifactId)
+        if (artifact === undefined) {
+          throw new Error(`No verified inspection metadata exists for ${artifactId}`)
+        }
+        return artifact
+      })
       operations.push(
         Object.freeze({
           operationId: operation.operationId,
@@ -335,6 +494,22 @@ export async function executeAnalyticsReplay(
           outputRelation: operation.outputRelation,
           inputRows,
           outputRows,
+          whatOccurred: operation.whatOccurred,
+          why: operation.why,
+          userConsequence: operation.userConsequence,
+          keys: Object.freeze(operation.keys),
+          cardinality: operation.cardinality,
+          nullRows,
+          sourceArtifactBytes: artifacts.reduce(
+            (total, artifact) => total + artifact.sizeBytes,
+            0,
+          ),
+          parquetRowGroups: artifacts.reduce(
+            (total, artifact) => total + (artifact.parquetRowGroups ?? 0),
+            0,
+          ),
+          cache: 'fresh DuckDB worker memory; no persistent cache',
+          artifacts: Object.freeze(artifacts),
           planOperators: planOperators(plan),
           explainPlan: plan,
           elapsedMilliseconds,

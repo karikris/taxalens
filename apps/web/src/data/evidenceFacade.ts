@@ -159,6 +159,7 @@ export interface AnalyticsCandidateInput {
 
 export interface AnalyticsReplayInput {
   readonly artifacts: readonly ParquetArtifactInput[]
+  readonly candidateArtifact: AnalyticsArtifactProvenance
   readonly candidates: readonly AnalyticsCandidateInput[]
   readonly receipt: {
     readonly schemaVersion: 'taxalens-biominer-analytics-import:v1.0.0'
@@ -167,10 +168,17 @@ export interface AnalyticsReplayInput {
   }
 }
 
-export interface ParquetArtifactInput {
+export interface AnalyticsArtifactProvenance {
   readonly artifactId: string
   readonly mediaType: string
   readonly path: string
+  readonly sizeBytes: number
+  readonly sha256: string
+  readonly recordCount: number | null
+  readonly producerSha: string
+}
+
+export interface ParquetArtifactInput extends AnalyticsArtifactProvenance {
   readonly bytes: Uint8Array<ArrayBuffer>
 }
 
@@ -1052,9 +1060,17 @@ class VerifiedEvidenceFacade implements EvidenceFacade {
         artifactId,
         mediaType: artifact.descriptor.media_type,
         path: artifact.descriptor.path,
+        sizeBytes: artifact.descriptor.bytes,
+        sha256: artifact.descriptor.sha256,
+        recordCount: artifact.descriptor.record_count,
+        producerSha: artifact.descriptor.source_commit,
         bytes: artifact.bytes.slice(),
       })
     })
+    const candidateArtifact = this.#artifacts.get('candidate-sets')
+    if (candidateArtifact === undefined || candidateArtifact.descriptor.record_count === null) {
+      throw new EvidenceFacadeError('candidate-sets provenance was not verified')
+    }
     const candidates: AnalyticsCandidateInput[] = [
       {
         acceptedTaxonKey: this.replay.target.acceptedTaxonKey,
@@ -1070,6 +1086,15 @@ class VerifiedEvidenceFacade implements EvidenceFacade {
     ]
     return Object.freeze({
       artifacts: Object.freeze(artifacts),
+      candidateArtifact: Object.freeze({
+        artifactId: candidateArtifact.descriptor.artifact_id,
+        mediaType: candidateArtifact.descriptor.media_type,
+        path: candidateArtifact.descriptor.path,
+        sizeBytes: candidateArtifact.descriptor.bytes,
+        sha256: candidateArtifact.descriptor.sha256,
+        recordCount: candidateArtifact.descriptor.record_count,
+        producerSha: candidateArtifact.descriptor.source_commit,
+      }),
       candidates: deepFreeze(candidates),
       receipt: Object.freeze({
         schemaVersion: ANALYTICS_RECEIPT_SCHEMA,
@@ -1111,6 +1136,10 @@ class VerifiedEvidenceFacade implements EvidenceFacade {
             artifactId: parquet.descriptor.artifact_id,
             mediaType: parquet.descriptor.media_type,
             path: parquet.descriptor.path,
+            sizeBytes: parquet.descriptor.bytes,
+            sha256: parquet.descriptor.sha256,
+            recordCount: parquet.descriptor.record_count,
+            producerSha: parquet.descriptor.source_commit,
             bytes: parquet.bytes.slice(),
           }),
         )

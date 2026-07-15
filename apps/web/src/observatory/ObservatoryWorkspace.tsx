@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Tab, TabList, TabPanel, Tabs } from 'react-aria-components'
 
 import type { AnalyticsReplayInput, EvidenceFacade, ReplayEvidence } from '../data/evidenceFacade'
 import { EvidenceState } from '../design-system'
@@ -285,34 +286,173 @@ function AnalyticsResults({ result }: { readonly result: AnalyticsReplayResult }
           <dd>{result.matrixScoringExecuted ? 'Executed' : 'Not executed'}</dd>
         </div>
       </dl>
-      <ol className="analytics-results__operations" aria-label="Completed analytical operations">
-        {result.operations.map((operation) => (
-          <li key={operation.operationId}>
-            <div className="analytics-results__operation-heading">
-              <div>
-                <code>{operation.operationId}</code>
-                <h3>{operation.label}</h3>
-              </div>
-              <strong>{operation.outputRows.toLocaleString('en-US')} rows out</strong>
-            </div>
-            <p>
-              {operation.inputRows.toLocaleString('en-US')} rows from{' '}
-              <code>{operation.inputRelation}</code> → <code>{operation.outputRelation}</code>
-            </p>
-            <div className="analytics-results__operators" aria-label="Observed query-plan operators">
-              {operation.planOperators.length === 0 ? (
-                <span>No named operator surfaced</span>
-              ) : (
-                operation.planOperators.map((operator) => <span key={operator}>{operator}</span>)
-              )}
-            </div>
-            <details>
-              <summary>Inspect DuckDB EXPLAIN plan</summary>
-              <pre>{operation.explainPlan}</pre>
-            </details>
-          </li>
-        ))}
-      </ol>
+      <Tabs className="analytics-inspection" defaultSelectedKey="research">
+        <TabList className="analytics-inspection__tabs" aria-label="Analytics inspection mode">
+          <Tab id="research">Research mode</Tab>
+          <Tab id="engineering">Engineering mode</Tab>
+        </TabList>
+        <TabPanel id="research" className="analytics-inspection__panel">
+          <p className="analytics-inspection__introduction">
+            Plain-language consequences of the measured replay. Counts below are the records
+            observed entering and leaving each operation.
+          </p>
+          <ol
+            className="analytics-results__operations analytics-results__operations--research"
+            aria-label="Research operation explanations"
+          >
+            {result.operations.map((operation) => (
+              <li key={operation.operationId}>
+                <div className="analytics-results__operation-heading">
+                  <div>
+                    <code>{operation.operationId}</code>
+                    <h3>{operation.label}</h3>
+                  </div>
+                </div>
+                <dl className="analytics-operation__inspection">
+                  <div>
+                    <dt>What occurred</dt>
+                    <dd>{operation.whatOccurred}</dd>
+                  </div>
+                  <div>
+                    <dt>Why</dt>
+                    <dd>{operation.why}</dd>
+                  </div>
+                  <div>
+                    <dt>Records entering</dt>
+                    <dd>
+                      {operation.inputRows.toLocaleString('en-US')} from{' '}
+                      <code>{operation.inputRelation}</code>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Records leaving</dt>
+                    <dd>
+                      {operation.outputRows.toLocaleString('en-US')} in{' '}
+                      <code>{operation.outputRelation}</code>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>User consequence</dt>
+                    <dd>{operation.userConsequence}</dd>
+                  </div>
+                </dl>
+              </li>
+            ))}
+          </ol>
+        </TabPanel>
+        <TabPanel id="engineering" className="analytics-inspection__panel">
+          <p className="analytics-inspection__introduction">
+            Runtime measurements and provenance for the exact verified source artifacts available
+            to each operation. Byte totals are artifact sizes, not claimed scan-byte measurements.
+          </p>
+          <ol className="analytics-results__operations" aria-label="Completed analytical operations">
+            {result.operations.map((operation) => (
+              <li key={operation.operationId}>
+                <div className="analytics-results__operation-heading">
+                  <div>
+                    <code>{operation.operationId}</code>
+                    <h3>{operation.label}</h3>
+                  </div>
+                  <strong>{operation.outputRows.toLocaleString('en-US')} rows out</strong>
+                </div>
+                <dl className="analytics-operation__inspection">
+                  <div>
+                    <dt>Operation</dt>
+                    <dd>
+                      <code>{operation.inputRelation}</code> →{' '}
+                      <code>{operation.outputRelation}</code>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Keys</dt>
+                    <dd>{operation.keys.join(' · ')}</dd>
+                  </div>
+                  <div>
+                    <dt>Cardinality</dt>
+                    <dd>{operation.cardinality}</dd>
+                  </div>
+                  <div>
+                    <dt>Rows</dt>
+                    <dd>
+                      {operation.inputRows.toLocaleString('en-US')} entering →{' '}
+                      {operation.outputRows.toLocaleString('en-US')} leaving
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Nulls</dt>
+                    <dd>{operation.nullRows.toLocaleString('en-US')} output rows on inspection keys</dd>
+                  </div>
+                  <div>
+                    <dt>Elapsed time</dt>
+                    <dd>{operation.elapsedMilliseconds.toFixed(2)} ms measured</dd>
+                  </div>
+                  <div>
+                    <dt>Bytes</dt>
+                    <dd>
+                      {operation.sourceArtifactBytes.toLocaleString('en-US')} verified source
+                      artifact bytes
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Partitions</dt>
+                    <dd>
+                      {operation.parquetRowGroups.toLocaleString('en-US')} measured Parquet row
+                      groups
+                      {operation.artifacts.some(({ parquetRowGroups }) => parquetRowGroups === null)
+                        ? '; JSON source is not Parquet-partitioned'
+                        : ''}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Cache</dt>
+                    <dd>{operation.cache}</dd>
+                  </div>
+                </dl>
+                <ul className="analytics-operation__artifacts" aria-label="Source artifacts">
+                  {operation.artifacts.map((artifact) => (
+                    <li key={artifact.artifactId}>
+                      <dl>
+                        <div>
+                          <dt>Artifact</dt>
+                          <dd>
+                            <code>{artifact.artifactId}</code>
+                          </dd>
+                        </div>
+                        <div>
+                          <dt>Checksum</dt>
+                          <dd>
+                            <code>{artifact.sha256}</code>
+                          </dd>
+                        </div>
+                        <div>
+                          <dt>Producer SHA</dt>
+                          <dd>
+                            <code>{artifact.producerSha}</code>
+                          </dd>
+                        </div>
+                      </dl>
+                    </li>
+                  ))}
+                </ul>
+                <div
+                  className="analytics-results__operators"
+                  aria-label="Observed query-plan operators"
+                >
+                  {operation.planOperators.length === 0 ? (
+                    <span>No named operator surfaced</span>
+                  ) : (
+                    operation.planOperators.map((operator) => <span key={operator}>{operator}</span>)
+                  )}
+                </div>
+                <details>
+                  <summary>Inspect DuckDB EXPLAIN plan</summary>
+                  <pre>{operation.explainPlan}</pre>
+                </details>
+              </li>
+            ))}
+          </ol>
+        </TabPanel>
+      </Tabs>
     </div>
   )
 }
