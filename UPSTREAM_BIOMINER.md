@@ -1,5 +1,11 @@
 # UPSTREAM_BIOMINER.md
 
+## Preserved detection schema contract
+
+- `packages/replay/src/biominer_detection_schema.py` retains the complete committed BioMiner `src/biominer/detection/schema.py` logic at `1535c494f9403e22ed9b163f3ae0ce3706e17f4c`.
+- Only internal detector-base, policy, and routing imports are redirected to preserved TaxaLens modules; no schema columns, row construction, stable identity, geometry, mask, filtering, NMS, or routing logic was removed.
+- Polars is an explicit runtime prerequisite. Dependency-manifest creation remains a separate repository-packaging task.
+
 ## Preserved full-frame attention contract
 
 - `packages/replay/src/biominer_full_frame_attention.py` retains the complete committed BioMiner `src/biominer/vision/full_frame_attention.py` logic at `1535c494f9403e22ed9b163f3ae0ce3706e17f4c`.
