@@ -815,3 +815,56 @@ test('maps verified candidate workload without claiming occurrences or review de
   }))
   expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth)
 })
+
+test('prioritizes the committed review work without fabricating a score or comparative rank', async ({
+  page,
+}) => {
+  const requestUrls: string[] = []
+  page.on('request', (request) => requestUrls.push(request.url()))
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('./#dashboard')
+
+  const worklist = page.locator('.review-priority')
+  await expect(worklist.getByRole('heading', { name: 'Review work priority' })).toBeVisible()
+  await expect(worklist.getByText('One committed work item · priority unavailable')).toBeVisible()
+  await expect(worklist.getByText('Position 1 of 1', { exact: true })).toBeVisible()
+  await expect(worklist.getByText('papilio-demoleus-pilot-awaiting-review')).toBeVisible()
+  await expect(worklist.getByText('Priority score').locator('..')).toContainText(
+    'Unavailable — no materialized review queue',
+  )
+  await expect(worklist.getByText('Blocked gates').locator('..')).toContainText('5 of 5')
+  await expect(worklist.getByText('Position basis').locator('..')).toContainText(
+    'not score-derived',
+  )
+
+  const factors = worklist.getByRole('list', { name: 'Priority factor audit' })
+  const factor = (name: string) =>
+    factors.getByRole('heading', { name }).locator('xpath=ancestor::article[1]')
+  await expect(factors.locator(':scope > li')).toHaveCount(7)
+  await expect(factor('Competitor margin')).toContainText('Unavailable')
+  await expect(factor('Missing calibration')).toContainText('Evidence blocker')
+  await expect(factor('Reference shortfall')).toContainText('247 source · 490 human-review')
+  await expect(factor('Comment conflict')).toContainText('0 committed comments')
+  await expect(factors.getByText('Priority effect: not scored')).toHaveCount(7)
+
+  await worklist.getByText('Read the complete priority audit as a table').click()
+  await expect(worklist.getByRole('table').locator('tbody tr')).toHaveCount(7)
+  await worklist.getByText('Inspect review-work provenance').click()
+  await expect(
+    worklist.getByText('selective-decision-metadata', { exact: true }),
+  ).toBeVisible()
+  await expect(worklist.getByText('reference-shortfalls', { exact: true })).toBeVisible()
+
+  const expectedOrigin = new URL(page.url()).origin
+  expect(
+    requestUrls.filter((url) => {
+      const parsed = new URL(url)
+      return ['http:', 'https:'].includes(parsed.protocol) && parsed.origin !== expectedOrigin
+    }),
+  ).toEqual([])
+  const viewport = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }))
+  expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth)
+})
