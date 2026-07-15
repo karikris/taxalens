@@ -26,6 +26,17 @@ from taxalens.product.facade import (
     load_run,
     load_stage,
 )
+from taxalens.product.judge_bundle import (
+    JUDGE_BUNDLE_SCHEMA_VERSION,
+    JUDGE_BUNDLE_SECTION_NAMES,
+    JudgeBundleError,
+    JudgeBundleValidation,
+    LoadedJudgeBundle,
+    compute_inventory_sha256,
+    compute_payload_root_sha256,
+    load_judge_bundle,
+    validate_judge_bundle,
+)
 
 __all__ = [
     "ArtifactProvenance",
@@ -35,9 +46,16 @@ __all__ = [
     "ExportFile",
     "FacadeError",
     "LineageView",
+    "LoadedJudgeBundle",
     "PipelineView",
     "ProductProvenance",
     "ProductResult",
+    "JUDGE_BUNDLE_SCHEMA_VERSION",
+    "JUDGE_BUNDLE_SECTION_NAMES",
+    "JudgeBundleError",
+    "JudgeBundleValidation",
+    "compute_inventory_sha256",
+    "compute_payload_root_sha256",
     "export_evidence",
     "load_candidate_comparison",
     "load_comment_revision",
@@ -46,8 +64,10 @@ __all__ = [
     "load_evidence_record",
     "load_geography",
     "load_lineage",
+    "load_judge_bundle",
     "load_pipeline",
     "load_reference_evidence",
     "load_run",
     "load_stage",
+    "validate_judge_bundle",
 ]
