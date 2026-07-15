@@ -1,5 +1,11 @@
 # UPSTREAM_BIOMINER.md
 
+## Preserved Parquet storage helper
+
+- `packages/replay/src/biominer_storage_parquet.py` is a mechanical copy of committed BioMiner `src/biominer/storage/parquet.py` at `1535c494f9403e22ed9b163f3ae0ce3706e17f4c`.
+- The complete atomic write, overwrite, batched write, bounded read, part metadata, schema normalization, compression, temporary cleanup, and bucket-view logic is retained.
+- Polars and PyArrow are explicit runtime prerequisites. Dependency-manifest creation remains a separate packaging task.
+
 ## Preserved non-match evidence scoring
 
 - `packages/replay/src/biominer_nonmatch.py` retains the complete committed BioMiner `src/biominer/ml/nonmatch.py` logic at `1535c494f9403e22ed9b163f3ae0ce3706e17f4c`.
