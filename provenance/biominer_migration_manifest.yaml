@@ -5,6 +5,21 @@ phase12_status: "pushed-and-eligible-for-committed-migration-only"
 phase13_exclusion: "active-work-excluded-unless-explicitly-pinned"
 recorded_at: "2026-07-15"
 components:
+  - component_id: biominer_reference_routes
+    source_repository: karikris/BioMiner
+    source_commit: 1535c494f9403e22ed9b163f3ae0ce3706e17f4c
+    source_path: src/biominer/references/readiness.py
+    destination_path: packages/replay/src/biominer_reference_routes.py
+    migration_kind: extracted
+    reason: Share the stable closed reference-route vocabulary without partially copying the dependency-heavy readiness publication subsystem.
+    build_week_scope: new
+    source_license: MIT
+    changes:
+      - Extracted the exact immutable REFERENCE_ROUTES value as an independently tested contract.
+      - Left all readiness policy, compilation, publication, storage, and validation logic intact upstream for later migration.
+    tests:
+      - packages/replay/tests/test_biominer_reference_routes.py
+    status: migrated
   - component_id: biominer_target_full_frame
     source_repository: karikris/BioMiner
     source_commit: 1535c494f9403e22ed9b163f3ae0ce3706e17f4c

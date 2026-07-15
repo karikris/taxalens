@@ -1,5 +1,11 @@
 # UPSTREAM_BIOMINER.md
 
+## Extracted reference-route vocabulary
+
+- `packages/replay/src/biominer_reference_routes.py` extracts the exact immutable `REFERENCE_ROUTES` vocabulary from committed BioMiner `src/biominer/references/readiness.py` at `1535c494f9403e22ed9b163f3ae0ce3706e17f4c`.
+- This is a narrow stable-contract extraction used by several scoring and prompt modules; it is not represented as migration of the 4,000-line reference-readiness publication subsystem.
+- The full readiness implementation and its acquisition, deduplication, review, schema, reporting, and storage dependencies remain preserved upstream for later whole-chain migration.
+
 ## Preserved target full-frame orchestration
 
 - `packages/replay/src/biominer_target_full_frame.py` retains the complete committed BioMiner `src/biominer/vision/target_full_frame.py` logic at `1535c494f9403e22ed9b163f3ae0ce3706e17f4c`.
