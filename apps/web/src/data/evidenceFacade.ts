@@ -135,6 +135,7 @@ export interface ReplayEvidence extends ReplayIdentity {
   readonly mission: MissionEvidence
   readonly observatory: ObservatoryEvidence
   readonly discovery: DiscoveryEvidenceBoundary
+  readonly selectiveDecision: SelectiveDecisionEvidenceBoundary
   readonly rightsStatus: string
   readonly artifactCount: number
   readonly verifiedArtifactCount: number
@@ -166,6 +167,21 @@ export interface DiscoveryEvidenceBoundary {
     readonly available: false
     readonly reason: string
   }
+}
+
+export interface SelectiveDecisionEvidenceBoundary {
+  readonly recordId: string
+  readonly state: 'awaiting_human_review'
+  readonly displayLabel: string
+  readonly allowedTransition: string
+  readonly verificationStatus: string
+  readonly unavailableReason: string
+  readonly decisionStatus: 'unavailable'
+  readonly candidateVisualScoreCount: 0
+  readonly gates: readonly {
+    readonly name: string
+    readonly satisfied: false
+  }[]
 }
 
 export interface ReplayArtifactEvidence {
@@ -1083,6 +1099,62 @@ function projectDiscoveryEvidence(
   })
 }
 
+function projectSelectiveDecisionEvidence(
+  artifacts: ReadonlyMap<string, VerifiedArtifact>,
+): SelectiveDecisionEvidenceBoundary {
+  const record = recordForRole(artifacts, 'selective_decision_metadata')
+  const visualScores = array(
+    record.candidate_visual_scores,
+    'selective_decision_metadata.candidate_visual_scores',
+  )
+  const gateRows = array(record.gates, 'selective_decision_metadata.gates')
+  const gates = gateRows.map((value, index) => {
+    const gate = object(value, `selective_decision_metadata.gates[${index}]`)
+    if (booleanField(gate, 'satisfied', `selective_decision_metadata.gates[${index}]`)) {
+      throw new EvidenceFacadeError('Truthful metadata replay cannot satisfy a decision gate')
+    }
+    return {
+      name: stringField(gate, 'gate', `selective_decision_metadata.gates[${index}]`),
+      satisfied: false as const,
+    }
+  })
+  if (
+    record.state !== 'awaiting_human_review' ||
+    record.decision !== null ||
+    record.target_classification !== null ||
+    record.image_path !== null ||
+    record.media_id !== null ||
+    record.scientific_claim_allowed !== false ||
+    visualScores.length !== 0
+  ) {
+    throw new EvidenceFacadeError('Selective decision boundary exceeds the truthful pilot')
+  }
+
+  return deepFreeze({
+    recordId: stringField(record, 'evidence_record_id', 'selective_decision_metadata'),
+    state: 'awaiting_human_review',
+    displayLabel: stringField(record, 'display_label', 'selective_decision_metadata'),
+    allowedTransition: stringField(
+      record,
+      'allowed_transition',
+      'selective_decision_metadata',
+    ),
+    verificationStatus: stringField(
+      record,
+      'verification_status',
+      'selective_decision_metadata',
+    ),
+    unavailableReason: stringField(
+      record,
+      'unavailable_reason',
+      'selective_decision_metadata',
+    ),
+    decisionStatus: 'unavailable',
+    candidateVisualScoreCount: 0,
+    gates,
+  })
+}
+
 function validateAnalyticsArtifacts(artifacts: ReadonlyMap<string, VerifiedArtifact>): void {
   const receiptArtifact = artifacts.get(ANALYTICS_RECEIPT_ID)
   if (receiptArtifact?.json === undefined) {
@@ -1362,6 +1434,7 @@ export async function loadEvidenceFacade(
   const mission = projectMissionEvidence(artifacts)
   const observatory = projectObservatoryEvidence(artifacts, manifest)
   const discovery = projectDiscoveryEvidence(artifacts)
+  const selectiveDecision = projectSelectiveDecisionEvidence(artifacts)
   const unavailableSections = Object.freeze(
     JUDGE_BUNDLE_SECTION_NAMES.map((name) => sections[name]).filter(
       (section) => section.status === 'unavailable',
@@ -1374,6 +1447,7 @@ export async function loadEvidenceFacade(
     mission,
     observatory,
     discovery,
+    selectiveDecision,
     target: {
       acceptedTaxonKey: manifest.target.accepted_taxon_key,
       scientificName: manifest.target.scientific_name,

@@ -490,3 +490,55 @@ test('shows candidate-plan reasons while withholding every absent score-derived 
   }))
   expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth)
 })
+
+test('separates raw evidence from an unavailable calibrated decision', async ({ page }) => {
+  const requestUrls: string[] = []
+  page.on('request', (request) => requestUrls.push(request.url()))
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('./#evidence-lens')
+
+  await expect(page.getByRole('heading', { name: 'Explain selective decision' })).toBeVisible()
+  await expect(page.getByText('Raw similarity — not a probability')).toBeVisible()
+  await expect(page.getByText('Calibrated output unavailable')).toBeVisible()
+  await expect(
+    page.getByText('Awaiting human review is not model abstention', { exact: true }),
+  ).toBeVisible()
+
+  const raw = page.getByRole('list', { name: 'Raw evidence fields' })
+  const decision = page.getByRole('list', { name: 'Decision evidence fields' })
+  await expect(raw.locator(':scope > li')).toHaveCount(7)
+  await expect(decision.locator(':scope > li')).toHaveCount(7)
+  await expect(raw.getByText('Text similarity', { exact: true })).toBeVisible()
+  await expect(raw.getByText('Prototype similarity', { exact: true })).toBeVisible()
+  await expect(raw.getByText('Nearest support', { exact: true })).toBeVisible()
+  await expect(raw.getByText('Top-k support', { exact: true })).toBeVisible()
+  await expect(raw.getByText('Visual-input fusion', { exact: true })).toBeVisible()
+  await expect(raw.getByText('Geography', { exact: true })).toBeVisible()
+  await expect(raw.getByText('Quality', { exact: true })).toBeVisible()
+  await expect(decision.getByText('Calibrated target probability', { exact: true })).toBeVisible()
+  await expect(
+    decision.getByText('Calibrated non-target probability', { exact: true }),
+  ).toBeVisible()
+  await expect(decision.getByText('Margin threshold', { exact: true })).toBeVisible()
+  await expect(decision.getByText('Abstention', { exact: true })).toBeVisible()
+  await expect(decision.getByText('Policy fingerprint', { exact: true })).toBeVisible()
+  await expect(
+    page.getByRole('img', {
+      name: 'Raw score artifact unavailable, calibration not run, selective decision unavailable',
+    }),
+  ).toBeVisible()
+  await expect(page.getByRole('progressbar')).toHaveCount(0)
+
+  const expectedOrigin = new URL(page.url()).origin
+  expect(
+    requestUrls.filter((url) => {
+      const parsed = new URL(url)
+      return ['http:', 'https:'].includes(parsed.protocol) && parsed.origin !== expectedOrigin
+    }),
+  ).toEqual([])
+  const viewport = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }))
+  expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth)
+})

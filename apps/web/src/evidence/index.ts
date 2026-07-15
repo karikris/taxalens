@@ -1,4 +1,5 @@
 export { CandidateSpeciesComparison } from './CandidateSpeciesComparison'
 export { EvidenceLensWorkspace } from './EvidenceLensWorkspace'
 export { FullFrameInputComparison } from './FullFrameInputComparison'
+export { SelectiveDecisionEvidence } from './SelectiveDecisionEvidence'
 export { YoloeRoutingEvidence } from './YoloeRoutingEvidence'

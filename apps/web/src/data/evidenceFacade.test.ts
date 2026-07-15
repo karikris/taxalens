@@ -179,6 +179,24 @@ describe('loadEvidenceFacade', () => {
           'The verified duplicate summary contains counts only; duplicate relationship rows are unavailable.',
       },
     })
+    expect(facade.replay.selectiveDecision).toEqual({
+      recordId: 'papilio-demoleus-pilot-awaiting-review',
+      state: 'awaiting_human_review',
+      displayLabel: 'Awaiting human review',
+      allowedTransition: 'human_review_of_rights-cleared_source_media',
+      verificationStatus: 'human_review_pending',
+      unavailableReason:
+        'No committed human-verified target classification or admitted image exists.',
+      decisionStatus: 'unavailable',
+      candidateVisualScoreCount: 0,
+      gates: [
+        { name: 'licensed_media_in_fixture', satisfied: false },
+        { name: 'real_detection_data', satisfied: false },
+        { name: 'real_full_frame_transformation', satisfied: false },
+        { name: 'real_candidate_visual_scores', satisfied: false },
+        { name: 'human_verified_target_classification', satisfied: false },
+      ],
+    })
     expect(facade.replay.verification).toMatchObject({
       inventoryChecksumVerified: true,
       payloadRootChecksumVerified: true,

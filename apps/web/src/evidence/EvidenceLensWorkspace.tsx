@@ -9,6 +9,7 @@ import { EvidenceDesignation, EvidenceState, EvidenceTier } from '../design-syst
 import type { DiscoveryProvenanceResult } from './discoveryProvenance'
 import { CandidateSpeciesComparison } from './CandidateSpeciesComparison'
 import { FullFrameInputComparison } from './FullFrameInputComparison'
+import { SelectiveDecisionEvidence } from './SelectiveDecisionEvidence'
 import { YoloeRoutingEvidence } from './YoloeRoutingEvidence'
 import './evidence.css'
 
@@ -143,6 +144,8 @@ export function EvidenceLensWorkspace({
       <FullFrameInputComparison replay={replay} />
 
       <CandidateSpeciesComparison replay={replay} />
+
+      <SelectiveDecisionEvidence replay={replay} />
 
       <h3>Explicitly unavailable evidence</h3>
       <ul className="unavailable-evidence-list">
