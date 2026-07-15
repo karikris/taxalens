@@ -1,4 +1,5 @@
 export { DashboardWorkspace } from './DashboardWorkspace'
 export { EvidenceFunnel } from './EvidenceFunnel'
 export { GeographicWorkloadMap } from './GeographicWorkloadMap'
+export { QueryYieldAnalysis } from './QueryYieldAnalysis'
 export { ReviewPriorityWorklist } from './ReviewPriorityWorklist'

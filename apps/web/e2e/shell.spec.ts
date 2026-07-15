@@ -868,3 +868,69 @@ test('prioritizes the committed review work without fabricating a score or compa
   }))
   expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth)
 })
+
+test('measures discovery yield without inventing request counts or marginal API cost', async ({
+  page,
+}) => {
+  const requestUrls: string[] = []
+  page.on('request', (request) => requestUrls.push(request.url()))
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('./#dashboard')
+
+  const analysis = page.locator('.query-yield')
+  const metrics = analysis.locator('.query-yield__summary')
+  await expect(analysis.getByRole('heading', { name: 'Query yield by taxonomic tier' })).toBeVisible()
+  await expect(analysis.getByText('Partial rank attribution · no occurrence claim')).toBeVisible()
+  await expect(metrics.getByText('Query hits').locator('..')).toContainText('76,485')
+  await expect(metrics.getByText('Unique source photos').locator('..')).toContainText('13,501')
+  await expect(metrics.getByText('Physical requests').locator('..')).toContainText('Unavailable')
+  await expect(metrics.getByText('Marginal API cost').locator('..')).toContainText('Unavailable')
+  await expect(analysis.getByText('Rank slices not yet queried')).toBeVisible()
+
+  await analysis.getByRole('button', { name: 'Measure verified discovery yield' }).click()
+  await expect(analysis.getByText('Measured rank slices ready')).toBeVisible({ timeout: 60_000 })
+  const table = analysis.getByRole('table')
+  await expect(table.locator('tbody tr')).toHaveCount(7)
+  await expect(table.locator('tr[data-rank-status="unavailable"]')).toHaveCount(4)
+  await expect(table.locator('tr[data-rank="family"]')).toContainText('16,636')
+  await expect(table.locator('tr[data-rank="family"]')).toContainText('5,658')
+  await expect(table.locator('tr[data-rank="family"]')).toContainText('2 represented terms · 68 represented hashes')
+  await expect(table.locator('tr[data-rank="genus"]')).toContainText('41,243')
+  await expect(table.locator('tr[data-rank="genus"]')).toContainText('6,773')
+  await expect(table.locator('tr[data-rank="species"]')).toContainText('3,458')
+  await expect(table.locator('tr[data-rank="species"]')).toContainText('1,063')
+  await expect(table.locator('tr[data-rank="kingdom"]')).toContainText('No direct BioMiner tier')
+  await expect(table.locator('tr[data-rank="family"]')).toContainText('0 globally')
+
+  const context = analysis
+    .getByRole('heading', { name: 'Unassigned context tiers' })
+    .locator('..')
+    .locator('..')
+  await expect(context).toContainText('15,148')
+  await expect(context).toContainText('3,681')
+  await expect(context).toContainText('145')
+  await expect(context).toContainText('304')
+  await expect(context).toContainText('7')
+  await analysis.getByText('Read the complete rank-yield interpretation').click()
+  await expect(analysis.locator('.query-yield__alternative li')).toHaveCount(7)
+  await analysis.getByText('Inspect query-yield provenance').click()
+  await expect(
+    analysis.getByText('biominer-flickr-query-hits-parquet', { exact: true }),
+  ).toBeVisible()
+  await expect(analysis).toContainText(
+    '95448f3145d903f7f042fe41d74561475ef050f8df21b318ebacb252484e4f0b',
+  )
+
+  const expectedOrigin = new URL(page.url()).origin
+  expect(
+    requestUrls.filter((url) => {
+      const parsed = new URL(url)
+      return ['http:', 'https:'].includes(parsed.protocol) && parsed.origin !== expectedOrigin
+    }),
+  ).toEqual([])
+  const viewport = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }))
+  expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth)
+})

@@ -2,6 +2,7 @@ import type { EvidenceFacade, ReplayEvidence } from '../data/evidenceFacade'
 import { EvidenceState } from '../design-system'
 import { EvidenceFunnel } from './EvidenceFunnel'
 import { GeographicWorkloadMap } from './GeographicWorkloadMap'
+import { QueryYieldAnalysis } from './QueryYieldAnalysis'
 import { ReviewPriorityWorklist } from './ReviewPriorityWorklist'
 import './dashboard.css'
 
@@ -45,6 +46,8 @@ export function DashboardWorkspace({
       <GeographicWorkloadMap facade={facade} replay={replay} />
 
       <ReviewPriorityWorklist replay={replay} />
+
+      <QueryYieldAnalysis facade={facade} replay={replay} />
     </section>
   )
 }

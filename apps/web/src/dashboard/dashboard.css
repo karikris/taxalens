@@ -872,3 +872,287 @@
     min-width: 58rem;
   }
 }
+
+.query-yield {
+  display: grid;
+  gap: var(--tl-space-3);
+  min-width: 0;
+  padding: clamp(var(--tl-space-3), 3vw, var(--tl-space-4));
+  background: var(--tl-surface-paper);
+  border: 1px solid var(--tl-line);
+  border-top: 4px solid var(--tl-brand);
+  border-radius: var(--tl-radius-sm);
+}
+
+.query-yield__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--tl-space-3);
+}
+
+.query-yield__heading h3 {
+  margin: 0;
+}
+
+.query-yield__heading p:last-child {
+  max-width: var(--tl-reading-width);
+  margin: var(--tl-space-2) 0 0;
+  color: var(--tl-ink-muted);
+}
+
+.query-yield__heading button {
+  flex: 0 0 auto;
+  min-height: 2.75rem;
+  padding: var(--tl-space-2) var(--tl-space-3);
+  color: var(--tl-surface-paper);
+  font: inherit;
+  font-weight: 800;
+  background: var(--tl-brand-strong);
+  border: 1px solid var(--tl-brand-strong);
+  border-radius: var(--tl-radius-sm);
+  cursor: pointer;
+}
+
+.query-yield__heading button:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.query-yield__summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--tl-space-2);
+  margin: 0;
+}
+
+.query-yield__summary > div {
+  min-width: 0;
+  padding: var(--tl-space-2);
+  background: var(--tl-surface-subtle);
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.query-yield__summary dt {
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-xs);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.query-yield__summary dd {
+  margin: var(--tl-space-1) 0;
+  overflow-wrap: anywhere;
+  color: var(--tl-brand-strong);
+  font-family: var(--tl-font-mono);
+  font-size: var(--tl-text-md);
+  font-weight: 800;
+}
+
+.query-yield__summary small {
+  color: var(--tl-ink-muted);
+}
+
+.query-yield__results {
+  display: grid;
+  gap: var(--tl-space-3);
+  min-width: 0;
+}
+
+.query-yield__table {
+  width: 100%;
+  max-width: 100%;
+  overflow: auto;
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.query-yield__table table {
+  width: 100%;
+  min-width: 76rem;
+  border-collapse: collapse;
+  font-size: var(--tl-text-sm);
+}
+
+.query-yield__table caption {
+  padding: var(--tl-space-2);
+  color: var(--tl-ink-muted);
+  text-align: left;
+  background: var(--tl-surface-subtle);
+}
+
+.query-yield__table th,
+.query-yield__table td {
+  min-width: 8.5rem;
+  padding: var(--tl-space-2);
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--tl-line);
+}
+
+.query-yield__table thead th {
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-xs);
+  text-transform: uppercase;
+  background: var(--tl-surface-subtle);
+}
+
+.query-yield__table tbody th {
+  min-width: 12rem;
+  background: var(--tl-surface-paper);
+}
+
+.query-yield__table tbody th,
+.query-yield__table td {
+  border-right: 1px solid var(--tl-line);
+}
+
+.query-yield__table tbody th > strong,
+.query-yield__table tbody th > code,
+.query-yield__table tbody th > small,
+.query-yield__table td > strong,
+.query-yield__table td > small {
+  display: block;
+}
+
+.query-yield__table tbody th > code,
+.query-yield__table tbody th > small,
+.query-yield__table td > small {
+  margin-top: var(--tl-space-1);
+  overflow-wrap: anywhere;
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-xs);
+}
+
+.query-yield__table tr[data-rank-status="unavailable"] th,
+.query-yield__table td[data-value-status="unavailable"] {
+  background: var(--tl-state-unavailable-bg);
+}
+
+.query-yield__table tr[data-rank-status="unavailable"] th {
+  border-left: 4px dashed var(--tl-state-unavailable-line);
+}
+
+.query-yield__table tr[data-rank-status="measured"] th {
+  border-left: 4px solid var(--tl-state-available-line);
+}
+
+.query-yield__table td[data-value-status="measured"] strong {
+  color: var(--tl-brand-strong);
+  font-family: var(--tl-font-mono);
+}
+
+.query-yield__table td[data-value-status="global-zero"] {
+  background: var(--tl-surface-subtle);
+}
+
+.query-yield__context {
+  display: grid;
+  grid-template-columns: minmax(14rem, 1fr) minmax(0, 2fr);
+  gap: var(--tl-space-3);
+  padding: var(--tl-space-3);
+  background: var(--tl-brand-soft);
+  border: 1px solid var(--tl-line);
+  border-left: 5px solid var(--tl-brand);
+  border-radius: var(--tl-radius-sm);
+}
+
+.query-yield__context h4 {
+  margin: 0;
+}
+
+.query-yield__context p:last-child {
+  margin: var(--tl-space-2) 0 0;
+}
+
+.query-yield__context dl {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--tl-space-2);
+  margin: 0;
+}
+
+.query-yield__context dl > div {
+  min-width: 0;
+  padding: var(--tl-space-2);
+  background: var(--tl-surface-paper);
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.query-yield__context dt {
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-xs);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.query-yield__context dd {
+  margin: var(--tl-space-1) 0 0;
+  color: var(--tl-brand-strong);
+  font-family: var(--tl-font-mono);
+  font-weight: 800;
+}
+
+.query-yield__alternative,
+.query-yield__provenance {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.query-yield__alternative summary,
+.query-yield__provenance summary {
+  color: var(--tl-brand-strong);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.query-yield__alternative ol {
+  display: grid;
+  gap: var(--tl-space-2);
+}
+
+.query-yield__provenance > div {
+  display: grid;
+  gap: var(--tl-space-1);
+  min-width: 0;
+  margin-top: var(--tl-space-2);
+  padding: var(--tl-space-2);
+  background: var(--tl-surface-subtle);
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.query-yield__provenance span,
+.query-yield__provenance code,
+.query-yield__provenance small {
+  overflow-wrap: anywhere;
+}
+
+.query-yield__provenance small {
+  color: var(--tl-ink-muted);
+}
+
+@media (max-width: 60rem) {
+  .query-yield__context {
+    grid-template-columns: 1fr;
+  }
+
+  .query-yield__context dl {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 44rem) {
+  .query-yield__heading,
+  .query-yield__summary,
+  .query-yield__context dl {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .query-yield__heading button {
+    width: 100%;
+  }
+}
