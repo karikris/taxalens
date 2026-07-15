@@ -1,0 +1,354 @@
+schema_version: "taxalens-review-attestations:v1"
+attestation_kind: "software-supply-chain-human-review"
+attestation_scope: "migrated BioMiner replay components and provenance-bearing compatibility commits"
+recorded_at: "2026-07-15"
+
+policy:
+  no_inferred_historical_values: true
+  unknown_values_are_null: true
+  exact_historical_model_and_session_only_when_known: true
+  review_does_not_rewrite_historical_commit_trailers: true
+
+attestation_creation:
+  reviewer: "Kris Kari"
+  ai_assistance: "OpenAI Codex"
+  ai_primary_model: "gpt-5.6-sol"
+  ai_session: "019f65d0-3ca9-7870-9eb2-37c14ed02517"
+  note: "These current values describe creation of this ledger, not historical migrations."
+
+test_runs:
+  - id: "current-full-suite-2026-07-15"
+    command: "uv run --locked pytest -q"
+    result: "passed"
+    passed: 552
+    failed: 0
+    run_date: "2026-07-15"
+    scope: "current TaxaLens HEAD after product facade integration tests"
+
+accepted_limitations:
+  - id: "historical-model-session-unavailable"
+    description: "Historical migration trailers did not preserve an exact primary model or session; null values are intentional and no model identity is inferred."
+    accepted_by: "Kris Kari"
+    accepted_date: "2026-07-15"
+  - id: "current-head-test-rerun"
+    description: "The recorded full-suite rerun validates the current integrated tree, not the dependency environment at each historical commit."
+    accepted_by: "Kris Kari"
+    accepted_date: "2026-07-15"
+  - id: "no-fresh-byte-equivalence-claim"
+    description: "This review covers migration provenance, retained contracts, current tests, and declared boundaries; it does not claim a new byte-for-byte comparison for every copied historical file."
+    accepted_by: "Kris Kari"
+    accepted_date: "2026-07-15"
+  - id: "phase13-phase14-results-unavailable"
+    description: "Real reviewed Phase 13 results and final Phase 14 reference, calibration, and evaluation artifacts remain unavailable and outside this attestation."
+    accepted_by: "Kris Kari"
+    accepted_date: "2026-07-15"
+
+migrated_commits:
+  - destination_commit: "cd14fb0547d9d1364399507d311a68e87fd40cd0"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    component_ids: ["biominer_run_manifest_adapter"]
+    review_status: "reviewed-with-accepted-limitations"
+    reviewer: "Kris Kari"
+    review_date: "2026-07-15"
+    tests_rerun_ref: "current-full-suite-2026-07-15"
+    accepted_limitation_ids: ["historical-model-session-unavailable", "current-head-test-rerun", "no-fresh-byte-equivalence-claim", "phase13-phase14-results-unavailable"]
+    historical_ai: {assistance: null, primary_model: null, session: null, evidence: "No AI identity trailer was recorded on this commit."}
+
+  - destination_commit: "3a28d39d4537df105853e3efd419bb1265c84222"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    component_ids: ["biominer_stage_metrics_adapter"]
+    review_status: "reviewed-with-accepted-limitations"
+    reviewer: "Kris Kari"
+    review_date: "2026-07-15"
+    tests_rerun_ref: "current-full-suite-2026-07-15"
+    accepted_limitation_ids: ["historical-model-session-unavailable", "current-head-test-rerun", "no-fresh-byte-equivalence-claim", "phase13-phase14-results-unavailable"]
+    historical_ai: {assistance: null, primary_model: null, session: null, evidence: "No AI identity trailer was recorded on this commit."}
+
+  - destination_commit: "d3dd3c79f2299e0ad4aa7ea3b39d423c54766571"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    component_ids: ["biominer_target_aware_scores_adapter"]
+    review_status: "reviewed-with-accepted-limitations"
+    reviewer: "Kris Kari"
+    review_date: "2026-07-15"
+    tests_rerun_ref: "current-full-suite-2026-07-15"
+    accepted_limitation_ids: ["historical-model-session-unavailable", "current-head-test-rerun", "no-fresh-byte-equivalence-claim", "phase13-phase14-results-unavailable"]
+    historical_ai: {assistance: null, primary_model: null, session: null, evidence: "No AI identity trailer was recorded on this commit."}
+
+  - destination_commit: "2caf5f29202a4801361d665bb1872f711a09f577"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    component_ids: ["biominer_candidate_set_summary_adapter"]
+    review_status: "reviewed-with-accepted-limitations"
+    reviewer: "Kris Kari"
+    review_date: "2026-07-15"
+    tests_rerun_ref: "current-full-suite-2026-07-15"
+    accepted_limitation_ids: ["historical-model-session-unavailable", "current-head-test-rerun", "no-fresh-byte-equivalence-claim", "phase13-phase14-results-unavailable"]
+    historical_ai: {assistance: null, primary_model: null, session: null, evidence: "No AI identity trailer was recorded on this commit."}
+
+  - destination_commit: "2dc330caae44a3ebafdbf65c05b055eeb3d7ab23"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    component_ids: ["biominer_reference_readiness_adapter"]
+    review_status: "reviewed-with-accepted-limitations"
+    reviewer: "Kris Kari"
+    review_date: "2026-07-15"
+    tests_rerun_ref: "current-full-suite-2026-07-15"
+    accepted_limitation_ids: ["historical-model-session-unavailable", "current-head-test-rerun", "no-fresh-byte-equivalence-claim", "phase13-phase14-results-unavailable"]
+    historical_ai: {assistance: null, primary_model: null, session: null, evidence: "No AI identity trailer was recorded on this commit."}
+
+  - destination_commit: "45aea31f682926c0deaf34bd3c35468c882ebbca"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    component_ids: ["biominer_reference_review_queue_adapter"]
+    review_status: "reviewed-with-accepted-limitations"
+    reviewer: "Kris Kari"
+    review_date: "2026-07-15"
+    tests_rerun_ref: "current-full-suite-2026-07-15"
+    accepted_limitation_ids: ["historical-model-session-unavailable", "current-head-test-rerun", "no-fresh-byte-equivalence-claim", "phase13-phase14-results-unavailable"]
+    historical_ai: {assistance: null, primary_model: null, session: null, evidence: "No AI identity trailer was recorded on this commit."}
+
+  - destination_commit: "b2f9a21e9133dd780508572a3da0999b573b0843"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    component_ids: ["biominer_query_geography_adapter", "biominer_object_evidence_summary_adapter"]
+    review_status: "reviewed-with-accepted-limitations"
+    reviewer: "Kris Kari"
+    review_date: "2026-07-15"
+    tests_rerun_ref: "current-full-suite-2026-07-15"
+    accepted_limitation_ids: ["historical-model-session-unavailable", "current-head-test-rerun", "no-fresh-byte-equivalence-claim", "phase13-phase14-results-unavailable"]
+    historical_ai: {assistance: null, primary_model: null, session: null, evidence: "No AI identity trailer was recorded on this commit."}
+
+  - destination_commit: "f458139a6f9bdc822ff704fc407e5f92352ed228"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    component_ids: ["biominer_evidence_review_policy"]
+    review_status: "reviewed-with-accepted-limitations"
+    reviewer: "Kris Kari"
+    review_date: "2026-07-15"
+    tests_rerun_ref: "current-full-suite-2026-07-15"
+    accepted_limitation_ids: ["historical-model-session-unavailable", "current-head-test-rerun", "no-fresh-byte-equivalence-claim", "phase13-phase14-results-unavailable"]
+    historical_ai: {assistance: "OpenAI Codex", primary_model: null, session: null, evidence: "Commit trailer records Codex assistance and explicitly marks model and session unavailable."}
+
+  - destination_commit: "01f13cae6bc7fb25466e99ee103984e16c571fc2"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    component_ids: ["biominer_vision_gates"]
+    review_status: "reviewed-with-accepted-limitations"
+    reviewer: "Kris Kari"
+    review_date: "2026-07-15"
+    tests_rerun_ref: "current-full-suite-2026-07-15"
+    accepted_limitation_ids: ["historical-model-session-unavailable", "current-head-test-rerun", "no-fresh-byte-equivalence-claim", "phase13-phase14-results-unavailable"]
+    historical_ai: {assistance: "OpenAI Codex", primary_model: null, session: null, evidence: "Commit trailer records Codex assistance and explicitly marks model and session unavailable."}
+
+  - destination_commit: "ec7d7653bc82734bed2236ca0c546b6d77235384"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    component_ids: ["biominer_semantic_hash"]
+    review_status: "reviewed-with-accepted-limitations"
+    reviewer: "Kris Kari"
+    review_date: "2026-07-15"
+    tests_rerun_ref: "current-full-suite-2026-07-15"
+    accepted_limitation_ids: ["historical-model-session-unavailable", "current-head-test-rerun", "no-fresh-byte-equivalence-claim", "phase13-phase14-results-unavailable"]
+    historical_ai: {assistance: "OpenAI Codex", primary_model: null, session: null, evidence: "Commit trailer records Codex assistance and explicitly marks model and session unavailable."}
+
+  - destination_commit: "f8fd0e426d97d0dcf9df5aafbd1956980903cc2b"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    component_ids: ["biominer_detector_base"]
+    review_status: "reviewed-with-accepted-limitations"
+    reviewer: "Kris Kari"
+    review_date: "2026-07-15"
+    tests_rerun_ref: "current-full-suite-2026-07-15"
+    accepted_limitation_ids: ["historical-model-session-unavailable", "current-head-test-rerun", "no-fresh-byte-equivalence-claim", "phase13-phase14-results-unavailable"]
+    historical_ai: {assistance: "OpenAI Codex", primary_model: null, session: null, evidence: "Commit trailer records Codex assistance and explicitly marks model and session unavailable."}
+
+  - destination_commit: "11ea3ba187cc72ac07b040b89c12fd9ea388bf1e"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    component_ids: ["biominer_detection_routing"]
+    review_status: "reviewed-with-accepted-limitations"
+    reviewer: "Kris Kari"
+    review_date: "2026-07-15"
+    tests_rerun_ref: "current-full-suite-2026-07-15"
+    accepted_limitation_ids: ["historical-model-session-unavailable", "current-head-test-rerun", "no-fresh-byte-equivalence-claim", "phase13-phase14-results-unavailable"]
+    historical_ai: {assistance: "OpenAI Codex", primary_model: null, session: null, evidence: "Commit trailer records Codex assistance and explicitly marks model and session unavailable."}
+
+  - destination_commit: "e6f298dea03a4507dbb3ded1fdacab7feb6c679b"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    component_ids: ["biominer_detection_policy"]
+    review_status: "reviewed-with-accepted-limitations"
+    reviewer: "Kris Kari"
+    review_date: "2026-07-15"
+    tests_rerun_ref: "current-full-suite-2026-07-15"
+    accepted_limitation_ids: ["historical-model-session-unavailable", "current-head-test-rerun", "no-fresh-byte-equivalence-claim", "phase13-phase14-results-unavailable"]
+    historical_ai: {assistance: "OpenAI Codex", primary_model: null, session: null, evidence: "Commit trailer records Codex assistance and explicitly marks model and session unavailable."}
+
+  - destination_commit: "bd56d455e52f7a2ba9ea9e8c22b784cbd2476a2f"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    component_ids: ["biominer_full_frame_attention"]
+    review_status: "reviewed-with-accepted-limitations"
+    reviewer: "Kris Kari"
+    review_date: "2026-07-15"
+    tests_rerun_ref: "current-full-suite-2026-07-15"
+    accepted_limitation_ids: ["historical-model-session-unavailable", "current-head-test-rerun", "no-fresh-byte-equivalence-claim", "phase13-phase14-results-unavailable"]
+    historical_ai: {assistance: "OpenAI Codex", primary_model: null, session: null, evidence: "Commit trailer records Codex assistance and explicitly marks model and session unavailable."}
+
+  - destination_commit: "0dc601731f275c2d26698f266220fe19c9746270"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    component_ids: ["biominer_detection_schema"]
+    review_status: "reviewed-with-accepted-limitations"
+    reviewer: "Kris Kari"
+    review_date: "2026-07-15"
+    tests_rerun_ref: "current-full-suite-2026-07-15"
+    accepted_limitation_ids: ["historical-model-session-unavailable", "current-head-test-rerun", "no-fresh-byte-equivalence-claim", "phase13-phase14-results-unavailable"]
+    historical_ai: {assistance: "OpenAI Codex", primary_model: null, session: null, evidence: "Commit trailer records Codex assistance and explicitly marks model and session unavailable."}
+
+  - destination_commit: "74a96c3de8e4c99c5b31fd5a587f8b6b2063fddf"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    component_ids: ["biominer_target_full_frame"]
+    review_status: "reviewed-with-accepted-limitations"
+    reviewer: "Kris Kari"
+    review_date: "2026-07-15"
+    tests_rerun_ref: "current-full-suite-2026-07-15"
+    accepted_limitation_ids: ["historical-model-session-unavailable", "current-head-test-rerun", "no-fresh-byte-equivalence-claim", "phase13-phase14-results-unavailable"]
+    historical_ai: {assistance: "OpenAI Codex", primary_model: null, session: null, evidence: "Commit trailer records Codex assistance and explicitly marks model and session unavailable."}
+
+  - destination_commit: "8bf06e00ec0a35f5822eee229ab0a4edfd95cff0"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    component_ids: ["biominer_reference_routes"]
+    review_status: "reviewed-with-accepted-limitations"
+    reviewer: "Kris Kari"
+    review_date: "2026-07-15"
+    tests_rerun_ref: "current-full-suite-2026-07-15"
+    accepted_limitation_ids: ["historical-model-session-unavailable", "current-head-test-rerun", "no-fresh-byte-equivalence-claim", "phase13-phase14-results-unavailable"]
+    historical_ai: {assistance: "OpenAI Codex", primary_model: null, session: null, evidence: "Commit trailer records Codex assistance and explicitly marks model and session unavailable."}
+
+  - destination_commit: "26c723f625b345fcadfc4117188219f9507dae04"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    component_ids: ["biominer_visual_input_fusion"]
+    review_status: "reviewed-with-accepted-limitations"
+    reviewer: "Kris Kari"
+    review_date: "2026-07-15"
+    tests_rerun_ref: "current-full-suite-2026-07-15"
+    accepted_limitation_ids: ["historical-model-session-unavailable", "current-head-test-rerun", "no-fresh-byte-equivalence-claim", "phase13-phase14-results-unavailable"]
+    historical_ai: {assistance: "OpenAI Codex", primary_model: null, session: null, evidence: "Commit trailer records Codex assistance and explicitly marks model and session unavailable."}
+
+  - destination_commit: "1328a9ec0c37fd9b76378de841016e1195e066d1"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    component_ids: ["biominer_calibration_probability_contract", "biominer_training_task_contract"]
+    review_status: "reviewed-with-accepted-limitations"
+    reviewer: "Kris Kari"
+    review_date: "2026-07-15"
+    tests_rerun_ref: "current-full-suite-2026-07-15"
+    accepted_limitation_ids: ["historical-model-session-unavailable", "current-head-test-rerun", "no-fresh-byte-equivalence-claim", "phase13-phase14-results-unavailable"]
+    historical_ai: {assistance: "OpenAI Codex", primary_model: null, session: null, evidence: "Commit trailer records Codex assistance and explicitly marks model and session unavailable."}
+
+  - destination_commit: "f4d4541cb3a4240e3d0eda72511efbe6ede8bdd4"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    component_ids: ["biominer_nonmatch"]
+    review_status: "reviewed-with-accepted-limitations"
+    reviewer: "Kris Kari"
+    review_date: "2026-07-15"
+    tests_rerun_ref: "current-full-suite-2026-07-15"
+    accepted_limitation_ids: ["historical-model-session-unavailable", "current-head-test-rerun", "no-fresh-byte-equivalence-claim", "phase13-phase14-results-unavailable"]
+    historical_ai: {assistance: "OpenAI Codex", primary_model: null, session: null, evidence: "Commit trailer records Codex assistance and explicitly marks model and session unavailable."}
+
+  - destination_commit: "397b5e9281e5d11fa1fdf2517cfde4defb477285"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    component_ids: ["biominer_storage_parquet"]
+    review_status: "reviewed-with-accepted-limitations"
+    reviewer: "Kris Kari"
+    review_date: "2026-07-15"
+    tests_rerun_ref: "current-full-suite-2026-07-15"
+    accepted_limitation_ids: ["historical-model-session-unavailable", "current-head-test-rerun", "no-fresh-byte-equivalence-claim", "phase13-phase14-results-unavailable"]
+    historical_ai: {assistance: "OpenAI Codex", primary_model: null, session: null, evidence: "Commit trailer records Codex assistance and explicitly marks model and session unavailable."}
+
+  - destination_commit: "e8128e51097665279ae99e37f48d0243de1211cf"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    component_ids: ["biominer_target_aware_output"]
+    review_status: "reviewed-with-accepted-limitations"
+    reviewer: "Kris Kari"
+    review_date: "2026-07-15"
+    tests_rerun_ref: "current-full-suite-2026-07-15"
+    accepted_limitation_ids: ["historical-model-session-unavailable", "current-head-test-rerun", "no-fresh-byte-equivalence-claim", "phase13-phase14-results-unavailable"]
+    historical_ai: {assistance: "OpenAI Codex", primary_model: null, session: null, evidence: "Commit trailer records Codex assistance and explicitly marks model and session unavailable."}
+
+  - destination_commit: "3b4e64ef724415845f1b6dbef45fe5ce1db56669"
+    source_repository: "karikris/BioMiner"
+    source_commit: "0561906d994d6b9e56e0b6405fdb68272759595f"
+    component_ids: ["biominer_decision_policy"]
+    review_status: "reviewed-with-accepted-limitations"
+    reviewer: "Kris Kari"
+    review_date: "2026-07-15"
+    tests_rerun_ref: "current-full-suite-2026-07-15"
+    accepted_limitation_ids: ["historical-model-session-unavailable", "current-head-test-rerun", "no-fresh-byte-equivalence-claim", "phase13-phase14-results-unavailable"]
+    historical_ai: {assistance: "OpenAI Codex", primary_model: null, session: null, evidence: "Commit trailer records Codex assistance and explicitly marks model and session unavailable."}
+
+compatibility_commits:
+  - destination_commit: "cc84a0893d9b2db849093adcf7d3c345ff336705"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    component_ids: ["biominer_stage_metrics_adapter"]
+    review_status: "reviewed-with-accepted-limitations"
+    reviewer: "Kris Kari"
+    review_date: "2026-07-15"
+    tests_rerun_ref: "current-full-suite-2026-07-15"
+    accepted_limitation_ids: ["historical-model-session-unavailable", "current-head-test-rerun", "no-fresh-byte-equivalence-claim", "phase13-phase14-results-unavailable"]
+    historical_ai: {assistance: "OpenAI Codex", primary_model: null, session: null, evidence: "Commit trailer records Codex assistance and explicitly marks model and session unavailable."}
+
+  - destination_commit: "a3c639600dfccd48ea0b738b2c82d3f49e1a803c"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    component_ids: ["biominer_reference_review_queue_adapter"]
+    review_status: "reviewed-with-accepted-limitations"
+    reviewer: "Kris Kari"
+    review_date: "2026-07-15"
+    tests_rerun_ref: "current-full-suite-2026-07-15"
+    accepted_limitation_ids: ["historical-model-session-unavailable", "current-head-test-rerun", "no-fresh-byte-equivalence-claim", "phase13-phase14-results-unavailable"]
+    historical_ai: {assistance: "OpenAI Codex", primary_model: null, session: null, evidence: "Commit trailer records Codex assistance and explicitly marks model and session unavailable."}
+
+  - destination_commit: "038359bc6e3a8132eade474f08eb37a54bfeea28"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    component_ids: ["biominer_target_aware_scores_adapter"]
+    review_status: "reviewed-with-accepted-limitations"
+    reviewer: "Kris Kari"
+    review_date: "2026-07-15"
+    tests_rerun_ref: "current-full-suite-2026-07-15"
+    accepted_limitation_ids: ["historical-model-session-unavailable", "current-head-test-rerun", "no-fresh-byte-equivalence-claim", "phase13-phase14-results-unavailable"]
+    historical_ai: {assistance: "OpenAI Codex", primary_model: null, session: null, evidence: "Commit trailer records Codex assistance and explicitly marks model and session unavailable."}
+
+  - destination_commit: "29f57be986242418d0bd316138fa38115de18a0b"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    component_ids: ["biominer_reference_readiness_adapter"]
+    review_status: "reviewed-with-accepted-limitations"
+    reviewer: "Kris Kari"
+    review_date: "2026-07-15"
+    tests_rerun_ref: "current-full-suite-2026-07-15"
+    accepted_limitation_ids: ["historical-model-session-unavailable", "current-head-test-rerun", "no-fresh-byte-equivalence-claim", "phase13-phase14-results-unavailable"]
+    historical_ai: {assistance: "OpenAI Codex", primary_model: null, session: null, evidence: "Commit trailer records Codex assistance and explicitly marks model and session unavailable."}
+
+  - destination_commit: "d6e26d38a2c94ecb482ae9cbb8715d01cf768aea"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    component_ids: ["biominer_query_geography_adapter"]
+    review_status: "reviewed-with-accepted-limitations"
+    reviewer: "Kris Kari"
+    review_date: "2026-07-15"
+    tests_rerun_ref: "current-full-suite-2026-07-15"
+    accepted_limitation_ids: ["historical-model-session-unavailable", "current-head-test-rerun", "no-fresh-byte-equivalence-claim", "phase13-phase14-results-unavailable"]
+    historical_ai: {assistance: "OpenAI Codex", primary_model: null, session: null, evidence: "Commit trailer records Codex assistance and explicitly marks model and session unavailable."}
