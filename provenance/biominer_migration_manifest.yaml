@@ -169,3 +169,19 @@ components:
     tests:
       - "packages/replay/tests/test_biominer_vision_gates.py"
     status: "migrated"
+  - component_id: "biominer_semantic_hash"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    source_path: "src/biominer/common/semantic_hash.py"
+    destination_path: "packages/replay/src/biominer_semantic_hash.py"
+    migration_kind: "copied"
+    reason: "Preserve the committed canonical identity primitive used by full-frame visual inputs, embeddings, classifiers, and evidence fingerprints."
+    build_week_scope: "new"
+    source_license: "MIT License, copyright 2026 Kris Kari"
+    changes:
+      - "Copied the complete canonical encoder, type framing, validation, hashing, and exports without semantic changes"
+      - "Added source path, commit, and licence provenance comments"
+      - "Adjusted only the test import path for the TaxaLens package layout"
+    tests:
+      - "packages/replay/tests/test_biominer_semantic_hash.py"
+    status: "migrated"

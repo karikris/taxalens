@@ -49,6 +49,11 @@ TaxaLens treats `karikris/BioMiner` as the upstream research engine and treats t
   copied intact into `packages/replay/src/biominer_vision_gates.py`, including
   routed, review, exclusion, and legacy modes, with upstream-equivalent tests in
   `packages/replay/tests/test_biominer_vision_gates.py`.
+- Canonical semantic fingerprint encoding
+  (`src/biominer/common/semantic_hash.py`) has been copied intact into
+  `packages/replay/src/biominer_semantic_hash.py` with its complete
+  golden-vector and failure-mode suite in
+  `packages/replay/tests/test_biominer_semantic_hash.py`.
 
 - Future migrations should be implemented as contracts and adapters with source SHAs recorded per component.
 
