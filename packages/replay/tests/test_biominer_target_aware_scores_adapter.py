@@ -107,6 +107,37 @@ def test_adapt_target_aware_candidate_scores_treats_non_dict_outputs_as_missing_
     )
 
 
+def test_adapt_target_aware_candidate_scores_treats_non_string_output_values_as_missing_artifact(
+    tmp_path: Path,
+) -> None:
+    manifest = json.loads(
+        Path(
+            "packages/replay/tests/fixtures/run_manifest_target_aware_candidate_scores.json"
+        ).read_text(encoding="utf-8")
+    )
+    manifest["outputs"] = {
+        "target_aware_candidate_scores": 1234,
+        "candidate_scores": {},
+        "target_scores": [],
+    }
+
+    manifest_path = tmp_path / "run_manifest_target_aware_candidate_scores_non_string_outputs.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    result = adapt_target_aware_candidate_scores(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["candidate_scores"] == []
+    assert result["compatibility"]["artifact_missing"] is True
+    assert result["compatibility"]["artifact_path"] is None
+    assert (
+        "did not declare target-aware candidate score artifact path"
+        in result["compatibility"]["notes"][0]
+    )
+
+
 def test_adapt_target_aware_candidate_scores_rejects_invalid_manifest_json(tmp_path: Path) -> None:
     manifest_path = tmp_path / "run_manifest_invalid.json"
     manifest_path.write_text("{invalid_json:", encoding="utf-8")

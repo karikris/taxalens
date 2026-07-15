@@ -62,6 +62,35 @@ def test_adapt_candidate_set_summaries_without_artifact() -> None:
     assert "candidate score artifact" in str(result["compatibility"]["notes"][0])
 
 
+def test_adapt_candidate_set_summaries_treats_non_string_output_values_as_missing_artifact(
+    tmp_path: Path,
+) -> None:
+    manifest = json.loads(
+        Path("packages/replay/tests/fixtures/run_manifest_target_aware_candidate_scores.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    manifest["outputs"] = {
+        "target_aware_candidate_scores": 101,
+        "candidate_scores": {"path": "candidate_scores_payload.json"},
+        "target_scores": None,
+    }
+
+    manifest_path = tmp_path / "run_manifest_target_aware_candidate_scores_non_string_outputs.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    result = adapt_candidate_set_summaries(
+        manifest_path=manifest_path,
+        biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
+    )
+
+    assert result["candidate_set_summaries"] == []
+    assert result["compatibility"]["source_artifact"] is None
+    assert "run manifest did not provide a candidate score artifact" in str(
+        result["compatibility"]["notes"][0]
+    )
+
+
 def test_adapt_candidate_set_summaries_rejects_missing_manifest() -> None:
     try:
         adapt_candidate_set_summaries(
