@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, TypedDict
 
+from packages.replay.src.validation import is_full_git_sha
+
 
 class StageMetricsAdapterError(ValueError):
     """Raised when a BioMiner run manifest cannot be adapted to TaxaLens stage metrics."""
@@ -333,8 +335,10 @@ def adapt_stage_metrics(
     manifest_path: str | Path,
     biominer_commit: str,
 ) -> dict[str, Any]:
-    if not isinstance(biominer_commit, str) or len(biominer_commit) != 40:
-        raise StageMetricsAdapterError("biominer_commit must be a full 40-character SHA")
+    if not is_full_git_sha(biominer_commit):
+        raise StageMetricsAdapterError(
+            "biominer_commit must be a full 40-character hexadecimal SHA"
+        )
 
     payload = _load_payload(Path(manifest_path))
     raw_stages = payload.get("stages")

@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 from typing import Any, TypedDict
 
+from packages.replay.src.validation import is_full_git_sha
+
 
 class TargetAwareScoresAdapterError(ValueError):
     """Raised when target-aware scoring artifacts cannot be adapted."""
@@ -185,8 +187,10 @@ def adapt_target_aware_candidate_scores(
     manifest_path: str | Path,
     biominer_commit: str,
 ) -> dict[str, Any]:
-    if not isinstance(biominer_commit, str) or len(biominer_commit) != 40:
-        raise TargetAwareScoresAdapterError("biominer_commit must be a full 40-character SHA")
+    if not is_full_git_sha(biominer_commit):
+        raise TargetAwareScoresAdapterError(
+            "biominer_commit must be a full 40-character hexadecimal SHA"
+        )
 
     path = Path(manifest_path)
     manifest_payload = _load_manifest(path)

@@ -7,10 +7,11 @@ into TaxaLens replay contracts without importing BioMiner runtime packages.
 from __future__ import annotations
 
 import json
-import re
 from pathlib import Path
 from dataclasses import dataclass
 from typing import Any, TypedDict
+
+from packages.replay.src.validation import is_full_git_sha
 
 class RunManifestAdapterError(ValueError):
     pass
@@ -207,7 +208,7 @@ def adapt_run_manifest(
     """
     if not biominer_commit or not isinstance(biominer_commit, str):
         raise RunManifestAdapterError("biominer_commit is required")
-    if re.fullmatch(r"[0-9a-fA-F]{40}", biominer_commit) is None:
+    if not is_full_git_sha(biominer_commit):
         raise RunManifestAdapterError(
             "biominer_commit must be a full 40-character hexadecimal SHA"
         )

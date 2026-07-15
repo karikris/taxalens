@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 from typing import Any, TypedDict
 
+from packages.replay.src.validation import is_full_git_sha
+
 
 class ReferenceReviewQueueAdapterError(ValueError):
     """Raised when a BioMiner reference-review queue artifact cannot be adapted."""
@@ -161,8 +163,10 @@ def adapt_reference_review_queue(
     biominer_commit: str,
 ) -> dict[str, Any]:
     """Adapt BioMiner reference_review_queue.parquet (or JSON fixture) into TaxaLens records."""
-    if not isinstance(biominer_commit, str) or len(biominer_commit) != 40:
-        raise ReferenceReviewQueueAdapterError("biominer_commit must be a full 40-character SHA")
+    if not is_full_git_sha(biominer_commit):
+        raise ReferenceReviewQueueAdapterError(
+            "biominer_commit must be a full 40-character hexadecimal SHA"
+        )
 
     manifest_path = Path(manifest_path)
     try:

@@ -10,6 +10,8 @@ import json
 from pathlib import Path
 from typing import Any, TypedDict
 
+from packages.replay.src.validation import is_full_git_sha
+
 
 class ReferenceReadinessAdapterError(ValueError):
     """Raised when a BioMiner reference-readiness artifact cannot be adapted."""
@@ -274,8 +276,10 @@ def adapt_reference_readiness(
     biominer_commit: str,
 ) -> dict[str, Any]:
     """Adapt BioMiner reference-readiness manifest output into TaxaLens contract."""
-    if not isinstance(biominer_commit, str) or len(biominer_commit) != 40:
-        raise ReferenceReadinessAdapterError("biominer_commit must be a full 40-character SHA")
+    if not is_full_git_sha(biominer_commit):
+        raise ReferenceReadinessAdapterError(
+            "biominer_commit must be a full 40-character hexadecimal SHA"
+        )
 
     manifest_path = Path(manifest_path)
     run_payload = _load_payload(manifest_path)

@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 from typing import Any, TypedDict
 
+from packages.replay.src.validation import is_full_git_sha
+
 
 class QueryGeographyAdapterError(ValueError):
     """Raised when committed BioMiner query/geography artifacts cannot be adapted."""
@@ -785,8 +787,10 @@ def _map_geographic_summary_manifest_summary(
 def adapt_query_geography_artifacts(
     *, manifest_path: str | Path, biominer_commit: str
 ) -> dict[str, Any]:
-    if not isinstance(biominer_commit, str) or len(biominer_commit) != 40:
-        raise QueryGeographyAdapterError("biominer_commit must be a full 40-character SHA")
+    if not is_full_git_sha(biominer_commit):
+        raise QueryGeographyAdapterError(
+            "biominer_commit must be a full 40-character hexadecimal SHA"
+        )
 
     manifest_path = Path(manifest_path)
     manifest_payload = _load_manifest(manifest_path)

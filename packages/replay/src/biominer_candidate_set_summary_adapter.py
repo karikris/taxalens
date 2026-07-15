@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 from typing import Any, TypedDict
 
+from packages.replay.src.validation import is_full_git_sha
+
 
 class CandidateSetSummaryAdapterError(ValueError):
     """Raised when candidate-set summary artifacts cannot be adapted."""
@@ -139,8 +141,10 @@ def adapt_candidate_set_summaries(
     manifest_path: str | Path,
     biominer_commit: str,
 ) -> dict[str, Any]:
-    if not isinstance(biominer_commit, str) or len(biominer_commit) != 40:
-        raise CandidateSetSummaryAdapterError("biominer_commit must be a full 40-character SHA")
+    if not is_full_git_sha(biominer_commit):
+        raise CandidateSetSummaryAdapterError(
+            "biominer_commit must be a full 40-character hexadecimal SHA"
+        )
 
     manifest_path = Path(manifest_path)
     manifest_payload = _load_manifest(manifest_path)
