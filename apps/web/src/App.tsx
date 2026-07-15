@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react'
 
-import { DUCKDB_RUNTIME_MODE } from './data/duckdbRuntime'
 import {
-  loadReplayBootstrap,
-  type ReplayBootstrap,
-} from './data/replayBootstrap'
+  loadEvidenceFacade,
+  type EvidenceFacade,
+  type ReplayEvidence,
+} from './data/evidenceFacade'
 import { EvidenceDesignation, EvidenceState, EvidenceTier } from './design-system'
 import { AppShell, type ShellView } from './shell'
 
 type LoadState =
   | { readonly kind: 'loading' }
-  | { readonly kind: 'ready'; readonly replay: ReplayBootstrap }
+  | { readonly kind: 'ready'; readonly facade: EvidenceFacade }
   | { readonly kind: 'error'; readonly message: string }
 
 export function App() {
@@ -20,9 +20,9 @@ export function App() {
   useEffect(() => {
     const controller = new AbortController()
     setState({ kind: 'loading' })
-    void loadReplayBootstrap(controller.signal)
-      .then((replay) => {
-        setState({ kind: 'ready', replay })
+    void loadEvidenceFacade(controller.signal)
+      .then((facade) => {
+        setState({ kind: 'ready', facade })
       })
       .catch((reason: unknown) => {
         if (controller.signal.aborted) {
@@ -45,7 +45,7 @@ export function App() {
 
   return (
     <AppShell
-      replay={state.kind === 'ready' ? state.replay : undefined}
+      replay={state.kind === 'ready' ? state.facade.replay : undefined}
       globalError={
         state.kind === 'error'
           ? {
@@ -84,10 +84,10 @@ function ReplayContent({ state, view }: { readonly state: LoadState; readonly vi
     )
   }
 
-  return <ReplayView replay={state.replay} view={view} />
+  return <ReplayView replay={state.facade.replay} view={view} />
 }
 
-function ReplayView({ replay, view }: { readonly replay: ReplayBootstrap; readonly view: ShellView }) {
+function ReplayView({ replay, view }: { readonly replay: ReplayEvidence; readonly view: ShellView }) {
   switch (view) {
     case 'mission':
       return <MissionView replay={replay} />
@@ -96,11 +96,11 @@ function ReplayView({ replay, view }: { readonly replay: ReplayBootstrap; readon
     case 'evidence-lens':
       return <EvidenceLensView replay={replay} />
     case 'dashboard':
-      return <DashboardView />
+      return <DashboardView replay={replay} />
   }
 }
 
-function MissionView({ replay }: { readonly replay: ReplayBootstrap }) {
+function MissionView({ replay }: { readonly replay: ReplayEvidence }) {
   return (
     <section className="mission-panel" aria-labelledby="target-title">
       <div>
@@ -118,7 +118,7 @@ function MissionView({ replay }: { readonly replay: ReplayBootstrap }) {
   )
 }
 
-function ObservatoryView({ replay }: { readonly replay: ReplayBootstrap }) {
+function ObservatoryView({ replay }: { readonly replay: ReplayEvidence }) {
   return (
     <section className="detail-panel" aria-labelledby="observatory-title">
       <p className="eyebrow">Verified observatory</p>
@@ -132,8 +132,19 @@ function ObservatoryView({ replay }: { readonly replay: ReplayBootstrap }) {
           <dd>{replay.bundleId}</dd>
         </div>
         <div>
-          <dt>Artifacts</dt>
-          <dd>{replay.artifactCount}</dd>
+          <dt>Artifact checksums</dt>
+          <dd>
+            {replay.verifiedArtifactCount} / {replay.artifactCount} verified
+          </dd>
+        </div>
+        <div>
+          <dt>Bundle roots</dt>
+          <dd>
+            {replay.verification.inventoryChecksumVerified &&
+            replay.verification.payloadRootChecksumVerified
+              ? 'Inventory and payload verified'
+              : 'Verification unavailable'}
+          </dd>
         </div>
         <div>
           <dt>Unavailable sections</dt>
@@ -160,7 +171,7 @@ function ObservatoryView({ replay }: { readonly replay: ReplayBootstrap }) {
   )
 }
 
-function EvidenceLensView({ replay }: { readonly replay: ReplayBootstrap }) {
+function EvidenceLensView({ replay }: { readonly replay: ReplayEvidence }) {
   return (
     <section className="detail-panel" aria-labelledby="evidence-title">
       <p className="eyebrow">Evidence boundary</p>
@@ -186,22 +197,41 @@ function EvidenceLensView({ replay }: { readonly replay: ReplayBootstrap }) {
           <dd>{replay.unavailableSectionCount}</dd>
         </div>
       </dl>
+      <h3>Explicitly unavailable evidence</h3>
+      <ul className="unavailable-evidence-list">
+        {replay.unavailableSections.map((section) => (
+          <li key={section.name}>
+            <strong>{section.name.replaceAll('_', ' ')}</strong>
+            <span>{section.reason}</span>
+          </li>
+        ))}
+      </ul>
     </section>
   )
 }
 
-function DashboardView() {
+function DashboardView({ replay }: { readonly replay: ReplayEvidence }) {
   return (
     <section className="detail-panel" aria-labelledby="dashboard-title">
       <p className="eyebrow">Client runtime</p>
-      <h2 id="dashboard-title">Static by construction</h2>
+      <h2 id="dashboard-title">Verified JSON fallback</h2>
       <p className="lede">
-        The replay starts from committed JSON. DuckDB-Wasm is{' '}
-        {DUCKDB_RUNTIME_MODE.replaceAll('-', ' ')} and is not started by this shell.
+        Parquet is unavailable in this bundle, so the facade deterministically uses checksum-verified
+        JSON. DuckDB-Wasm was not started.
       </p>
       <EvidenceState state="available" title="Credential-free replay">
         This view uses only same-origin static assets and does not contact a live backend.
       </EvidenceState>
+      <dl className="evidence-facts">
+        <div>
+          <dt>Data mode</dt>
+          <dd>{replay.verification.dataMode.replaceAll('-', ' ')}</dd>
+        </div>
+        <div>
+          <dt>Fallback reason</dt>
+          <dd>{replay.verification.fallbackReason.replaceAll('_', ' ')}</dd>
+        </div>
+      </dl>
     </section>
   )
 }

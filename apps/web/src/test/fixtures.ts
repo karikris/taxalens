@@ -1,45 +1,50 @@
-export const sectionEntries = Object.fromEntries(
-  Array.from({ length: 20 }, (_, index) => [
-    `section_${index}`,
-    { status: index < 6 ? 'unavailable' : 'available' },
-  ]),
+const FIXTURE_PREFIX = '../../../../demo/fixture/papilio_pilot/'
+
+const fixtureModules = import.meta.glob<string>(
+  '../../../../demo/fixture/papilio_pilot/**/*.json',
+  {
+    eager: true,
+    import: 'default',
+    query: '?raw',
+  },
 )
 
-export const judgeBundleFixture = {
-  schema_version: 'taxalens-judge-bundle:v1.0.0',
-  bundle_id: 'papilio-demoleus-pilot-75461d9c-v1',
-  title: 'Truthful Papilio demoleus metadata pilot',
-  target: {
-    accepted_taxon_key: 'gbif:1938069',
-    scientific_name: 'Papilio demoleus',
-    rank: 'species',
-  },
-  source_revisions: {
-    taxalens_sha: '1'.repeat(40),
-    biominer_sha: '2'.repeat(40),
-  },
-  artifact_inventory: [
-    {
-      artifact_id: 'run-summary',
-      path: 'data/run_summary.json',
-      role: 'run_summary',
-    },
-  ],
-  sections: sectionEntries,
-  rights: {
-    status: 'license_checked',
-    all_artifacts_covered: true,
-  },
-  expected_ui_counts: {
-    artifact_count: 1,
-    unavailable_section_count: 6,
-  },
-}
+export const committedFixtureFiles: Readonly<Record<string, string>> = Object.freeze(
+  Object.fromEntries(
+    Object.entries(fixtureModules).map(([path, contents]) => [
+      path.replace(FIXTURE_PREFIX, ''),
+      contents,
+    ]),
+  ),
+)
 
-export const runSummaryFixture = {
-  hero_record_id: 'papilio-demoleus-pilot-awaiting-review',
-  hero_state: 'awaiting_human_review',
-  scientific_claim_allowed: false,
+export const committedJudgeBundle = JSON.parse(
+  committedFixtureFiles['judge_bundle.json'] ?? '{}',
+) as Record<string, unknown>
+
+export function createCommittedFixtureFetcher(
+  overrides: Readonly<Record<string, string | Uint8Array<ArrayBuffer>>> = {},
+): typeof fetch {
+  return async (input) => {
+    const url =
+      input instanceof Request
+        ? new URL(input.url)
+        : new URL(input instanceof URL ? input.href : input, window.location.href)
+    const path = [...new Set([...Object.keys(committedFixtureFiles), ...Object.keys(overrides)])].find(
+      (candidate) => url.pathname === `/${candidate}` || url.pathname.endsWith(`/${candidate}`),
+    )
+    if (path === undefined) {
+      return new Response(null, { status: 404 })
+    }
+    const body = overrides[path] ?? committedFixtureFiles[path]
+    if (body === undefined) {
+      return new Response(null, { status: 404 })
+    }
+    return new Response(body, {
+      status: 200,
+      headers: { 'content-type': path.endsWith('.json') ? 'application/json' : 'application/octet-stream' },
+    })
+  }
 }
 
 export function jsonResponse(payload: unknown, status = 200): Response {

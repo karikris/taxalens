@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Button, Link } from 'react-aria-components'
 
-import type { ReplayBootstrap } from '../data/replayBootstrap'
+import type { ReplayIdentity } from '../data/evidenceFacade'
 import { GuidedTour } from './GuidedTour'
 import { SHELL_VIEWS, shellViewFromHash, type ShellView } from './shellTypes'
 
@@ -12,7 +12,7 @@ interface GlobalError {
 }
 
 interface AppShellProps {
-  readonly replay: ReplayBootstrap | undefined
+  readonly replay: ReplayIdentity | undefined
   readonly globalError: GlobalError | undefined
   readonly onReset: () => void
   readonly renderView: (view: ShellView) => ReactNode

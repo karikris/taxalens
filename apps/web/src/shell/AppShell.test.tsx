@@ -1,13 +1,11 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import type { ReplayBootstrap } from '../data/replayBootstrap'
+import type { ReplayIdentity } from '../data/evidenceFacade'
 import { AppShell } from './AppShell'
 
-const replay: ReplayBootstrap = Object.freeze({
-  schemaVersion: 'taxalens-judge-bundle:v1.0.0',
+const replay: ReplayIdentity = Object.freeze({
   bundleId: 'papilio-demoleus-pilot-75461d9c-v1',
-  title: 'Truthful Papilio demoleus metadata pilot',
   target: Object.freeze({
     acceptedTaxonKey: 'gbif:1938069',
     scientificName: 'Papilio demoleus',
@@ -17,12 +15,6 @@ const replay: ReplayBootstrap = Object.freeze({
     taxalensSha: '188187d73ca8e0ef2c670bdf6cefcb20c8a59d9d',
     biominerSha: '75461d9c065af0cd96b41cd1f845c2e920f7ae34',
   }),
-  rightsStatus: 'license_checked',
-  artifactCount: 17,
-  unavailableSectionCount: 6,
-  heroRecordId: 'papilio-demoleus-pilot-awaiting-review',
-  heroState: 'awaiting_human_review',
-  scientificClaimAllowed: false,
 })
 
 function renderShell(overrides?: {

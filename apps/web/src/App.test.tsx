@@ -2,17 +2,12 @@ import { render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { App } from './App'
-import { judgeBundleFixture, jsonResponse, runSummaryFixture } from './test/fixtures'
+import { createCommittedFixtureFetcher, jsonResponse } from './test/fixtures'
 
 describe('TaxaLens scaffold', () => {
   beforeEach(() => {
-    vi.stubGlobal(
-      'fetch',
-      vi
-        .fn<typeof fetch>()
-        .mockResolvedValueOnce(jsonResponse(judgeBundleFixture))
-        .mockResolvedValueOnce(jsonResponse(runSummaryFixture)),
-    )
+    window.history.replaceState(null, '', '/')
+    vi.stubGlobal('fetch', vi.fn(createCommittedFixtureFetcher()))
   })
 
   it('renders semantic landmarks and the truthful review state', async () => {
@@ -32,6 +27,19 @@ describe('TaxaLens scaffold', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Awaiting human review')
     expect(screen.getByText(/It is not a classification of an image/u)).toBeInTheDocument()
     expect(screen.getByText(/no live backend/u)).toBeInTheDocument()
+  })
+
+  it('shows complete checksum verification and the deterministic JSON fallback', async () => {
+    window.location.hash = '#observatory'
+    render(<App />)
+
+    expect(await screen.findByText('17 / 17 verified')).toBeInTheDocument()
+    expect(screen.getByText('Inventory and payload verified')).toBeInTheDocument()
+
+    window.location.hash = '#dashboard'
+    window.dispatchEvent(new HashChangeEvent('hashchange'))
+    expect(await screen.findByRole('heading', { name: 'Verified JSON fallback' })).toBeInTheDocument()
+    expect(screen.getByText('parquet unavailable')).toBeInTheDocument()
   })
 
   it('renders an assertive local-load failure with an accessible retry action', async () => {

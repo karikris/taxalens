@@ -1,4 +1,4 @@
-import type { Nullable } from './replay_contracts';
+type Nullable<T> = T | null;
 
 export const JUDGE_BUNDLE_SCHEMA_VERSION = 'taxalens-judge-bundle:v1.0.0';
 

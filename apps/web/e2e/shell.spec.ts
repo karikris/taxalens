@@ -65,3 +65,21 @@ test('navigates the evidence views and guided tour from the keyboard', async ({ 
   )
   await expect(page.getByRole('heading', { name: 'Papilio demoleus' })).toBeVisible()
 })
+
+test('shows only checksum-verified evidence with explicit fallback and unavailable states', async ({
+  page,
+}) => {
+  await page.goto('./#observatory')
+
+  await expect(page.getByText('17 / 17 verified')).toBeVisible()
+  await expect(page.getByText('Inventory and payload verified')).toBeVisible()
+
+  await page.getByRole('link', { name: 'Evidence Lens' }).click()
+  await expect(page.getByRole('heading', { name: 'Explicitly unavailable evidence' })).toBeVisible()
+  await expect(page.locator('.unavailable-evidence-list > li')).toHaveCount(6)
+
+  await page.getByRole('link', { name: 'Dashboard' }).click()
+  await expect(page.getByRole('heading', { name: 'Verified JSON fallback' })).toBeVisible()
+  await expect(page.getByText('parquet unavailable')).toBeVisible()
+  await expect(page.getByText(/DuckDB-Wasm was not started/u)).toBeVisible()
+})
