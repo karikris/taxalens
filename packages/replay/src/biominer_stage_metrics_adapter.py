@@ -284,9 +284,9 @@ def _to_str(value: object) -> str | None:
 
 
 def _first_non_empty(value: Any, *, fallback: str | None = None) -> str | None:
-    if value is None:
+    if not isinstance(value, str):
         return fallback
-    text = str(value).strip()
+    text = value.strip()
     return text or fallback
 
 
