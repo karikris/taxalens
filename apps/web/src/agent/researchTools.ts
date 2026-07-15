@@ -92,9 +92,18 @@ export class ResearchToolError extends Error {
   }
 }
 
-const STRING_ARGUMENT = Object.freeze({ type: 'string', minLength: 1, maxLength: 160 })
-const TAXON_ARGUMENT = Object.freeze({ type: 'string', minLength: 1, maxLength: 120 })
-const RECORD_ARGUMENT = Object.freeze({ type: 'string', minLength: 1, maxLength: 160 })
+const STRING_ARGUMENT = Object.freeze({
+  type: 'string',
+  description: 'A non-empty identifier of at most 160 characters.',
+})
+const TAXON_ARGUMENT = Object.freeze({
+  type: 'string',
+  description: 'An exact scientific name or accepted taxon key; at most 160 characters.',
+})
+const RECORD_ARGUMENT = Object.freeze({
+  type: 'string',
+  description: 'An exact committed evidence-record ID; at most 160 characters.',
+})
 const STATUS_VALUES = Object.freeze(['available', 'partial', 'unavailable', 'blocked'])
 const FACT_STATUS_VALUES = Object.freeze(['verified', 'metadata', 'unavailable', 'blocked'])
 const RECORD_STATUS_VALUES = Object.freeze([
@@ -112,23 +121,22 @@ const OUTPUT_SCHEMA: JsonObjectSchema = deepFreeze({
     schemaVersion: { type: 'string', const: RESEARCH_TOOL_RESULT_VERSION },
     tool: { type: 'string', enum: RESEARCH_TOOL_NAMES },
     status: { type: 'string', enum: STATUS_VALUES },
-    bundleId: { type: 'string', minLength: 1, maxLength: 160 },
-    summary: { type: 'string', minLength: 1, maxLength: 1_200 },
+    bundleId: { type: 'string' },
+    summary: { type: 'string' },
     facts: {
       type: 'array',
-      maxItems: 48,
       items: {
         type: 'object',
         additionalProperties: false,
         properties: {
-          id: { type: 'string', minLength: 1, maxLength: 120 },
-          label: { type: 'string', minLength: 1, maxLength: 160 },
+          id: { type: 'string' },
+          label: { type: 'string' },
           value: {
             anyOf: [
               { type: 'boolean' },
               { type: 'null' },
               { type: 'number' },
-              { type: 'string', maxLength: 1_200 },
+              { type: 'string' },
             ],
           },
           status: { type: 'string', enum: FACT_STATUS_VALUES },
@@ -138,21 +146,17 @@ const OUTPUT_SCHEMA: JsonObjectSchema = deepFreeze({
     },
     records: {
       type: 'array',
-      maxItems: 64,
       items: {
         type: 'object',
         additionalProperties: false,
         properties: {
-          id: { type: 'string', minLength: 1, maxLength: 180 },
-          label: { type: 'string', minLength: 1, maxLength: 180 },
+          id: { type: 'string' },
+          label: { type: 'string' },
           status: { type: 'string', enum: RECORD_STATUS_VALUES },
-          detail: { type: 'string', minLength: 1, maxLength: 2_000 },
+          detail: { type: 'string' },
           artifactIds: {
             type: 'array',
-            minItems: 1,
-            maxItems: 22,
-            uniqueItems: true,
-            items: { type: 'string', minLength: 1, maxLength: 160 },
+            items: { type: 'string' },
           },
         },
         required: ['id', 'label', 'status', 'detail', 'artifactIds'],
@@ -160,15 +164,11 @@ const OUTPUT_SCHEMA: JsonObjectSchema = deepFreeze({
     },
     artifactIds: {
       type: 'array',
-      minItems: 1,
-      maxItems: 22,
-      uniqueItems: true,
-      items: { type: 'string', minLength: 1, maxLength: 160 },
+      items: { type: 'string' },
     },
     limitations: {
       type: 'array',
-      maxItems: 16,
-      items: { type: 'string', minLength: 1, maxLength: 1_200 },
+      items: { type: 'string' },
     },
     scientificClaimAllowed: { type: 'boolean', const: false },
   },
@@ -237,7 +237,10 @@ export const RESEARCH_TOOL_DEFINITIONS: readonly ResearchToolDefinition[] = Obje
     parameters(
       {
         accepted_taxon_key: TAXON_ARGUMENT,
-        candidate_limit: { type: 'integer', minimum: 1, maximum: 50 },
+        candidate_limit: {
+          type: 'integer',
+          description: 'Whole-number candidate limit from 1 through 50.',
+        },
       },
       ['accepted_taxon_key', 'candidate_limit'],
     ),
@@ -789,6 +792,7 @@ function verifyResult(resultValue: ResearchToolResult, replay: ReplayEvidence): 
       `${resultValue.tool} returned an invalid result: ${formatValidationErrors(validateResult.errors)}`,
     )
   }
+  validateResultBounds(resultValue)
   const inventoryIds = new Set(replay.artifactInventory.map(({ artifactId }) => artifactId))
   const citedIds = [
     ...resultValue.artifactIds,
@@ -802,6 +806,49 @@ function verifyResult(resultValue: ResearchToolResult, replay: ReplayEvidence): 
     )
   }
   return resultValue
+}
+
+function validateResultBounds(resultValue: ResearchToolResult): void {
+  const invalid =
+    !boundedText(resultValue.bundleId, 160) ||
+    !boundedText(resultValue.summary, 1_200) ||
+    resultValue.facts.length > 48 ||
+    resultValue.records.length > 64 ||
+    resultValue.limitations.length > 16 ||
+    !boundedArtifactIds(resultValue.artifactIds) ||
+    resultValue.facts.some(
+      (item) =>
+        !boundedText(item.id, 120) ||
+        !boundedText(item.label, 160) ||
+        (typeof item.value === 'string' && item.value.length > 1_200),
+    ) ||
+    resultValue.records.some(
+      (item) =>
+        !boundedText(item.id, 180) ||
+        !boundedText(item.label, 180) ||
+        !boundedText(item.detail, 2_000) ||
+        !boundedArtifactIds(item.artifactIds),
+    ) ||
+    resultValue.limitations.some((item) => !boundedText(item, 1_200))
+  if (invalid) {
+    throw new ResearchToolError(
+      'invalid_result',
+      `${resultValue.tool} returned data outside the bounded research-tool contract`,
+    )
+  }
+}
+
+function boundedArtifactIds(values: readonly string[]): boolean {
+  return (
+    values.length > 0 &&
+    values.length <= 22 &&
+    new Set(values).size === values.length &&
+    values.every((value) => boundedText(value, 160))
+  )
+}
+
+function boundedText(value: string, maximum: number): boolean {
+  return value.trim().length > 0 && value.length <= maximum
 }
 
 function researchToolName(value: string): ResearchToolName {
@@ -824,7 +871,14 @@ function readString(value: unknown, key: string): string {
   if (!isRecord(value) || typeof value[key] !== 'string') {
     throw new ResearchToolError('invalid_arguments', `${key} must be a string`)
   }
-  return value[key]
+  const candidate = value[key]
+  if (!boundedText(candidate, 160)) {
+    throw new ResearchToolError(
+      'invalid_arguments',
+      `${key} must contain between 1 and 160 characters`,
+    )
+  }
+  return candidate
 }
 
 function readInteger(value: unknown, key: string): number {
@@ -834,6 +888,9 @@ function readInteger(value: unknown, key: string): number {
   const candidate = value[key]
   if (typeof candidate !== 'number' || !Number.isInteger(candidate)) {
     throw new ResearchToolError('invalid_arguments', `${key} must be an integer`)
+  }
+  if (candidate < 1 || candidate > 50) {
+    throw new ResearchToolError('invalid_arguments', `${key} must be between 1 and 50`)
   }
   return candidate
 }
