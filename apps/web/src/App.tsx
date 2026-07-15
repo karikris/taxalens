@@ -1,21 +1,17 @@
 import { useEffect, useState } from 'react'
-import { Button, Link } from 'react-aria-components'
 
 import { DUCKDB_RUNTIME_MODE } from './data/duckdbRuntime'
 import {
   loadReplayBootstrap,
   type ReplayBootstrap,
 } from './data/replayBootstrap'
-import { EvidenceState, EvidenceTier } from './design-system'
+import { EvidenceDesignation, EvidenceState, EvidenceTier } from './design-system'
+import { AppShell, type ShellView } from './shell'
 
 type LoadState =
   | { readonly kind: 'loading' }
   | { readonly kind: 'ready'; readonly replay: ReplayBootstrap }
   | { readonly kind: 'error'; readonly message: string }
-
-function compactSha(sha: string): string {
-  return `${sha.slice(0, 8)}…${sha.slice(-6)}`
-}
 
 export function App() {
   const [attempt, setAttempt] = useState(0)
@@ -45,120 +41,167 @@ export function App() {
     }
   }, [attempt])
 
+  const retry = () => setAttempt((value) => value + 1)
+
   return (
-    <div className="app-shell">
-      <a className="skip-link" href="#main-content">
-        Skip to evidence summary
-      </a>
-
-      <header className="app-header">
-        <div>
-          <p className="eyebrow">Deterministic biodiversity evidence</p>
-          <h1>TaxaLens Judge Replay</h1>
-        </div>
-        <span className="replay-indicator">Static replay · no live backend</span>
-      </header>
-
-      <nav className="journey-nav" aria-label="Replay scaffold">
-        <Link href="#mission">Mission</Link>
-        <Link href="#verification">Verification</Link>
-        <Link href="#runtime">Runtime</Link>
-      </nav>
-
-      <main id="main-content" tabIndex={-1}>
-        {state.kind === 'loading' && (
-          <section className="state-panel" aria-labelledby="loading-title">
-            <p className="eyebrow">Local artifact loading</p>
-            <h2 id="loading-title">Opening the verified judge bundle…</h2>
-            <EvidenceState state="loading" title="Reading committed artifacts">
-              No credential, model request, or remote scientific API is used.
-            </EvidenceState>
-          </section>
-        )}
-
-        {state.kind === 'error' && (
-          <section className="state-panel state-panel--error" aria-labelledby="error-title">
-            <p className="eyebrow">Replay unavailable</p>
-            <h2 id="error-title">The static evidence bundle could not be opened</h2>
-            <EvidenceState state="failure" title="Verification stopped">
-              {state.message}
-            </EvidenceState>
-            <Button onPress={() => setAttempt((value) => value + 1)}>Retry local load</Button>
-          </section>
-        )}
-
-        {state.kind === 'ready' && <ReplayReady replay={state.replay} />}
-      </main>
-
-      <footer>
-        <p>Credential-free client replay. Scientific results remain artifact-bound.</p>
-      </footer>
-    </div>
+    <AppShell
+      replay={state.kind === 'ready' ? state.replay : undefined}
+      globalError={
+        state.kind === 'error'
+          ? {
+              title: 'The static evidence bundle could not be opened',
+              message: state.message,
+              onRetry: retry,
+            }
+          : undefined
+      }
+      onReset={retry}
+      renderView={(view) => <ReplayContent state={state} view={view} />}
+    />
   )
 }
 
-function ReplayReady({ replay }: { readonly replay: ReplayBootstrap }) {
+function ReplayContent({ state, view }: { readonly state: LoadState; readonly view: ShellView }) {
+  if (state.kind === 'loading') {
+    return (
+      <section className="state-panel" aria-labelledby="loading-title">
+        <p className="eyebrow">Local artifact loading</p>
+        <h2 id="loading-title">Opening the verified judge bundle…</h2>
+        <EvidenceState state="loading" title="Reading committed artifacts">
+          No credential, model request, or remote scientific API is used.
+        </EvidenceState>
+      </section>
+    )
+  }
+
+  if (state.kind === 'error') {
+    return (
+      <section className="state-panel state-panel--error" aria-labelledby="error-view-title">
+        <p className="eyebrow">Replay unavailable</p>
+        <h2 id="error-view-title">Scientific display is paused</h2>
+        <p>The shell remains available, but no artifact value is displayed until verification passes.</p>
+      </section>
+    )
+  }
+
+  return <ReplayView replay={state.replay} view={view} />
+}
+
+function ReplayView({ replay, view }: { readonly replay: ReplayBootstrap; readonly view: ShellView }) {
+  switch (view) {
+    case 'mission':
+      return <MissionView replay={replay} />
+    case 'observatory':
+      return <ObservatoryView replay={replay} />
+    case 'evidence-lens':
+      return <EvidenceLensView replay={replay} />
+    case 'dashboard':
+      return <DashboardView />
+  }
+}
+
+function MissionView({ replay }: { readonly replay: ReplayBootstrap }) {
   return (
-    <>
-      <section id="mission" className="mission-panel" aria-labelledby="target-title">
-        <div>
-          <EvidenceTier tier="metadata" />
-          <p className="eyebrow mission-panel__kicker">Research target</p>
-          <h2 id="target-title">
-            <i>{replay.target.scientificName}</i>
-          </h2>
-          <p className="lede">
-            The target identifies the pilot mission. It is not a classification of an image.
-          </p>
-        </div>
-        <EvidenceState state="review" title="Awaiting human review" compact />
-      </section>
-
-      <section id="verification" className="detail-panel" aria-labelledby="verification-title">
-        <p className="eyebrow">Verified bootstrap</p>
-        <h2 id="verification-title">Bundle identity</h2>
-        <dl>
-          <div>
-            <dt>Bundle</dt>
-            <dd>{replay.bundleId}</dd>
-          </div>
-          <div>
-            <dt>Artifacts</dt>
-            <dd>{replay.artifactCount}</dd>
-          </div>
-          <div>
-            <dt>Unavailable sections</dt>
-            <dd>{replay.unavailableSectionCount}</dd>
-          </div>
-          <div>
-            <dt>Rights</dt>
-            <dd>{replay.rightsStatus.replaceAll('_', ' ')}</dd>
-          </div>
-          <div>
-            <dt>TaxaLens SHA</dt>
-            <dd title={replay.sourceRevisions.taxalensSha}>
-              <code>{compactSha(replay.sourceRevisions.taxalensSha)}</code>
-            </dd>
-          </div>
-          <div>
-            <dt>BioMiner SHA</dt>
-            <dd title={replay.sourceRevisions.biominerSha}>
-              <code>{compactSha(replay.sourceRevisions.biominerSha)}</code>
-            </dd>
-          </div>
-        </dl>
-      </section>
-
-      <section id="runtime" className="detail-panel" aria-labelledby="runtime-title">
-        <p className="eyebrow">Client runtime</p>
-        <h2 id="runtime-title">Static by construction</h2>
-        <p>
-          The replay starts from committed JSON. DuckDB-Wasm is {DUCKDB_RUNTIME_MODE.replaceAll(
-            '-',
-            ' ',
-          )} and is not started by this shell.
+    <section className="mission-panel" aria-labelledby="target-title">
+      <div>
+        <EvidenceTier tier="metadata" />
+        <p className="eyebrow mission-panel__kicker">Research target</p>
+        <h2 id="target-title">
+          <i>{replay.target.scientificName}</i>
+        </h2>
+        <p className="lede">
+          The target identifies the pilot mission. It is not a classification of an image.
         </p>
-      </section>
-    </>
+      </div>
+      <EvidenceState state="review" title="Awaiting human review" compact />
+    </section>
+  )
+}
+
+function ObservatoryView({ replay }: { readonly replay: ReplayBootstrap }) {
+  return (
+    <section className="detail-panel" aria-labelledby="observatory-title">
+      <p className="eyebrow">Verified observatory</p>
+      <h2 id="observatory-title">Bundle identity</h2>
+      <p className="lede">
+        These values come from the exact static manifest loaded by the shell.
+      </p>
+      <dl className="evidence-facts">
+        <div>
+          <dt>Bundle</dt>
+          <dd>{replay.bundleId}</dd>
+        </div>
+        <div>
+          <dt>Artifacts</dt>
+          <dd>{replay.artifactCount}</dd>
+        </div>
+        <div>
+          <dt>Unavailable sections</dt>
+          <dd>{replay.unavailableSectionCount}</dd>
+        </div>
+        <div>
+          <dt>Rights</dt>
+          <dd>{replay.rightsStatus.replaceAll('_', ' ')}</dd>
+        </div>
+        <div>
+          <dt>TaxaLens SHA</dt>
+          <dd>
+            <code>{replay.sourceRevisions.taxalensSha}</code>
+          </dd>
+        </div>
+        <div>
+          <dt>BioMiner SHA</dt>
+          <dd>
+            <code>{replay.sourceRevisions.biominerSha}</code>
+          </dd>
+        </div>
+      </dl>
+    </section>
+  )
+}
+
+function EvidenceLensView({ replay }: { readonly replay: ReplayBootstrap }) {
+  return (
+    <section className="detail-panel" aria-labelledby="evidence-title">
+      <p className="eyebrow">Evidence boundary</p>
+      <h2 id="evidence-title">No scientific result is promoted</h2>
+      <EvidenceState state="review" title="Human decision required">
+        The hero remains {replay.heroState.replaceAll('_', ' ')} and scientific claims are not allowed.
+      </EvidenceState>
+      <div className="evidence-boundary">
+        <EvidenceDesignation kind="candidate" />
+        <EvidenceTier tier="unavailable" />
+      </div>
+      <dl className="evidence-facts">
+        <div>
+          <dt>Hero record</dt>
+          <dd>{replay.heroRecordId}</dd>
+        </div>
+        <div>
+          <dt>Scientific claim</dt>
+          <dd>{replay.scientificClaimAllowed ? 'Allowed' : 'Not allowed'}</dd>
+        </div>
+        <div>
+          <dt>Unavailable sections</dt>
+          <dd>{replay.unavailableSectionCount}</dd>
+        </div>
+      </dl>
+    </section>
+  )
+}
+
+function DashboardView() {
+  return (
+    <section className="detail-panel" aria-labelledby="dashboard-title">
+      <p className="eyebrow">Client runtime</p>
+      <h2 id="dashboard-title">Static by construction</h2>
+      <p className="lede">
+        The replay starts from committed JSON. DuckDB-Wasm is{' '}
+        {DUCKDB_RUNTIME_MODE.replaceAll('-', ' ')} and is not started by this shell.
+      </p>
+      <EvidenceState state="available" title="Credential-free replay">
+        This view uses only same-origin static assets and does not contact a live backend.
+      </EvidenceState>
+    </section>
   )
 }

@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client'
 import { App } from './App'
 import './design-system/tokens.css'
 import './design-system/primitives.css'
+import './shell/shell.css'
 import './styles.css'
 
 const root = document.getElementById('root')

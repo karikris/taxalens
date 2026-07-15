@@ -34,3 +34,34 @@ test('preserves hierarchy at a narrow viewport and honors reduced motion', async
   expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth)
   expect(viewport.scrollBehavior).toBe('auto')
 })
+
+test('navigates the evidence views and guided tour from the keyboard', async ({ page }) => {
+  await page.goto('./')
+
+  const tourTrigger = page.getByRole('button', { name: 'Guided tour' })
+  await tourTrigger.focus()
+  await page.keyboard.press('Enter')
+  await expect(page.getByRole('dialog', { name: 'Mission' })).toBeVisible()
+  await expect(page.getByText('Guided tour · Step 1 of 4')).toBeVisible()
+
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('dialog')).toBeHidden()
+  await expect(tourTrigger).toBeFocused()
+
+  const evidenceLens = page.getByRole('link', { name: 'Evidence Lens' })
+  await evidenceLens.focus()
+  await page.keyboard.press('Enter')
+  await expect(evidenceLens).toHaveAttribute('aria-current', 'page')
+  await expect(
+    page.getByRole('heading', { name: 'No scientific result is promoted' }),
+  ).toBeVisible()
+
+  const reset = page.getByRole('button', { name: 'Reset replay' })
+  await reset.focus()
+  await page.keyboard.press('Enter')
+  await expect(page.getByRole('link', { name: 'Mission' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  )
+  await expect(page.getByRole('heading', { name: 'Papilio demoleus' })).toBeVisible()
+})

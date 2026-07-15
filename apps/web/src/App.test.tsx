@@ -19,10 +19,10 @@ describe('TaxaLens scaffold', () => {
     render(<App />)
 
     expect(screen.getByRole('banner')).toBeInTheDocument()
-    expect(screen.getByRole('navigation', { name: 'Replay scaffold' })).toBeInTheDocument()
+    expect(screen.getByRole('navigation', { name: 'Primary' })).toBeInTheDocument()
     expect(screen.getByRole('main')).toBeInTheDocument()
     expect(screen.getByRole('contentinfo')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Skip to evidence summary' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Skip to current view' })).toHaveAttribute(
       'href',
       '#main-content',
     )
