@@ -110,10 +110,27 @@ export interface MissionEvidence {
   }[]
 }
 
+export interface ObservatoryEvidence {
+  readonly registryTaxonCount: number
+  readonly physicalQueryCount: number
+  readonly flickrQueryHitCount: number
+  readonly canonicalPhotoCount: number
+  readonly locatedClusterCount: number
+  readonly regionalCandidateCount: number
+  readonly eligibleReferenceCandidateCount: number
+  readonly yoloeImageCount: number
+  readonly fullFrameTransformationCount: number
+  readonly candidateVisualScoreCount: number
+  readonly calibratedDecisionCount: number
+  readonly humanCommentCount: number
+  readonly finalEvidenceCount: number
+}
+
 export interface ReplayEvidence extends ReplayIdentity {
   readonly schemaVersion: typeof JUDGE_BUNDLE_SCHEMA_VERSION
   readonly title: string
   readonly mission: MissionEvidence
+  readonly observatory: ObservatoryEvidence
   readonly rightsStatus: string
   readonly artifactCount: number
   readonly verifiedArtifactCount: number
@@ -790,6 +807,123 @@ function projectMissionEvidence(
   })
 }
 
+function projectObservatoryEvidence(
+  artifacts: ReadonlyMap<string, VerifiedArtifact>,
+  manifest: JudgeBundleContract,
+): ObservatoryEvidence {
+  const queryRecord = recordForRole(artifacts, 'query_definitions')
+  const queryData = object(queryRecord.data, 'query_definitions.data')
+  const sourcePlan = object(queryData.source_plan, 'query_definitions.data.source_plan')
+
+  const flickrRecord = recordForRole(artifacts, 'flickr_candidate_summaries')
+  const flickrData = object(flickrRecord.data, 'flickr_candidate_summaries.data')
+  const geographyRecord = recordForRole(artifacts, 'geographic_clusters')
+  const geographyData = object(geographyRecord.data, 'geographic_clusters.data')
+
+  const candidateRows = array(artifactJsonForRole(artifacts, 'candidate_sets'), 'candidate_sets')
+  const readinessRecord = recordForRole(artifacts, 'reference_readiness')
+  const readinessData = object(readinessRecord.data, 'reference_readiness.data')
+  const readinessCounts = object(readinessData.counts, 'reference_readiness.data.counts')
+  const execution = object(
+    readinessData.execution_constraints,
+    'reference_readiness.data.execution_constraints',
+  )
+
+  const runSummary = object(artifactJsonForRole(artifacts, 'run_summary'), 'run_summary')
+  const detectionData = object(runSummary.detection_data, 'run_summary.detection_data')
+  const transformations = object(
+    runSummary.full_frame_transformations,
+    'run_summary.full_frame_transformations',
+  )
+  const candidateEvidence = object(
+    runSummary.candidate_evidence,
+    'run_summary.candidate_evidence',
+  )
+  const selectiveDecision = recordForRole(artifacts, 'selective_decision_metadata')
+  const visualScores = array(
+    selectiveDecision.candidate_visual_scores,
+    'selective_decision_metadata.candidate_visual_scores',
+  )
+
+  const yoloeImageCount = numberField(
+    execution,
+    'yoloe_images_processed',
+    'reference_readiness.data.execution_constraints',
+  )
+  const runDetectionCount = numberField(
+    detectionData,
+    'record_count',
+    'run_summary.detection_data',
+  )
+  if (yoloeImageCount !== runDetectionCount) {
+    throw new EvidenceFacadeError('YOLOE stage counts differ across verified artifacts')
+  }
+
+  const fullFrameTransformationCount = numberField(
+    transformations,
+    'record_count',
+    'run_summary.full_frame_transformations',
+  )
+  const bioclipImageCount = numberField(
+    execution,
+    'bioclip_images_processed',
+    'reference_readiness.data.execution_constraints',
+  )
+  if (fullFrameTransformationCount !== bioclipImageCount) {
+    throw new EvidenceFacadeError('Full-frame stage counts differ across verified artifacts')
+  }
+
+  const candidateVisualScoreCount = numberField(
+    candidateEvidence,
+    'candidate_visual_score_count',
+    'run_summary.candidate_evidence',
+  )
+  if (candidateVisualScoreCount !== visualScores.length) {
+    throw new EvidenceFacadeError('Candidate visual-score counts differ across verified artifacts')
+  }
+
+  const calibratedDecisionCount = selectiveDecision.decision === null ? 0 : 1
+  if (calibratedDecisionCount !== 0) {
+    throw new EvidenceFacadeError('Truthful metadata replay cannot contain a decision output')
+  }
+
+  return deepFreeze({
+    registryTaxonCount: numberField(
+      sourcePlan,
+      'queried_species_count',
+      'query_definitions.data.source_plan',
+    ),
+    physicalQueryCount: numberField(queryData, 'query_count', 'query_definitions.data'),
+    flickrQueryHitCount: numberField(
+      flickrData,
+      'query_hit_count',
+      'flickr_candidate_summaries.data',
+    ),
+    canonicalPhotoCount: numberField(
+      flickrData,
+      'canonical_photo_count',
+      'flickr_candidate_summaries.data',
+    ),
+    locatedClusterCount: numberField(
+      geographyData,
+      'located_cluster_count',
+      'geographic_clusters.data',
+    ),
+    regionalCandidateCount: candidateRows.length,
+    eligibleReferenceCandidateCount: numberField(
+      readinessCounts,
+      'eligible_source_media_candidate_count',
+      'reference_readiness.data.counts',
+    ),
+    yoloeImageCount,
+    fullFrameTransformationCount,
+    candidateVisualScoreCount,
+    calibratedDecisionCount,
+    humanCommentCount: manifest.expected_ui_counts.section_records.comments,
+    finalEvidenceCount: calibratedDecisionCount,
+  })
+}
+
 class VerifiedEvidenceFacade implements EvidenceFacade {
   readonly replay: ReplayEvidence
   readonly #artifacts: ReadonlyMap<string, VerifiedArtifact>
@@ -927,6 +1061,7 @@ export async function loadEvidenceFacade(
 
   const sections = projectSections(manifest)
   const mission = projectMissionEvidence(artifacts)
+  const observatory = projectObservatoryEvidence(artifacts, manifest)
   const unavailableSections = Object.freeze(
     JUDGE_BUNDLE_SECTION_NAMES.map((name) => sections[name]).filter(
       (section) => section.status === 'unavailable',
@@ -937,6 +1072,7 @@ export async function loadEvidenceFacade(
     bundleId: manifest.bundle_id,
     title: manifest.title,
     mission,
+    observatory,
     target: {
       acceptedTaxonKey: manifest.target.accepted_taxon_key,
       scientificName: manifest.target.scientific_name,

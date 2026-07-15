@@ -132,6 +132,21 @@ describe('loadEvidenceFacade', () => {
       recordCount: 0,
       scientificClaimAllowed: false,
     })
+    expect(facade.replay.observatory).toEqual({
+      registryTaxonCount: 22,
+      physicalQueryCount: 22,
+      flickrQueryHitCount: 76_485,
+      canonicalPhotoCount: 13_501,
+      locatedClusterCount: 76,
+      regionalCandidateCount: 5,
+      eligibleReferenceCandidateCount: 838,
+      yoloeImageCount: 0,
+      fullFrameTransformationCount: 0,
+      candidateVisualScoreCount: 0,
+      calibratedDecisionCount: 0,
+      humanCommentCount: 0,
+      finalEvidenceCount: 0,
+    })
     expect(facade.replay.verification).toMatchObject({
       inventoryChecksumVerified: true,
       payloadRootChecksumVerified: true,

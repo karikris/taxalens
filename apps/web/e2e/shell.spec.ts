@@ -73,6 +73,13 @@ test('shows only checksum-verified evidence with explicit fallback and unavailab
 
   await expect(page.getByText('17 / 17 verified')).toBeVisible()
   await expect(page.getByText('Inventory and payload verified')).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Evidence pipeline' })).toBeVisible()
+  const pipeline = page.getByRole('list', { name: 'Evidence pipeline stages' })
+  await expect(pipeline.locator(':scope > li')).toHaveCount(13)
+  await expect(pipeline.getByRole('heading', { name: 'Trusted Registry' })).toBeVisible()
+  await expect(pipeline.getByRole('heading', { name: 'Final Evidence' })).toBeVisible()
+  await expect(pipeline.getByText('76,485', { exact: true })).toBeVisible()
+  await expect(pipeline.getByText('13,501', { exact: true })).toBeVisible()
 
   await page.getByRole('link', { name: 'Evidence Lens' }).click()
   await expect(page.getByRole('heading', { name: 'Explicitly unavailable evidence' })).toBeVisible()

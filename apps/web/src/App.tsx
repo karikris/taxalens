@@ -7,6 +7,7 @@ import {
 } from './data/evidenceFacade'
 import { EvidenceDesignation, EvidenceState, EvidenceTier } from './design-system'
 import type { ReplayLaunchReceipt } from './mission'
+import { ObservatoryWorkspace } from './observatory'
 import { AppShell, type ShellView } from './shell'
 
 const MissionWorkspace = lazy(async () => {
@@ -147,139 +148,12 @@ function ReplayView({
         </Suspense>
       )
     case 'observatory':
-      return <ObservatoryView replay={replay} replayLaunch={replayLaunch} />
+      return <ObservatoryWorkspace replay={replay} replayLaunch={replayLaunch} />
     case 'evidence-lens':
       return <EvidenceLensView replay={replay} />
     case 'dashboard':
       return <DashboardView replay={replay} />
   }
-}
-
-function ObservatoryView({
-  replay,
-  replayLaunch,
-}: {
-  readonly replay: ReplayEvidence
-  readonly replayLaunch: ReplayLaunchReceipt | null
-}) {
-  if (replayLaunch !== null) {
-    return (
-      <section className="detail-panel replay-launch-receipt" aria-labelledby="replay-receipt-title">
-        <p className="eyebrow">Provenance-bound replay</p>
-        <h2 id="replay-receipt-title">Replay launch receipt</h2>
-        <p className="lede">
-          The submitted fixture is open. This receipt is bound to the exact plan, source registry,
-          source revisions, and verified artifact inventory shown below.
-        </p>
-        <EvidenceState state="available" title="Submitted fixture opened">
-          All {replayLaunch.bundle.artifactCount} local artifact checks passed. No remote request or
-          live scientific action was enabled.
-        </EvidenceState>
-        <dl className="evidence-facts replay-launch-receipt__facts">
-          <div className="replay-launch-receipt__fingerprint">
-            <dt>Plan fingerprint</dt>
-            <dd>
-              <code>{replayLaunch.planFingerprint}</code>
-            </dd>
-          </div>
-          <div>
-            <dt>Registry version</dt>
-            <dd>
-              <code>{replayLaunch.sourceRegistry.version}</code>
-            </dd>
-          </div>
-          <div>
-            <dt>Source snapshot</dt>
-            <dd>
-              <code>{replayLaunch.sourceRegistry.sourceSnapshotVersion}</code>
-            </dd>
-          </div>
-          <div>
-            <dt>Bundle</dt>
-            <dd>{replayLaunch.bundle.bundleId}</dd>
-          </div>
-          <div>
-            <dt>Artifact checksums</dt>
-            <dd>
-              {replayLaunch.bundle.verifiedArtifactCount} / {replayLaunch.bundle.artifactCount}{' '}
-              verified
-            </dd>
-          </div>
-          <div>
-            <dt>Live approval</dt>
-            <dd>{replayLaunch.liveApproval.status.replaceAll('_', ' ')}</dd>
-          </div>
-          <div>
-            <dt>TaxaLens SHA</dt>
-            <dd>
-              <code>{replayLaunch.sourceRevisions.taxalensSha}</code>
-            </dd>
-          </div>
-          <div>
-            <dt>BioMiner SHA</dt>
-            <dd>
-              <code>{replayLaunch.sourceRevisions.biominerSha}</code>
-            </dd>
-          </div>
-          <div className="replay-launch-receipt__capabilities">
-            <dt>Capabilities</dt>
-            <dd>Fixture replay only · no live actions · no remote requests</dd>
-          </div>
-        </dl>
-      </section>
-    )
-  }
-
-  return (
-    <section className="detail-panel" aria-labelledby="observatory-title">
-      <p className="eyebrow">Verified observatory</p>
-      <h2 id="observatory-title">Bundle identity</h2>
-      <p className="lede">
-        These values come from the exact static manifest loaded by the shell.
-      </p>
-      <dl className="evidence-facts">
-        <div>
-          <dt>Bundle</dt>
-          <dd>{replay.bundleId}</dd>
-        </div>
-        <div>
-          <dt>Artifact checksums</dt>
-          <dd>
-            {replay.verifiedArtifactCount} / {replay.artifactCount} verified
-          </dd>
-        </div>
-        <div>
-          <dt>Bundle roots</dt>
-          <dd>
-            {replay.verification.inventoryChecksumVerified &&
-            replay.verification.payloadRootChecksumVerified
-              ? 'Inventory and payload verified'
-              : 'Verification unavailable'}
-          </dd>
-        </div>
-        <div>
-          <dt>Unavailable sections</dt>
-          <dd>{replay.unavailableSectionCount}</dd>
-        </div>
-        <div>
-          <dt>Rights</dt>
-          <dd>{replay.rightsStatus.replaceAll('_', ' ')}</dd>
-        </div>
-        <div>
-          <dt>TaxaLens SHA</dt>
-          <dd>
-            <code>{replay.sourceRevisions.taxalensSha}</code>
-          </dd>
-        </div>
-        <div>
-          <dt>BioMiner SHA</dt>
-          <dd>
-            <code>{replay.sourceRevisions.biominerSha}</code>
-          </dd>
-        </div>
-      </dl>
-    </section>
-  )
 }
 
 function EvidenceLensView({ replay }: { readonly replay: ReplayEvidence }) {

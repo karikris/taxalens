@@ -12,3 +12,7 @@ explicit approval exists.
 
 The compact BioMiner import includes the pinned geographic workload settings solely to preserve and
 validate the registry contract (`butterflies-v2-20260712`) used by the submitted replay.
+
+Observatory renders the 13 required evidence stages as an accessible ordered pipeline. Every count
+comes from the verified fixture, retains its own unit, and keeps unavailable scientific work visibly
+distinct from a measured zero.
