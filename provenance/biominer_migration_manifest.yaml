@@ -153,3 +153,19 @@ components:
     tests:
       - "packages/replay/tests/test_biominer_evidence_review_policy.py"
     status: "migrated"
+  - component_id: "biominer_vision_gates"
+    source_repository: "karikris/BioMiner"
+    source_commit: "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    source_path: "src/biominer/vision/gates.py"
+    destination_path: "packages/replay/src/biominer_vision_gates.py"
+    migration_kind: "copied"
+    reason: "Preserve the committed visual-domain gate that routes supported detection domains into BioCLIP scoring, review, or exclusion."
+    build_week_scope: "new"
+    source_license: "MIT License, copyright 2026 Kris Kari"
+    changes:
+      - "Copied all route constants, policy modes, decision records, validation, and exports without semantic changes"
+      - "Added a source path, commit, and licence provenance docstring"
+      - "Adjusted only the test import path for the TaxaLens package layout"
+    tests:
+      - "packages/replay/tests/test_biominer_vision_gates.py"
+    status: "migrated"

@@ -45,6 +45,10 @@ TaxaLens treats `karikris/BioMiner` as the upstream research engine and treats t
   has been copied intact into
   `packages/replay/src/biominer_evidence_review_policy.py` with exhaustive policy
   tests in `packages/replay/tests/test_biominer_evidence_review_policy.py`.
+- Visual-domain BioCLIP gate policy (`src/biominer/vision/gates.py`) has been
+  copied intact into `packages/replay/src/biominer_vision_gates.py`, including
+  routed, review, exclusion, and legacy modes, with upstream-equivalent tests in
+  `packages/replay/tests/test_biominer_vision_gates.py`.
 
 - Future migrations should be implemented as contracts and adapters with source SHAs recorded per component.
 
