@@ -137,6 +137,7 @@ export interface ReplayEvidence extends ReplayIdentity {
   readonly unavailableSectionCount: number
   readonly unavailableSections: readonly EvidenceSectionState[]
   readonly sections: Readonly<Record<JudgeBundleSectionName, EvidenceSectionState>>
+  readonly artifactInventory: readonly ReplayArtifactEvidence[]
   readonly heroRecordId: string
   readonly heroState: 'awaiting_human_review'
   readonly scientificClaimAllowed: false
@@ -148,6 +149,17 @@ export interface ReplayEvidence extends ReplayIdentity {
     readonly fallbackReason: 'analytics_on_demand'
     readonly wasmStarted: false
   }
+}
+
+export interface ReplayArtifactEvidence {
+  readonly artifactId: string
+  readonly path: string
+  readonly role: JudgeBundleArtifact['role']
+  readonly sha256: string
+  readonly sizeBytes: number
+  readonly recordCount: number | null
+  readonly producerSha: string
+  readonly verified: true
 }
 
 export interface AnalyticsCandidateInput {
@@ -1266,6 +1278,16 @@ export async function loadEvidenceFacade(
     unavailableSectionCount: unavailableSections.length,
     unavailableSections,
     sections,
+    artifactInventory: orderedInventory.map((artifact) => ({
+      artifactId: artifact.artifact_id,
+      path: artifact.path,
+      role: artifact.role,
+      sha256: artifact.sha256,
+      sizeBytes: artifact.bytes,
+      recordCount: artifact.record_count,
+      producerSha: artifact.source_commit,
+      verified: true,
+    })),
     heroRecordId: stringField(runSummary, 'hero_record_id', 'run_summary'),
     heroState: 'awaiting_human_review',
     scientificClaimAllowed: false,

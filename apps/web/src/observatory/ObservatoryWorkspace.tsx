@@ -6,6 +6,12 @@ import { EvidenceState } from '../design-system'
 import type { ReplayLaunchReceipt } from '../mission'
 import type { AnalyticsReplayResult } from './analyticsReplay'
 import { buildPipelineStages, type PipelineStageStatus } from './pipelineModel'
+import {
+  buildRecordLineage,
+  traceRecordLineage,
+  type RecordLineageModel,
+  type RecordLineageSelection,
+} from './recordLineage'
 import './observatory.css'
 
 const STATUS_PRESENTATION: Readonly<
@@ -105,6 +111,12 @@ export function ObservatoryWorkspace({
   readonly executeReplay?: AnalyticsReplayExecutor
 }) {
   const stages = buildPipelineStages(replay)
+  const lineage = buildRecordLineage(replay, stages)
+  const [selectedLineageRecordId, setSelectedLineageRecordId] = useState<string | null>(null)
+  const lineageSelection =
+    selectedLineageRecordId === null
+      ? null
+      : traceRecordLineage(lineage, selectedLineageRecordId)
   const [analytics, setAnalytics] = useState<
     | { readonly kind: 'idle' }
     | { readonly kind: 'running' }
@@ -194,6 +206,16 @@ export function ObservatoryWorkspace({
         </div>
       </section>
 
+      <RecordLineageInspector
+        lineage={lineage}
+        selection={lineageSelection}
+        onToggle={() =>
+          setSelectedLineageRecordId((current) =>
+            current === lineage.record.recordId ? null : lineage.record.recordId,
+          )
+        }
+      />
+
       <figure
         className="pipeline-figure"
         aria-labelledby="pipeline-title"
@@ -223,8 +245,14 @@ export function ObservatoryWorkspace({
         <ol className="pipeline-flow" aria-label="Evidence pipeline stages">
           {stages.map((stage) => {
             const presentation = STATUS_PRESENTATION[stage.status]
+            const lineageHighlighted = lineageSelection?.stageIds.has(stage.stageId) ?? false
+            const lineageStage = lineage.stages.find(({ stageId }) => stageId === stage.stageId)
             return (
-              <li key={stage.stageId} data-stage-status={stage.status}>
+              <li
+                key={stage.stageId}
+                data-stage-status={stage.status}
+                data-lineage-highlighted={lineageHighlighted}
+              >
                 <span className="pipeline-flow__sequence" aria-hidden="true">
                   {String(stage.sequence).padStart(2, '0')}
                 </span>
@@ -234,6 +262,11 @@ export function ObservatoryWorkspace({
                     <span aria-hidden="true">{presentation.marker}</span>
                     {presentation.label}
                   </span>
+                  {lineageHighlighted && lineageStage !== undefined ? (
+                    <span className="pipeline-flow__lineage-marker">
+                      Lineage · {lineageStage.contributionKind.replaceAll('_', ' ')}
+                    </span>
+                  ) : null}
                 </div>
                 <p className="pipeline-flow__count">
                   <strong>{stage.count.toLocaleString('en-US')}</strong>
@@ -455,6 +488,107 @@ function AnalyticsResults({ result }: { readonly result: AnalyticsReplayResult }
         </TabPanel>
       </Tabs>
     </div>
+  )
+}
+
+function RecordLineageInspector({
+  lineage,
+  selection,
+  onToggle,
+}: {
+  readonly lineage: RecordLineageModel
+  readonly selection: RecordLineageSelection | null
+  readonly onToggle: () => void
+}) {
+  const selected = selection !== null
+  return (
+    <section className="record-lineage" aria-labelledby="record-lineage-title">
+      <div className="record-lineage__heading">
+        <div>
+          <p className="eyebrow">Interactive upstream closure</p>
+          <h2 id="record-lineage-title">Record lineage</h2>
+          <p>
+            Select the final replay record to highlight every stage state and verified artifact
+            that contributes to its awaiting-review boundary.
+          </p>
+        </div>
+        <div className="record-lineage__boundary">
+          <strong>Diagnostic replay state</strong>
+          <span>No scientific evidence record exists yet</span>
+        </div>
+      </div>
+
+      <button
+        className="record-lineage__record"
+        type="button"
+        aria-pressed={selected}
+        aria-describedby="record-lineage-help"
+        onClick={onToggle}
+      >
+        <span>{lineage.record.label}</span>
+        <code>{lineage.record.recordId}</code>
+        <strong>{selected ? 'Lineage highlighted' : 'Trace this record'}</strong>
+      </button>
+      <p id="record-lineage-help" className="record-lineage__help">
+        Unavailable stages contribute an explicit missing-evidence state. They do not imply a
+        hidden artifact or completed scientific work.
+      </p>
+      <p className="record-lineage__status" role="status" aria-live="polite">
+        {selected
+          ? `${selection.stageIds.size} contributing stages and ${selection.artifactIds.size} contributing artifacts highlighted for ${lineage.record.recordId}.`
+          : 'No final replay record selected; lineage highlighting is off.'}
+      </p>
+
+      <ol className="record-lineage__artifacts" aria-label="Contributing lineage artifacts">
+        {lineage.artifacts.map((artifact) => {
+          const highlighted = selection?.artifactIds.has(artifact.artifactId) ?? false
+          const relatedStages = artifact.stageIds.map((stageId) => {
+            const stage = lineage.stages.find((candidate) => candidate.stageId === stageId)
+            if (stage === undefined) {
+              throw new Error(`Lineage artifact references unknown stage ${stageId}`)
+            }
+            return stage
+          })
+          return (
+            <li key={artifact.artifactId} data-lineage-highlighted={highlighted}>
+              <div className="record-lineage__artifact-heading">
+                <div>
+                  <code>{artifact.artifactId}</code>
+                  <h3>{artifact.path}</h3>
+                </div>
+                <span>{highlighted ? 'Highlighted contributor' : 'Contributor'}</span>
+              </div>
+              <p>
+                {artifact.contributionKind === 'record_frame'
+                  ? 'Establishes the record identity, ordered pipeline frame, or verified count frame.'
+                  : `Feeds ${relatedStages.map(({ label }) => label).join(' · ')}.`}
+              </p>
+              <details>
+                <summary>Inspect artifact identity</summary>
+                <dl>
+                  <div>
+                    <dt>Checksum</dt>
+                    <dd>
+                      <code>{artifact.sha256}</code>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Producer SHA</dt>
+                    <dd>
+                      <code>{artifact.producerSha}</code>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Verification</dt>
+                    <dd>{artifact.verified ? 'Checksum verified' : 'Unavailable'}</dd>
+                  </div>
+                </dl>
+              </details>
+            </li>
+          )
+        })}
+      </ol>
+    </section>
   )
 }
 

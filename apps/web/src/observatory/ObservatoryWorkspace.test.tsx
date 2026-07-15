@@ -33,6 +33,35 @@ describe('ObservatoryWorkspace', () => {
     expect(within(pipeline).getByText(/butterflies-v2-20260712/u)).toBeInTheDocument()
     expect(within(pipeline).getAllByText('Unavailable')).toHaveLength(5)
     expect(screen.getByText(/Zero means the verified fixture records no output/u)).toBeInTheDocument()
+
+    const record = screen.getByRole('button', {
+      name: /Final replay record awaiting review/u,
+    })
+    const artifacts = screen.getByRole('list', { name: 'Contributing lineage artifacts' })
+    expect(record).toHaveAttribute('aria-pressed', 'false')
+    expect(artifacts.children).toHaveLength(12)
+    expect(
+      Array.from(pipeline.children).every(
+        (stage) => stage.getAttribute('data-lineage-highlighted') === 'false',
+      ),
+    ).toBe(true)
+
+    fireEvent.click(record)
+
+    expect(record).toHaveAttribute('aria-pressed', 'true')
+    expect(
+      screen.getByText(/13 contributing stages and 12 contributing artifacts highlighted/u),
+    ).toBeInTheDocument()
+    expect(
+      Array.from(pipeline.children).every(
+        (stage) => stage.getAttribute('data-lineage-highlighted') === 'true',
+      ),
+    ).toBe(true)
+    expect(
+      Array.from(artifacts.children).every(
+        (artifact) => artifact.getAttribute('data-lineage-highlighted') === 'true',
+      ),
+    ).toBe(true)
   })
 
   it('runs an injected analytics executor only after explicit activation', async () => {

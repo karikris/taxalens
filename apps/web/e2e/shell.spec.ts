@@ -81,6 +81,28 @@ test('shows only checksum-verified evidence with explicit analytics and unavaila
   await expect(pipeline.getByText('76,485', { exact: true })).toBeVisible()
   await expect(pipeline.getByText('13,501', { exact: true })).toBeVisible()
 
+  const lineageRecord = page.getByRole('button', {
+    name: /Final replay record awaiting review/u,
+  })
+  await expect(lineageRecord).toHaveAttribute('aria-pressed', 'false')
+  await lineageRecord.focus()
+  await page.keyboard.press('Enter')
+  await expect(lineageRecord).toHaveAttribute('aria-pressed', 'true')
+  await expect(
+    page.getByText(/13 contributing stages and 12 contributing artifacts highlighted/u),
+  ).toBeVisible()
+  await expect(pipeline.locator(':scope > li[data-lineage-highlighted="true"]')).toHaveCount(13)
+  const lineageArtifacts = page.getByRole('list', { name: 'Contributing lineage artifacts' })
+  await expect(
+    lineageArtifacts.locator(':scope > li[data-lineage-highlighted="true"]'),
+  ).toHaveCount(12)
+  const queryDefinitions = lineageArtifacts
+    .getByText('query-definitions', { exact: true })
+    .locator('xpath=ancestor::li[1]')
+  await expect(queryDefinitions).toContainText('Trusted Registry · Query Compilation')
+  await queryDefinitions.getByText('Inspect artifact identity').click()
+  await expect(queryDefinitions).toContainText('Checksum verified')
+
   await page.getByRole('link', { name: 'Evidence Lens' }).click()
   await expect(page.getByRole('heading', { name: 'Explicitly unavailable evidence' })).toBeVisible()
   await expect(page.locator('.unavailable-evidence-list > li')).toHaveCount(6)
@@ -230,6 +252,11 @@ test('executes the eight real DuckDB-Wasm Parquet operations and inspects their 
   await expect(assembly).toContainText('1 rows out')
   await expect(page.getByText('Not executed', { exact: true })).toBeVisible()
   await expect(page.getByText('Scientific claim: not allowed')).toBeVisible()
+
+  await page.getByRole('button', { name: /Final replay record awaiting review/u }).click()
+  await expect(
+    page.getByText(/13 contributing stages and 12 contributing artifacts highlighted/u),
+  ).toBeVisible()
 
   const expectedOrigin = new URL(page.url()).origin
   const remoteRequests = requestUrls.filter((url) => {

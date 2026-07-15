@@ -94,6 +94,18 @@ describe('loadEvidenceFacade', () => {
     expect(facade.replay.verifiedArtifactCount).toBe(22)
     expect(facade.replay.unavailableSections).toHaveLength(6)
     expect(facade.replay.sections.yoloe_evidence.status).toBe('unavailable')
+    expect(facade.replay.artifactInventory).toHaveLength(22)
+    expect(facade.replay.artifactInventory.every(({ verified }) => verified)).toBe(true)
+    expect(
+      facade.replay.artifactInventory.find(
+        ({ artifactId }) => artifactId === 'biominer-flickr-query-hits-parquet',
+      ),
+    ).toMatchObject({
+      path: 'analytics/flickr_query_hits.parquet',
+      sha256: '95448f3145d903f7f042fe41d74561475ef050f8df21b318ebacb252484e4f0b',
+      producerSha: replayEvidenceContract.biominerSha,
+      verified: true,
+    })
     expect(facade.replay.mission).toMatchObject({
       sourceRegistry: {
         name: 'BioMiner butterflies registry',
