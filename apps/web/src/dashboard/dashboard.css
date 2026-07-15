@@ -1156,3 +1156,271 @@
     width: 100%;
   }
 }
+
+.workflow-efficiency {
+  display: grid;
+  gap: var(--tl-space-3);
+  min-width: 0;
+  padding: clamp(var(--tl-space-3), 3vw, var(--tl-space-4));
+  background: var(--tl-surface-paper);
+  border: 1px solid var(--tl-line);
+  border-top: 4px solid var(--tl-state-review-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.workflow-efficiency__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--tl-space-3);
+}
+
+.workflow-efficiency__heading h3 {
+  margin: 0;
+}
+
+.workflow-efficiency__heading p:last-child {
+  max-width: var(--tl-reading-width);
+  margin: var(--tl-space-2) 0 0;
+  color: var(--tl-ink-muted);
+}
+
+.workflow-efficiency__count {
+  display: grid;
+  flex: 0 0 auto;
+  justify-items: center;
+  min-width: 7rem;
+  padding: var(--tl-space-2);
+  color: var(--tl-brand-strong);
+  background: var(--tl-state-review-bg);
+  border: 1px solid var(--tl-state-review-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.workflow-efficiency__count strong {
+  font-family: var(--tl-font-mono);
+  font-size: var(--tl-text-xl);
+  line-height: 1;
+}
+
+.workflow-efficiency__count span {
+  margin-top: var(--tl-space-1);
+  font-size: var(--tl-text-xs);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.workflow-efficiency__metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--tl-space-2);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.workflow-efficiency__metrics > li,
+.workflow-efficiency__metrics article {
+  min-width: 0;
+  height: 100%;
+}
+
+.workflow-efficiency__metrics article {
+  display: grid;
+  grid-template-rows: auto auto auto 1fr;
+  gap: var(--tl-space-2);
+  padding: var(--tl-space-3);
+  background: var(--tl-state-unavailable-bg);
+  border: 1px dashed var(--tl-state-unavailable-line);
+  border-left-width: 5px;
+  border-radius: var(--tl-radius-sm);
+}
+
+.workflow-efficiency__metrics li[data-efficiency-status="measured"] article {
+  background: var(--tl-state-available-bg);
+  border-style: solid;
+  border-color: var(--tl-state-available-line);
+}
+
+.workflow-efficiency__metric-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--tl-space-2);
+}
+
+.workflow-efficiency__metric-heading span,
+.workflow-efficiency__metric-heading > strong {
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-xs);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.workflow-efficiency__metric-heading h4 {
+  margin: var(--tl-space-1) 0 0;
+  font-family: var(--tl-font-editorial);
+  font-size: var(--tl-text-md);
+}
+
+.workflow-efficiency__metric-heading > strong {
+  max-width: 13rem;
+  color: var(--tl-brand-strong);
+  text-align: right;
+}
+
+.workflow-efficiency__value {
+  margin: 0;
+  color: var(--tl-brand-strong);
+  font-family: var(--tl-font-mono);
+  font-size: var(--tl-text-md);
+  font-weight: 800;
+}
+
+.workflow-efficiency__metrics article > p:not(.workflow-efficiency__value) {
+  margin: 0;
+}
+
+.workflow-efficiency__metrics dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-self: end;
+  gap: var(--tl-space-2);
+  margin: 0;
+}
+
+.workflow-efficiency__metrics dl > div {
+  min-width: 0;
+  padding: var(--tl-space-2);
+  background: var(--tl-surface-paper);
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.workflow-efficiency__metrics dt {
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-xs);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.workflow-efficiency__metrics dd {
+  margin: var(--tl-space-1) 0;
+  color: var(--tl-brand-strong);
+  font-family: var(--tl-font-mono);
+  font-weight: 800;
+}
+
+.workflow-efficiency__metrics code {
+  display: block;
+  overflow-wrap: anywhere;
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-xs);
+}
+
+.workflow-efficiency__guardrail {
+  display: grid;
+  grid-template-columns: minmax(14rem, 1fr) minmax(0, 2fr);
+  gap: var(--tl-space-3);
+  padding: var(--tl-space-3);
+  background: var(--tl-brand-soft);
+  border: 1px solid var(--tl-line);
+  border-left: 5px solid var(--tl-brand);
+  border-radius: var(--tl-radius-sm);
+}
+
+.workflow-efficiency__guardrail h4,
+.workflow-efficiency__guardrail > p {
+  margin: 0;
+}
+
+.workflow-efficiency__table,
+.workflow-efficiency__provenance {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.workflow-efficiency__table summary,
+.workflow-efficiency__provenance summary {
+  color: var(--tl-brand-strong);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.workflow-efficiency__table > div {
+  width: 100%;
+  max-width: 100%;
+  margin-top: var(--tl-space-2);
+  overflow: auto;
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.workflow-efficiency__table table {
+  width: 100%;
+  min-width: 64rem;
+  border-collapse: collapse;
+  font-size: var(--tl-text-sm);
+}
+
+.workflow-efficiency__table th,
+.workflow-efficiency__table td {
+  min-width: 10rem;
+  padding: var(--tl-space-2);
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--tl-line);
+}
+
+.workflow-efficiency__table thead th {
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-xs);
+  text-transform: uppercase;
+  background: var(--tl-surface-subtle);
+}
+
+.workflow-efficiency__provenance ul {
+  display: grid;
+  gap: var(--tl-space-2);
+  padding: 0;
+  list-style: none;
+}
+
+.workflow-efficiency__provenance li {
+  display: grid;
+  gap: var(--tl-space-1);
+  min-width: 0;
+  padding: var(--tl-space-2);
+  background: var(--tl-surface-subtle);
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.workflow-efficiency__provenance span,
+.workflow-efficiency__provenance code,
+.workflow-efficiency__provenance small {
+  overflow-wrap: anywhere;
+}
+
+.workflow-efficiency__provenance small {
+  color: var(--tl-ink-muted);
+}
+
+@media (max-width: 60rem) {
+  .workflow-efficiency__metrics,
+  .workflow-efficiency__guardrail {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 44rem) {
+  .workflow-efficiency__heading,
+  .workflow-efficiency__metrics dl {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .workflow-efficiency__count {
+    justify-self: start;
+  }
+}

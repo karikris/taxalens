@@ -4,7 +4,6 @@ import {
   loadEvidenceFacade,
   type EvidenceFacade,
 } from './data/evidenceFacade'
-import { DashboardWorkspace } from './dashboard'
 import { EvidenceState } from './design-system'
 import { EvidenceLensWorkspace } from './evidence'
 import type { ReplayLaunchReceipt } from './mission'
@@ -14,6 +13,11 @@ import { AppShell, type ShellView } from './shell'
 const MissionWorkspace = lazy(async () => {
   const module = await import('./mission')
   return { default: module.MissionWorkspace }
+})
+
+const DashboardWorkspace = lazy(async () => {
+  const module = await import('./dashboard')
+  return { default: module.DashboardWorkspace }
 })
 
 type LoadState =
@@ -156,6 +160,17 @@ function ReplayView({
     case 'evidence-lens':
       return <EvidenceLensWorkspace facade={facade} replay={replay} />
     case 'dashboard':
-      return <DashboardWorkspace facade={facade} replay={replay} />
+      return (
+        <Suspense
+          fallback={
+            <EvidenceState state="loading" title="Opening operations dashboard">
+              The verified evidence bundle is already loaded; only the local dashboard module is
+              pending.
+            </EvidenceState>
+          }
+        >
+          <DashboardWorkspace facade={facade} replay={replay} />
+        </Suspense>
+      )
   }
 }

@@ -934,3 +934,62 @@ test('measures discovery yield without inventing request counts or marginal API 
   }))
   expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth)
 })
+
+test('reports only measured workflow efficiency without inferring avoided work', async ({ page }) => {
+  const requestUrls: string[] = []
+  page.on('request', (request) => requestUrls.push(request.url()))
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('./#dashboard')
+
+  const report = page.locator('.workflow-efficiency')
+  await expect(report.getByRole('heading', { name: 'Workflow efficiency' })).toBeVisible()
+  await expect(
+    report.getByText('One measured state ledger · five savings claims withheld'),
+  ).toBeVisible()
+  await expect(report.getByText('1of 6 measured')).toBeVisible()
+  const metrics = report.getByRole('list', { name: 'Workflow efficiency measurements' })
+  const metric = (name: string) =>
+    metrics.getByRole('heading', { name }).locator('xpath=ancestor::article[1]')
+  await expect(metrics.locator(':scope > li')).toHaveCount(6)
+  await expect(metrics.locator('li[data-efficiency-status="unavailable"]')).toHaveCount(5)
+  await expect(metric('API calls avoided')).toContainText('Unavailable')
+  await expect(metric('API calls avoided')).toContainText('Observed requests314')
+  await expect(metric('API calls avoided')).toContainText('Retries0')
+  await expect(metric('Duplicate downloads avoided')).toContainText(
+    'Media-candidate rows deduplicated5',
+  )
+  await expect(metric('Duplicate downloads avoided')).toContainText('Images downloaded0')
+  await expect(metric('Repeated inference avoided')).toContainText('YOLOE images processed0')
+  await expect(metric('Embedding reuse')).toContainText('No embedding artifact')
+  await expect(metric('Restart efficiency')).toContainText('Complete checkpoints22 of 22')
+  await expect(metric('Restart efficiency')).toContainText('Checkpoint pages314')
+  await expect(metric('Evidence completeness')).toContainText('22 of 22 artifacts verified')
+  await expect(metric('Evidence completeness')).toContainText('Available sections5')
+  await expect(metric('Evidence completeness')).toContainText('Partial sections9')
+  await expect(metric('Evidence completeness')).toContainText('Unavailable sections6')
+
+  const guardrail = report.getByRole('heading', { name: 'Integrity is not scientific completeness' })
+    .locator('..')
+    .locator('..')
+  await expect(guardrail).toContainText('5 are available, 9 partial, and 6 unavailable')
+  await expect(guardrail).toContainText('No accuracy, readiness, or performance percentage')
+  await report.getByText('Read the complete efficiency ledger as a table').click()
+  await expect(report.getByRole('table').locator('tbody tr')).toHaveCount(6)
+  await report.getByText('Inspect workflow-efficiency provenance').click()
+  await expect(report.getByText('reference-readiness', { exact: true })).toBeVisible()
+  await expect(report.getByText('duplicate-summaries', { exact: true })).toBeVisible()
+  await expect(report.getByText('run-summary', { exact: true })).toBeVisible()
+
+  const expectedOrigin = new URL(page.url()).origin
+  expect(
+    requestUrls.filter((url) => {
+      const parsed = new URL(url)
+      return ['http:', 'https:'].includes(parsed.protocol) && parsed.origin !== expectedOrigin
+    }),
+  ).toEqual([])
+  const viewport = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }))
+  expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth)
+})

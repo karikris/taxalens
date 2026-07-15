@@ -191,6 +191,21 @@ export interface GeographyReferenceEvidenceBoundary {
     readonly sourceCandidateShortfall: number
     readonly humanVerifiedShortfall: number
     readonly unresolvedGroupCount: number
+    readonly workflowMeasurements: {
+      readonly observedRequestCount: number
+      readonly retryCount: number
+      readonly rateLimitCount: number
+      readonly checkpointCount: number
+      readonly completeCheckpointCount: number
+      readonly checkpointPageCount: number
+      readonly checkpointObservationRowCount: number
+      readonly observationCount: number
+      readonly deduplicatedObservationCount: number
+      readonly checkpointMediaCandidateRowCount: number
+      readonly mediaCandidateCount: number
+      readonly deduplicatedMediaCandidateCount: number
+      readonly imagesDownloaded: 0
+    }
   }
   readonly sourceRights: {
     readonly creatorOrOwner: string
@@ -1143,6 +1158,14 @@ function projectGeographyReferenceEvidence(
   const readiness = recordForRole(artifacts, 'reference_readiness')
   const readinessData = object(readiness.data, 'reference_readiness.data')
   const readinessCounts = object(readinessData.counts, 'reference_readiness.data.counts')
+  const readinessMaterialization = object(
+    readinessData.materialization,
+    'reference_readiness.data.materialization',
+  )
+  const readinessExecution = object(
+    readinessData.execution_constraints,
+    'reference_readiness.data.execution_constraints',
+  )
   const shortfalls = recordForRole(artifacts, 'reference_shortfalls')
   const shortfallData = object(shortfalls.data, 'reference_shortfalls.data')
   const rightsArtifact = artifacts.get('rights-manifest')
@@ -1173,6 +1196,86 @@ function projectGeographyReferenceEvidence(
     numberField(rights, 'licensed_image_count', 'rights_manifest') !== 0
   ) {
     throw new EvidenceFacadeError('Geography/reference boundary exceeds the truthful pilot')
+  }
+
+  const workflowMeasurements = {
+    observedRequestCount: numberField(
+      readinessMaterialization,
+      'request_count',
+      'reference_readiness.data.materialization',
+    ),
+    retryCount: numberField(
+      readinessMaterialization,
+      'retry_count',
+      'reference_readiness.data.materialization',
+    ),
+    rateLimitCount: numberField(
+      readinessMaterialization,
+      'rate_limit_count',
+      'reference_readiness.data.materialization',
+    ),
+    checkpointCount: numberField(
+      readinessMaterialization,
+      'checkpoint_count',
+      'reference_readiness.data.materialization',
+    ),
+    completeCheckpointCount: numberField(
+      readinessMaterialization,
+      'complete_checkpoint_count',
+      'reference_readiness.data.materialization',
+    ),
+    checkpointPageCount: numberField(
+      readinessMaterialization,
+      'checkpoint_page_count',
+      'reference_readiness.data.materialization',
+    ),
+    checkpointObservationRowCount: numberField(
+      readinessCounts,
+      'checkpoint_observation_row_count',
+      'reference_readiness.data.counts',
+    ),
+    observationCount: numberField(
+      readinessCounts,
+      'observation_count',
+      'reference_readiness.data.counts',
+    ),
+    deduplicatedObservationCount: numberField(
+      readinessCounts,
+      'deduplicated_observation_count',
+      'reference_readiness.data.counts',
+    ),
+    checkpointMediaCandidateRowCount: numberField(
+      readinessCounts,
+      'checkpoint_media_candidate_row_count',
+      'reference_readiness.data.counts',
+    ),
+    mediaCandidateCount: numberField(
+      readinessCounts,
+      'media_candidate_count',
+      'reference_readiness.data.counts',
+    ),
+    deduplicatedMediaCandidateCount: numberField(
+      readinessCounts,
+      'deduplicated_media_candidate_count',
+      'reference_readiness.data.counts',
+    ),
+    imagesDownloaded: numberField(
+      readinessExecution,
+      'images_downloaded',
+      'reference_readiness.data.execution_constraints',
+    ),
+  }
+  if (
+    workflowMeasurements.completeCheckpointCount !== workflowMeasurements.checkpointCount ||
+    workflowMeasurements.observedRequestCount !== workflowMeasurements.checkpointPageCount ||
+    workflowMeasurements.checkpointObservationRowCount - workflowMeasurements.observationCount !==
+      workflowMeasurements.deduplicatedObservationCount ||
+    workflowMeasurements.checkpointMediaCandidateRowCount -
+      workflowMeasurements.mediaCandidateCount !==
+      workflowMeasurements.deduplicatedMediaCandidateCount ||
+    workflowMeasurements.imagesDownloaded !== 0
+  ) {
+    throw new EvidenceFacadeError('Workflow measurements differ from the truthful pilot boundary')
   }
 
   return deepFreeze({
@@ -1247,6 +1350,10 @@ function projectGeographyReferenceEvidence(
         'unresolved_group_count',
         'reference_shortfalls.data',
       ),
+      workflowMeasurements: {
+        ...workflowMeasurements,
+        imagesDownloaded: 0,
+      },
     },
     sourceRights: {
       creatorOrOwner: stringField(

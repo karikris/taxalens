@@ -4,6 +4,7 @@ import { EvidenceFunnel } from './EvidenceFunnel'
 import { GeographicWorkloadMap } from './GeographicWorkloadMap'
 import { QueryYieldAnalysis } from './QueryYieldAnalysis'
 import { ReviewPriorityWorklist } from './ReviewPriorityWorklist'
+import { WorkflowEfficiencyReport } from './WorkflowEfficiencyReport'
 import './dashboard.css'
 
 export function DashboardWorkspace({
@@ -48,6 +49,8 @@ export function DashboardWorkspace({
       <ReviewPriorityWorklist replay={replay} />
 
       <QueryYieldAnalysis facade={facade} replay={replay} />
+
+      <WorkflowEfficiencyReport replay={replay} />
     </section>
   )
 }
