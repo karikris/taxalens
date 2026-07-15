@@ -6,6 +6,7 @@ import {
   loadReplayBootstrap,
   type ReplayBootstrap,
 } from './data/replayBootstrap'
+import { EvidenceState, EvidenceTier } from './design-system'
 
 type LoadState =
   | { readonly kind: 'loading' }
@@ -66,10 +67,12 @@ export function App() {
 
       <main id="main-content" tabIndex={-1}>
         {state.kind === 'loading' && (
-          <section className="state-panel" aria-labelledby="loading-title" aria-live="polite">
+          <section className="state-panel" aria-labelledby="loading-title">
             <p className="eyebrow">Local artifact loading</p>
             <h2 id="loading-title">Opening the verified judge bundle…</h2>
-            <p>No credential, model request, or remote scientific API is used.</p>
+            <EvidenceState state="loading" title="Reading committed artifacts">
+              No credential, model request, or remote scientific API is used.
+            </EvidenceState>
           </section>
         )}
 
@@ -77,7 +80,9 @@ export function App() {
           <section className="state-panel state-panel--error" aria-labelledby="error-title">
             <p className="eyebrow">Replay unavailable</p>
             <h2 id="error-title">The static evidence bundle could not be opened</h2>
-            <p role="alert">{state.message}</p>
+            <EvidenceState state="failure" title="Verification stopped">
+              {state.message}
+            </EvidenceState>
             <Button onPress={() => setAttempt((value) => value + 1)}>Retry local load</Button>
           </section>
         )}
@@ -97,7 +102,8 @@ function ReplayReady({ replay }: { readonly replay: ReplayBootstrap }) {
     <>
       <section id="mission" className="mission-panel" aria-labelledby="target-title">
         <div>
-          <p className="eyebrow">Research target · metadata only</p>
+          <EvidenceTier tier="metadata" />
+          <p className="eyebrow mission-panel__kicker">Research target</p>
           <h2 id="target-title">
             <i>{replay.target.scientificName}</i>
           </h2>
@@ -105,10 +111,7 @@ function ReplayReady({ replay }: { readonly replay: ReplayBootstrap }) {
             The target identifies the pilot mission. It is not a classification of an image.
           </p>
         </div>
-        <div className="review-state" role="status">
-          <span aria-hidden="true">◌</span>
-          Awaiting human review
-        </div>
+        <EvidenceState state="review" title="Awaiting human review" compact />
       </section>
 
       <section id="verification" className="detail-panel" aria-labelledby="verification-title">
