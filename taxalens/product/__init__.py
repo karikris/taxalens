@@ -1,5 +1,16 @@
 """Stable TaxaLens product contracts and evidence facade."""
 
+from taxalens.product.biominer_handoff import (
+    HANDOFF_IMPORT_RECEIPT_SCHEMA_VERSION,
+    HANDOFF_INVENTORY_SCHEMA_VERSION,
+    HandoffFile,
+    HandoffImportError,
+    HandoffInventory,
+    VerifiedHandoff,
+    import_biominer_handoff,
+    normalize_sha256,
+    verify_biominer_handoff_archive,
+)
 from taxalens.product.contracts import (
     ArtifactProvenance,
     ArtifactView,
@@ -45,11 +56,17 @@ __all__ = [
     "EvidenceFacade",
     "ExportFile",
     "FacadeError",
+    "HANDOFF_IMPORT_RECEIPT_SCHEMA_VERSION",
+    "HANDOFF_INVENTORY_SCHEMA_VERSION",
+    "HandoffFile",
+    "HandoffImportError",
+    "HandoffInventory",
     "LineageView",
     "LoadedJudgeBundle",
     "PipelineView",
     "ProductProvenance",
     "ProductResult",
+    "VerifiedHandoff",
     "JUDGE_BUNDLE_SCHEMA_VERSION",
     "JUDGE_BUNDLE_SECTION_NAMES",
     "JudgeBundleError",
@@ -57,6 +74,7 @@ __all__ = [
     "compute_inventory_sha256",
     "compute_payload_root_sha256",
     "export_evidence",
+    "import_biominer_handoff",
     "load_candidate_comparison",
     "load_comment_revision",
     "load_dashboard_summary",
@@ -69,5 +87,7 @@ __all__ = [
     "load_reference_evidence",
     "load_run",
     "load_stage",
+    "normalize_sha256",
     "validate_judge_bundle",
+    "verify_biominer_handoff_archive",
 ]
