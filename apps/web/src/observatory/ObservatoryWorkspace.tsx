@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Tab, TabList, TabPanel, Tabs } from 'react-aria-components'
+import { Label, Meter, Tab, TabList, TabPanel, Tabs } from 'react-aria-components'
 
 import type { AnalyticsReplayInput, EvidenceFacade, ReplayEvidence } from '../data/evidenceFacade'
 import { EvidenceState } from '../design-system'
@@ -286,6 +286,7 @@ function AnalyticsResults({ result }: { readonly result: AnalyticsReplayResult }
           <dd>{result.matrixScoringExecuted ? 'Executed' : 'Not executed'}</dd>
         </div>
       </dl>
+      <WorkAvoided result={result.workAvoided} />
       <Tabs className="analytics-inspection" defaultSelectedKey="research">
         <TabList className="analytics-inspection__tabs" aria-label="Analytics inspection mode">
           <Tab id="research">Research mode</Tab>
@@ -454,5 +455,99 @@ function AnalyticsResults({ result }: { readonly result: AnalyticsReplayResult }
         </TabPanel>
       </Tabs>
     </div>
+  )
+}
+
+function WorkAvoided({ result }: { readonly result: AnalyticsReplayResult['workAvoided'] }) {
+  return (
+    <section className="work-avoided" aria-labelledby="work-avoided-title">
+      <div className="work-avoided__heading">
+        <div>
+          <p className="eyebrow">Measured efficiency · no estimates</p>
+          <h3 id="work-avoided-title">Work avoided</h3>
+          <p>
+            Two counters are reproducible from the verified query-hit artifact. Five remain visible
+            as not instrumented because this pilot contains no execution or cache-reuse ledger for
+            them.
+          </p>
+        </div>
+        <strong>
+          {result.measuredMetricCount} measured · {result.notInstrumentedMetricCount} not instrumented
+        </strong>
+      </div>
+      <ul className="work-avoided__metrics" aria-label="Work avoided measurements">
+        {result.metrics.map((metric) => (
+          <li key={metric.metricId} data-measurement-status={metric.status}>
+            {metric.status === 'measured' &&
+            metric.value !== null &&
+            metric.baselineRows !== null ? (
+              <Meter
+                className="work-avoided__meter"
+                minValue={0}
+                maxValue={metric.baselineRows}
+                value={metric.value}
+                valueLabel={`${metric.value.toLocaleString('en-US')} ${metric.unit}`}
+                formatOptions={{ maximumFractionDigits: 0 }}
+              >
+                {({ percentage }) => (
+                  <>
+                    <div className="work-avoided__metric-heading">
+                      <Label>{metric.label}</Label>
+                      <span>Measured</span>
+                    </div>
+                    <strong className="work-avoided__value">
+                      {metric.value!.toLocaleString('en-US')}
+                    </strong>
+                    <span className="work-avoided__unit">{metric.unit}</span>
+                    <div className="work-avoided__track" aria-hidden="true">
+                      <div style={{ width: `${percentage}%` }} />
+                    </div>
+                    <p>
+                      {metric.baselineRows!.toLocaleString('en-US')} verified query-hit associations
+                      → {metric.retainedRows?.toLocaleString('en-US')} canonical source photos.
+                    </p>
+                  </>
+                )}
+              </Meter>
+            ) : (
+              <div className="work-avoided__unavailable">
+                <div className="work-avoided__metric-heading">
+                  <h4>{metric.label}</h4>
+                  <span>Not instrumented</span>
+                </div>
+                <strong className="work-avoided__value">—</strong>
+                <span className="work-avoided__unit">No measured counter</span>
+              </div>
+            )}
+            <details>
+              <summary>Measurement basis</summary>
+              <p>{metric.method}</p>
+              {metric.sourceArtifacts.map((artifact) => (
+                <dl key={artifact.artifactId}>
+                  <div>
+                    <dt>Artifact</dt>
+                    <dd>
+                      <code>{artifact.artifactId}</code>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Checksum</dt>
+                    <dd>
+                      <code>{artifact.sha256}</code>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Producer SHA</dt>
+                    <dd>
+                      <code>{artifact.producerSha}</code>
+                    </dd>
+                  </div>
+                </dl>
+              ))}
+            </details>
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }

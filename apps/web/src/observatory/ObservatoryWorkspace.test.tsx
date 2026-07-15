@@ -46,6 +46,16 @@ describe('ObservatoryWorkspace', () => {
       'stage-aggregation',
       'evidence-assembly',
     ] as const satisfies readonly AnalyticsOperationId[]
+    const queryHitsArtifact = {
+      artifactId: 'biominer-flickr-query-hits-parquet',
+      mediaType: 'application/vnd.apache.parquet',
+      path: 'analytics/flickr_query_hits.parquet',
+      sizeBytes: 222_190,
+      sha256: '95448f3145d903f7f042fe41d74561475ef050f8df21b318ebacb252484e4f0b',
+      recordCount: 76_485,
+      producerSha: '75461d9c065af0cd96b41cd1f845c2e920f7ae34',
+      parquetRowGroups: 1,
+    } as const
     const result: AnalyticsReplayResult = {
       backend: 'duckdb-wasm-parquet',
       packageVersion: '1.32.0',
@@ -69,22 +79,62 @@ describe('ObservatoryWorkspace', () => {
         sourceArtifactBytes: 222_190,
         parquetRowGroups: 1,
         cache: 'fresh DuckDB worker memory; no persistent cache',
-        artifacts: [
-          {
-            artifactId: 'biominer-flickr-query-hits-parquet',
-            mediaType: 'application/vnd.apache.parquet',
-            path: 'analytics/flickr_query_hits.parquet',
-            sizeBytes: 222_190,
-            sha256: '95448f3145d903f7f042fe41d74561475ef050f8df21b318ebacb252484e4f0b',
-            recordCount: 76_485,
-            producerSha: '75461d9c065af0cd96b41cd1f845c2e920f7ae34',
-            parquetRowGroups: 1,
-          },
-        ],
+        artifacts: [queryHitsArtifact],
         planOperators: operationId === 'source-id-hash-join' ? ['HASH_JOIN'] : [],
         explainPlan: `plan ${index}`,
         elapsedMilliseconds: 1,
       })),
+      workAvoided: {
+        measuredMetricCount: 2,
+        notInstrumentedMetricCount: 5,
+        metrics: [
+          {
+            metricId: 'requests-avoided',
+            label: 'Requests avoided',
+            status: 'measured',
+            value: 62_984,
+            unit: 'request-equivalent query hits',
+            baselineRows: 76_485,
+            retainedRows: 13_501,
+            method: 'Measured deduplication.',
+            sourceArtifacts: [queryHitsArtifact],
+          },
+          {
+            metricId: 'duplicate-hits-collapsed',
+            label: 'Duplicate hits collapsed',
+            status: 'measured',
+            value: 62_984,
+            unit: 'query hits',
+            baselineRows: 76_485,
+            retainedRows: 13_501,
+            method: 'Measured canonicalization.',
+            sourceArtifacts: [queryHitsArtifact],
+          },
+          ...(
+            [
+              ['downloads-avoided', 'Downloads avoided'],
+              ['inference-avoided', 'Inference avoided'],
+              ['embeddings-reused', 'Embeddings reused'],
+              ['completed-items-anti-joined', 'Completed items anti-joined'],
+              [
+                'remote-handoff-reads-avoided',
+                'Remote handoff reads avoided through local cache',
+              ],
+            ] as const
+          ).map(([metricId, label]) => ({
+            metricId,
+            label,
+            status: 'not_instrumented' as const,
+            value: null,
+            unit: 'not measured',
+            baselineRows: null,
+            retainedRows: null,
+            method: 'No fixture counter is available.',
+            sourceArtifacts: [],
+          })),
+        ],
+        estimatesShown: false,
+      },
       matrixScoringExecuted: false,
       scientificClaimAllowed: false,
     }
@@ -103,6 +153,17 @@ describe('ObservatoryWorkspace', () => {
 
     expect(await screen.findByText('Eight analytical operations completed')).toBeInTheDocument()
     expect(executeReplay).toHaveBeenCalledTimes(1)
+    const workAvoided = screen.getByRole('list', { name: 'Work avoided measurements' })
+    expect(workAvoided.children).toHaveLength(7)
+    expect(screen.getByRole('meter', { name: 'Requests avoided' })).toHaveAttribute(
+      'aria-valuenow',
+      '62984',
+    )
+    expect(screen.getByRole('meter', { name: 'Requests avoided' })).toHaveAttribute(
+      'aria-valuetext',
+      '62,984 request-equivalent query hits',
+    )
+    expect(within(workAvoided).getAllByText('Not instrumented')).toHaveLength(5)
     expect(
       within(screen.getByRole('list', { name: 'Research operation explanations' })).getAllByRole(
         'listitem',
@@ -115,11 +176,12 @@ describe('ObservatoryWorkspace', () => {
     fireEvent.keyDown(researchTab, { key: 'ArrowRight' })
     const engineeringTab = screen.getByRole('tab', { name: 'Engineering mode' })
     expect(engineeringTab).toHaveAttribute('aria-selected', 'true')
-    expect(screen.getByRole('list', { name: 'Completed analytical operations' }).children).toHaveLength(
-      8,
-    )
-    expect(screen.getAllByText('Checksum')).toHaveLength(8)
-    expect(screen.getAllByText('Producer SHA')).toHaveLength(8)
+    const engineeringOperations = screen.getByRole('list', {
+      name: 'Completed analytical operations',
+    })
+    expect(engineeringOperations.children).toHaveLength(8)
+    expect(within(engineeringOperations).getAllByText('Checksum')).toHaveLength(8)
+    expect(within(engineeringOperations).getAllByText('Producer SHA')).toHaveLength(8)
     expect(screen.getByText('Not executed', { exact: true })).toBeInTheDocument()
   })
 })

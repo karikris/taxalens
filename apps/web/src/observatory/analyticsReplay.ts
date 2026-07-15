@@ -52,8 +52,37 @@ export interface AnalyticsReplayResult {
   readonly registeredBytes: number
   readonly operationCount: 8
   readonly operations: readonly AnalyticsOperationResult[]
+  readonly workAvoided: WorkAvoidedResult
   readonly matrixScoringExecuted: false
   readonly scientificClaimAllowed: false
+}
+
+export type WorkAvoidedMetricId =
+  | 'requests-avoided'
+  | 'duplicate-hits-collapsed'
+  | 'downloads-avoided'
+  | 'inference-avoided'
+  | 'embeddings-reused'
+  | 'completed-items-anti-joined'
+  | 'remote-handoff-reads-avoided'
+
+export interface WorkAvoidedMetric {
+  readonly metricId: WorkAvoidedMetricId
+  readonly label: string
+  readonly status: 'measured' | 'not_instrumented'
+  readonly value: number | null
+  readonly unit: string
+  readonly baselineRows: number | null
+  readonly retainedRows: number | null
+  readonly method: string
+  readonly sourceArtifacts: readonly AnalyticsArtifactInspection[]
+}
+
+export interface WorkAvoidedResult {
+  readonly measuredMetricCount: 2
+  readonly notInstrumentedMetricCount: 5
+  readonly metrics: readonly WorkAvoidedMetric[]
+  readonly estimatesShown: false
 }
 
 interface OperationDefinition {
@@ -388,6 +417,89 @@ function planOperators(plan: string): readonly string[] {
   )
 }
 
+function buildWorkAvoidedResult(
+  duplicateQueryHits: number,
+  queryHitRows: number,
+  canonicalPhotoRows: number,
+  queryHitsArtifact: AnalyticsArtifactInspection,
+): WorkAvoidedResult {
+  const measured = (
+    metricId: 'requests-avoided' | 'duplicate-hits-collapsed',
+    label: string,
+    method: string,
+  ): WorkAvoidedMetric =>
+    Object.freeze({
+      metricId,
+      label,
+      status: 'measured',
+      value: duplicateQueryHits,
+      unit: metricId === 'requests-avoided' ? 'request-equivalent query hits' : 'query hits',
+      baselineRows: queryHitRows,
+      retainedRows: canonicalPhotoRows,
+      method,
+      sourceArtifacts: Object.freeze([queryHitsArtifact]),
+    })
+  const unavailable = (
+    metricId: Exclude<WorkAvoidedMetricId, 'requests-avoided' | 'duplicate-hits-collapsed'>,
+    label: string,
+    method: string,
+  ): WorkAvoidedMetric =>
+    Object.freeze({
+      metricId,
+      label,
+      status: 'not_instrumented',
+      value: null,
+      unit: 'not measured',
+      baselineRows: null,
+      retainedRows: null,
+      method,
+      sourceArtifacts: Object.freeze([]),
+    })
+
+  return Object.freeze({
+    measuredMetricCount: 2,
+    notInstrumentedMetricCount: 5,
+    metrics: Object.freeze([
+      measured(
+        'requests-avoided',
+        'Requests avoided',
+        'DuckDB reproduced BioMiner discovery_metrics.api_requests_avoided_by_deduplication as SUM(query_hit_count - 1) per canonical source photo.',
+      ),
+      measured(
+        'duplicate-hits-collapsed',
+        'Duplicate hits collapsed',
+        'DuckDB subtracted distinct source photos from verified query-hit associations.',
+      ),
+      unavailable(
+        'downloads-avoided',
+        'Downloads avoided',
+        'The fixture records zero downloads executed but has no avoided-download ledger; zero executed is not work avoided.',
+      ),
+      unavailable(
+        'inference-avoided',
+        'Inference avoided',
+        'The fixture records zero YOLOE and BioCLIP processing but has no skipped-inference counter.',
+      ),
+      unavailable(
+        'embeddings-reused',
+        'Embeddings reused',
+        'No embedding artifact or cache-reuse receipt is present in the submitted fixture.',
+      ),
+      unavailable(
+        'completed-items-anti-joined',
+        'Completed items anti-joined',
+        'The replay anti-joins duplicate associations, not a completed-work ledger; completed-item reuse is not instrumented.',
+      ),
+      unavailable(
+        'remote-handoff-reads-avoided',
+        'Remote handoff reads avoided through local cache',
+        'No storage receive receipt demonstrating a verified local-cache reuse is present in the submitted fixture.',
+      ),
+    ]),
+    estimatesShown: false,
+  })
+}
+
 export async function executeAnalyticsReplay(
   input: AnalyticsReplayInput,
 ): Promise<AnalyticsReplayResult> {
@@ -529,6 +641,21 @@ export async function executeAnalyticsReplay(
     ) {
       throw new Error('DuckDB query plans do not confirm the declared equality and anti joins')
     }
+    const duplicateQueryHits = scalarCount(
+      await connection.query(`SELECT CAST(COALESCE(sum(query_hit_count - 1), 0) AS BIGINT) AS row_count
+        FROM (
+          SELECT count(*) AS query_hit_count
+          FROM flickr_query_hits
+          GROUP BY source, flickr_photo_id
+        ) AS per_photo`),
+    )
+    if (duplicateQueryHits !== sourceIdJoin.inputRows - duplicateAntiJoin.outputRows) {
+      throw new Error('Work-avoided deduplication counts disagree across verified replay operations')
+    }
+    const queryHitsArtifact = artifactInspections.get(QUERY_HITS_ARTIFACT)
+    if (queryHitsArtifact === undefined) {
+      throw new Error('Query-hit artifact provenance is unavailable for work-avoided metrics')
+    }
 
     return Object.freeze({
       backend: 'duckdb-wasm-parquet',
@@ -538,6 +665,12 @@ export async function executeAnalyticsReplay(
       registeredBytes: input.artifacts.reduce((total, artifact) => total + artifact.bytes.byteLength, 0),
       operationCount: 8,
       operations: Object.freeze(operations),
+      workAvoided: buildWorkAvoidedResult(
+        duplicateQueryHits,
+        sourceIdJoin.inputRows,
+        duplicateAntiJoin.outputRows,
+        queryHitsArtifact,
+      ),
       matrixScoringExecuted: false,
       scientificClaimAllowed: false,
     })

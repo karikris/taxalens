@@ -154,6 +154,33 @@ test('executes the eight real DuckDB-Wasm Parquet operations and inspects their 
     timeout: 60_000,
   })
 
+  const workAvoided = page.getByRole('list', { name: 'Work avoided measurements' })
+  await expect(workAvoided.locator(':scope > li')).toHaveCount(7)
+  const requestsAvoided = page.getByRole('meter', { name: 'Requests avoided' })
+  await expect(requestsAvoided).toHaveAttribute('aria-valuenow', '62984')
+  await expect(requestsAvoided).toHaveAttribute('aria-valuemax', '76485')
+  await expect(requestsAvoided).toHaveAttribute(
+    'aria-valuetext',
+    '62,984 request-equivalent query hits',
+  )
+  const requestsAvoidedCard = requestsAvoided.locator('xpath=ancestor::li[1]')
+  await expect(requestsAvoidedCard).toContainText('62,984')
+  await requestsAvoidedCard.getByText('Measurement basis').click()
+  await expect(requestsAvoidedCard).toContainText(
+    'discovery_metrics.api_requests_avoided_by_deduplication',
+  )
+  await expect(requestsAvoidedCard).toContainText(
+    '95448f3145d903f7f042fe41d74561475ef050f8df21b318ebacb252484e4f0b',
+  )
+  await expect(workAvoided.getByText('Not instrumented', { exact: true })).toHaveCount(5)
+  await expect(workAvoided.getByText('Downloads avoided')).toBeVisible()
+  await expect(workAvoided.getByText('Inference avoided')).toBeVisible()
+  await expect(workAvoided.getByText('Embeddings reused')).toBeVisible()
+  await expect(workAvoided.getByText('Completed items anti-joined')).toBeVisible()
+  await expect(
+    workAvoided.getByText('Remote handoff reads avoided through local cache'),
+  ).toBeVisible()
+
   const researchOperations = page.getByRole('list', { name: 'Research operation explanations' })
   await expect(researchOperations.locator(':scope > li')).toHaveCount(8)
   const physicalResearch = researchOperations
