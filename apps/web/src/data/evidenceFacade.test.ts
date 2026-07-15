@@ -179,6 +179,40 @@ describe('loadEvidenceFacade', () => {
           'The verified duplicate summary contains counts only; duplicate relationship rows are unavailable.',
       },
     })
+    expect(facade.replay.geographyReference).toEqual({
+      geography: {
+        recordId: 'geographic-cluster-summary',
+        candidateSemantics: 'flickr_search_candidate_not_taxonomic_label',
+        verificationStatus: 'summary_verified_payload_not_imported',
+        locatedClusterCount: 76,
+        eligibleReferenceClusterCount: 76,
+        fallbackClusterCount: 1,
+        outlierRecordCount: 707,
+        unassignedGeotaggedRecordCount: 792,
+        payloadRowsAvailable: false,
+      },
+      reference: {
+        readinessVerificationStatus: 'committed_metadata_counts_verified',
+        shortfallVerificationStatus: 'shortfall_report_verified_unresolved',
+        eligibleSourceMediaCount: 838,
+        humanVerifiedSourceMediaCount: 0,
+        sourceCandidateShortfall: 247,
+        humanVerifiedShortfall: 490,
+        unresolvedGroupCount: 2,
+      },
+      sourceRights: {
+        creatorOrOwner: 'Kris Kari',
+        sourceUrl: 'https://github.com/karikris/BioMiner',
+        licenseName: 'MIT',
+        licenseUri: 'https://opensource.org/license/mit',
+        attributionRequired: true,
+        metadataRightsVerified: true,
+        includedImageCount: 0,
+        licensedImageCount: 0,
+        mediaPolicy:
+          'No image is admitted without a committed license, attribution, and human-review record.',
+      },
+    })
     expect(facade.replay.selectiveDecision).toEqual({
       recordId: 'papilio-demoleus-pilot-awaiting-review',
       state: 'awaiting_human_review',
@@ -261,6 +295,8 @@ describe('loadEvidenceFacade', () => {
     expect(discovery.artifacts.map(({ artifactId }) => artifactId)).toEqual([
       'biominer-flickr-query-hits-parquet',
       'biominer-flickr-geography-parquet',
+      'biominer-flickr-geo-assignments-parquet',
+      'biominer-flickr-geo-clusters-parquet',
     ])
     expect(discovery.boundary).toBe(facade.replay.discovery)
     expect(discovery.receipt).toMatchObject({

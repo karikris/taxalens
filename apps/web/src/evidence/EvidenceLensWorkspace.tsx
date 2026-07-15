@@ -9,6 +9,7 @@ import { EvidenceDesignation, EvidenceState, EvidenceTier } from '../design-syst
 import type { DiscoveryProvenanceResult } from './discoveryProvenance'
 import { CandidateSpeciesComparison } from './CandidateSpeciesComparison'
 import { FullFrameInputComparison } from './FullFrameInputComparison'
+import { GeographyReferenceContext } from './GeographyReferenceContext'
 import { SelectiveDecisionEvidence } from './SelectiveDecisionEvidence'
 import { YoloeRoutingEvidence } from './YoloeRoutingEvidence'
 import './evidence.css'
@@ -121,7 +122,7 @@ export function EvidenceLensWorkspace({
         <div className="discovery-evidence__state" aria-live="polite">
           {inspection.kind === 'idle' ? (
             <EvidenceState state="review" title="Discovery query not yet executed">
-              Two checksum-verified BioMiner Parquet artifacts are ready; DuckDB-Wasm remains
+              Four checksum-verified BioMiner Parquet artifacts are ready; DuckDB-Wasm remains
               stopped until the inspection action.
             </EvidenceState>
           ) : inspection.kind === 'running' ? (
@@ -138,6 +139,12 @@ export function EvidenceLensWorkspace({
           )}
         </div>
       </section>
+
+      <GeographyReferenceContext
+        inspectionStatus={inspection.kind}
+        replay={replay}
+        result={inspection.kind === 'ready' ? inspection.result : null}
+      />
 
       <YoloeRoutingEvidence replay={replay} />
 

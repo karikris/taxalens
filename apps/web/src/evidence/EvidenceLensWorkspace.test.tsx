@@ -30,6 +30,28 @@ const result: DiscoveryProvenanceResult = {
   sourceId: 'flickr:55081300254',
   sourceRecordHash: 'sha256:ddce85e192e3fe8548a75681f0dff6b6f0d00bb818eca891521faa0197274e40',
   coordinateQuality: 'flickr_street',
+  coordinate: {
+    latitude: 59.366308,
+    longitude: 18.031366,
+    accuracyLevel: 16,
+    source: 'flickr_search_geo',
+    warning: null,
+    uncertaintyMeters: null,
+  },
+  cluster: {
+    id: 'geo:be72642ae1a67685c5a68725',
+    targetAcceptedTaxonKey: 'gbif:1938069',
+    distanceToMedoidKm: 43.36547427503527,
+    assignmentMethod: 'coarse_cell',
+    fallbackScope: null,
+    outlier: false,
+    memberImageCount: 437,
+    memberCellCount: 7,
+    centroidLatitude: 59.36977516221015,
+    centroidLongitude: 17.15959829013883,
+    radiusP95Km: 52.120425429532695,
+    candidateDistributionOnly: true,
+  },
   associationCount: 2,
   associations: [
     {
@@ -85,7 +107,7 @@ describe('EvidenceLensWorkspace', () => {
 
     expect(await screen.findByRole('heading', { name: 'Source flickr:55081300254' })).toBeInTheDocument()
     expect(executeProvenance).toHaveBeenCalledTimes(1)
-    expect(executeProvenance.mock.calls[0]?.[0].artifacts).toHaveLength(2)
+    expect(executeProvenance.mock.calls[0]?.[0].artifacts).toHaveLength(4)
     expect(screen.getByText(result.sourceRecordHash)).toBeInTheDocument()
     expect(screen.getByText(/canonical source hash identifies one source payload/u)).toBeInTheDocument()
     expect(screen.getByText('Creator').parentElement).toHaveTextContent('Unavailable')

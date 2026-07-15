@@ -13,6 +13,8 @@ import {
 
 const QUERY_HITS_ARTIFACT = 'biominer-flickr-query-hits-parquet'
 const GEOGRAPHY_ARTIFACT = 'biominer-flickr-geography-parquet'
+const ASSIGNMENTS_ARTIFACT = 'biominer-flickr-geo-assignments-parquet'
+const CLUSTERS_ARTIFACT = 'biominer-flickr-geo-clusters-parquet'
 
 export interface QueryTierParts {
   readonly rank: string
@@ -35,6 +37,28 @@ export interface DiscoveryProvenanceResult {
   readonly sourceId: string
   readonly sourceRecordHash: string
   readonly coordinateQuality: string
+  readonly coordinate: {
+    readonly latitude: number
+    readonly longitude: number
+    readonly accuracyLevel: number
+    readonly source: string
+    readonly warning: string | null
+    readonly uncertaintyMeters: null
+  }
+  readonly cluster: {
+    readonly id: string
+    readonly targetAcceptedTaxonKey: string
+    readonly distanceToMedoidKm: number
+    readonly assignmentMethod: string
+    readonly fallbackScope: string | null
+    readonly outlier: boolean
+    readonly memberImageCount: number
+    readonly memberCellCount: number
+    readonly centroidLatitude: number
+    readonly centroidLongitude: number
+    readonly radiusP95Km: number
+    readonly candidateDistributionOnly: true
+  }
   readonly associationCount: number
   readonly associations: readonly DiscoveryQueryAssociation[]
   readonly artifacts: readonly AnalyticsArtifactProvenance[]
@@ -88,6 +112,45 @@ function requiredCount(
   return count
 }
 
+function requiredFiniteNumber(
+  table: Awaited<ReturnType<AsyncDuckDBConnection['query']>>,
+  column: string,
+  row: number,
+): number {
+  const value = table.getChild(column)?.get(row)
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    throw new Error(`DuckDB discovery provenance returned an invalid ${column}`)
+  }
+  return value
+}
+
+function requiredBoolean(
+  table: Awaited<ReturnType<AsyncDuckDBConnection['query']>>,
+  column: string,
+  row: number,
+): boolean {
+  const value = table.getChild(column)?.get(row)
+  if (typeof value !== 'boolean') {
+    throw new Error(`DuckDB discovery provenance returned an invalid ${column}`)
+  }
+  return value
+}
+
+function optionalString(
+  table: Awaited<ReturnType<AsyncDuckDBConnection['query']>>,
+  column: string,
+  row: number,
+): string | null {
+  const value = table.getChild(column)?.get(row)
+  if (value === null) {
+    return null
+  }
+  if (typeof value !== 'string' || value.length === 0) {
+    throw new Error(`DuckDB discovery provenance returned an invalid ${column}`)
+  }
+  return value
+}
+
 function provenanceOnly(
   artifacts: DiscoveryProvenanceInput['artifacts'],
 ): readonly AnalyticsArtifactProvenance[] {
@@ -109,12 +172,14 @@ function provenanceOnly(
 export async function executeDiscoveryProvenance(
   input: DiscoveryProvenanceInput,
 ): Promise<DiscoveryProvenanceResult> {
-  if (input.artifacts.length !== 2) {
-    throw new Error('Discovery provenance requires exactly two verified Parquet artifacts')
+  if (input.artifacts.length !== 4) {
+    throw new Error('Discovery context requires exactly four verified Parquet artifacts')
   }
   const expectedArtifacts: Readonly<Record<string, string>> = {
     [QUERY_HITS_ARTIFACT]: 'flickr_query_hits.parquet',
     [GEOGRAPHY_ARTIFACT]: 'flickr_geography.parquet',
+    [ASSIGNMENTS_ARTIFACT]: 'flickr_geo_assignments.parquet',
+    [CLUSTERS_ARTIFACT]: 'flickr_geo_clusters.parquet',
   }
   const { database } = await createDuckDbRuntime()
   let connection: AsyncDuckDBConnection | undefined
@@ -150,6 +215,10 @@ export async function executeDiscoveryProvenance(
       SELECT * FROM read_parquet('flickr_query_hits.parquet')`)
     await connection.query(`CREATE VIEW flickr_geography AS
       SELECT * FROM read_parquet('flickr_geography.parquet')`)
+    await connection.query(`CREATE VIEW flickr_geo_assignments AS
+      SELECT * FROM read_parquet('flickr_geo_assignments.parquet')`)
+    await connection.query(`CREATE VIEW flickr_geo_clusters AS
+      SELECT * FROM read_parquet('flickr_geo_clusters.parquet')`)
 
     const representative = await connection.query(`WITH association_counts AS (
         SELECT source, flickr_photo_id, count(*) AS association_count
@@ -161,11 +230,33 @@ export async function executeDiscoveryProvenance(
         counts.flickr_photo_id,
         counts.association_count,
         geography.source_record_hash,
-        geography.coordinate_quality
+        geography.coordinate_quality,
+        geography.latitude,
+        geography.longitude,
+        geography.coordinate_accuracy,
+        geography.coordinate_source,
+        geography.geography_warning,
+        assignment.target_accepted_taxon_key,
+        assignment.geo_cluster_id,
+        assignment.distance_to_medoid_km,
+        assignment.assignment_method,
+        assignment.fallback_scope,
+        assignment.outlier,
+        cluster.member_image_count,
+        cluster.member_cell_count,
+        cluster.centroid.latitude AS cluster_centroid_latitude,
+        cluster.centroid.longitude AS cluster_centroid_longitude,
+        cluster.radius_quantiles_km.p95 AS cluster_radius_p95_km,
+        cluster.candidate_distribution_only
       FROM association_counts AS counts
       INNER JOIN flickr_geography AS geography
         ON counts.source = geography.source
        AND counts.flickr_photo_id = geography.flickr_photo_id
+      INNER JOIN flickr_geo_assignments AS assignment
+        ON counts.source = assignment.source
+       AND counts.flickr_photo_id = assignment.flickr_photo_id
+      INNER JOIN flickr_geo_clusters AS cluster
+        ON assignment.geo_cluster_id = cluster.geo_cluster_id
       ORDER BY counts.association_count DESC, counts.source, counts.flickr_photo_id
       LIMIT 1`)
     if (representative.numRows !== 1) {
@@ -177,6 +268,14 @@ export async function executeDiscoveryProvenance(
     const associationCount = requiredCount(representative, 'association_count', 0)
     const sourceRecordHash = requiredString(representative, 'source_record_hash', 0)
     const coordinateQuality = requiredString(representative, 'coordinate_quality', 0)
+    const candidateDistributionOnly = requiredBoolean(
+      representative,
+      'candidate_distribution_only',
+      0,
+    )
+    if (!candidateDistributionOnly) {
+      throw new Error('Discovery geography cannot be promoted beyond candidate distribution')
+    }
     const associationRows = await connection.query(`SELECT query_hash, query_tier, search_term
       FROM flickr_query_hits
       WHERE source = ${sqlLiteral(source)}
@@ -206,6 +305,44 @@ export async function executeDiscoveryProvenance(
       sourceId: `${source}:${sourcePhotoId}`,
       sourceRecordHash,
       coordinateQuality,
+      coordinate: Object.freeze({
+        latitude: requiredFiniteNumber(representative, 'latitude', 0),
+        longitude: requiredFiniteNumber(representative, 'longitude', 0),
+        accuracyLevel: requiredFiniteNumber(representative, 'coordinate_accuracy', 0),
+        source: requiredString(representative, 'coordinate_source', 0),
+        warning: optionalString(representative, 'geography_warning', 0),
+        uncertaintyMeters: null,
+      }),
+      cluster: Object.freeze({
+        id: requiredString(representative, 'geo_cluster_id', 0),
+        targetAcceptedTaxonKey: requiredString(
+          representative,
+          'target_accepted_taxon_key',
+          0,
+        ),
+        distanceToMedoidKm: requiredFiniteNumber(
+          representative,
+          'distance_to_medoid_km',
+          0,
+        ),
+        assignmentMethod: requiredString(representative, 'assignment_method', 0),
+        fallbackScope: optionalString(representative, 'fallback_scope', 0),
+        outlier: requiredBoolean(representative, 'outlier', 0),
+        memberImageCount: requiredCount(representative, 'member_image_count', 0),
+        memberCellCount: requiredCount(representative, 'member_cell_count', 0),
+        centroidLatitude: requiredFiniteNumber(
+          representative,
+          'cluster_centroid_latitude',
+          0,
+        ),
+        centroidLongitude: requiredFiniteNumber(
+          representative,
+          'cluster_centroid_longitude',
+          0,
+        ),
+        radiusP95Km: requiredFiniteNumber(representative, 'cluster_radius_p95_km', 0),
+        candidateDistributionOnly: true,
+      }),
       associationCount,
       associations,
       artifacts: provenanceOnly(input.artifacts),

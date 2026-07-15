@@ -1048,6 +1048,261 @@
   overflow-wrap: anywhere;
 }
 
+.geography-reference {
+  display: grid;
+  gap: var(--tl-space-3);
+  padding: clamp(var(--tl-space-3), 3vw, var(--tl-space-4));
+  background: var(--tl-surface-paper);
+  border: 1px solid var(--tl-line);
+  border-top: 4px solid var(--tl-blue-800);
+  border-radius: var(--tl-radius-sm);
+}
+
+.geography-reference__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--tl-space-3);
+}
+
+.geography-reference__heading h3,
+.geography-reference h4 {
+  margin: 0;
+}
+
+.geography-reference__heading p:last-child {
+  max-width: var(--tl-reading-width);
+  margin: var(--tl-space-2) 0 0;
+  color: var(--tl-ink-muted);
+}
+
+.geography-reference__heading .tl-designation {
+  flex: 0 0 auto;
+}
+
+.geography-reference__geography {
+  display: grid;
+  grid-template-columns: minmax(18rem, 1.2fr) minmax(0, 0.8fr);
+  gap: var(--tl-space-3);
+}
+
+.coordinate-plane {
+  position: relative;
+  display: grid;
+  min-height: 20rem;
+  padding: var(--tl-space-3);
+  margin: 0;
+  overflow: hidden;
+  background-color: var(--tl-surface-subtle);
+  background-image:
+    linear-gradient(to right, transparent calc(50% - 0.5px), var(--tl-line) 50%, transparent calc(50% + 0.5px)),
+    linear-gradient(to bottom, transparent calc(50% - 0.5px), var(--tl-line) 50%, transparent calc(50% + 0.5px)),
+    repeating-linear-gradient(to right, transparent 0 12.4%, color-mix(in srgb, var(--tl-line) 45%, transparent) 12.5%),
+    repeating-linear-gradient(to bottom, transparent 0 24.8%, color-mix(in srgb, var(--tl-line) 45%, transparent) 25%);
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.coordinate-plane[role="img"] {
+  place-content: center;
+  text-align: center;
+}
+
+.coordinate-plane[role="img"] span {
+  color: var(--tl-ink-muted);
+}
+
+.coordinate-plane > div {
+  position: absolute;
+  inset: 0;
+}
+
+.coordinate-plane > div > span {
+  position: absolute;
+  top: var(--candidate-y);
+  left: var(--candidate-x);
+  width: 1rem;
+  height: 1rem;
+  background: var(--tl-brand);
+  border: 3px solid var(--tl-surface-paper);
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px var(--tl-brand);
+  transform: translate(-50%, -50%);
+}
+
+.coordinate-plane figcaption {
+  position: relative;
+  align-self: end;
+  display: grid;
+  gap: var(--tl-space-1);
+  padding: var(--tl-space-2);
+  color: var(--tl-ink);
+  background: color-mix(in srgb, var(--tl-surface-paper) 92%, transparent);
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.coordinate-plane figcaption span {
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-sm);
+}
+
+.geography-reference__facts,
+.geography-reference__footer dl {
+  display: grid;
+  gap: var(--tl-space-2);
+  margin: 0;
+}
+
+.geography-reference__facts > div,
+.geography-reference__footer dl > div {
+  min-width: 0;
+  padding: var(--tl-space-2);
+  background: var(--tl-surface-subtle);
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.geography-reference__facts dt,
+.geography-reference__shortfalls dt,
+.geography-reference__footer dt {
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-xs);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.geography-reference__facts dd,
+.geography-reference__shortfalls dd,
+.geography-reference__footer dd {
+  margin: var(--tl-space-1) 0 0;
+  overflow-wrap: anywhere;
+}
+
+.geography-reference__facts dd code,
+.geography-reference__facts dd span {
+  display: block;
+}
+
+.geography-reference__facts dd span {
+  margin-top: var(--tl-space-1);
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-sm);
+}
+
+.geography-reference__evidence {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--tl-space-3);
+}
+
+.geography-reference__evidence > article {
+  display: grid;
+  grid-template-columns: minmax(9rem, 0.7fr) minmax(0, 1.3fr);
+  min-width: 0;
+  overflow: hidden;
+  background: var(--tl-surface-subtle);
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.geography-reference__image {
+  display: grid;
+  place-content: center;
+  gap: var(--tl-space-2);
+  min-height: 10rem;
+  padding: var(--tl-space-2);
+  text-align: center;
+  background:
+    repeating-linear-gradient(135deg, transparent 0 12px, var(--tl-state-unavailable-bg) 12px 24px),
+    var(--tl-surface-paper);
+  border-right: 1px dashed var(--tl-state-unavailable-line);
+}
+
+.geography-reference__evidence > article > div:last-child {
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: var(--tl-space-1);
+  padding: var(--tl-space-3);
+}
+
+.geography-reference__evidence h4 {
+  font-family: var(--tl-font-editorial);
+  font-size: var(--tl-text-md);
+}
+
+.geography-reference__evidence code {
+  overflow-wrap: anywhere;
+}
+
+.geography-reference__evidence > article > div:last-child > strong {
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-xs);
+  text-transform: uppercase;
+}
+
+.geography-reference__evidence > article > div:last-child > p:last-child {
+  margin: var(--tl-space-1) 0 0;
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-sm);
+}
+
+.geography-reference__shortfalls {
+  display: grid;
+  grid-template-columns: minmax(14rem, 0.65fr) minmax(0, 1.35fr);
+  gap: var(--tl-space-3);
+  padding: var(--tl-space-3);
+  background: var(--tl-surface-subtle);
+  border: 1px solid var(--tl-line);
+  border-left: 4px solid var(--tl-state-review-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.geography-reference__shortfalls > div > p:last-child {
+  margin: var(--tl-space-1) 0 0;
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-sm);
+}
+
+.geography-reference__shortfalls > dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--tl-space-2);
+  margin: 0;
+}
+
+.geography-reference__shortfalls > dl > div {
+  padding: var(--tl-space-2);
+  background: var(--tl-surface-paper);
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.geography-reference__shortfalls dd {
+  font-size: var(--tl-text-md);
+  font-weight: 800;
+}
+
+.geography-reference__footer {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--tl-space-3);
+}
+
+.geography-reference__footer > section {
+  padding: var(--tl-space-3);
+  background: var(--tl-surface-paper);
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.geography-reference__footer h4 {
+  margin-bottom: var(--tl-space-2);
+  font-family: var(--tl-font-editorial);
+  font-size: var(--tl-text-md);
+}
+
 @media (max-width: 44rem) {
   .discovery-evidence__heading,
   .provenance-card__heading,
@@ -1057,7 +1312,9 @@
   .candidate-comparison__heading,
   .candidate-comparison__assertion,
   .candidate-comparison__coverage,
-  .selective-decision__heading {
+  .selective-decision__heading,
+  .geography-reference__heading,
+  .geography-reference__shortfalls {
     display: grid;
     grid-template-columns: 1fr;
   }
@@ -1076,8 +1333,23 @@
   .candidate-comparison__outcomes,
   .candidate-comparison__coverage > dl,
   .selective-decision__split,
-  .selective-decision__record {
+  .selective-decision__record,
+  .geography-reference__geography,
+  .geography-reference__evidence,
+  .geography-reference__evidence > article,
+  .geography-reference__shortfalls > dl,
+  .geography-reference__footer {
     grid-template-columns: 1fr;
+  }
+
+  .coordinate-plane {
+    min-height: 16rem;
+  }
+
+  .geography-reference__image {
+    min-height: 8rem;
+    border-right: 0;
+    border-bottom: 1px dashed var(--tl-state-unavailable-line);
   }
 
   .selective-decision__flow {

@@ -135,6 +135,7 @@ export interface ReplayEvidence extends ReplayIdentity {
   readonly mission: MissionEvidence
   readonly observatory: ObservatoryEvidence
   readonly discovery: DiscoveryEvidenceBoundary
+  readonly geographyReference: GeographyReferenceEvidenceBoundary
   readonly selectiveDecision: SelectiveDecisionEvidenceBoundary
   readonly rightsStatus: string
   readonly artifactCount: number
@@ -166,6 +167,40 @@ export interface DiscoveryEvidenceBoundary {
   readonly duplicateRelationships: {
     readonly available: false
     readonly reason: string
+  }
+}
+
+export interface GeographyReferenceEvidenceBoundary {
+  readonly geography: {
+    readonly recordId: string
+    readonly candidateSemantics: string
+    readonly verificationStatus: string
+    readonly locatedClusterCount: number
+    readonly eligibleReferenceClusterCount: number
+    readonly fallbackClusterCount: number
+    readonly outlierRecordCount: number
+    readonly unassignedGeotaggedRecordCount: number
+    readonly payloadRowsAvailable: false
+  }
+  readonly reference: {
+    readonly readinessVerificationStatus: string
+    readonly shortfallVerificationStatus: string
+    readonly eligibleSourceMediaCount: number
+    readonly humanVerifiedSourceMediaCount: 0
+    readonly sourceCandidateShortfall: number
+    readonly humanVerifiedShortfall: number
+    readonly unresolvedGroupCount: number
+  }
+  readonly sourceRights: {
+    readonly creatorOrOwner: string
+    readonly sourceUrl: string
+    readonly licenseName: string
+    readonly licenseUri: string
+    readonly attributionRequired: boolean
+    readonly metadataRightsVerified: true
+    readonly includedImageCount: 0
+    readonly licensedImageCount: 0
+    readonly mediaPolicy: string
   }
 }
 
@@ -1099,6 +1134,149 @@ function projectDiscoveryEvidence(
   })
 }
 
+function projectGeographyReferenceEvidence(
+  artifacts: ReadonlyMap<string, VerifiedArtifact>,
+): GeographyReferenceEvidenceBoundary {
+  const geography = recordForRole(artifacts, 'geographic_clusters')
+  const geographyData = object(geography.data, 'geographic_clusters.data')
+  const readiness = recordForRole(artifacts, 'reference_readiness')
+  const readinessData = object(readiness.data, 'reference_readiness.data')
+  const readinessCounts = object(readinessData.counts, 'reference_readiness.data.counts')
+  const shortfalls = recordForRole(artifacts, 'reference_shortfalls')
+  const shortfallData = object(shortfalls.data, 'reference_shortfalls.data')
+  const rightsArtifact = artifacts.get('rights-manifest')
+  if (rightsArtifact?.json === undefined) {
+    throw new EvidenceFacadeError('rights-manifest has no verified JSON artifact')
+  }
+  const rights = object(rightsArtifact.json, 'rights_manifest')
+  const rightsItems = array(rights.items, 'rights_manifest.items')
+  const metadataRights = rightsItems
+    .map((value, index) => object(value, `rights_manifest.items[${index}]`))
+    .find((item) => {
+      const artifactIds = array(item.artifact_ids, 'rights_manifest.items[].artifact_ids')
+      return artifactIds.includes('biominer-flickr-geography-parquet')
+    })
+  if (
+    metadataRights === undefined ||
+    booleanField(
+      geographyData,
+      'payload_rows_available',
+      'geographic_clusters.data',
+    ) ||
+    numberField(
+      readinessCounts,
+      'human_verified_source_media_count',
+      'reference_readiness.data.counts',
+    ) !== 0 ||
+    numberField(rights, 'included_image_count', 'rights_manifest') !== 0 ||
+    numberField(rights, 'licensed_image_count', 'rights_manifest') !== 0
+  ) {
+    throw new EvidenceFacadeError('Geography/reference boundary exceeds the truthful pilot')
+  }
+
+  return deepFreeze({
+    geography: {
+      recordId: stringField(geography, 'record_id', 'geographic_clusters'),
+      candidateSemantics: stringField(
+        geography,
+        'candidate_semantics',
+        'geographic_clusters',
+      ),
+      verificationStatus: stringField(
+        geography,
+        'verification_status',
+        'geographic_clusters',
+      ),
+      locatedClusterCount: numberField(
+        geographyData,
+        'located_cluster_count',
+        'geographic_clusters.data',
+      ),
+      eligibleReferenceClusterCount: numberField(
+        geographyData,
+        'eligible_reference_cluster_count',
+        'geographic_clusters.data',
+      ),
+      fallbackClusterCount: numberField(
+        geographyData,
+        'fallback_cluster_count',
+        'geographic_clusters.data',
+      ),
+      outlierRecordCount: numberField(
+        geographyData,
+        'outlier_record_count',
+        'geographic_clusters.data',
+      ),
+      unassignedGeotaggedRecordCount: numberField(
+        geographyData,
+        'unassigned_geotagged_record_count',
+        'geographic_clusters.data',
+      ),
+      payloadRowsAvailable: false,
+    },
+    reference: {
+      readinessVerificationStatus: stringField(
+        readiness,
+        'verification_status',
+        'reference_readiness',
+      ),
+      shortfallVerificationStatus: stringField(
+        shortfalls,
+        'verification_status',
+        'reference_shortfalls',
+      ),
+      eligibleSourceMediaCount: numberField(
+        readinessCounts,
+        'eligible_source_media_candidate_count',
+        'reference_readiness.data.counts',
+      ),
+      humanVerifiedSourceMediaCount: 0,
+      sourceCandidateShortfall: numberField(
+        shortfallData,
+        'source_candidate_shortfall',
+        'reference_shortfalls.data',
+      ),
+      humanVerifiedShortfall: numberField(
+        shortfallData,
+        'human_verified_shortfall',
+        'reference_shortfalls.data',
+      ),
+      unresolvedGroupCount: numberField(
+        shortfallData,
+        'unresolved_group_count',
+        'reference_shortfalls.data',
+      ),
+    },
+    sourceRights: {
+      creatorOrOwner: stringField(
+        metadataRights,
+        'creator_or_owner',
+        'rights_manifest.items[metadata]',
+      ),
+      sourceUrl: stringField(metadataRights, 'source_url', 'rights_manifest.items[metadata]'),
+      licenseName: stringField(
+        metadataRights,
+        'license_name',
+        'rights_manifest.items[metadata]',
+      ),
+      licenseUri: stringField(
+        metadataRights,
+        'license_uri',
+        'rights_manifest.items[metadata]',
+      ),
+      attributionRequired: booleanField(
+        metadataRights,
+        'attribution_required',
+        'rights_manifest.items[metadata]',
+      ),
+      metadataRightsVerified: true,
+      includedImageCount: 0,
+      licensedImageCount: 0,
+      mediaPolicy: stringField(rights, 'media_policy', 'rights_manifest'),
+    },
+  })
+}
+
 function projectSelectiveDecisionEvidence(
   artifacts: ReadonlyMap<string, VerifiedArtifact>,
 ): SelectiveDecisionEvidenceBoundary {
@@ -1285,10 +1463,12 @@ class VerifiedEvidenceFacade implements EvidenceFacade {
     const artifactIds = new Set([
       'biominer-flickr-query-hits-parquet',
       'biominer-flickr-geography-parquet',
+      'biominer-flickr-geo-assignments-parquet',
+      'biominer-flickr-geo-clusters-parquet',
     ])
     const artifacts = analytics.artifacts.filter(({ artifactId }) => artifactIds.has(artifactId))
-    if (artifacts.length !== 2) {
-      throw new EvidenceFacadeError('Discovery provenance requires two verified Parquet artifacts')
+    if (artifacts.length !== 4) {
+      throw new EvidenceFacadeError('Discovery context requires four verified Parquet artifacts')
     }
     return Object.freeze({
       artifacts: Object.freeze(artifacts),
@@ -1434,6 +1614,7 @@ export async function loadEvidenceFacade(
   const mission = projectMissionEvidence(artifacts)
   const observatory = projectObservatoryEvidence(artifacts, manifest)
   const discovery = projectDiscoveryEvidence(artifacts)
+  const geographyReference = projectGeographyReferenceEvidence(artifacts)
   const selectiveDecision = projectSelectiveDecisionEvidence(artifacts)
   const unavailableSections = Object.freeze(
     JUDGE_BUNDLE_SECTION_NAMES.map((name) => sections[name]).filter(
@@ -1447,6 +1628,7 @@ export async function loadEvidenceFacade(
     mission,
     observatory,
     discovery,
+    geographyReference,
     selectiveDecision,
     target: {
       acceptedTaxonKey: manifest.target.accepted_taxon_key,

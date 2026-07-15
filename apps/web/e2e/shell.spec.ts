@@ -271,7 +271,7 @@ test('executes the eight real DuckDB-Wasm Parquet operations and inspects their 
   expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth)
 })
 
-test('traces every discovery association without inventing source rights or duplicates', async ({
+test('traces discovery and geography without inventing occurrences or image rights', async ({
   page,
 }) => {
   const requestUrls: string[] = []
@@ -306,6 +306,43 @@ test('traces every discovery association without inventing source rights or dupl
   await expect(page.getByText('Duplicate group', { exact: true }).locator('..')).toContainText(
     'duplicate relationship rows are unavailable',
   )
+
+  const geography = page.locator('.geography-reference')
+  await expect(geography.getByText('Candidate geography traced locally', { exact: true })).toBeVisible()
+  await expect(
+    geography.getByText('Candidate coordinate', { exact: true }).locator('..'),
+  ).toContainText('59.366308, 18.031366')
+  await expect(geography.getByText('Uncertainty', { exact: true }).locator('..')).toContainText(
+    'Unavailable in metres',
+  )
+  await expect(geography.getByText('Cluster', { exact: true }).locator('..')).toContainText(
+    'geo:be72642ae1a67685c5a68725',
+  )
+  await expect(geography.getByText('Cluster', { exact: true }).locator('..')).toContainText(
+    '437 candidates · 7 cells · P95 radius 52.120 km',
+  )
+  await expect(geography.getByText('Fallback', { exact: true }).locator('..')).toContainText(
+    'Not used for this record. 1 fallback cluster exists in the summary.',
+  )
+  await expect(geography.getByText('Target evidence', { exact: true }).locator('..')).toContainText(
+    'Papilio demoleus',
+  )
+  await expect(
+    geography.getByText('Competitor evidence', { exact: true }).locator('..'),
+  ).toContainText('5 planning hypotheses')
+  await expect(geography.getByRole('img', { name: /evidence image unavailable/u })).toHaveCount(2)
+  await expect(
+    geography.getByText('Source-candidate shortfall', { exact: true }).locator('..'),
+  ).toContainText('247')
+  await expect(
+    geography.getByText('Human-verified shortfall', { exact: true }).locator('..'),
+  ).toContainText('490')
+  await expect(geography.getByText('Metadata licence', { exact: true }).locator('..')).toContainText(
+    'MIT · Kris Kari',
+  )
+  await expect(
+    geography.getByText('Image source and licence', { exact: true }).locator('..'),
+  ).toContainText('0 included and 0 licensed images')
 
   await page.getByText('Inspect all 181 query associations', { exact: true }).click()
   const associations = page.getByRole('list', { name: 'Discovery query associations' })
