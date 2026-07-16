@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises'
 
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 
 test('serves the truthful shell entirely from the static origin', async ({ page }) => {
   const requestUrls: string[] = []
@@ -112,15 +112,95 @@ test('downloads the human-review cache and records all non-binary controls local
   await expect(page.getByText('Image 2 of 3')).toBeVisible()
   await page.getByRole('button', { name: 'Skip' }).click()
   await expect(page.getByText(/Can’t view 1 · Skipped 1/u)).toBeVisible()
+  await expect(page.getByText('Review event saved locally')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Export review receipt' })).toBeEnabled()
 
-  const stored = await page.evaluate(() =>
-    window.localStorage.getItem(
-      'taxalens-human-review:papilio-demoleus-commons-review-v1',
+  const events = await readReviewEvents(page)
+  expect(events.map(({ outcome }) => outcome)).toEqual([
+    'cant_view',
+    'skipped',
+  ])
+  expect(
+    await page.evaluate(() =>
+      window.localStorage.getItem(
+        'taxalens-human-review:papilio-demoleus-commons-review-v1',
+      ),
     ),
+  ).toBeNull()
+})
+
+test('routes Evidence Lens through Verification and returns local review lineage', async ({
+  page,
+}) => {
+  test.setTimeout(60_000)
+  await page.goto('./#evidence-lens')
+
+  await page.getByRole('button', { name: 'Inspect verified discovery record' }).click()
+  await expect(
+    page.getByRole('heading', { name: 'Source flickr:55081300254' }),
+  ).toBeVisible({ timeout: 60_000 })
+  const verifyResult = page.getByRole('link', { name: 'Verify this result' })
+  await expect(verifyResult).toHaveAttribute(
+    'href',
+    '#verification?campaign=papilio-demoleus-flickr-candidate-intake-v1&item=flickr%3A55081300254&return=evidence-lens',
   )
-  expect(stored).toContain('"outcome":"cant_view"')
-  expect(stored).toContain('"outcome":"skipped"')
+  await verifyResult.click()
+
+  await expect(page.getByRole('tab', { name: 'Flickr Results' })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  )
+  await expect(
+    page.getByRole('heading', {
+      name: 'Papilio demoleus Flickr candidate intake',
+    }),
+  ).toBeVisible()
+  await expect(
+    page.getByText('Flickr candidate review media is unavailable'),
+  ).toBeVisible()
+  await page.getByRole('link', { name: 'Return to Evidence Lens' }).click()
+  await expect(
+    page.getByRole('heading', { name: 'No scientific result is promoted' }),
+  ).toBeVisible()
+
+  await page.goto(
+    './#verification?campaign=papilio-demoleus-commons-review-v1&item=commons-papilio-demoleus-open-wing&return=evidence-lens',
+  )
+  const cantView = page.getByRole('button', { name: 'Can’t view' })
+  await expect(cantView).toBeEnabled()
+  await cantView.click()
+  await expect(page.getByText('Review event saved locally')).toBeVisible()
+  await page.getByRole('link', { name: 'Return to Evidence Lens' }).click()
+
+  const humanEvidence = page.locator('.human-verification-evidence')
+  await expect(
+    humanEvidence.getByRole('heading', {
+      name: 'Local human verification evidence',
+    }),
+  ).toBeVisible()
+  await expect(
+    humanEvidence.getByText('Current human outcomes').locator('..'),
+  ).toContainText('1 of 3')
+  await expect(
+    humanEvidence.getByText('Reviewer count').first().locator('..'),
+  ).toContainText('1 recorded reviewer identity')
+  await expect(
+    humanEvidence.getByText('Conflict status').first().locator('..'),
+  ).toContainText('Not calculated')
+  await expect(
+    humanEvidence.getByRole('list', {
+      name: 'Current human verification outcomes',
+    }),
+  ).toContainText('Can’t view')
+  await expect(
+    humanEvidence.getByText(/local-review-event/u).first(),
+  ).toBeVisible()
+
+  const ledger = page.getByRole('list', { name: 'Evidence lifecycle ledger' })
+  await expect(
+    ledger.getByRole('heading', { name: 'Local human verification' }),
+  ).toBeVisible()
+  await expect(ledger).toContainText('local-review-event')
 })
 
 test('shows only checksum-verified evidence with explicit analytics and unavailable states', async ({
@@ -327,6 +407,39 @@ test('executes the eight real DuckDB-Wasm Parquet operations and inspects their 
   }))
   expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth)
 })
+
+async function readReviewEvents(page: Page) {
+  return page.evaluate(async () => {
+    const database = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = window.indexedDB.open('taxalens-verification', 1)
+      request.onerror = () =>
+        reject(request.error ?? new Error('IndexedDB open failed'))
+      request.onsuccess = () => resolve(request.result)
+    })
+    try {
+      const transaction = database.transaction('events', 'readonly')
+      const records = await new Promise<
+        readonly {
+          readonly event: {
+            readonly eventId: string
+            readonly outcome: string
+            readonly reviewedAt: string
+          }
+        }[]
+      >((resolve, reject) => {
+        const request = transaction.objectStore('events').getAll()
+        request.onerror = () =>
+          reject(request.error ?? new Error('IndexedDB event read failed'))
+        request.onsuccess = () => resolve(request.result)
+      })
+      return records
+        .map(({ event }) => event)
+        .sort((left, right) => left.reviewedAt.localeCompare(right.reviewedAt))
+    } finally {
+      database.close()
+    }
+  })
+}
 
 test('traces discovery and geography without inventing occurrences or image rights', async ({
   page,
