@@ -148,7 +148,51 @@ async function readBundleIdentity(buildRoot) {
   })
 }
 
-function fingerprintPayload({ basePath, bundle, files, sourceSha }) {
+async function readReviewMediaIdentity(buildRoot) {
+  const manifest = JSON.parse(
+    await readFile(
+      join(buildRoot, 'verification/campaign_manifest.json'),
+      'utf8',
+    ),
+  )
+  if (
+    manifest.schemaVersion !==
+      'taxalens-verification-campaign-manifest:v1.0.0' ||
+    typeof manifest.manifestSha256 !== 'string' ||
+    !/^[0-9a-f]{64}$/u.test(manifest.manifestSha256) ||
+    manifest.campaign?.publicReplay !== true ||
+    manifest.campaign?.samplingPlan?.purpose !==
+      'credential_free_fixture' ||
+    !Array.isArray(manifest.items) ||
+    manifest.items.length !== 3 ||
+    manifest.items.some(
+      (item) =>
+        item.rights?.policyStatus !== 'allowed' ||
+        item.privateMedia !== undefined ||
+        item.mediaObjectKey !== undefined,
+    )
+  ) {
+    throw new Error(
+      'Built review media does not expose the credential-free three-image fixture.',
+    )
+  }
+  return Object.freeze({
+    schema_version: manifest.schemaVersion,
+    manifest_sha256: manifest.manifestSha256,
+    campaign_id: manifest.campaign.campaignId,
+    delivery: 'bundled_checksum_verified_fixture',
+    item_count: 3,
+    private_media_included: false,
+  })
+}
+
+function fingerprintPayload({
+  basePath,
+  bundle,
+  files,
+  reviewMedia,
+  sourceSha,
+}) {
   return Object.freeze({
     schema_version: DEPLOYMENT_SCHEMA,
     source_sha: sourceSha,
@@ -160,6 +204,7 @@ function fingerprintPayload({ basePath, bundle, files, sourceSha }) {
     resettable: true,
     static_fallback: Object.freeze({ path: '404.html', redirect_to: basePath }),
     evidence_bundle: bundle,
+    review_media: reviewMedia,
     files,
   })
 }
@@ -189,8 +234,15 @@ export async function prepareStaticDeployment({
   await writeFile(join(buildRoot, '404.html'), staticFallback(basePath))
 
   const bundle = await readBundleIdentity(buildRoot)
+  const reviewMedia = await readReviewMediaIdentity(buildRoot)
   const files = await collectFiles(buildRoot)
-  const payload = fingerprintPayload({ basePath, bundle, files, sourceSha })
+  const payload = fingerprintPayload({
+    basePath,
+    bundle,
+    files,
+    reviewMedia,
+    sourceSha,
+  })
   const manifest = manifestFor(payload)
   await writeFile(
     join(buildRoot, DEPLOYMENT_MANIFEST),
@@ -239,12 +291,23 @@ export async function verifyStaticDeployment({
   }
 
   const bundle = await readBundleIdentity(buildRoot)
+  const reviewMedia = await readReviewMediaIdentity(buildRoot)
   const files = await collectFiles(buildRoot)
-  if (!sameJson(manifest.evidence_bundle, bundle) || !sameJson(manifest.files, files)) {
+  if (
+    !sameJson(manifest.evidence_bundle, bundle) ||
+    !sameJson(manifest.review_media, reviewMedia) ||
+    !sameJson(manifest.files, files)
+  ) {
     throw new Error('Static deployment file inventory or evidence identity differs')
   }
 
-  const payload = fingerprintPayload({ basePath, bundle, files, sourceSha })
+  const payload = fingerprintPayload({
+    basePath,
+    bundle,
+    files,
+    reviewMedia,
+    sourceSha,
+  })
   const expected = manifestFor(payload)
   if (!sameJson(manifest, expected)) {
     throw new Error('Static deployment build fingerprint differs')

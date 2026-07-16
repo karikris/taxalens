@@ -40,6 +40,23 @@ async function buildFixture() {
       },
     })}\n`,
   )
+  await mkdir(join(buildRoot, 'verification'), { recursive: true })
+  await writeFile(
+    join(buildRoot, 'verification/campaign_manifest.json'),
+    `${JSON.stringify({
+      schemaVersion: 'taxalens-verification-campaign-manifest:v1.0.0',
+      manifestSha256: 'd'.repeat(64),
+      campaign: {
+        campaignId: 'public-review-fixture',
+        publicReplay: true,
+        samplingPlan: { purpose: 'credential_free_fixture' },
+      },
+      items: Array.from({ length: 3 }, (_, index) => ({
+        itemId: `public-item-${index}`,
+        rights: { policyStatus: 'allowed' },
+      })),
+    })}\n`,
+  )
   return { buildRoot, root }
 }
 
@@ -59,13 +76,28 @@ test('prepares and verifies a public backend-free Pages artifact', async () => {
   assert.equal(manifest.backend_required, false)
   assert.equal(manifest.credentials_required, false)
   assert.equal(manifest.resettable, true)
+  assert.deepEqual(manifest.review_media, {
+    schema_version: 'taxalens-verification-campaign-manifest:v1.0.0',
+    manifest_sha256: 'd'.repeat(64),
+    campaign_id: 'public-review-fixture',
+    delivery: 'bundled_checksum_verified_fixture',
+    item_count: 3,
+    private_media_included: false,
+  })
   assert.deepEqual(manifest.static_fallback, {
     path: '404.html',
     redirect_to: '/taxalens/',
   })
   assert.deepEqual(
     manifest.files.map((file) => file.path),
-    ['.nojekyll', '404.html', 'assets/app.js', 'index.html', 'judge_bundle.json'],
+    [
+      '.nojekyll',
+      '404.html',
+      'assets/app.js',
+      'index.html',
+      'judge_bundle.json',
+      'verification/campaign_manifest.json',
+    ],
   )
   assert.match(manifest.build_fingerprint_sha256, /^[0-9a-f]{64}$/u)
   assert.equal(
