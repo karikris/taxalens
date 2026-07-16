@@ -19,6 +19,26 @@ scientific_claim_gate: "blocked-until-reviewed-references-leakage-safe-splits-ca
 handoff_contract: "storage-handoff-inventory-v1.0.0-with-explicit-uri-sha256-source-sha-and-receipt"
 recorded_at: "2026-07-16"
 components:
+  - component_id: biominer_phase15_prototype_release_gate
+    source_repository: karikris/BioMiner
+    source_commit: 67c1c2a3a2c9b909b256b3094913af342f4ccbed
+    source_path: reports/phase15/prototype_go_no_go.json
+    destination_path: packages/replay/src/biominer_prototype_release_gate.py
+    migration_kind: adapted
+    reason: Evaluate the normalized BioMiner Phase 15 decision through a deterministic TaxaLens-owned GO/NO_GO boundary.
+    build_week_scope: new
+    source_license: MIT
+    changes:
+      - Added fourteen explicit product release gates with deterministic pass/fail reasons and evidence paths.
+      - Returns GO_PROTOTYPE_ONLY only for an explicitly requested prototype mode with complete, consistent upstream evidence.
+      - Converts missing or contradictory evidence into a diagnostic NO_GO receipt.
+      - Keeps scientific release, production-default changes, public reference-image display, probabilities, accuracy, and scientific claims blocked in every outcome.
+      - Enforced the gate during truthful fixture construction and committed-fixture verification.
+    tests:
+      - packages/replay/tests/test_biominer_prototype_release_gate.py
+      - tests/test_truthful_demo_verifier.py
+      - tests/test_truthful_demo_fixture.py
+    status: migrated
   - component_id: biominer_phase14_prototype_product_projection
     source_repository: karikris/BioMiner
     source_commit: 67c1c2a3a2c9b909b256b3094913af342f4ccbed

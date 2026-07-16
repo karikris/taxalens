@@ -18,6 +18,10 @@ from packages.replay.src.biominer_prototype_evidence_adapter import (
     PROTOTYPE_EVIDENCE_ADAPTER_SCHEMA_VERSION,
     adapt_prototype_evidence,
 )
+from packages.replay.src.biominer_prototype_release_gate import (
+    GO_PROTOTYPE_ONLY,
+    evaluate_prototype_release_gate,
+)
 
 from taxalens.product.judge_bundle import (
     JUDGE_BUNDLE_SCHEMA_VERSION,
@@ -951,6 +955,9 @@ def build_truthful_demo_fixture(
         or prototype["scientific_claim_allowed"] is not False
     ):
         raise ValueError("truthful demo prototype authorization boundary differs")
+    release_gate = evaluate_prototype_release_gate(prototype)
+    if release_gate["decision"] != GO_PROTOTYPE_ONLY:
+        raise ValueError("truthful demo prototype release gate returned NO_GO")
 
     root = Path(destination)
     if root.exists():

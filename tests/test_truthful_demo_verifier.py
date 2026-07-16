@@ -133,6 +133,14 @@ def _apply_failure_mutation(root: Path, case: str) -> None:
             "selective-decision-metadata",
             lambda payload: payload[0].update({"gold_result": "target_confirmed"}),
         )
+    elif case == "release_gate_no_go":
+        _mutate_artifact(
+            root,
+            "prototype-evidence-snapshot",
+            lambda payload: payload["contracts"]["phase15_release"]["data"][
+                "gate_summary"
+            ].update({"passed": 13, "failed": 1}),
+        )
     elif case == "unresolved_placeholder":
         _mutate_artifact(
             root,
@@ -185,6 +193,7 @@ def test_verifies_the_committed_truthful_fixture() -> None:
         ("raw_score_as_probability", TruthfulDemoFailure.RAW_SCORE_AS_PROBABILITY),
         ("missing_biominer_sha", TruthfulDemoFailure.MISSING_BIOMINER_SHA),
         ("unsupported_gold_result", TruthfulDemoFailure.UNSUPPORTED_GOLD_RESULT),
+        ("release_gate_no_go", TruthfulDemoFailure.UNSUPPORTED_GOLD_RESULT),
         ("unresolved_placeholder", TruthfulDemoFailure.UNRESOLVED_PLACEHOLDER),
         ("stale_artifact_version", TruthfulDemoFailure.STALE_ARTIFACT_VERSION),
         ("undeclared_file", TruthfulDemoFailure.UNDECLARED_FILE),

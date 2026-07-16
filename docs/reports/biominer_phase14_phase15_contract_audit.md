@@ -166,3 +166,24 @@ production-default changes remain unauthorized.
 GitHits remained unavailable; the focused product-projection query and the
 adopted/rejected approaches are recorded at
 `provenance/githits.jsonl#14.4`.
+
+## Task 15.1 fail-closed release gate
+
+Task 15.1 adds a TaxaLens-owned release evaluator over the normalized prototype
+snapshot. It returns `GO_PROTOTYPE_ONLY` only when all fourteen required gates
+pass and the caller explicitly requests `explicit_prototype`. Every other
+requested mode, missing field, incomplete gate count, contradictory release
+decision, broadened authorization, promoted human-review state, probability
+claim, accuracy claim, or calibration claim returns a deterministic `NO_GO`
+receipt with failed gate IDs, reasons, and evidence paths.
+
+The receipt can authorize prototype integration only. Scientific release,
+production-default changes, public reference-image display, and scientific
+claims remain false in both GO and NO_GO outcomes. The truthful fixture builder
+and committed-fixture verifier now both execute this gate, so a contradictory
+Phase 15 snapshot cannot be built or served even when its checksums are
+otherwise internally consistent.
+
+GitHits remained unavailable; the focused release-gate query and
+adopted/rejected approaches are recorded at
+`provenance/githits.jsonl#15.1`.

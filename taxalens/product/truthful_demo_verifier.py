@@ -11,6 +11,11 @@ from enum import StrEnum
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+from packages.replay.src.biominer_prototype_release_gate import (
+    GO_PROTOTYPE_ONLY,
+    evaluate_prototype_release_gate,
+)
+
 from taxalens.product.judge_bundle import (
     JUDGE_BUNDLE_SCHEMA_VERSION,
     JUDGE_BUNDLE_SECTION_NAMES,
@@ -393,6 +398,18 @@ def _verify_biominer_sha(
                 f"prototype evidence boundary {field} must be {expected!r}",
                 "source/prototype_evidence_snapshot.json",
             )
+    release_gate = evaluate_prototype_release_gate(prototype)
+    if release_gate["decision"] != GO_PROTOTYPE_ONLY:
+        failed = [
+            gate["gate_id"]
+            for gate in release_gate["gate_results"]
+            if gate["status"] == "failed"
+        ]
+        _fail(
+            TruthfulDemoFailure.UNSUPPORTED_GOLD_RESULT,
+            f"prototype release gate returned NO_GO: {', '.join(failed)}",
+            "source/prototype_evidence_snapshot.json",
+        )
 
 
 def _verify_analytics_receipt(
