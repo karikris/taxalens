@@ -15,16 +15,18 @@ import {
   validateVerificationItem,
   validateVerificationQualitySnapshot,
   verifyVerificationQualitySnapshotFingerprint,
+  projectVerificationEvidenceAvailability,
   type HumanReviewInspection,
   type VerificationCampaign,
   type VerificationConsensus,
   type VerificationEvent,
   type VerificationItem,
   type VerificationQualitySnapshot,
+  type VerificationEvidenceAvailability,
 } from '../review/domain'
 
 export const VERIFICATION_TOOL_EVIDENCE_VERSION =
-  'taxalens-verification-tool-evidence:v1.1.0' as const
+  'taxalens-verification-tool-evidence:v1.2.0' as const
 export const VERIFICATION_TOOL_RESULT_VERSION =
   'taxalens-verification-tool-result:v1.1.0' as const
 export const VERIFICATION_ARTIFACT_CITATION_VERSION =
@@ -130,6 +132,7 @@ export interface VerificationToolEvidenceInput {
 export interface VerificationToolEvidence
   extends VerificationToolEvidenceInput {
   readonly schemaVersion: typeof VERIFICATION_TOOL_EVIDENCE_VERSION
+  readonly availability: VerificationEvidenceAvailability
 }
 
 interface JsonObjectSchema {
@@ -444,6 +447,7 @@ export async function createVerificationToolEvidence(
       clonePlainValue(snapshot),
     ),
     artifactCitations: canonicalArtifactCitations(input.artifactCitations),
+    availability: projectVerificationEvidenceAvailability(input),
     [EVIDENCE_MARKER]: true as const,
   }) satisfies ValidatedVerificationToolEvidence
   return evidence
