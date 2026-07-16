@@ -234,6 +234,13 @@ legitimately advanced to `94fa1f6` while the exact committed source objects at
 position and must be repaired as a separate integrity subtask; the audit does
 not conceal or bypass it.
 
+Follow-up subtask `verification-0.1.3` removes that moving-`HEAD` coupling. The
+importer now verifies that the exact pinned revision resolves to a commit and
+continues to read every allowlisted path through
+`git show <pinned-commit>:<path>`, followed by the existing byte-count,
+SHA-256, schema, and imported-byte comparisons. Advancing BioMiner `main` no
+longer invalidates immutable artifacts from an earlier retained commit.
+
 ## Required direction
 
 The next implementation must:
@@ -245,4 +252,3 @@ The next implementation must:
 5. convert the Commons packet into a rights-bound campaign fixture;
 6. keep Flickr, reference, conflict, and quality workflows distinct;
 7. separate coverage from statistically valid quality estimation.
-

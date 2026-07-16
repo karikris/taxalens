@@ -5,6 +5,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
+import scripts.import_biominer_prototype_artifacts as prototype_import
 from scripts.import_biominer_prototype_artifacts import (
     BIOMINER_COMMIT,
     DEFAULT_BIOMINER_ROOT,
@@ -42,7 +43,7 @@ def test_committed_prototype_import_matches_exact_git_objects() -> None:
         assert json.loads(committed)["schema_version"] == artifact["schema_version"]
 
 
-def test_import_refuses_a_biominer_checkout_at_another_commit(tmp_path: Path) -> None:
+def test_import_refuses_a_changed_manifest_origin_commit(tmp_path: Path) -> None:
     manifest = _changed_manifest(
         tmp_path,
         lambda payload: payload.update({"origin_commit": "0" * 40}),
@@ -50,6 +51,26 @@ def test_import_refuses_a_biominer_checkout_at_another_commit(tmp_path: Path) ->
 
     with pytest.raises(ValueError, match="origin commit differs"):
         import_biominer_prototype_artifacts(manifest_path=manifest, check=True)
+
+
+def test_pinned_revision_verification_does_not_read_checkout_head(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    calls: list[tuple[str, ...]] = []
+
+    def fake_git(*args: str, cwd: Path, text: bool = True) -> str:
+        del cwd, text
+        calls.append(args)
+        return f"{BIOMINER_COMMIT}\n"
+
+    monkeypatch.setattr(prototype_import, "_git", fake_git)
+
+    prototype_import._verify_committed_revision(tmp_path, BIOMINER_COMMIT)
+
+    assert calls == [
+        ("rev-parse", "--verify", f"{BIOMINER_COMMIT}^{{commit}}"),
+    ]
 
 
 def test_import_refuses_source_discovery_outside_the_fixed_allowlist(

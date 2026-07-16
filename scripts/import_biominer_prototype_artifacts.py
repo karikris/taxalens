@@ -97,6 +97,23 @@ def _committed_bytes(biominer_root: Path, commit: str, source_path: str) -> byte
     return value
 
 
+def _verify_committed_revision(biominer_root: Path, commit: str) -> None:
+    try:
+        resolved = _git(
+            "rev-parse",
+            "--verify",
+            f"{commit}^{{commit}}",
+            cwd=biominer_root,
+        )
+    except subprocess.CalledProcessError as exc:
+        raise ValueError(f"pinned BioMiner commit is unavailable: {commit}") from exc
+    assert isinstance(resolved, str)
+    if resolved.strip() != commit:
+        raise ValueError(
+            f"pinned BioMiner revision resolved to {resolved.strip()}; expected {commit}"
+        )
+
+
 def import_biominer_prototype_artifacts(
     *,
     biominer_root: Path = DEFAULT_BIOMINER_ROOT,
@@ -128,12 +145,7 @@ def import_biominer_prototype_artifacts(
     if policy != expected_policy:
         raise ValueError("prototype import policy differs")
 
-    actual_head = _git("rev-parse", "HEAD", cwd=biominer_root)
-    assert isinstance(actual_head, str)
-    if actual_head.strip() != BIOMINER_COMMIT:
-        raise ValueError(
-            f"BioMiner HEAD is {actual_head.strip()}; expected pinned commit {BIOMINER_COMMIT}"
-        )
+    _verify_committed_revision(biominer_root, BIOMINER_COMMIT)
 
     artifacts = manifest.get("artifacts")
     if not isinstance(artifacts, list):
