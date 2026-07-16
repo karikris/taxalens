@@ -183,15 +183,16 @@ def write_state_snapshot(dest: Path, payload: Dict[str, object]) -> Path:
 
 
 def has_phase13_signal(path: Path) -> bool:
-    for root, _dirs, files in os.walk(path):
-        if "\.git" in root.split(os.sep):
-            continue
-        lower_path = root.lower()
+    scan_root = path.resolve()
+    for root, dirs, files in os.walk(scan_root, topdown=True):
+        dirs[:] = sorted(directory for directory in dirs if directory != ".git")
+        files.sort()
+        lower_path = Path(root).relative_to(scan_root).as_posix().lower()
         if "phase13" in lower_path or "task13" in lower_path:
             return True
         for file in files:
-            l = file.lower()
-            if "13" in l and ("phase" in lower_path or "task" in lower_path):
+            lower_file = file.lower()
+            if "13" in lower_file and ("phase" in lower_path or "task" in lower_path):
                 return True
     return False
 

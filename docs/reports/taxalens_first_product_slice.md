@@ -130,7 +130,7 @@ human release approval.
 
 | Gate | Result | Scope |
 | --- | --- | --- |
-| Python full suite | 633 passed | Replay contracts, product facade, fixture, CLI, imports, verification, and local server |
+| Python full suite | 634 passed | Replay contracts, product facade, fixture, CLI, imports, verification, boundary scanning, and local server |
 | Vitest | 110 passed across 48 files | React product, data facade, analytics models, exports, shell, tour, tools, analyst, stored replay, and agent evaluation |
 | Agent evaluation test | 3 tests passed; 19 cases and 151 checks | Deterministic research-workflow threshold and repeatability |
 | TypeScript | passed | Strict project references via `npm run check` |
@@ -144,24 +144,26 @@ human release approval.
 | Provenance verification | passed | Migration manifest, required files, task records, exact origins, and pinned BioMiner boundary |
 | Submission documentation | passed | README, Judge Guide, product-slice report, local links, required judge claims, AI provenance report, and fixture entry point present |
 | Hosted smoke | passed | Public root HTTP 200, runtime fingerprint, same static bundle, and redirecting 404 fallback |
+| 1280×720 visual audit | passed | Original-resolution capture inspected for hierarchy, legibility, status semantics, navigation, and available controls |
 | Whitespace/documentation lint | passed | `git diff --check` plus README/Judge Guide/report link and required-section checks |
-| Repository-wide Ruff audit | 269 findings remain | 208 in preserved replay code/tests and 61 in TaxaLens scripts/code/tests; no unrelated or provenance-sensitive sweep was performed |
+| Repository-wide Ruff audit | 268 findings remain | 208 in preserved replay code/tests and 60 in TaxaLens scripts/code/tests; no unrelated or provenance-sensitive sweep was performed |
 
 The repository-wide Ruff result is deliberately reported rather than hidden. Targeted Ruff checks
-for changed Python files passed throughout the goal; Tasks 10.1–10.3 change documentation and
-provenance snapshots only. The current locked audit reports 208 findings under `packages/replay`
-and 61 under `taxalens`, `scripts`, and `tests`. They do not change runtime acceptance, but a future
-lint-baseline and cleanup decision is required before claiming a globally clean Ruff gate.
+for changed Python files passed throughout the numbered tasks. The completion audit additionally
+repairs `.git` pruning in the BioMiner boundary scanner and covers it with a focused test. The
+current locked audit still reports 208 findings under `packages/replay` and 60 under `taxalens`,
+`scripts`, and `tests`. They do not change runtime acceptance, but a future lint-baseline and cleanup
+decision is required before claiming a globally clean Ruff gate.
 
 ## Hosted deployment status
 
-The Task 10.2 Pages run completed successfully:
+The Task 10.3 Pages run observed during the completion audit completed successfully:
 
 | Field | Verified value |
 | --- | --- |
-| GitHub Actions run | `29461774167` — build and deploy successful |
-| Deployed source | `0c8f941aecd63235f6c3af5eda7df80337ae82a0` |
-| Build fingerprint | `88f9e779782c1bda7716bff01b708adce2ae5921596af8eeac39e93835f09403` |
+| GitHub Actions run | `29462284845` — build and deploy successful |
+| Deployed source | `2dd36573b4df5dcdbbabfa519d901a665ea62d7a` |
+| Build fingerprint | `92e2d31bd300c4c9ca4b14b85c4f69d10986ae91e429b81efba3b18b179067c8` |
 | Fingerprinted regular files | 49 |
 | Base path | `/taxalens/` |
 | Public / resettable | true / true |
@@ -177,11 +179,13 @@ deployment record.
 ## Provenance and submission status
 
 - All 53 numbered tasks have a focused GitHits record with reviewed repositories, adopted and
-  rejected patterns, reason, licence notes, solution status, and solution ID.
+  rejected patterns, reason, licence notes, solution status, and a solution ID where GitHits
+  returned one.
 - Every numbered task has its own conventional commit, exact BioMiner origin, human decision,
   reviewer, tests, model, reasoning, and session disclosures.
-- Each numbered task generated a BioMiner boundary snapshot; the pinned repository remained
-  unchanged.
+- The repository preserves 39 timestamped BioMiner boundary snapshots spanning all three consumed
+  upstream pins. Final verification reconfirmed the current pin and its pre-existing untracked
+  paths without changing BioMiner.
 - [`UPSTREAM_BIOMINER.md`](../../UPSTREAM_BIOMINER.md) and the
   [`migration manifest`](../../provenance/biominer_migration_manifest.yaml) separate copied,
   extracted, adapted, artifact, and TaxaLens-native work.

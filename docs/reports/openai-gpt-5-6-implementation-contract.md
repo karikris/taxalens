@@ -3,6 +3,10 @@
 Verified against current official OpenAI documentation on **2026-07-15** before any TaxaLens agent
 implementation.
 
+Reverified through the official OpenAI Developer Docs service on **2026-07-16** during the final
+completion audit. The exact model, Responses API, Structured Outputs, direct-tool, and bounded
+Programmatic Tool Calling contracts below remain current without implementation changes.
+
 ## Decision
 
 TaxaLens will implement its live research analyst with:
