@@ -6,11 +6,23 @@ import json
 from pathlib import Path
 from typing import Any, TypedDict
 
+from packages.replay.src.biominer_reference_review_packet_adapter import (
+    ReferenceReviewPacketAdapterError,
+    adapt_reference_review_packet,
+)
 from packages.replay.src.validation import is_full_git_sha
 
 
 class ReferenceReviewQueueAdapterError(ValueError):
     """Raised when a BioMiner reference-review queue artifact cannot be adapted."""
+
+
+__all__ = [
+    "ReferenceReviewPacketAdapterError",
+    "ReferenceReviewQueueAdapterError",
+    "adapt_reference_review_packet",
+    "adapt_reference_review_queue",
+]
 
 
 class ReviewQueueRecordContract(TypedDict):
@@ -118,7 +130,10 @@ def _safe_path(manifest_path: Path, key: str, outputs: Any) -> tuple[Path, str] 
     return path, key
 
 
-def _artifact_path(manifest_payload: dict[str, Any], manifest_path: Path) -> tuple[Path, str] | None:
+def _artifact_path(
+    manifest_payload: dict[str, Any],
+    manifest_path: Path,
+) -> tuple[Path, str] | None:
     outputs = manifest_payload.get("outputs")
     for key in (
         "reference_review_queue",
@@ -136,7 +151,14 @@ def _status_bucket(status: str | None) -> str:
     if status is None:
         return "unknown"
     value = status.strip().lower()
-    if value in {"pending", "in_review", "completed", "conflict", "second_review_required", "cancelled"}:
+    if value in {
+        "pending",
+        "in_review",
+        "completed",
+        "conflict",
+        "second_review_required",
+        "cancelled",
+    }:
         return value
     if value == "reviewed":
         return "completed"
@@ -208,7 +230,10 @@ def adapt_reference_review_queue(
                 "artifact_missing": False,
                 "records_read": 0,
                 "notes": [
-                    "parquet review queue artifacts are not adapted in deterministic replay fixtures",
+                    (
+                        "parquet review queue artifacts are not adapted in "
+                        "deterministic replay fixtures"
+                    ),
                 ],
             },
         }
@@ -229,7 +254,9 @@ def adapt_reference_review_queue(
     try:
         records = _load_payload(artifact_path)
     except ReferenceReviewQueueAdapterError:
-        compatibility_notes.append(f"reference review queue artifact could not be parsed at {artifact_path}")
+        compatibility_notes.append(
+            f"reference review queue artifact could not be parsed at {artifact_path}"
+        )
         return {
             "reference_review_queue_summary": None,
             "reference_review_queue_records": [],
