@@ -72,10 +72,11 @@ describe('HumanReviewWorkspace', () => {
     )
     fireEvent.click(screen.getByRole('button', { name: 'Yes' }))
     fireEvent.click(screen.getByRole('button', { name: 'Previous image' }))
+    const reopenedImage = await screen.findByRole('img', {
+      name: /Does this image show an adult Papilio demoleus/u,
+    })
     fireEvent.load(
-      screen.getByRole('img', {
-        name: /Does this image show an adult Papilio demoleus/u,
-      }),
+      reopenedImage,
     )
     fireEvent.click(screen.getByRole('button', { name: 'No' }))
     fireEvent.click(screen.getByRole('button', { name: 'Previous image' }))

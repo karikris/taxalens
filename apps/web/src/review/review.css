@@ -208,6 +208,21 @@
   font-weight: 800;
 }
 
+.review-decision__readiness {
+  padding: var(--tl-space-2);
+  margin: 0 0 var(--tl-space-2);
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-sm);
+  background: var(--tl-state-review-bg);
+  border-left: 3px solid var(--tl-state-review-line);
+}
+
+.review-decision__readiness[data-ready='true'] {
+  color: var(--tl-ink);
+  background: var(--tl-state-available-bg);
+  border-left-color: var(--tl-state-available-line);
+}
+
 .review-decision-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -222,6 +237,11 @@
 
 .review-decision-grid button:hover {
   color: var(--tl-paper-100);
+}
+
+.review-decision-grid button:disabled:hover {
+  color: var(--tl-ink);
+  background: var(--tl-surface-paper);
 }
 
 .review-decision-grid button[aria-pressed='true'] {

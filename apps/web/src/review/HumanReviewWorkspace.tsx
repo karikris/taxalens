@@ -51,8 +51,14 @@ export function HumanReviewWorkspace({
   >('checking')
   const [cacheError, setCacheError] = useState<string | null>(null)
   const [imageUrl, setImageUrl] = useState<string | null>(null)
+  const [displayedItemId, setDisplayedItemId] = useState<string | null>(null)
   const item = itemAt(index)
   const decision = session.decisions[item.itemId]
+  const inspection = session.inspections[item.itemId]
+  const scientificDecisionReady =
+    displayedItemId === item.itemId &&
+    inspection?.imageOpened === true &&
+    inspection.imageVerified === true
   const [comment, setComment] = useState(decision?.comment ?? '')
 
   useEffect(() => {
@@ -79,6 +85,7 @@ export function HumanReviewWorkspace({
   }, [decision, item.itemId])
 
   useEffect(() => {
+    setDisplayedItemId(null)
     if (!cacheStatus.ready) {
       setImageUrl(null)
       return
@@ -98,6 +105,7 @@ export function HumanReviewWorkspace({
       .catch((reason: unknown) => {
         if (!active) return
         setImageUrl(null)
+        setDisplayedItemId(null)
         setCacheState('error')
         setCacheError(errorMessage(reason))
         recordImageFailure(item, errorMessage(reason))
@@ -140,7 +148,7 @@ export function HumanReviewWorkspace({
   function record(outcome: HumanReviewOutcome) {
     if (
       !canRecordHumanReviewOutcome(session, item.itemId, outcome) ||
-      (isScientificOutcome(outcome) && imageUrl === null)
+      (isScientificOutcome(outcome) && !scientificDecisionReady)
     ) {
       return
     }
@@ -165,6 +173,8 @@ export function HumanReviewWorkspace({
       return next
     })
     if (index < HUMAN_REVIEW_PACKET.items.length - 1) {
+      setDisplayedItemId(null)
+      setImageUrl(null)
       setIndex(index + 1)
     }
   }
@@ -182,6 +192,7 @@ export function HumanReviewWorkspace({
       saveHumanReviewSession(next)
       return next
     })
+    setDisplayedItemId(openedItem.itemId)
   }
 
   function recordImageFailure(failedItem: HumanReviewItem, reason: string) {
@@ -197,6 +208,7 @@ export function HumanReviewWorkspace({
       saveHumanReviewSession(next)
       return next
     })
+    setDisplayedItemId(null)
   }
 
   function clearReview() {
@@ -206,6 +218,7 @@ export function HumanReviewWorkspace({
     setIndex(0)
     setComment('')
     setImageUrl(null)
+    setDisplayedItemId(null)
     setCacheStatus(EMPTY_CACHE_STATUS)
     setCacheState('idle')
     setCacheError(null)
@@ -341,37 +354,57 @@ export function HumanReviewWorkspace({
           </label>
           <fieldset>
             <legend>Does the image support the verification label?</legend>
+            <p
+              id="review-scientific-readiness"
+              className="review-decision__readiness"
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+              data-ready={scientificDecisionReady}
+            >
+              {scientificReadinessMessage({
+                cacheState,
+                imageFailureReason: inspection?.imageFailureReason ?? null,
+                ready: scientificDecisionReady,
+              })}
+            </p>
             <div className="review-decision-grid">
               <DecisionButton
                 outcome="yes"
                 current={decision?.outcome}
+                disabled={!scientificDecisionReady}
                 onSelect={record}
               />
               <DecisionButton
                 outcome="no"
                 current={decision?.outcome}
+                disabled={!scientificDecisionReady}
                 onSelect={record}
               />
               <DecisionButton
                 outcome="cant_tell"
                 current={decision?.outcome}
+                disabled={!scientificDecisionReady}
                 onSelect={record}
               />
               <DecisionButton
                 outcome="cant_view"
                 current={decision?.outcome}
+                disabled={false}
                 onSelect={record}
               />
               <DecisionButton
                 outcome="skipped"
                 current={decision?.outcome}
+                disabled={false}
                 onSelect={record}
               />
             </div>
           </fieldset>
           <p className="review-decision__hint">
-            Can’t view records a media problem. Skip defers the item without making a scientific
-            judgment. Any choice can be replaced by revisiting the image.
+            Yes, No, and Can’t tell require the verified image to be displayed. Can’t view
+            records a media problem. Skip defers the item without making a scientific judgment.
+            Any choice can be replaced by revisiting the image.
           </p>
         </form>
       </div>
@@ -380,7 +413,7 @@ export function HumanReviewWorkspace({
         <button
           type="button"
           disabled={index === 0}
-          onClick={() => setIndex(Math.max(0, index - 1))}
+          onClick={() => openIndex(Math.max(0, index - 1))}
         >
           Previous image
         </button>
@@ -392,7 +425,7 @@ export function HumanReviewWorkspace({
                 aria-label={`Open review image ${candidateIndex + 1}`}
                 aria-current={candidateIndex === index ? 'step' : undefined}
                 data-reviewed={session.decisions[candidate.itemId] !== undefined}
-                onClick={() => setIndex(candidateIndex)}
+                onClick={() => openIndex(candidateIndex)}
               >
                 {candidateIndex + 1}
               </button>
@@ -403,7 +436,7 @@ export function HumanReviewWorkspace({
           type="button"
           disabled={index === HUMAN_REVIEW_PACKET.items.length - 1}
           onClick={() =>
-            setIndex(Math.min(HUMAN_REVIEW_PACKET.items.length - 1, index + 1))
+            openIndex(Math.min(HUMAN_REVIEW_PACKET.items.length - 1, index + 1))
           }
         >
           Next image
@@ -434,14 +467,22 @@ export function HumanReviewWorkspace({
       </section>
     </section>
   )
+
+  function openIndex(nextIndex: number) {
+    setDisplayedItemId(null)
+    setImageUrl(null)
+    setIndex(nextIndex)
+  }
 }
 
 function DecisionButton({
   current,
+  disabled,
   onSelect,
   outcome,
 }: {
   readonly current: HumanReviewOutcome | undefined
+  readonly disabled: boolean
   readonly onSelect: (outcome: HumanReviewOutcome) => void
   readonly outcome: HumanReviewOutcome
 }) {
@@ -449,7 +490,9 @@ function DecisionButton({
     <button
       type="button"
       aria-pressed={current === outcome}
+      aria-describedby={disabled ? 'review-scientific-readiness' : undefined}
       data-outcome={outcome}
+      disabled={disabled}
       onClick={() => onSelect(outcome)}
     >
       {outcomeLabel(outcome)}
@@ -474,6 +517,30 @@ function outcomeLabel(outcome: HumanReviewOutcome): string {
 
 function isScientificOutcome(outcome: HumanReviewOutcome): boolean {
   return outcome === 'yes' || outcome === 'no' || outcome === 'cant_tell'
+}
+
+function scientificReadinessMessage({
+  cacheState,
+  imageFailureReason,
+  ready,
+}: {
+  readonly cacheState: 'checking' | 'idle' | 'preparing' | 'ready' | 'error'
+  readonly imageFailureReason: string | null
+  readonly ready: boolean
+}): string {
+  if (ready) {
+    return 'Verified image displayed. Yes, No, and Can’t tell are available.'
+  }
+  if (imageFailureReason !== null) {
+    return `${imageFailureReason} Yes, No, and Can’t tell remain unavailable; Can’t view and Skip are available.`
+  }
+  if (cacheState === 'checking' || cacheState === 'preparing') {
+    return 'Preparing verified media. Yes, No, and Can’t tell are unavailable until the image is displayed.'
+  }
+  if (cacheState === 'ready') {
+    return 'Opening the verified image. Yes, No, and Can’t tell are unavailable until it is displayed.'
+  }
+  return 'Prepare and display the verified image before choosing Yes, No, or Can’t tell. Can’t view and Skip are available now.'
 }
 
 function itemAt(index: number): HumanReviewItem {
