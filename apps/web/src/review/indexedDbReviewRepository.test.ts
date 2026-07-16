@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   IndexedDbReviewRepository,
+  REVIEW_SYNC_STATUS_SCHEMA_VERSION,
   type ReviewSyncStatus,
 } from './indexedDbReviewRepository'
 import {
@@ -48,10 +49,14 @@ describe('IndexedDB review repository', () => {
     await expect(
       firstRepository.loadSyncStatus(HUMAN_REVIEW_CAMPAIGN.campaignId),
     ).resolves.toEqual({
+      schemaVersion: REVIEW_SYNC_STATUS_SCHEMA_VERSION,
       campaignId: HUMAN_REVIEW_CAMPAIGN.campaignId,
       state: 'local_only',
       eventCount: 2,
       pendingEventIds: [firstEvent.eventId, secondEvent.eventId],
+      lastAttemptAt: null,
+      lastSyncedAt: null,
+      lastError: null,
     } satisfies ReviewSyncStatus)
     await firstRepository.close()
 

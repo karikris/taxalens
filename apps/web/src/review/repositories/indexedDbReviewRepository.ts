@@ -25,6 +25,17 @@ import {
   type ReviewCurrentDecisions,
   type ReviewRepository,
 } from './reviewRepository'
+import {
+  createLocalReviewSyncStatus,
+  reviewSyncStatusFromStoredValue,
+  type ReviewEventQueue,
+  type ReviewSyncStatus,
+} from './reviewSync'
+
+export {
+  REVIEW_SYNC_STATUS_SCHEMA_VERSION,
+  type ReviewSyncStatus,
+} from './reviewSync'
 
 export const INDEXED_DB_REVIEW_DATABASE_NAME = 'taxalens-verification'
 export const INDEXED_DB_REVIEW_DATABASE_VERSION = 1
@@ -35,13 +46,6 @@ const EVENTS_STORE = 'events'
 const PROJECTIONS_STORE = 'projections'
 const SYNC_STATUS_STORE = 'syncStatus'
 const CAMPAIGN_INDEX = 'campaignId'
-
-export interface ReviewSyncStatus {
-  readonly campaignId: string
-  readonly state: 'local_only' | 'synced' | 'sync_error'
-  readonly eventCount: number
-  readonly pendingEventIds: readonly string[]
-}
 
 interface ItemRecord {
   readonly key: string
@@ -70,7 +74,9 @@ export interface IndexedDbReviewRepositoryOptions {
   readonly seeds?: readonly ReviewCampaignSeed[]
 }
 
-export class IndexedDbReviewRepository implements ReviewRepository {
+export class IndexedDbReviewRepository
+  implements ReviewRepository, ReviewEventQueue
+{
   readonly #databaseName: string
   readonly #factory: IDBFactory | undefined
   readonly #seeds: readonly ReviewCampaignSeed[]
@@ -252,7 +258,122 @@ export class IndexedDbReviewRepository implements ReviewRepository {
       transaction.objectStore(SYNC_STATUS_STORE).get(campaignId),
     )
     await complete
-    return cloneAndFreeze(status ?? null)
+    return status === undefined
+      ? null
+      : cloneAndFreeze(reviewSyncStatusFromStoredValue(status))
+  }
+
+  async loadPendingEvents(
+    campaignId: string,
+  ): Promise<readonly VerificationEvent[]> {
+    const database = await this.#database()
+    const transaction = database.transaction(
+      [SYNC_STATUS_STORE, EVENTS_STORE],
+      'readonly',
+    )
+    const complete = transactionComplete(transaction)
+    const [storedStatus, eventRecords] = await Promise.all([
+      requestResult<ReviewSyncStatus | undefined>(
+        transaction.objectStore(SYNC_STATUS_STORE).get(campaignId),
+      ),
+      requestResult<EventRecord[]>(
+        transaction
+          .objectStore(EVENTS_STORE)
+          .index(CAMPAIGN_INDEX)
+          .getAll(campaignId),
+      ),
+    ])
+    await complete
+    if (storedStatus === undefined) {
+      return Object.freeze([])
+    }
+    const status = reviewSyncStatusFromStoredValue(storedStatus)
+    if (eventRecords.length !== status.eventCount) {
+      throw new Error(
+        `IndexedDB review sync event count is stale: ${campaignId}`,
+      )
+    }
+    const pending = new Set(status.pendingEventIds)
+    const events = eventRecords
+      .sort((left, right) => left.sequence - right.sequence)
+      .filter(({ eventId }) => pending.has(eventId))
+      .map(({ event }) => event)
+    if (events.length !== pending.size) {
+      throw new Error(
+        `IndexedDB review sync status names unavailable events: ${campaignId}`,
+      )
+    }
+    return cloneAndFreeze(events)
+  }
+
+  async markSyncAttempt(
+    campaignId: string,
+    eventIds: readonly string[],
+    attemptedAt: string,
+  ): Promise<void> {
+    assertNormalizedInstant(attemptedAt)
+    await updateSyncStatus(
+      await this.#database(),
+      campaignId,
+      eventIds,
+      (status) => ({
+        ...status,
+        state: 'syncing',
+        lastAttemptAt: attemptedAt,
+        lastError: null,
+      }),
+    )
+  }
+
+  async markEventsSynced(
+    campaignId: string,
+    eventIds: readonly string[],
+    syncedAt: string,
+  ): Promise<void> {
+    assertNormalizedInstant(syncedAt)
+    await updateSyncStatus(
+      await this.#database(),
+      campaignId,
+      eventIds,
+      (status, eventIdSet) => {
+        const pendingEventIds = status.pendingEventIds.filter(
+          (eventId) => !eventIdSet.has(eventId),
+        )
+        return {
+          ...status,
+          state: pendingEventIds.length === 0 ? 'synced' : 'syncing',
+          pendingEventIds,
+          lastSyncedAt: syncedAt,
+          lastError: null,
+        }
+      },
+    )
+  }
+
+  async markSyncFailure(
+    campaignId: string,
+    eventIds: readonly string[],
+    attemptedAt: string,
+    error: string,
+  ): Promise<void> {
+    assertNormalizedInstant(attemptedAt)
+    const message = error.trim().slice(0, 512)
+    if (message === '') {
+      throw new Error(
+        'IndexedDB review sync failure requires an error message.',
+      )
+    }
+    await updateSyncStatus(
+      await this.#database(),
+      campaignId,
+      eventIds,
+      (status) => ({
+        ...status,
+        state: 'sync_error',
+        lastAttemptAt: attemptedAt,
+        lastError: message,
+      }),
+    )
   }
 
   async close(): Promise<void> {
@@ -492,20 +613,80 @@ async function appendEventToDatabase(
     const existingSync = await requestResult<ReviewSyncStatus | undefined>(
       syncStore.get(event.campaignId),
     )
-    syncStore.put({
-      campaignId: event.campaignId,
-      state: 'local_only',
-      eventCount: nextEvents.length,
-      pendingEventIds: Object.freeze([
-        ...(existingSync?.pendingEventIds ?? []),
-        event.eventId,
-      ]),
-    } satisfies ReviewSyncStatus)
+    const previous =
+      existingSync === undefined
+        ? null
+        : reviewSyncStatusFromStoredValue(existingSync)
+    syncStore.put(
+      createLocalReviewSyncStatus({
+        campaignId: event.campaignId,
+        eventCount: nextEvents.length,
+        pendingEventIds: [...(previous?.pendingEventIds ?? []), event.eventId],
+        previous,
+      }),
+    )
     await complete
   } catch (reason) {
     abortTransaction(transaction)
     await complete.catch(() => undefined)
     throw reason
+  }
+}
+
+async function updateSyncStatus(
+  database: IDBDatabase,
+  campaignId: string,
+  eventIds: readonly string[],
+  update: (
+    status: ReviewSyncStatus,
+    eventIds: ReadonlySet<string>,
+  ) => ReviewSyncStatus,
+): Promise<void> {
+  const uniqueEventIds = new Set(eventIds)
+  if (
+    eventIds.length === 0 ||
+    uniqueEventIds.size !== eventIds.length ||
+    eventIds.some((eventId) => eventId.trim() === '')
+  ) {
+    throw new Error('IndexedDB review sync event IDs are invalid.')
+  }
+  const transaction = database.transaction(SYNC_STATUS_STORE, 'readwrite')
+  const complete = transactionComplete(transaction)
+  try {
+    const store = transaction.objectStore(SYNC_STATUS_STORE)
+    const stored = await requestResult<ReviewSyncStatus | undefined>(
+      store.get(campaignId),
+    )
+    if (stored === undefined) {
+      throw new Error(
+        `IndexedDB review sync status is unavailable: ${campaignId}`,
+      )
+    }
+    const status = reviewSyncStatusFromStoredValue(stored)
+    if (
+      status.campaignId !== campaignId ||
+      eventIds.some((eventId) => !status.pendingEventIds.includes(eventId))
+    ) {
+      throw new Error(
+        `IndexedDB review sync transition is stale: ${campaignId}`,
+      )
+    }
+    store.put(reviewSyncStatusFromStoredValue(update(status, uniqueEventIds)))
+    await complete
+  } catch (reason) {
+    abortTransaction(transaction)
+    await complete.catch(() => undefined)
+    throw reason
+  }
+}
+
+function assertNormalizedInstant(value: string): void {
+  const milliseconds = Date.parse(value)
+  if (
+    !Number.isFinite(milliseconds) ||
+    new Date(milliseconds).toISOString() !== value
+  ) {
+    throw new Error('IndexedDB review sync timestamp is invalid.')
   }
 }
 
