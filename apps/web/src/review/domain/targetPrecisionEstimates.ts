@@ -149,6 +149,11 @@ export function estimateSimpleRandomTargetPrecision(
       campaign,
       items.length,
       confidenceLevel,
+      prepared.rows.length,
+      prepared.rows.reduce(
+        (total, { targetCorrect }) => total + targetCorrect,
+        0,
+      ),
       canonicalBlockers,
     )
   }
@@ -573,6 +578,8 @@ function unavailableSimpleRandomEstimate(
   campaign: VerificationCampaign,
   sampledItemCount: number,
   confidenceLevel: number,
+  decisiveSampleCount: number,
+  correctCount: number,
   blockers: readonly string[],
 ): SimpleRandomTargetPrecisionEstimate {
   return Object.freeze({
@@ -583,9 +590,9 @@ function unavailableSimpleRandomEstimate(
     samplingPlanId: campaign.samplingPlan.planId,
     confidenceLevel,
     sampledItemCount,
-    decisiveSampleCount: 0,
-    correctCount: 0,
-    errorCount: 0,
+    decisiveSampleCount,
+    correctCount,
+    errorCount: decisiveSampleCount - correctCount,
     estimate: null,
     interval: null,
   })

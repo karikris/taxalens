@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "taxalens-target-precision-reference:v1.0.0",
+  "confidenceLevel": 0.95,
+  "wilson": [
+    {
+      "successCount": 0,
+      "sampleCount": 10,
+      "lower": 0,
+      "upper": 0.27753279986288915
+    },
+    {
+      "successCount": 8,
+      "sampleCount": 10,
+      "lower": 0.49016247153664183,
+      "upper": 0.9433178485456247
+    },
+    {
+      "successCount": 10,
+      "sampleCount": 10,
+      "lower": 0.7224672001371109,
+      "upper": 1
+    }
+  ],
+  "weighted": {
+    "analysisWeights": [0.4, 0.4, 0.1, 0.1],
+    "outcomes": [1, 0, 1, 1],
+    "estimate": 0.6,
+    "effectiveSampleSize": 2.9411764705882346
+  }
+}
