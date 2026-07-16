@@ -2,7 +2,7 @@
 
 **Audit status:** Evidence-based, judge-facing source and model ledger. It distinguishes proof from inference.
 **Audit date:** 2026-07-16 (Australia/Sydney)
-**TaxaLens code snapshot:** 8a6fd8d392848ca2c39d49c58d117b23a44aaefc
+**TaxaLens code snapshot:** 5963bd0aaa415af896f3f67a3accc7cb0670d7cf
 **BioMiner code snapshot:** 75461d9c065af0cd96b41cd1f845c2e920f7ae34
 **BioMiner pre-cutoff baseline:** 98ba9ca1c0af89396263455af31d4c22c04a07d9
 **Cutoff:** 2026-07-11 00:00:00 Australia/Sydney; “after” means on or after that instant.
@@ -13,19 +13,19 @@ TaxaLens is a new researcher-facing evidence and replay product built on the
 separately versioned BioMiner research engine. The audited code has three
 distinct origins:
 
-- **8,054 of 25,348 production ELOC (31.77%)** are an exact retained match to
+- **8,054 of 39,471 production ELOC (20.41%)** are an exact retained match to
   a BioMiner source line pinned by the TaxaLens migration manifest.
-- **2,965 ELOC (11.70%)** are manifest-bound TaxaLens extractions/adapters:
+- **2,965 ELOC (7.51%)** are manifest-bound TaxaLens extractions/adapters:
   local code that reads or transforms a declared BioMiner contract, rather than
   a copied engine implementation.
-- **14,363 ELOC (56.66%)** are currently classified as TaxaLens-native code:
+- **28,486 ELOC (72.17%)** are currently classified as TaxaLens-native code:
   product/replay modules, scripts, contracts, and the judge web application.
   This classification is deliberately conservative: no unpinned BioMiner
   source is silently treated as copied.
-- **13,294 ELOC (52.45%)** have a current Git trailer explicitly naming
+- **27,423 ELOC (69.48%)** have a current Git trailer explicitly naming
   GPT-5.6 Sol. This is a documented lower bound, not a style-based guess.
 - There is no committed current-line attribution to GPT-5.5 or Spark 5.3.
-  **12,054 ELOC (47.55%)** remain model-unavailable/no-trailer rather than
+  **12,048 ELOC (30.52%)** remain model-unavailable/no-trailer rather than
   being assigned speculatively.
 
 The [OpenAI Build Week Rules](https://openai.devpost.com/rules) require
@@ -64,12 +64,12 @@ one.
 
 | Production category | Files/components | ELOC | Share | Exact BioMiner ELOC | Meaning |
 | --- | ---: | ---: | ---: | ---: | --- |
-| Mechanical BioMiner copies | 14/14 | 8,020 | 31.64% | 7,978 | Committed BioMiner implementation retained with small import/provenance changes. It is not claimed as new TaxaLens invention. |
-| Manifest-bound BioMiner adapters/extractions | 11/11 | 2,965 | 11.70% | 76 | Local TaxaLens code reading, validating, normalizing, or summarizing declared BioMiner artifacts/contracts. |
-| TaxaLens-native/unmapped source | 52 | 14,363 | 56.66% | 0 | Product facade, judge bundle/replay, scripts, contracts, and web application. |
-| **All audited production source** | **77** | **25,348** | **100.00%** | **8,054** | **31.77% literal BioMiner match; 68.23% local/adapted source.** |
+| Mechanical BioMiner copies | 14/14 | 8,020 | 20.32% | 7,978 | Committed BioMiner implementation retained with small import/provenance changes. It is not claimed as new TaxaLens invention. |
+| Manifest-bound BioMiner adapters/extractions | 11/11 | 2,965 | 7.51% | 76 | Local TaxaLens code reading, validating, normalizing, or summarizing declared BioMiner artifacts/contracts. |
+| TaxaLens-native/unmapped source | 102 | 28,486 | 72.17% | 0 | Product facade, judge bundle/replay, scripts, contracts, and web application. |
+| **All audited production source** | **127** | **39,471** | **100.00%** | **8,054** | **20.41% literal BioMiner match; 79.59% local/adapted source.** |
 
-The broader artifact-first BioMiner relationship is 10,985 ELOC (43.34%):
+The broader artifact-first BioMiner relationship is 10,985 ELOC (27.83%):
 8,020 copied compatibility lines plus 2,965 manifest-bound adapter lines. It
 describes integration provenance, not copied-code volume. The stricter
 copied-source number is 7,978 ELOC.
@@ -115,15 +115,15 @@ working tree.
 
 ### Current function inventory
 
-The current TaxaLens Python AST inventory contains **621 functions/methods**,
+The current TaxaLens Python AST inventory contains **643 functions/methods**,
 including methods and nested helpers.
 
 | Function group | Functions | Direct-source functions | Interpretation |
 | --- | ---: | ---: | --- |
 | Copied BioMiner modules | 283 | 283 | Every one meets the 80%-exact threshold and remains upstream engine code. |
 | Manifest-bound adapters/extractions | 93 | 0 | Local adapter functions; their contract origin is recorded but their bodies are not called copied. |
-| TaxaLens-native/unmapped modules | 245 | 0 | Product, bundle, verifier, CLI, and web-support functions. |
-| **Total** | **621** | **283** | **The function result corroborates the ELOC ledger.** |
+| TaxaLens-native/unmapped modules | 267 | 0 | Product, bundle, verifier, CLI, and web-support functions. |
+| **Total** | **643** | **283** | **The function result corroborates the ELOC ledger.** |
 
 Representative direct BioMiner functions include
 generate_full_frame_attention_variants (298/298 exact),
@@ -155,14 +155,14 @@ path, migration kind, rationale, licence, tests, and status before submission.
 
 | Writer model | Directly evidenced current ELOC | Share | Confidence | Basis |
 | --- | ---: | ---: | --- | --- |
-| GPT-5.6 Sol | 13,294 | 52.45% | High | The blamed TaxaLens commit records AI-Primary-Model: gpt-5.6-sol. |
+| GPT-5.6 Sol | 27,423 | 69.48% | High | The blamed TaxaLens commit records AI-Primary-Model: gpt-5.6-sol. |
 | GPT-5.5 | 0 | 0.00% | High for “no evidence”; unknown for use | No reachable current TaxaLens/BioMiner commit trailer names GPT-5.5. |
 | Spark 5.3 | 0 | 0.00% | High for “no evidence”; unknown for use | No reachable current TaxaLens/BioMiner commit trailer names Spark 5.3. |
-| Model unavailable/no trailer | 12,054 | 47.55% | High that the gap exists | No reliable basis to allocate this code among GPT-5.5, Spark, GPT-5.6, and human work. |
-| **Total** | **25,348** | **100.00%** |  |  |
+| Model unavailable/no trailer | 12,048 | 30.52% | High that the gap exists | No reliable basis to allocate this code among GPT-5.5, Spark, GPT-5.6, and human work. |
+| **Total** | **39,471** | **100.00%** |  |  |
 
-The 13,294 GPT-5.6 Sol lines include 6,976 ELOC in the current judge web
-application and 6,318 ELOC in the Python product/replay, contracts, and
+The 27,423 GPT-5.6 Sol lines include 20,401 ELOC in the current judge web
+application and 7,022 ELOC in the Python product/replay, contracts, and
 support scripts. They cover the user-facing Research Mission, Evidence
 Observatory, deterministic replay/bundle, product facade, and supporting
 verification/build paths.
@@ -177,11 +177,11 @@ competition evidence.
 
 | View | GPT-5.6 | unavailable-in-session-context | no model trailer | Correct interpretation |
 | --- | ---: | ---: | ---: | --- |
-| TaxaLens current-line delivery commit | 13,294 (52.45%) | 8,173 (32.24%) | 3,881 (15.31%) | Shows the model recorded on the last TaxaLens delivery commit. |
-| Original semantic source after exact mapping | 13,294 (52.45%) | 177 (0.70%) | 11,877 (46.86%) | Correct source-author view; BioMiner source lacks model trailers, so copied lines remain unallocated. |
+| TaxaLens current-line delivery commit | 27,423 (69.48%) | 8,173 (20.71%) | 3,875 (9.82%) | Shows the model recorded on the last TaxaLens delivery commit. |
+| Original semantic source after exact mapping | 27,423 (69.48%) | 177 (0.45%) | 11,871 (30.08%) | Correct source-author view; BioMiner source lacks model trailers, so copied lines remain unallocated. |
 
-At the TaxaLens code snapshot, the reachable history contains 248 commits:
-29 explicitly GPT-5.6 Sol, 27 marked unavailable-in-session-context, and 192
+At the TaxaLens code snapshot, the reachable history contains 284 commits:
+64 explicitly GPT-5.6 Sol, 27 marked unavailable-in-session-context, and 193
 without an AI-primary-model trailer. The reachable BioMiner history contains
 772 commits and none has an AI-primary-model trailer.
 
@@ -270,7 +270,7 @@ It still does not turn those BioMiner lines into a documented GPT-5.6 or Spark
 allocation. BioMiner's reachable history has no model trailers. The
 submission-safe statement is:
 
-> TaxaLens has 13,294 production ELOC with explicit GPT-5.6 Sol commit
+> TaxaLens has 27,423 production ELOC with explicit GPT-5.6 Sol commit
 > provenance. Its 8,054 exact BioMiner source lines, and BioMiner’s 118,168
 > production Python ELOC, have commit/source/date provenance but no
 > retrospectively verifiable model identity. We preserve that distinction
@@ -286,10 +286,10 @@ adding evidence; do not use source appearance as a substitute.
 Use this in the README, Devpost description, or video:
 
 > TaxaLens is a new evidence and replay product layer for BioMiner. At the
-> submitted code snapshot, 8,054 of 25,348 audited production lines are exact
+> submitted code snapshot, 8,054 of 39,471 audited production lines are exact
 > retained BioMiner source; 2,965 further lines are manifest-bound artifact
-> adapters; and 14,363 are TaxaLens-local product, replay, and web code.
-> GPT-5.6 Sol is explicitly recorded on 13,294 current production lines,
+> adapters; and 28,486 are TaxaLens-local product, replay, and web code.
+> GPT-5.6 Sol is explicitly recorded on 27,423 current production lines,
 > including the judge web application and deterministic evidence product
 > surface. We separately disclose that BioMiner’s model history was not
 > committed, while its code, source commits, and pre/post-11 July change ledger
