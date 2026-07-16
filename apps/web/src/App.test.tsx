@@ -145,6 +145,12 @@ describe('TaxaLens scaffold', () => {
     expect(
       screen.getByText('Flickr candidate review media is unavailable'),
     ).toBeInTheDocument()
+    expect(screen.getByText('Withheld before decision')).toBeInTheDocument()
+    expect(
+      screen.getByRole('list', {
+        name: 'Context withheld during blind Flickr review',
+      }),
+    ).toHaveTextContent('BioCLIP result')
     expect(
       screen.getByRole('link', { name: 'Return to Evidence Lens' }),
     ).toHaveAttribute('href', '#evidence-lens')

@@ -1,5 +1,9 @@
 import { validateFlickrVerificationSource } from './flickrCampaignSource'
 import {
+  FLICKR_BLIND_HIDDEN_FIELDS,
+  validateFlickrBlindDisclosurePolicy,
+} from './flickrReviewDisclosure'
+import {
   VERIFICATION_CAMPAIGN_SCHEMA_VERSION,
   validateReviewRequirement,
   validateSamplingPlan,
@@ -208,14 +212,7 @@ export async function buildFlickrAuditCampaign(
     disclosurePolicy: {
       mode: 'blind',
       revealAfterDecision: true,
-      hiddenBeforeDecision: [
-        'target_score_band',
-        'decision_state',
-        'competitor_margin_band',
-        'query_term',
-        'query_tier',
-        'priority_signals',
-      ],
+      hiddenBeforeDecision: FLICKR_BLIND_HIDDEN_FIELDS,
     },
     questionFingerprint,
     manifestSha256,
@@ -232,6 +229,7 @@ export async function buildFlickrAuditCampaign(
   const campaignFailures = [
     ...validateReviewRequirement(campaign.reviewRequirement),
     ...validateSamplingPlan(campaign.samplingPlan),
+    ...validateFlickrBlindDisclosurePolicy(campaign),
   ]
   const itemFailures = items.flatMap((item) =>
     validateVerificationItem(item, campaign),

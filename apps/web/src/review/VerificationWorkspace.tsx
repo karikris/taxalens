@@ -17,6 +17,7 @@ import {
 import type { ReviewRepository } from './repositories'
 import { resolveVerificationRoute } from './routing'
 import {
+  BlindFlickrReviewBoundary,
   CampaignSelector,
   filterReferenceReviewItems,
   ReferenceReviewFilters,
@@ -470,6 +471,7 @@ function FlickrCandidateRouteNotice({
         recorded until checksum-verified media is committed. This candidate
         remains a search hypothesis.
       </EvidenceState>
+      <BlindFlickrReviewBoundary />
     </section>
   )
 }
