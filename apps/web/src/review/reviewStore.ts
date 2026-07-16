@@ -17,7 +17,8 @@ import {
 } from './verificationEvents'
 
 const REVIEW_CACHE_NAME = `taxalens-${HUMAN_REVIEW_PACKET.packetId}`
-const REVIEW_SESSION_KEY = `taxalens-human-review:${HUMAN_REVIEW_PACKET.packetId}`
+export const HUMAN_REVIEW_SESSION_STORAGE_KEY =
+  `taxalens-human-review:${HUMAN_REVIEW_PACKET.packetId}`
 
 export type HumanReviewOutcome = VerificationOutcome
 
@@ -113,7 +114,9 @@ export function loadHumanReviewSessionResult(
   storage?: Pick<Storage, 'getItem'>,
 ): HumanReviewSessionLoadResult {
   try {
-    const raw = (storage ?? window.localStorage).getItem(REVIEW_SESSION_KEY)
+    const raw = (storage ?? window.localStorage).getItem(
+      HUMAN_REVIEW_SESSION_STORAGE_KEY,
+    )
     if (raw === null) {
       return Object.freeze({
         session: emptyHumanReviewSession(),
@@ -189,7 +192,10 @@ export function saveHumanReviewSession(
     )
   }
   try {
-    ;(storage ?? window.localStorage).setItem(REVIEW_SESSION_KEY, serialized)
+    ;(storage ?? window.localStorage).setItem(
+      HUMAN_REVIEW_SESSION_STORAGE_KEY,
+      serialized,
+    )
   } catch (reason) {
     throw classifyPersistenceError(reason)
   }
@@ -199,7 +205,9 @@ export function clearHumanReviewSession(
   storage?: Pick<Storage, 'removeItem'>,
 ): void {
   try {
-    ;(storage ?? window.localStorage).removeItem(REVIEW_SESSION_KEY)
+    ;(storage ?? window.localStorage).removeItem(
+      HUMAN_REVIEW_SESSION_STORAGE_KEY,
+    )
   } catch (reason) {
     throw classifyPersistenceError(reason)
   }

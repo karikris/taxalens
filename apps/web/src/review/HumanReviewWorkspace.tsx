@@ -2,10 +2,16 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 
 import type { ReplayEvidence } from '../data/evidenceFacade'
 import { EvidenceState } from '../design-system'
+import { InMemoryReviewRepository } from './inMemoryReviewRepository'
+import { IndexedDbReviewRepository } from './indexedDbReviewRepository'
+import { migrateLegacyHumanReviewSession } from './legacyReviewMigration'
 import {
+  HUMAN_REVIEW_CAMPAIGN,
+  HUMAN_REVIEW_ITEMS,
   HUMAN_REVIEW_PACKET,
   type HumanReviewItem,
 } from './reviewPacket'
+import type { ReviewRepository } from './reviewRepository'
 import {
   browserReviewMediaCache,
   canRecordHumanReviewOutcome,
@@ -16,7 +22,6 @@ import {
   loadHumanReviewSessionResult,
   ReviewPersistenceError,
   reviewPersistenceErrorMessage,
-  saveHumanReviewSession,
   withDecision,
   withImageInspection,
   withReviewerId,
@@ -25,6 +30,7 @@ import {
   type ReviewCacheStatus,
   type ReviewMediaCache,
 } from './reviewStore'
+import type { VerificationEvent } from './verificationEvents'
 import './review.css'
 
 const EMPTY_CACHE_STATUS: ReviewCacheStatus = Object.freeze({
@@ -37,23 +43,43 @@ const EMPTY_CACHE_STATUS: ReviewCacheStatus = Object.freeze({
 
 export function HumanReviewWorkspace({
   cache = browserReviewMediaCache,
+  legacyStorage = window.localStorage,
   now = () => new Date(),
   replay,
+  repository,
 }: {
   readonly cache?: ReviewMediaCache
+  readonly legacyStorage?: Pick<Storage, 'getItem' | 'removeItem'>
   readonly now?: () => Date
   readonly replay: ReplayEvidence
+  readonly repository?: ReviewRepository
 }) {
-  const [initialSession] = useState(() => loadHumanReviewSessionResult())
+  const [legacySnapshot] = useState(() =>
+    loadHumanReviewSessionResult(legacyStorage),
+  )
+  const [activeRepository, setActiveRepository] = useState<ReviewRepository>(
+    () =>
+      repository ??
+      createDefaultReviewRepository(legacySnapshot.session.events),
+  )
+  const usingTemporaryRepository =
+    repository === undefined &&
+    activeRepository instanceof InMemoryReviewRepository
   const [session, setSession] = useState<HumanReviewSession>(
-    initialSession.session,
+    usingTemporaryRepository
+      ? legacySnapshot.session
+      : emptyHumanReviewSession(),
   )
   const sessionRef = useRef(session)
   sessionRef.current = session
+  const eventWriteRef = useRef<Promise<void>>(Promise.resolve())
+  const [repositoryState, setRepositoryState] = useState<
+    'loading' | 'ready' | 'error'
+  >(usingTemporaryRepository ? 'ready' : 'loading')
   const [persistenceError, setPersistenceError] = useState<string | null>(() =>
-    initialSession.error === null
+    legacySnapshot.error === null
       ? null
-      : reviewPersistenceErrorMessage(initialSession.error),
+      : reviewPersistenceErrorMessage(legacySnapshot.error),
   )
   const [index, setIndex] = useState(() => firstPendingIndex(session))
   const [cacheStatus, setCacheStatus] =
@@ -85,6 +111,93 @@ export function HumanReviewWorkspace({
     inspection?.imageOpened === true &&
     inspection.imageVerified === true
   const [comment, setComment] = useState(decision?.comment ?? '')
+
+  useEffect(() => {
+    let active = true
+    setRepositoryState(
+      activeRepository instanceof InMemoryReviewRepository
+        ? 'ready'
+        : 'loading',
+    )
+    void (async () => {
+      try {
+        const migration =
+          activeRepository instanceof IndexedDbReviewRepository
+            ? await migrateLegacyHumanReviewSession(
+                activeRepository,
+                legacyStorage,
+              )
+            : {
+                status: 'absent' as const,
+                reviewerId: '',
+                inspections: Object.freeze({}),
+                eventCount: 0,
+              }
+        const events = await activeRepository.loadEvents(
+          HUMAN_REVIEW_CAMPAIGN.campaignId,
+        )
+        if (!active) return
+        const current = sessionRef.current
+        const hydratedEvents =
+          current.events.length > events.length ? current.events : events
+        const next = Object.freeze({
+          packetId: HUMAN_REVIEW_PACKET.packetId,
+          reviewerId:
+            current.reviewerId ||
+            migration.reviewerId ||
+            hydratedEvents.at(-1)?.reviewerId ||
+            '',
+          events: Object.freeze([...hydratedEvents]),
+          inspections: Object.freeze({
+            ...migration.inspections,
+            ...current.inspections,
+          }),
+        })
+        sessionRef.current = next
+        setSession(next)
+        setIndex(firstPendingIndex(next))
+        setRepositoryState('ready')
+      } catch (reason) {
+        if (!active) return
+        setPersistenceError(repositoryPersistenceErrorMessage(reason))
+        if (
+          repository === undefined &&
+          activeRepository instanceof IndexedDbReviewRepository
+        ) {
+          const fallback = createTemporaryReviewRepository(
+            legacySnapshot.session.events,
+          )
+          sessionRef.current = legacySnapshot.session
+          setSession(legacySnapshot.session)
+          setIndex(firstPendingIndex(legacySnapshot.session))
+          setRepositoryState('ready')
+          setActiveRepository(fallback)
+          return
+        }
+        setRepositoryState('error')
+      }
+    })()
+    return () => {
+      active = false
+    }
+  }, [
+    activeRepository,
+    legacySnapshot.session,
+    legacyStorage,
+    repository,
+  ])
+
+  useEffect(
+    () => () => {
+      if (
+        repository === undefined &&
+        activeRepository instanceof IndexedDbReviewRepository
+      ) {
+        void activeRepository.close()
+      }
+    },
+    [activeRepository, repository],
+  )
 
   useEffect(() => {
     let active = true
@@ -233,6 +346,7 @@ export function HumanReviewWorkspace({
 
   function record(outcome: HumanReviewOutcome) {
     if (
+      repositoryState !== 'ready' ||
       !canRecordHumanReviewOutcome(session, item.itemId, outcome) ||
       (isScientificOutcome(outcome) && !scientificDecisionReady)
     ) {
@@ -244,18 +358,22 @@ export function HumanReviewWorkspace({
       openedAt === null || openedAt === undefined
         ? null
         : Math.max(0, reviewedAt.getTime() - new Date(openedAt).getTime())
-    applySession(
-      withDecision(sessionRef.current, {
-        itemId: item.itemId,
-        outcome,
-        comment: comment.trim() || null,
-        reviewedAt: reviewedAt.toISOString(),
-        reviewDurationMs:
-          reviewDurationMs !== null && Number.isFinite(reviewDurationMs)
-            ? reviewDurationMs
-            : null,
-      }),
-    )
+    const next = withDecision(sessionRef.current, {
+      itemId: item.itemId,
+      outcome,
+      comment: comment.trim() || null,
+      reviewedAt: reviewedAt.toISOString(),
+      reviewDurationMs:
+        reviewDurationMs !== null && Number.isFinite(reviewDurationMs)
+          ? reviewDurationMs
+          : null,
+    })
+    const event = next.events.at(-1)
+    if (event === undefined) {
+      throw new Error('Review event creation did not append an event.')
+    }
+    applySession(next)
+    queueEventWrite(event)
     if (index < HUMAN_REVIEW_PACKET.items.length - 1) {
       setDisplayedItemId(null)
       setImageUrl(null)
@@ -294,18 +412,17 @@ export function HumanReviewWorkspace({
   function applySession(next: HumanReviewSession) {
     sessionRef.current = next
     setSession(next)
-    try {
-      saveHumanReviewSession(next)
-      setPersistenceError(null)
-    } catch (reason) {
-      setPersistenceError(
-        reviewPersistenceErrorMessage(
-          reason instanceof ReviewPersistenceError
-            ? reason
-            : new ReviewPersistenceError('unknown', errorMessage(reason)),
-        ),
-      )
-    }
+  }
+
+  function queueEventWrite(event: VerificationEvent) {
+    const targetRepository = activeRepository
+    const write = eventWriteRef.current
+      .catch(() => undefined)
+      .then(() => targetRepository.appendEvent(event))
+    eventWriteRef.current = write
+    void write.catch((reason: unknown) => {
+      setPersistenceError(repositoryPersistenceErrorMessage(reason))
+    })
   }
 
   async function clearReview() {
@@ -313,8 +430,24 @@ export function HumanReviewWorkspace({
     setClearState('clearing')
     setClearError(null)
     try {
+      await eventWriteRef.current.catch(() => undefined)
       await cache.clear()
-      clearHumanReviewSession()
+      await activeRepository.clearLocalCampaign(
+        HUMAN_REVIEW_CAMPAIGN.campaignId,
+      )
+      clearHumanReviewSession(legacyStorage)
+      if (repository === undefined) {
+        if (activeRepository instanceof IndexedDbReviewRepository) {
+          await activeRepository.close()
+        }
+        const replacement = createDefaultReviewRepository([])
+        setActiveRepository(replacement)
+        setRepositoryState(
+          replacement instanceof InMemoryReviewRepository
+            ? 'ready'
+            : 'loading',
+        )
+      }
       setPersistenceError(null)
       const emptySession = emptyHumanReviewSession()
       sessionRef.current = emptySession
@@ -359,24 +492,32 @@ export function HumanReviewWorkspace({
       </EvidenceState>
 
       <aside className="human-review__boundary">
-        <strong>Separate review packet</strong>
+        <strong>Separate review campaign</strong>
         <span>
           These CC-licensed Commons images are not the frozen BioMiner reference bank. Decisions
-          remain in this browser until you export a receipt; no result is sent to a server.
+          remain in this browser’s append-only IndexedDB ledger until you export a receipt; no
+          result is sent to a server.
         </span>
       </aside>
 
       {persistenceError !== null && (
-        <EvidenceState state="failure" title="Local review persistence failed">
+        <EvidenceState state="failure" title="Review repository persistence failed">
           {persistenceError}
         </EvidenceState>
       )}
 
       {typeof window.indexedDB === 'undefined' && (
         <EvidenceState state="review" title="IndexedDB is unavailable">
-          This browser cannot provide the future offline event-ledger repository. The
-          current prototype continues in memory and reports localStorage failures
-          separately.
+          The append-only ledger is using temporary memory. Existing legacy review data
+          remains untouched so a durable migration can be retried in a browser with
+          IndexedDB.
+        </EvidenceState>
+      )}
+
+      {repositoryState === 'loading' && (
+        <EvidenceState state="review" title="Opening offline review ledger">
+          Loading the campaign and migrating any legacy local review evidence before
+          decisions are enabled.
         </EvidenceState>
       )}
 
@@ -443,8 +584,8 @@ export function HumanReviewWorkspace({
 
       {clearState === 'success' && (
         <EvidenceState state="available" title="Local review state cleared">
-          The cache and local review session were cleared after the browser operations
-          completed.
+          The media cache and IndexedDB campaign state were cleared after the browser
+          operations completed.
         </EvidenceState>
       )}
 
@@ -544,31 +685,37 @@ export function HumanReviewWorkspace({
               <DecisionButton
                 outcome="yes"
                 current={decision?.outcome}
-                disabled={!scientificDecisionReady}
+                disabled={
+                  repositoryState !== 'ready' || !scientificDecisionReady
+                }
                 onSelect={record}
               />
               <DecisionButton
                 outcome="no"
                 current={decision?.outcome}
-                disabled={!scientificDecisionReady}
+                disabled={
+                  repositoryState !== 'ready' || !scientificDecisionReady
+                }
                 onSelect={record}
               />
               <DecisionButton
                 outcome="cant_tell"
                 current={decision?.outcome}
-                disabled={!scientificDecisionReady}
+                disabled={
+                  repositoryState !== 'ready' || !scientificDecisionReady
+                }
                 onSelect={record}
               />
               <DecisionButton
                 outcome="cant_view"
                 current={decision?.outcome}
-                disabled={false}
+                disabled={repositoryState !== 'ready'}
                 onSelect={record}
               />
               <DecisionButton
                 outcome="skipped"
                 current={decision?.outcome}
-                disabled={false}
+                disabled={repositoryState !== 'ready'}
                 onSelect={record}
               />
             </div>
@@ -753,6 +900,60 @@ function outcomeCounts(session: HumanReviewSession) {
 
 function formatReviewDimension(value: string | null): string {
   return value === null ? 'unspecified' : value.replaceAll('_', ' ')
+}
+
+function createDefaultReviewRepository(
+  events: readonly VerificationEvent[],
+): ReviewRepository {
+  return typeof window.indexedDB === 'undefined'
+    ? createTemporaryReviewRepository(events)
+    : new IndexedDbReviewRepository({
+        seeds: [
+          {
+            campaign: HUMAN_REVIEW_CAMPAIGN,
+            items: HUMAN_REVIEW_ITEMS,
+          },
+        ],
+      })
+}
+
+function createTemporaryReviewRepository(
+  events: readonly VerificationEvent[],
+): InMemoryReviewRepository {
+  return new InMemoryReviewRepository([
+    {
+      campaign: HUMAN_REVIEW_CAMPAIGN,
+      items: HUMAN_REVIEW_ITEMS,
+      events,
+    },
+  ])
+}
+
+function repositoryPersistenceErrorMessage(reason: unknown): string {
+  if (reason instanceof ReviewPersistenceError) {
+    return reviewPersistenceErrorMessage(reason)
+  }
+  const message = errorMessage(reason)
+  const name =
+    typeof DOMException !== 'undefined' && reason instanceof DOMException
+      ? reason.name
+      : reason instanceof Error
+        ? reason.name
+        : ''
+  const code =
+    name === 'QuotaExceededError' || /quota|storage.?full/u.test(message)
+      ? 'quota_exceeded'
+      : /unavailable|blocked|denied|not supported|private/u.test(
+            message.toLowerCase(),
+          )
+        ? 'unavailable'
+        : 'unknown'
+  return reviewPersistenceErrorMessage(
+    new ReviewPersistenceError(
+      code,
+      `The append-only review repository could not persist the event: ${message}`,
+    ),
+  )
 }
 
 function errorMessage(reason: unknown): string {

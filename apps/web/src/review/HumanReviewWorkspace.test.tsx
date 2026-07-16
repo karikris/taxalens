@@ -4,8 +4,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { loadEvidenceFacade, type ReplayEvidence } from '../data/evidenceFacade'
 import { createCommittedFixtureFetcher } from '../test/fixtures'
 import { HumanReviewWorkspace } from './HumanReviewWorkspace'
-import { HUMAN_REVIEW_PACKET } from './reviewPacket'
-import type { ReviewCacheStatus, ReviewMediaCache } from './reviewStore'
+import { InMemoryReviewRepository } from './inMemoryReviewRepository'
+import {
+  HUMAN_REVIEW_CAMPAIGN,
+  HUMAN_REVIEW_ITEMS,
+} from './reviewPacket'
+import {
+  HUMAN_REVIEW_SESSION_STORAGE_KEY,
+  ReviewPersistenceError,
+  type ReviewCacheStatus,
+  type ReviewMediaCache,
+} from './reviewStore'
 
 let replay: ReplayEvidence
 
@@ -26,11 +35,13 @@ afterEach(() => {
 describe('HumanReviewWorkspace', () => {
   it('keeps scientific outcomes disabled until the verified image is displayed', async () => {
     const cache = fakeCache()
+    const repository = reviewRepository()
     render(
       <HumanReviewWorkspace
         cache={cache}
         now={() => new Date('2026-07-16T12:00:00Z')}
         replay={replay}
+        repository={repository}
       />,
     )
 
@@ -71,20 +82,27 @@ describe('HumanReviewWorkspace', () => {
 
     fireEvent.click(cantTell)
     expect(screen.getByText(/Can’t tell 1/u)).toBeInTheDocument()
+    await waitFor(async () => {
+      await expect(
+        repository.loadEvents(HUMAN_REVIEW_CAMPAIGN.campaignId),
+      ).resolves.toEqual([
+        expect.objectContaining({ outcome: 'cant_tell' }),
+      ])
+    })
     expect(
-      window.localStorage.getItem(
-        `taxalens-human-review:${HUMAN_REVIEW_PACKET.packetId}`,
-      ),
-    ).toContain('"outcome":"cant_tell"')
+      window.localStorage.getItem(HUMAN_REVIEW_SESSION_STORAGE_KEY),
+    ).toBeNull()
   })
 
   it('prepares the small cache and records comments, can’t-view, and skip locally', async () => {
     const cache = fakeCache()
+    const repository = reviewRepository()
     render(
       <HumanReviewWorkspace
         cache={cache}
         now={() => new Date('2026-07-16T12:00:00Z')}
         replay={replay}
+        repository={repository}
       />,
     )
 
@@ -109,12 +127,23 @@ describe('HumanReviewWorkspace', () => {
 
     expect(screen.getByText(/Can’t view 1 · Skipped 1/u)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Export review receipt' })).toBeEnabled()
-    const stored = window.localStorage.getItem(
-      `taxalens-human-review:${HUMAN_REVIEW_PACKET.packetId}`,
-    )
-    expect(stored).toContain('Thumbnail did not render clearly.')
-    expect(stored).toContain('"outcome":"cant_view"')
-    expect(stored).toContain('"outcome":"skipped"')
+    await waitFor(async () => {
+      await expect(
+        repository.loadEvents(HUMAN_REVIEW_CAMPAIGN.campaignId),
+      ).resolves.toEqual([
+        expect.objectContaining({
+          outcome: 'cant_view',
+          comment: 'Thumbnail did not render clearly.',
+        }),
+        expect.objectContaining({
+          outcome: 'skipped',
+          comment: null,
+        }),
+      ])
+    })
+    expect(
+      window.localStorage.getItem(HUMAN_REVIEW_SESSION_STORAGE_KEY),
+    ).toBeNull()
   })
 
   it('records yes and no as replaceable item-level judgments', async () => {
@@ -228,7 +257,9 @@ describe('HumanReviewWorkspace', () => {
     }
     render(<HumanReviewWorkspace cache={cache} replay={replay} />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Can’t view' }))
+    const cantView = screen.getByRole('button', { name: 'Can’t view' })
+    await waitFor(() => expect(cantView).toBeEnabled())
+    fireEvent.click(cantView)
     expect(screen.getByText('1 / 3')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Clear cache and review' }))
 
@@ -239,18 +270,30 @@ describe('HumanReviewWorkspace', () => {
     expect(screen.getByText('1 / 3')).toBeInTheDocument()
   })
 
-  it('keeps work in memory and reports localStorage quota failure', async () => {
-    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
-      throw new DOMException('quota exceeded', 'QuotaExceededError')
-    })
-    render(<HumanReviewWorkspace cache={fakeCache()} replay={replay} />)
+  it('keeps work in memory and reports repository quota failure', async () => {
+    const repository = reviewRepository()
+    vi.spyOn(repository, 'appendEvent').mockRejectedValue(
+      new ReviewPersistenceError(
+        'quota_exceeded',
+        'IndexedDB quota exceeded.',
+      ),
+    )
+    render(
+      <HumanReviewWorkspace
+        cache={fakeCache()}
+        replay={replay}
+        repository={repository}
+      />,
+    )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Can’t view' }))
+    const cantView = screen.getByRole('button', { name: 'Can’t view' })
+    await waitFor(() => expect(cantView).toBeEnabled())
+    fireEvent.click(cantView)
 
     expect(
-      await screen.findByText('Local review persistence failed'),
+      await screen.findByText('Review repository persistence failed'),
     ).toBeInTheDocument()
-    expect(screen.getByText(/storage quota was exceeded/u)).toBeInTheDocument()
+    expect(screen.getByText(/storage quota is full/u)).toBeInTheDocument()
     expect(screen.getByText('1 / 3')).toBeInTheDocument()
   })
 
@@ -281,8 +324,8 @@ function fakeCache(initiallyReady = false): ReviewMediaCache & {
     ready: true,
     cachedCount: 3,
     totalCount: 3,
-      persistentBrowserCache: true,
-      itemFailures: {},
+    persistentBrowserCache: true,
+    itemFailures: {},
   }
   return {
     inspect: vi.fn().mockResolvedValue(
@@ -305,6 +348,15 @@ function fakeCache(initiallyReady = false): ReviewMediaCache & {
     open: vi.fn().mockResolvedValue('data:image/jpeg;base64,AA=='),
     clear: vi.fn().mockResolvedValue(undefined),
   }
+}
+
+function reviewRepository(): InMemoryReviewRepository {
+  return new InMemoryReviewRepository([
+    {
+      campaign: HUMAN_REVIEW_CAMPAIGN,
+      items: HUMAN_REVIEW_ITEMS,
+    },
+  ])
 }
 
 interface Deferred<T> {
