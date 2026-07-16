@@ -32,7 +32,7 @@ describe('buildEvidenceLedger', () => {
       'Export',
     ])
     expect(ledger.events.slice(0, 9).every(({ recordedAt }) => recordedAt === null)).toBe(true)
-    expect(ledger.events.at(9)?.recordedAt).toBe('2026-07-15T15:30:00Z')
+    expect(ledger.events.at(9)?.recordedAt).toBe('2026-07-16T09:44:16Z')
     expect(ledger.events.find(({ id }) => id === 'decision')).toMatchObject({
       status: 'unavailable',
       scientificClaimAllowed: false,

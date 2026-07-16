@@ -160,7 +160,7 @@ def test_verifies_the_committed_truthful_fixture() -> None:
     result = verify_truthful_demo(SOURCE_ROOT / "judge_bundle.json")
 
     assert result.bundle_id == TRUTHFUL_DEMO_BUNDLE_ID
-    assert result.artifact_count == 24
+    assert result.artifact_count == 25
     assert result.section_count == 20
     assert result.unavailable_section_count == 6
     assert result.total_section_record_count == 29

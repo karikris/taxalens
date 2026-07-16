@@ -8,6 +8,7 @@ from taxalens.product import (
     TRUTHFUL_DEMO_BIOMINER_SHA,
     TRUTHFUL_DEMO_BUNDLE_ID,
     TRUTHFUL_DEMO_HERO_ID,
+    TRUTHFUL_DEMO_LEGACY_BIOMINER_SHA,
     build_truthful_demo_fixture,
     load_judge_bundle,
 )
@@ -25,7 +26,7 @@ def test_committed_fixture_is_a_valid_checksum_verified_judge_bundle() -> None:
     loaded = load_judge_bundle(MANIFEST_PATH, verify_files=True)
 
     assert loaded.validation.bundle_id == TRUTHFUL_DEMO_BUNDLE_ID
-    assert loaded.validation.artifact_count == 24
+    assert loaded.validation.artifact_count == 25
     assert loaded.validation.section_count == 20
     assert loaded.validation.unavailable_section_count == 6
     assert loaded.validation.replay_trace_count == 1
@@ -83,7 +84,7 @@ def test_fixture_uses_real_candidate_metadata_without_promoting_it_to_evidence()
     assert isinstance(shortfalls, list)
     assert isinstance(metrics, list)
 
-    assert snapshot["origin_commit"] == TRUTHFUL_DEMO_BIOMINER_SHA
+    assert snapshot["origin_commit"] == TRUTHFUL_DEMO_LEGACY_BIOMINER_SHA
     assert snapshot["metadata_only"] is True
     assert snapshot["scientific_results_available"] is False
     assert [row["candidate"]["scientific_name"] for row in candidates] == [
@@ -118,8 +119,48 @@ def test_rights_manifest_has_no_media_and_covers_every_payload() -> None:
     assert loaded.data["attribution"]["complete"] is True
     assert not any(path.suffix.lower() in RASTER_SUFFIXES for path in FIXTURE_ROOT.rglob("*"))
     media_types = [artifact["media_type"] for artifact in loaded.data["artifact_inventory"]]
-    assert media_types.count("application/json") == 20
+    assert media_types.count("application/json") == 21
     assert media_types.count("application/vnd.apache.parquet") == 4
+
+
+def test_prototype_snapshot_is_aggregate_only_and_preserves_claim_boundaries() -> None:
+    snapshot = _json("source/prototype_evidence_snapshot.json")
+    assert isinstance(snapshot, dict)
+
+    assert snapshot["origin_commit"] == TRUTHFUL_DEMO_BIOMINER_SHA
+    assert snapshot["status"] == "prototype_only_available_with_limitations"
+    assert snapshot["prototype_integration_authorized"] is True
+    assert snapshot["scientific_release_authorized"] is False
+    assert snapshot["production_default_change_authorized"] is False
+    assert snapshot["public_reference_image_display_authorized"] is False
+    assert snapshot["scientific_claim_allowed"] is False
+
+    contracts = snapshot["contracts"]
+    assert contracts["reference_bank"]["data"]["counts"]["prototype_support"] == 81
+    assert contracts["reference_bank"]["data"]["counts"]["human_verified"] == 0
+    assert (
+        contracts["benchmark"]["data"]["model_selection_comparison"]["B0"][
+            "target_scoreability_rate"
+        ]
+        == 0.1
+    )
+    assert (
+        contracts["benchmark"]["data"]["model_selection_comparison"]["B13"][
+            "target_scoreability_rate"
+        ]
+        == 1.0
+    )
+    assert contracts["selected_policy"]["data"]["margin_policy"]["threshold"] == 0.1
+    staged = contracts["staged_inference"]["data"]
+    assert staged["classified"] == 13_496
+    assert staged["candidate_score_rows"] == 634_312
+    assert staged["staged_preselection_abstention"]["abstained"] == 12_296
+    assert (
+        staged["staged_preselection_abstention"]["reason_counts"][
+            "uncalibrated_margin_below_0_02"
+        ]
+        == 1_602
+    )
 
 
 def test_stored_agent_replay_is_public_credential_free_and_checksum_bound() -> None:

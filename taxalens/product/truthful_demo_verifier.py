@@ -24,6 +24,7 @@ from taxalens.product.truthful_demo import (
     TRUTHFUL_DEMO_BIOMINER_SHA,
     TRUTHFUL_DEMO_BUNDLE_ID,
     TRUTHFUL_DEMO_HERO_ID,
+    TRUTHFUL_DEMO_LEGACY_BIOMINER_SHA,
     TRUTHFUL_DEMO_TAXALENS_SHA,
 )
 
@@ -102,6 +103,7 @@ _EXPECTED_ARTIFACT_VERSIONS = {
     "logical-associations": "truthful-demo-logical-association:v1.0.0",
     "pilot-metadata-snapshot": "taxalens-phase14-pilot-metadata:v1.1.0",
     "pipeline-stages": "truthful-demo-pipeline-stage:v1.0.0",
+    "prototype-evidence-snapshot": "taxalens-biominer-prototype-evidence:v1.0.0",
     "query-definitions": "truthful-demo-query-definition:v1.0.0",
     "reference-readiness": "truthful-demo-reference-readiness:v1.0.0",
     "reference-shortfalls": "truthful-demo-reference-shortfall:v1.0.0",
@@ -347,19 +349,50 @@ def _verify_biominer_sha(
         )
     for artifact_id, artifact in artifacts.items():
         if artifact.get("source_repository") == "karikris/BioMiner":
-            if artifact.get("source_commit") != TRUTHFUL_DEMO_BIOMINER_SHA:
+            if artifact.get("source_commit") not in {
+                TRUTHFUL_DEMO_BIOMINER_SHA,
+                TRUTHFUL_DEMO_LEGACY_BIOMINER_SHA,
+            }:
                 _fail(
                     TruthfulDemoFailure.MISSING_BIOMINER_SHA,
-                    "BioMiner-derived artifact lacks the pinned source SHA",
+                    "BioMiner-derived artifact lacks an admitted pinned source SHA",
                     f"artifact:{artifact_id}.source_commit",
                 )
     snapshot = _object(payloads["pilot-metadata-snapshot"], "pilot_metadata_snapshot")
-    if snapshot.get("origin_commit") != TRUTHFUL_DEMO_BIOMINER_SHA:
+    if snapshot.get("origin_commit") != TRUTHFUL_DEMO_LEGACY_BIOMINER_SHA:
         _fail(
             TruthfulDemoFailure.MISSING_BIOMINER_SHA,
-            "pilot metadata snapshot lacks the pinned source SHA",
+            "pilot metadata snapshot lacks the historical pinned source SHA",
             "source/pilot_metadata_snapshot.json",
         )
+    prototype = _object(
+        payloads["prototype-evidence-snapshot"], "prototype_evidence_snapshot"
+    )
+    if (
+        prototype.get("origin_repository") != "karikris/BioMiner"
+        or prototype.get("origin_commit") != TRUTHFUL_DEMO_BIOMINER_SHA
+    ):
+        _fail(
+            TruthfulDemoFailure.MISSING_BIOMINER_SHA,
+            "prototype evidence snapshot lacks the current pinned BioMiner source SHA",
+            "source/prototype_evidence_snapshot.json",
+        )
+    expected_boundary = {
+        "status": "prototype_only_available_with_limitations",
+        "prototype_integration_authorized": True,
+        "production_default_change_authorized": False,
+        "scientific_release_authorized": False,
+        "public_reference_image_display_authorized": False,
+        "scientific_claim_allowed": False,
+        "contract_count": 9,
+    }
+    for field, expected in expected_boundary.items():
+        if prototype.get(field) != expected:
+            _fail(
+                TruthfulDemoFailure.UNSUPPORTED_GOLD_RESULT,
+                f"prototype evidence boundary {field} must be {expected!r}",
+                "source/prototype_evidence_snapshot.json",
+            )
 
 
 def _verify_analytics_receipt(
@@ -371,7 +404,7 @@ def _verify_analytics_receipt(
     )
     if receipt.get("origin_repository") != "karikris/BioMiner" or receipt.get(
         "origin_commit"
-    ) != TRUTHFUL_DEMO_BIOMINER_SHA:
+    ) != TRUTHFUL_DEMO_LEGACY_BIOMINER_SHA:
         _fail(
             TruthfulDemoFailure.MISSING_BIOMINER_SHA,
             "analytics receipt does not identify the pinned BioMiner revision",

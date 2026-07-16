@@ -138,3 +138,31 @@ BioMiner engine code is copied.
 
 GitHits remained unavailable; the focused attempted adapter-pattern query is
 recorded at `provenance/githits.jsonl#14.3`.
+
+## Task 14.4 truthful product projection
+
+Task 14.4 rebuilds the public judge fixture around the current reviewed
+BioMiner boundary while preserving the exact historical source revision on the
+pre-existing pilot metadata and analytics artifacts. The bundle adds one
+TaxaLens-produced `prototype-evidence-snapshot` containing the nine normalized
+Task 14.3 contracts. It does not import per-record candidate-score rows,
+detections, transformations, images, model files, databases, or caches.
+
+The runtime facade verifies the snapshot checksum and rejects contradictory
+authorization, count, threshold, score, human-review, rights, or scientific
+semantics. Evidence Lens and Dashboard reuse one accessible aggregate panel
+showing the 81-row reference bank, BioCLIP and YOLOE runtime identities, B0
+versus B13 target scoreability, separate staged `0.02` and selected `0.10`
+margin rules, staged execution counts, unavailable accuracy/calibration, and
+exact producer provenance.
+
+The existing hero remains `awaiting_human_review`. YOLOE evidence, full-frame
+visual-input metadata, target-aware score metadata, comments, candidate
+revisions, and evaluation summaries remain explicitly unavailable because the
+fixture contains no corresponding per-record evidence. The fixture still
+contains no image, and public reference-image display, scientific release, and
+production-default changes remain unauthorized.
+
+GitHits remained unavailable; the focused product-projection query and the
+adopted/rejected approaches are recorded at
+`provenance/githits.jsonl#14.4`.

@@ -11,9 +11,10 @@ import {
   type JudgeBundleSectionName,
 } from '../../../../packages/contracts/src/judge_bundle_contract'
 
-const EXPECTED_BUNDLE_ID = 'papilio-demoleus-pilot-75461d9c-v1'
-const EXPECTED_TAXALENS_SHA = '77cd51e7a61945ffef9f0603b9ecd960460abaa9'
-const EXPECTED_BIOMINER_SHA = '75461d9c065af0cd96b41cd1f845c2e920f7ae34'
+const EXPECTED_BUNDLE_ID = 'papilio-demoleus-prototype-67c1c2a3-v2'
+const EXPECTED_TAXALENS_SHA = 'fab9d3f1605d28d4bbfc3a4d0074f40e5ffff023'
+const EXPECTED_BIOMINER_SHA = '67c1c2a3a2c9b909b256b3094913af342f4ccbed'
+const LEGACY_BIOMINER_SHA = '75461d9c065af0cd96b41cd1f845c2e920f7ae34'
 
 type JsonPrimitive = boolean | null | number | string
 export type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue }
@@ -158,6 +159,7 @@ export interface ReplayEvidence extends ReplayIdentity {
   readonly discovery: DiscoveryEvidenceBoundary
   readonly geographyReference: GeographyReferenceEvidenceBoundary
   readonly selectiveDecision: SelectiveDecisionEvidenceBoundary
+  readonly prototype: PrototypeEvidenceBoundary
   readonly rightsStatus: string
   readonly artifactCount: number
   readonly verifiedArtifactCount: number
@@ -175,6 +177,88 @@ export interface ReplayEvidence extends ReplayIdentity {
     readonly dataMode: 'verified-json-bootstrap'
     readonly fallbackReason: 'analytics_on_demand'
     readonly wasmStarted: false
+  }
+}
+
+export interface PrototypeEvidenceBoundary {
+  readonly status: 'prototype_only_available_with_limitations'
+  readonly prototypeIntegrationAuthorized: true
+  readonly scientificReleaseAuthorized: false
+  readonly productionDefaultChangeAuthorized: false
+  readonly publicReferenceImageDisplayAuthorized: false
+  readonly scientificClaimAllowed: false
+  readonly referenceBank: {
+    readonly supportCount: 81
+    readonly providerSupportedCount: 81
+    readonly humanVerifiedCount: 0
+    readonly allowedCount: 2
+    readonly researchOnlyCount: 79
+    readonly adultRouteCount: 80
+    readonly larvalRouteCount: 1
+    readonly pinnedSpecimenRouteCount: 0
+    readonly supportTrainCount: 26
+    readonly modelSelectionCount: 30
+    readonly calibrationCount: 13
+    readonly finalTestCount: 12
+    readonly totalShortfall: 553
+  }
+  readonly runtime: {
+    readonly bioclipModelId: string
+    readonly bioclipModelRevision: string
+    readonly embeddingDimension: 1024
+    readonly frozenSupportEmbeddings: 81
+    readonly yoloeModelId: string
+    readonly yoloeRole: 'gate_and_router_only'
+    readonly smokeImageCount: 5
+    readonly resumedEmbeddingCount: 81
+  }
+  readonly benchmark: {
+    readonly recordsScored: 81
+    readonly experimentCount: 19
+    readonly b0TargetScoreability: 0.1
+    readonly b13TargetScoreability: 1
+    readonly metricSemantics: string
+    readonly classificationAccuracyReported: false
+  }
+  readonly policy: {
+    readonly experimentId: 'B13'
+    readonly targetAlwaysScored: true
+    readonly rawMarginThreshold: 0.1
+    readonly scoresAreProbabilities: false
+    readonly selectionCoverage: 0.8
+    readonly acceptedCount: 24
+    readonly abstainedCount: 6
+    readonly calibrationStatus: string
+  }
+  readonly staged: {
+    readonly plannedCount: 13_501
+    readonly classifiedCount: 13_496
+    readonly retryableFailureCount: 5
+    readonly candidateScoreRowCount: 634_312
+    readonly speciesCandidatesPerRecord: 34
+    readonly allCandidatesPerRecord: 47
+    readonly targetScoredRate: 1
+    readonly stagedAbstainedCount: 12_296
+    readonly stagedAbstentionRate: 0.911085
+    readonly stagedDiagnosticThreshold: 0.02
+    readonly recordsPerSecond: number
+  }
+  readonly semantics: {
+    readonly classificationAccuracy: null
+    readonly calibrationError: null
+    readonly providerSupportedIsHumanVerified: false
+    readonly rawScoresAreProbabilities: false
+    readonly modelOutputIsTaxonomicValidation: false
+    readonly stagedDistributionIsAccuracy: false
+    readonly stagedDistributionIsPrevalence: false
+  }
+  readonly provenance: {
+    readonly artifactId: 'prototype-evidence-snapshot'
+    readonly snapshotSha256: string
+    readonly producerSha: string
+    readonly originCommit: string
+    readonly importManifestSha256: string
+    readonly importedArtifactCount: 20
   }
 }
 
@@ -596,13 +680,13 @@ async function assertManifestSemantics(manifest: JudgeBundleContract): Promise<v
   const inventoryById = assertUniqueInventory(manifest)
   const inventoryIds = new Set(inventoryById.keys())
   for (const artifact of manifest.artifact_inventory) {
-    const expectedCommit =
-      artifact.source_repository === 'karikris/TaxaLens'
-        ? manifest.source_revisions.taxalens_sha
-        : artifact.source_repository === 'karikris/BioMiner'
-          ? manifest.source_revisions.biominer_sha
-          : undefined
-    if (expectedCommit === undefined || artifact.source_commit !== expectedCommit) {
+    const admitted =
+      (artifact.source_repository === 'karikris/TaxaLens' &&
+        artifact.source_commit === manifest.source_revisions.taxalens_sha) ||
+      (artifact.source_repository === 'karikris/BioMiner' &&
+        (artifact.source_commit === manifest.source_revisions.biominer_sha ||
+          artifact.source_commit === LEGACY_BIOMINER_SHA))
+    if (!admitted) {
       throw new EvidenceFacadeError(
         `${artifact.artifact_id} source revision is outside the pinned replay`,
       )
@@ -744,6 +828,17 @@ function artifactJsonForRole(
   )
   if (artifact?.json === undefined) {
     throw new EvidenceFacadeError(`${role} has no verified JSON artifact`)
+  }
+  return artifact.json
+}
+
+function artifactJsonById(
+  artifacts: ReadonlyMap<string, VerifiedArtifact>,
+  artifactId: string,
+): JsonValue {
+  const artifact = artifacts.get(artifactId)
+  if (artifact?.json === undefined) {
+    throw new EvidenceFacadeError(`${artifactId} has no verified JSON artifact`)
   }
   return artifact.json
 }
@@ -1514,6 +1609,287 @@ function projectSelectiveDecisionEvidence(
   })
 }
 
+function projectPrototypeEvidence(
+  artifacts: ReadonlyMap<string, VerifiedArtifact>,
+): PrototypeEvidenceBoundary {
+  const artifact = artifacts.get('prototype-evidence-snapshot')
+  if (artifact?.json === undefined) {
+    throw new EvidenceFacadeError('prototype-evidence-snapshot has no verified JSON artifact')
+  }
+  const snapshot = object(
+    artifactJsonById(artifacts, 'prototype-evidence-snapshot'),
+    'prototype_evidence_snapshot',
+  )
+  if (
+    stringField(snapshot, 'schema_version', 'prototype_evidence_snapshot') !==
+      'taxalens-biominer-prototype-evidence:v1.0.0' ||
+    stringField(snapshot, 'origin_repository', 'prototype_evidence_snapshot') !==
+      'karikris/BioMiner' ||
+    stringField(snapshot, 'origin_commit', 'prototype_evidence_snapshot') !==
+      EXPECTED_BIOMINER_SHA ||
+    snapshot.status !== 'prototype_only_available_with_limitations' ||
+    snapshot.prototype_integration_authorized !== true ||
+    snapshot.production_default_change_authorized !== false ||
+    snapshot.scientific_release_authorized !== false ||
+    snapshot.public_reference_image_display_authorized !== false ||
+    snapshot.scientific_claim_allowed !== false ||
+    snapshot.contract_count !== 9
+  ) {
+    throw new EvidenceFacadeError('Prototype evidence exceeds the admitted prototype boundary')
+  }
+
+  const contracts = object(snapshot.contracts, 'prototype_evidence_snapshot.contracts')
+  const contractData = (name: string): Record<string, JsonValue> => {
+    const contract = object(contracts[name], `prototype_evidence_snapshot.contracts.${name}`)
+    if (
+      contract.scientific_claim_allowed !== false ||
+      typeof contract.candidate_semantics !== 'string' ||
+      typeof contract.verification_status !== 'string'
+    ) {
+      throw new EvidenceFacadeError(`${name} prototype contract has unsafe claim semantics`)
+    }
+    return object(contract.data, `prototype_evidence_snapshot.contracts.${name}.data`)
+  }
+
+  const reference = contractData('reference_bank')
+  const referenceCounts = object(reference.counts, 'prototype.reference_bank.counts')
+  const licence = object(
+    reference.licence_policy_distribution,
+    'prototype.reference_bank.licence_policy_distribution',
+  )
+  const routes = object(
+    reference.route_distribution,
+    'prototype.reference_bank.route_distribution',
+  )
+  const splits = object(
+    reference.split_distribution,
+    'prototype.reference_bank.split_distribution',
+  )
+  const shortfalls = object(
+    reference.support_shortfalls,
+    'prototype.reference_bank.support_shortfalls',
+  )
+
+  const runtime = contractData('vision_runtime')
+  const bioclip = object(runtime.bioclip, 'prototype.vision_runtime.bioclip')
+  const yoloe = object(runtime.yoloe, 'prototype.vision_runtime.yoloe')
+  const smoke = object(runtime.smoke, 'prototype.vision_runtime.smoke')
+  const resume = object(
+    runtime.resume_and_cache,
+    'prototype.vision_runtime.resume_and_cache',
+  )
+
+  const benchmark = contractData('benchmark')
+  const benchmarkExecution = object(benchmark.execution, 'prototype.benchmark.execution')
+  const comparison = object(
+    benchmark.model_selection_comparison,
+    'prototype.benchmark.model_selection_comparison',
+  )
+  const b0 = object(comparison.B0, 'prototype.benchmark.model_selection_comparison.B0')
+  const b13 = object(comparison.B13, 'prototype.benchmark.model_selection_comparison.B13')
+  const experimentIds = array(
+    benchmarkExecution.experiment_ids,
+    'prototype.benchmark.execution.experiment_ids',
+  )
+
+  const policy = contractData('selected_policy')
+  const selectedPolicy = object(policy.selected_policy, 'prototype.selected_policy.policy')
+  const marginPolicy = object(policy.margin_policy, 'prototype.selected_policy.margin_policy')
+  const selection = object(
+    policy.selection_evidence,
+    'prototype.selected_policy.selection_evidence',
+  )
+  const calibration = object(policy.calibration, 'prototype.selected_policy.calibration')
+
+  const staged = contractData('staged_inference')
+  const preselection = object(
+    staged.staged_preselection_abstention,
+    'prototype.staged_inference.staged_preselection_abstention',
+  )
+  const reasonCounts = object(
+    preselection.reason_counts,
+    'prototype.staged_inference.staged_preselection_abstention.reason_counts',
+  )
+  const performance = object(staged.performance, 'prototype.staged_inference.performance')
+  const stagedSemantics = object(
+    staged.staged_manifest_semantics,
+    'prototype.staged_inference.semantics',
+  )
+
+  const semantics = contractData('evidence_semantics')
+  const limitations = array(semantics.known_limitations, 'prototype.evidence_semantics.limitations')
+  const phase15 = contractData('phase15_release')
+  const authorization = object(phase15.authorization, 'prototype.phase15_release.authorization')
+  const fingerprints = contractData('handoff_fingerprints')
+
+  const exactNumbers: readonly [Record<string, JsonValue>, string, number, string][] = [
+    [referenceCounts, 'prototype_support', 81, 'prototype.reference_bank.counts'],
+    [referenceCounts, 'provider_supported', 81, 'prototype.reference_bank.counts'],
+    [referenceCounts, 'human_verified', 0, 'prototype.reference_bank.counts'],
+    [licence, 'allowed', 2, 'prototype.reference_bank.licence'],
+    [licence, 'research_only', 79, 'prototype.reference_bank.licence'],
+    [routes, 'adult_field', 80, 'prototype.reference_bank.routes'],
+    [routes, 'larval', 1, 'prototype.reference_bank.routes'],
+    [routes, 'pinned_specimen', 0, 'prototype.reference_bank.routes'],
+    [splits, 'support_train', 26, 'prototype.reference_bank.splits'],
+    [splits, 'model_selection', 30, 'prototype.reference_bank.splits'],
+    [splits, 'calibration', 13, 'prototype.reference_bank.splits'],
+    [splits, 'final_test', 12, 'prototype.reference_bank.splits'],
+    [shortfalls, 'total_shortfall', 553, 'prototype.reference_bank.shortfalls'],
+    [bioclip, 'embedding_dimension', 1024, 'prototype.vision_runtime.bioclip'],
+    [bioclip, 'frozen_support_embeddings', 81, 'prototype.vision_runtime.bioclip'],
+    [smoke, 'images', 5, 'prototype.vision_runtime.smoke'],
+    [resume, 'support_embedding_resume_reused', 81, 'prototype.vision_runtime.resume'],
+    [benchmark, 'records_scored', 81, 'prototype.benchmark'],
+    [b0, 'target_scoreability_rate', 0.1, 'prototype.benchmark.B0'],
+    [b13, 'target_scoreability_rate', 1, 'prototype.benchmark.B13'],
+    [marginPolicy, 'threshold', 0.1, 'prototype.selected_policy.margin'],
+    [selection, 'coverage_at_raw_margin_policy', 0.8, 'prototype.selected_policy.selection'],
+    [selection, 'accepted_count', 24, 'prototype.selected_policy.selection'],
+    [selection, 'abstained_count', 6, 'prototype.selected_policy.selection'],
+    [staged, 'planned', 13_501, 'prototype.staged_inference'],
+    [staged, 'classified', 13_496, 'prototype.staged_inference'],
+    [staged, 'retryable_failures', 5, 'prototype.staged_inference'],
+    [staged, 'candidate_score_rows', 634_312, 'prototype.staged_inference'],
+    [staged, 'species_candidates_per_classified_record', 34, 'prototype.staged_inference'],
+    [staged, 'all_candidates_per_classified_record', 47, 'prototype.staged_inference'],
+    [staged, 'target_scored_rate', 1, 'prototype.staged_inference'],
+    [preselection, 'abstained', 12_296, 'prototype.staged_inference.preselection'],
+    [preselection, 'abstention_rate', 0.911085, 'prototype.staged_inference.preselection'],
+    [reasonCounts, 'uncalibrated_margin_below_0_02', 1602, 'prototype.staged.reason_counts'],
+    [fingerprints, 'imported_artifact_count', 20, 'prototype.handoff_fingerprints'],
+  ]
+  for (const [record, field, expected, location] of exactNumbers) {
+    if (numberField(record, field, location) !== expected) {
+      throw new EvidenceFacadeError(`${location}.${field} differs from prototype evidence`)
+    }
+  }
+  if (
+    experimentIds.length !== 19 ||
+    stringField(selectedPolicy, 'experiment_id', 'prototype.selected_policy.policy') !== 'B13' ||
+    selectedPolicy.target_always_scored !== true ||
+    marginPolicy.scores_are_probabilities !== false ||
+    benchmark.classification_accuracy_reported !== false ||
+    stringField(yoloe, 'role', 'prototype.vision_runtime.yoloe') !== 'gate_and_router_only' ||
+    semantics.classification_accuracy !== null ||
+    semantics.calibration_error !== null ||
+    semantics.provider_supported_is_human_verified !== false ||
+    semantics.raw_scores_are_probabilities !== false ||
+    semantics.model_output_is_taxonomic_validation !== false ||
+    stagedSemantics.model_output_is_taxonomic_validation !== false ||
+    stagedSemantics.scores_are_calibrated_probabilities !== false ||
+    authorization.prototype_integration !== true ||
+    authorization.explicit_prototype_mode_only !== true ||
+    authorization.production_default_change !== false ||
+    authorization.scientific_release !== false ||
+    authorization.public_reference_image_display !== false ||
+    !stringField(preselection, 'policy_note', 'prototype.staged.preselection').includes('0.10') ||
+    !limitations.some(
+      (value) => typeof value === 'string' && value.toLowerCase().includes('prevalence'),
+    )
+  ) {
+    throw new EvidenceFacadeError('Prototype evidence semantics are incomplete or contradictory')
+  }
+
+  return deepFreeze({
+    status: 'prototype_only_available_with_limitations',
+    prototypeIntegrationAuthorized: true,
+    scientificReleaseAuthorized: false,
+    productionDefaultChangeAuthorized: false,
+    publicReferenceImageDisplayAuthorized: false,
+    scientificClaimAllowed: false,
+    referenceBank: {
+      supportCount: 81,
+      providerSupportedCount: 81,
+      humanVerifiedCount: 0,
+      allowedCount: 2,
+      researchOnlyCount: 79,
+      adultRouteCount: 80,
+      larvalRouteCount: 1,
+      pinnedSpecimenRouteCount: 0,
+      supportTrainCount: 26,
+      modelSelectionCount: 30,
+      calibrationCount: 13,
+      finalTestCount: 12,
+      totalShortfall: 553,
+    },
+    runtime: {
+      bioclipModelId: stringField(bioclip, 'model_id', 'prototype.vision_runtime.bioclip'),
+      bioclipModelRevision: stringField(
+        bioclip,
+        'model_revision',
+        'prototype.vision_runtime.bioclip',
+      ),
+      embeddingDimension: 1024,
+      frozenSupportEmbeddings: 81,
+      yoloeModelId: stringField(yoloe, 'model_id', 'prototype.vision_runtime.yoloe'),
+      yoloeRole: 'gate_and_router_only',
+      smokeImageCount: 5,
+      resumedEmbeddingCount: 81,
+    },
+    benchmark: {
+      recordsScored: 81,
+      experimentCount: 19,
+      b0TargetScoreability: 0.1,
+      b13TargetScoreability: 1,
+      metricSemantics: stringField(benchmark, 'metric_semantics', 'prototype.benchmark'),
+      classificationAccuracyReported: false,
+    },
+    policy: {
+      experimentId: 'B13',
+      targetAlwaysScored: true,
+      rawMarginThreshold: 0.1,
+      scoresAreProbabilities: false,
+      selectionCoverage: 0.8,
+      acceptedCount: 24,
+      abstainedCount: 6,
+      calibrationStatus: stringField(
+        calibration,
+        'status',
+        'prototype.selected_policy.calibration',
+      ),
+    },
+    staged: {
+      plannedCount: 13_501,
+      classifiedCount: 13_496,
+      retryableFailureCount: 5,
+      candidateScoreRowCount: 634_312,
+      speciesCandidatesPerRecord: 34,
+      allCandidatesPerRecord: 47,
+      targetScoredRate: 1,
+      stagedAbstainedCount: 12_296,
+      stagedAbstentionRate: 0.911085,
+      stagedDiagnosticThreshold: 0.02,
+      recordsPerSecond: numberField(
+        performance,
+        'records_per_second',
+        'prototype.staged_inference.performance',
+      ),
+    },
+    semantics: {
+      classificationAccuracy: null,
+      calibrationError: null,
+      providerSupportedIsHumanVerified: false,
+      rawScoresAreProbabilities: false,
+      modelOutputIsTaxonomicValidation: false,
+      stagedDistributionIsAccuracy: false,
+      stagedDistributionIsPrevalence: false,
+    },
+    provenance: {
+      artifactId: 'prototype-evidence-snapshot',
+      snapshotSha256: artifact.descriptor.sha256,
+      producerSha: artifact.descriptor.source_commit,
+      originCommit: EXPECTED_BIOMINER_SHA,
+      importManifestSha256: stringField(
+        fingerprints,
+        'import_manifest_sha256',
+        'prototype.handoff_fingerprints',
+      ),
+      importedArtifactCount: 20,
+    },
+  })
+}
+
 function validateAnalyticsArtifacts(artifacts: ReadonlyMap<string, VerifiedArtifact>): void {
   const receiptArtifact = artifacts.get(ANALYTICS_RECEIPT_ID)
   if (receiptArtifact?.json === undefined) {
@@ -1525,7 +1901,7 @@ function validateAnalyticsArtifacts(artifacts: ReadonlyMap<string, VerifiedArtif
       ANALYTICS_RECEIPT_SCHEMA ||
     stringField(receipt, 'origin_repository', 'analytics_import_receipt') !==
       'karikris/BioMiner' ||
-    stringField(receipt, 'origin_commit', 'analytics_import_receipt') !== EXPECTED_BIOMINER_SHA ||
+    stringField(receipt, 'origin_commit', 'analytics_import_receipt') !== LEGACY_BIOMINER_SHA ||
     receipt.scientific_claim_allowed !== false
   ) {
     throw new EvidenceFacadeError('Analytics receipt is outside the bounded BioMiner replay')
@@ -1692,7 +2068,7 @@ class VerifiedEvidenceFacade implements EvidenceFacade {
       candidates: deepFreeze(candidates),
       receipt: Object.freeze({
         schemaVersion: ANALYTICS_RECEIPT_SCHEMA,
-        originCommit: EXPECTED_BIOMINER_SHA,
+        originCommit: LEGACY_BIOMINER_SHA,
         sourceManifestSha256: ANALYTICS_SOURCE_MANIFEST_SHA,
       }),
     })
@@ -1857,6 +2233,7 @@ export async function loadEvidenceFacade(
   const discovery = projectDiscoveryEvidence(artifacts)
   const geographyReference = projectGeographyReferenceEvidence(artifacts)
   const selectiveDecision = projectSelectiveDecisionEvidence(artifacts)
+  const prototype = projectPrototypeEvidence(artifacts)
   const unavailableSections = Object.freeze(
     JUDGE_BUNDLE_SECTION_NAMES.map((name) => sections[name]).filter(
       (section) => section.status === 'unavailable',
@@ -1872,6 +2249,7 @@ export async function loadEvidenceFacade(
     discovery,
     geographyReference,
     selectiveDecision,
+    prototype,
     target: {
       acceptedTaxonKey: manifest.target.accepted_taxon_key,
       scientificName: manifest.target.scientific_name,

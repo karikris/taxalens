@@ -40,7 +40,7 @@ def test_demo_replay_prepares_and_serves_verified_build(monkeypatch, tmp_path: P
         current_taxalens_sha="a" * 40,
         fixture_taxalens_sha="b" * 40,
         biominer_sha="c" * 40,
-        artifact_count=24,
+        artifact_count=25,
         section_count=20,
         unavailable_section_count=6,
         total_section_record_count=29,

@@ -89,13 +89,13 @@ describe('loadEvidenceFacade', () => {
     const facade = await loadEvidenceFacade(new AbortController().signal, fetcher)
 
     expect(facade.replay.bundleId).toBe(replayEvidenceContract.bundleId)
-    expect(facade.replay.bundleCreatedAt).toBe('2026-07-15T15:30:00Z')
+    expect(facade.replay.bundleCreatedAt).toBe('2026-07-16T09:44:16Z')
     expect(facade.replay.target.scientificName).toBe('Papilio demoleus')
-    expect(facade.replay.artifactCount).toBe(24)
-    expect(facade.replay.verifiedArtifactCount).toBe(24)
+    expect(facade.replay.artifactCount).toBe(25)
+    expect(facade.replay.verifiedArtifactCount).toBe(25)
     expect(facade.replay.unavailableSections).toHaveLength(6)
     expect(facade.replay.sections.yoloe_evidence.status).toBe('unavailable')
-    expect(facade.replay.artifactInventory).toHaveLength(24)
+    expect(facade.replay.artifactInventory).toHaveLength(25)
     expect(facade.replay.artifactInventory.every(({ verified }) => verified)).toBe(true)
     expect(facade.loadStoredOpenAIReplay()).toMatchObject([
       {
@@ -123,7 +123,7 @@ describe('loadEvidenceFacade', () => {
     ).toMatchObject({
       path: 'analytics/flickr_query_hits.parquet',
       sha256: '95448f3145d903f7f042fe41d74561475ef050f8df21b318ebacb252484e4f0b',
-      producerSha: replayEvidenceContract.biominerSha,
+      producerSha: '75461d9c065af0cd96b41cd1f845c2e920f7ae34',
       verified: true,
     })
     expect(facade.replay.mission).toMatchObject({
@@ -267,6 +267,51 @@ describe('loadEvidenceFacade', () => {
         { name: 'human_verified_target_classification', satisfied: false },
       ],
     })
+    expect(facade.replay.prototype).toMatchObject({
+      status: 'prototype_only_available_with_limitations',
+      prototypeIntegrationAuthorized: true,
+      scientificReleaseAuthorized: false,
+      publicReferenceImageDisplayAuthorized: false,
+      referenceBank: {
+        supportCount: 81,
+        humanVerifiedCount: 0,
+        allowedCount: 2,
+        researchOnlyCount: 79,
+      },
+      runtime: {
+        embeddingDimension: 1024,
+        frozenSupportEmbeddings: 81,
+        yoloeRole: 'gate_and_router_only',
+      },
+      benchmark: {
+        experimentCount: 19,
+        b0TargetScoreability: 0.1,
+        b13TargetScoreability: 1,
+        classificationAccuracyReported: false,
+      },
+      policy: {
+        experimentId: 'B13',
+        rawMarginThreshold: 0.1,
+        scoresAreProbabilities: false,
+      },
+      staged: {
+        classifiedCount: 13_496,
+        candidateScoreRowCount: 634_312,
+        stagedAbstainedCount: 12_296,
+        stagedDiagnosticThreshold: 0.02,
+      },
+      semantics: {
+        classificationAccuracy: null,
+        calibrationError: null,
+        stagedDistributionIsPrevalence: false,
+      },
+      provenance: {
+        artifactId: 'prototype-evidence-snapshot',
+        originCommit: replayEvidenceContract.biominerSha,
+        producerSha: replayEvidenceContract.taxalensSha,
+        importedArtifactCount: 20,
+      },
+    })
     expect(facade.replay.verification).toMatchObject({
       inventoryChecksumVerified: true,
       payloadRootChecksumVerified: true,
@@ -308,14 +353,14 @@ describe('loadEvidenceFacade', () => {
       sizeBytes: 222_190,
       recordCount: 76_485,
       sha256: '95448f3145d903f7f042fe41d74561475ef050f8df21b318ebacb252484e4f0b',
-      producerSha: replayEvidenceContract.biominerSha,
+      producerSha: '75461d9c065af0cd96b41cd1f845c2e920f7ae34',
     })
     expect(analytics.candidateArtifact).toMatchObject({
       artifactId: 'candidate-sets',
       sizeBytes: 2_280,
       recordCount: 5,
       sha256: 'cd36c310150c0ca9c63e0adf690519a0afb5428b68c7eb064f8b4e6749cb0791',
-      producerSha: replayEvidenceContract.biominerSha,
+      producerSha: '75461d9c065af0cd96b41cd1f845c2e920f7ae34',
     })
     expect(analytics.candidates).toHaveLength(6)
     expect(analytics.candidates[0]).toMatchObject({
@@ -325,7 +370,7 @@ describe('loadEvidenceFacade', () => {
     })
     expect(analytics.receipt).toMatchObject({
       schemaVersion: 'taxalens-biominer-analytics-import:v1.0.0',
-      originCommit: replayEvidenceContract.biominerSha,
+      originCommit: '75461d9c065af0cd96b41cd1f845c2e920f7ae34',
     })
     const discovery = facade.loadDiscoveryProvenanceInput()
     expect(discovery.artifacts.map(({ artifactId }) => artifactId)).toEqual([
@@ -336,7 +381,7 @@ describe('loadEvidenceFacade', () => {
     ])
     expect(discovery.boundary).toBe(facade.replay.discovery)
     expect(discovery.receipt).toMatchObject({
-      originCommit: replayEvidenceContract.biominerSha,
+      originCommit: '75461d9c065af0cd96b41cd1f845c2e920f7ae34',
     })
     const firstByte = analytics.artifacts[0]?.bytes[0]
     if (analytics.artifacts[0] === undefined) {

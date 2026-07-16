@@ -1,5 +1,6 @@
 import type { EvidenceFacade, ReplayEvidence } from '../data/evidenceFacade'
 import { EvidenceState } from '../design-system'
+import { PrototypeEvidencePanel } from '../evidence/PrototypeEvidencePanel'
 import { EvidenceFunnel } from './EvidenceFunnel'
 import { GeographicWorkloadMap } from './GeographicWorkloadMap'
 import { QueryYieldAnalysis } from './QueryYieldAnalysis'
@@ -43,6 +44,8 @@ export function DashboardWorkspace({
           <dd>{replay.scientificClaimAllowed ? 'Allowed' : 'Not allowed'}</dd>
         </div>
       </dl>
+
+      <PrototypeEvidencePanel prototype={replay.prototype} />
 
       <EvidenceFunnel replay={replay} />
 

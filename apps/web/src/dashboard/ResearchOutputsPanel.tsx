@@ -40,7 +40,7 @@ const OUTPUTS = Object.freeze([
     role: 'provenance',
     label: 'Provenance',
     format: 'JSON',
-    description: 'All 24 artifact receipts, pinned source revisions, and local generation method.',
+    description: 'All verified artifact receipts, pinned source revisions, and local generation method.',
   },
   {
     role: 'evaluation_report',

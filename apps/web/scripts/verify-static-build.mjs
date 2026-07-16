@@ -15,11 +15,11 @@ if (!sourceManifestBytes.equals(builtManifestBytes)) {
 }
 
 const manifest = JSON.parse(sourceManifestBytes.toString('utf8'))
-if (manifest.bundle_id !== 'papilio-demoleus-pilot-75461d9c-v1') {
+if (manifest.bundle_id !== 'papilio-demoleus-prototype-67c1c2a3-v2') {
   throw new Error('Static build contains an unexpected bundle ID')
 }
-if (manifest.artifact_inventory.length !== 24) {
-  throw new Error('Static build expects exactly 24 fixture artifacts')
+if (manifest.artifact_inventory.length !== 25) {
+  throw new Error('Static build expects exactly 25 fixture artifacts')
 }
 
 const parquetExtension = await readFile(

@@ -50,9 +50,9 @@ describe('provenance-bound replay launch', () => {
       mode: 'submitted_fixture_replay',
       planFingerprint: ready.planFingerprint,
       bundle: {
-        bundleId: 'papilio-demoleus-pilot-75461d9c-v1',
-        verifiedArtifactCount: 24,
-        artifactCount: 24,
+        bundleId: 'papilio-demoleus-prototype-67c1c2a3-v2',
+        verifiedArtifactCount: 25,
+        artifactCount: 25,
       },
       sourceRegistry: {
         version: 'butterflies-v2-20260712',

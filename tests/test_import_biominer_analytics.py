@@ -5,7 +5,6 @@ import json
 from pathlib import Path
 
 import pytest
-
 from scripts.import_biominer_analytics import (
     DEFAULT_BIOMINER_ROOT,
     DEFAULT_MANIFEST,
@@ -24,7 +23,7 @@ def test_committed_analytics_import_matches_pinned_biominer_bytes() -> None:
         assert path.read_bytes()[:4] == b"PAR1"
 
 
-def test_import_refuses_a_biominer_checkout_at_another_commit(tmp_path: Path) -> None:
+def test_import_refuses_an_unavailable_pinned_biominer_commit(tmp_path: Path) -> None:
     manifest = json.loads(DEFAULT_MANIFEST.read_text(encoding="utf-8"))
     manifest["origin_commit"] = "0" * 40
     changed = tmp_path / "analytics_import_manifest.json"

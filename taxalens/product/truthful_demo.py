@@ -13,6 +13,11 @@ from packages.replay.src.biominer_phase14_pilot_adapter import (
     DEFAULT_IMPORT_MANIFEST,
     adapt_current_pilot_metadata,
 )
+from packages.replay.src.biominer_prototype_evidence_adapter import (
+    DEFAULT_PROTOTYPE_IMPORT_MANIFEST,
+    PROTOTYPE_EVIDENCE_ADAPTER_SCHEMA_VERSION,
+    adapt_prototype_evidence,
+)
 
 from taxalens.product.judge_bundle import (
     JUDGE_BUNDLE_SCHEMA_VERSION,
@@ -22,11 +27,12 @@ from taxalens.product.judge_bundle import (
     load_judge_bundle,
 )
 
-TRUTHFUL_DEMO_SCHEMA_VERSION = "taxalens-truthful-demo-fixture:v1.0.0"
-TRUTHFUL_DEMO_BUNDLE_ID = "papilio-demoleus-pilot-75461d9c-v1"
-TRUTHFUL_DEMO_CREATED_AT = "2026-07-15T15:30:00Z"
-TRUTHFUL_DEMO_BIOMINER_SHA = "75461d9c065af0cd96b41cd1f845c2e920f7ae34"
-TRUTHFUL_DEMO_TAXALENS_SHA = "77cd51e7a61945ffef9f0603b9ecd960460abaa9"
+TRUTHFUL_DEMO_SCHEMA_VERSION = "taxalens-truthful-demo-fixture:v1.1.0"
+TRUTHFUL_DEMO_BUNDLE_ID = "papilio-demoleus-prototype-67c1c2a3-v2"
+TRUTHFUL_DEMO_CREATED_AT = "2026-07-16T09:44:16Z"
+TRUTHFUL_DEMO_BIOMINER_SHA = "67c1c2a3a2c9b909b256b3094913af342f4ccbed"
+TRUTHFUL_DEMO_LEGACY_BIOMINER_SHA = "75461d9c065af0cd96b41cd1f845c2e920f7ae34"
+TRUTHFUL_DEMO_TAXALENS_SHA = "fab9d3f1605d28d4bbfc3a4d0074f40e5ffff023"
 TRUTHFUL_DEMO_HERO_ID = "papilio-demoleus-pilot-awaiting-review"
 DEFAULT_TRUTHFUL_DEMO_ROOT = Path("demo/fixture/papilio_pilot")
 DEFAULT_ANALYTICS_IMPORT_MANIFEST = Path(
@@ -355,7 +361,7 @@ def _metadata_payloads(pilot: dict[str, Any]) -> list[_ArtifactSpec]:
 
     common = {
         "source_repository": _BIOMINER_REPOSITORY,
-        "source_commit": TRUTHFUL_DEMO_BIOMINER_SHA,
+        "source_commit": TRUTHFUL_DEMO_LEGACY_BIOMINER_SHA,
     }
     specs = [
         _ArtifactSpec(
@@ -511,7 +517,7 @@ def _analytics_payloads(import_manifest: str | Path) -> list[_ArtifactSpec]:
         raise ValueError("analytics import manifest schema version differs")
     if manifest.get("origin_repository") != _BIOMINER_REPOSITORY:
         raise ValueError("analytics import manifest requires the BioMiner origin")
-    if manifest.get("origin_commit") != TRUTHFUL_DEMO_BIOMINER_SHA:
+    if manifest.get("origin_commit") != TRUTHFUL_DEMO_LEGACY_BIOMINER_SHA:
         raise ValueError("analytics import manifest requires the pinned BioMiner revision")
     if manifest.get("scientific_claim_allowed") is not False:
         raise ValueError("analytics import cannot authorize a scientific claim")
@@ -586,13 +592,30 @@ def _analytics_payloads(import_manifest: str | Path) -> list[_ArtifactSpec]:
                 role="other",
                 schema_version=schema_version,
                 source_repository=_BIOMINER_REPOSITORY,
-                source_commit=TRUTHFUL_DEMO_BIOMINER_SHA,
+                source_commit=TRUTHFUL_DEMO_LEGACY_BIOMINER_SHA,
                 payload=content,
                 record_count=record_count,
                 media_type="application/vnd.apache.parquet",
             )
         )
     return specs
+
+
+def _prototype_payloads(prototype: dict[str, object]) -> list[_ArtifactSpec]:
+    """Expose one normalized aggregate snapshot without inventing per-record evidence."""
+
+    return [
+        _ArtifactSpec(
+            artifact_id="prototype-evidence-snapshot",
+            path="source/prototype_evidence_snapshot.json",
+            role="other",
+            schema_version=PROTOTYPE_EVIDENCE_ADAPTER_SCHEMA_VERSION,
+            source_repository=_TAXALENS_REPOSITORY,
+            source_commit=TRUTHFUL_DEMO_TAXALENS_SHA,
+            payload=prototype,
+            record_count=1,
+        )
+    ]
 
 
 def _stored_agent_payloads() -> list[_ArtifactSpec]:
@@ -907,15 +930,27 @@ def build_truthful_demo_fixture(
     *,
     import_manifest: str | Path = DEFAULT_IMPORT_MANIFEST,
     analytics_import_manifest: str | Path = DEFAULT_ANALYTICS_IMPORT_MANIFEST,
+    prototype_import_manifest: str | Path = DEFAULT_PROTOTYPE_IMPORT_MANIFEST,
     replace: bool = False,
 ) -> Path:
     """Build, checksum, and validate the deterministic truthful pilot fixture."""
 
     pilot = adapt_current_pilot_metadata(import_manifest)
-    if pilot["origin_commit"] != TRUTHFUL_DEMO_BIOMINER_SHA:
+    if pilot["origin_commit"] != TRUTHFUL_DEMO_LEGACY_BIOMINER_SHA:
         raise ValueError("truthful demo requires the pinned BioMiner pilot revision")
     if pilot["scientific_results_available"] is not False:
         raise ValueError("truthful demo expects metadata-only BioMiner input")
+    prototype = adapt_prototype_evidence(prototype_import_manifest)
+    if prototype["origin_commit"] != TRUTHFUL_DEMO_BIOMINER_SHA:
+        raise ValueError("truthful demo requires the pinned BioMiner prototype revision")
+    if (
+        prototype["prototype_integration_authorized"] is not True
+        or prototype["scientific_release_authorized"] is not False
+        or prototype["production_default_change_authorized"] is not False
+        or prototype["public_reference_image_display_authorized"] is not False
+        or prototype["scientific_claim_allowed"] is not False
+    ):
+        raise ValueError("truthful demo prototype authorization boundary differs")
 
     root = Path(destination)
     if root.exists():
@@ -929,6 +964,7 @@ def build_truthful_demo_fixture(
     specs = [
         *_metadata_payloads(pilot),
         *_analytics_payloads(analytics_import_manifest),
+        *_prototype_payloads(prototype),
         *_stored_agent_payloads(),
     ]
     biominer_ids = [
@@ -1079,7 +1115,7 @@ def build_truthful_demo_fixture(
     bundle = {
         "schema_version": JUDGE_BUNDLE_SCHEMA_VERSION,
         "bundle_id": TRUTHFUL_DEMO_BUNDLE_ID,
-        "title": "Truthful Papilio demoleus metadata pilot",
+        "title": "Truthful Papilio demoleus prototype evidence pilot",
         "created_at": TRUTHFUL_DEMO_CREATED_AT,
         "target": {**pilot["target"], "rank": "species"},
         "source_revisions": {
@@ -1103,7 +1139,12 @@ def build_truthful_demo_fixture(
                     "source_url": "https://github.com/karikris/BioMiner",
                     "use_scope": "metadata-only judge replay",
                     "attribution_required": True,
-                    "notes": ["No BioMiner image or scientific result artifact is included."],
+                    "notes": [
+                        (
+                            "No BioMiner image is included. Aggregate prototype metadata is "
+                            "included without authorizing a scientific result."
+                        )
+                    ],
                 },
                 {
                     "rights_id": "taxalens-mit-fixture",
@@ -1183,6 +1224,7 @@ __all__ = [
     "TRUTHFUL_DEMO_BIOMINER_SHA",
     "TRUTHFUL_DEMO_BUNDLE_ID",
     "TRUTHFUL_DEMO_HERO_ID",
+    "TRUTHFUL_DEMO_LEGACY_BIOMINER_SHA",
     "TRUTHFUL_DEMO_SCHEMA_VERSION",
     "TRUTHFUL_DEMO_TAXALENS_SHA",
     "build_truthful_demo_fixture",

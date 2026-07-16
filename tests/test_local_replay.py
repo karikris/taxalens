@@ -21,11 +21,11 @@ SOURCE_FIXTURE = Path("demo/fixture/papilio_pilot")
 def _build(web_root: Path) -> LocalReplayBuild:
     return LocalReplayBuild(
         web_root=web_root,
-        bundle_id="papilio-demoleus-pilot-75461d9c-v1",
+        bundle_id="papilio-demoleus-prototype-67c1c2a3-v2",
         current_taxalens_sha="a" * 40,
         fixture_taxalens_sha="b" * 40,
         biominer_sha="c" * 40,
-        artifact_count=24,
+        artifact_count=25,
         section_count=20,
         unavailable_section_count=6,
         total_section_record_count=29,
@@ -52,11 +52,11 @@ def test_prepare_local_replay_verifies_source_build_and_provenance(
     prepared = prepare_local_replay(tmp_path, build_web=_copy_static_fixture)
 
     assert prepared.web_root == (tmp_path / "dist" / "web").resolve()
-    assert prepared.bundle_id == "papilio-demoleus-pilot-75461d9c-v1"
+    assert prepared.bundle_id == "papilio-demoleus-prototype-67c1c2a3-v2"
     assert prepared.current_taxalens_sha == "a" * 40
-    assert prepared.fixture_taxalens_sha == "77cd51e7a61945ffef9f0603b9ecd960460abaa9"
-    assert prepared.biominer_sha == "75461d9c065af0cd96b41cd1f845c2e920f7ae34"
-    assert prepared.artifact_count == 24
+    assert prepared.fixture_taxalens_sha == "fab9d3f1605d28d4bbfc3a4d0074f40e5ffff023"
+    assert prepared.biominer_sha == "67c1c2a3a2c9b909b256b3094913af342f4ccbed"
+    assert prepared.artifact_count == 25
     assert prepared.section_count == 20
     assert prepared.unavailable_section_count == 6
     assert prepared.total_section_record_count == 29
@@ -133,13 +133,13 @@ def test_serve_local_replay_prints_receipt_opens_browser_and_closes(
     payload = json.loads(capsys.readouterr().out)
     assert payload["status"] == "serving"
     assert payload["url"] == "http://127.0.0.1:51234/"
-    assert payload["bundle_id"] == "papilio-demoleus-pilot-75461d9c-v1"
+    assert payload["bundle_id"] == "papilio-demoleus-prototype-67c1c2a3-v2"
     assert payload["taxalens_sha"] == "a" * 40
     assert payload["fixture_taxalens_sha"] == "b" * 40
     assert payload["biominer_sha"] == "c" * 40
     assert payload["credentials_required"] is False
     assert payload["expected_counts"] == {
-        "artifacts": 24,
+        "artifacts": 25,
         "media_assets": 0,
         "section_records": 29,
         "sections": 20,

@@ -80,7 +80,7 @@
       "artifactIds": [
         "query-definitions"
       ],
-      "bundleId": "papilio-demoleus-pilot-75461d9c-v1",
+      "bundleId": "papilio-demoleus-prototype-67c1c2a3-v2",
       "facts": [
         {
           "id": "accepted_taxon_key",

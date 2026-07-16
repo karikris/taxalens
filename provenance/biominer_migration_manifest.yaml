@@ -19,6 +19,28 @@ scientific_claim_gate: "blocked-until-reviewed-references-leakage-safe-splits-ca
 handoff_contract: "storage-handoff-inventory-v1.0.0-with-explicit-uri-sha256-source-sha-and-receipt"
 recorded_at: "2026-07-16"
 components:
+  - component_id: biominer_phase14_prototype_product_projection
+    source_repository: karikris/BioMiner
+    source_commit: 67c1c2a3a2c9b909b256b3094913af342f4ccbed
+    source_path: reports/phase14/papilio_demoleus_build_week_prototype_report.json
+    destination_path: taxalens/product/truthful_demo.py
+    migration_kind: adapted
+    reason: Project the normalized aggregate prototype evidence into the checksum-verified public judge replay without inventing per-record evidence.
+    build_week_scope: modified_existing
+    source_license: MIT
+    changes:
+      - Added one TaxaLens-produced aggregate prototype snapshot to the truthful bundle.
+      - Retained the historical BioMiner revision on pre-existing metadata and analytics artifacts while pinning the bundle to the current reviewed upstream boundary.
+      - Kept YOLOE, full-frame visual input, target-aware score, comment, revision, and evaluation sections explicitly unavailable.
+      - Added a fail-closed web projection and one shared accessible evidence panel for Evidence Lens and Dashboard.
+      - Preserved the no-image, no-probability, no-accuracy, no-prevalence, and no-scientific-release boundaries.
+    tests:
+      - tests/test_truthful_demo_fixture.py
+      - tests/test_truthful_demo_verifier.py
+      - apps/web/src/data/evidenceFacade.test.ts
+      - apps/web/src/evidence/PrototypeEvidencePanel.test.tsx
+      - apps/web/e2e/judge-replay.spec.ts
+    status: migrated
   - component_id: biominer_phase14_phase15_prototype_evidence_adapter
     source_repository: karikris/BioMiner
     source_commit: 67c1c2a3a2c9b909b256b3094913af342f4ccbed

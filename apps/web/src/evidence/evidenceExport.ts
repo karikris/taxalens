@@ -260,7 +260,7 @@ async function assertSourceParquet(
   if (
     source.artifactId !== QUERY_HITS_ARTIFACT_ID ||
     source.mediaType !== PARQUET_MEDIA_TYPE ||
-    source.producerSha !== replay.sourceRevisions.biominerSha ||
+    source.producerSha !== inventory?.producerSha ||
     source.sizeBytes !== source.bytes.byteLength ||
     inventory?.sha256 !== source.sha256 ||
     inventory.sizeBytes !== source.sizeBytes ||

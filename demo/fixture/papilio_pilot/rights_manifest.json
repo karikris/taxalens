@@ -37,6 +37,7 @@
         "pipeline-stages",
         "selective-decision-metadata",
         "biominer-analytics-import-receipt",
+        "prototype-evidence-snapshot",
         "stored-analyst-request",
         "stored-analyst-run",
         "rights-manifest",

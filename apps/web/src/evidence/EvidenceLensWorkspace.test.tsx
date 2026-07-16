@@ -98,6 +98,9 @@ describe('EvidenceLensWorkspace', () => {
     )
 
     expect(executeProvenance).not.toHaveBeenCalled()
+    expect(
+      screen.getByRole('heading', { name: 'Aggregate prototype evidence' }),
+    ).toBeInTheDocument()
     expect(screen.getByText('Discovery query not yet executed')).toBeInTheDocument()
     expect(screen.getByRole('img', { name: 'Licensed source image unavailable' })).toHaveTextContent(
       '0 included · 0 licensed',

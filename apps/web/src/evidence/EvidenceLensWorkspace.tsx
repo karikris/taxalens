@@ -12,6 +12,7 @@ import { EvidenceExport } from './EvidenceExport'
 import { EvidenceLedger } from './EvidenceLedger'
 import { FullFrameInputComparison } from './FullFrameInputComparison'
 import { GeographyReferenceContext } from './GeographyReferenceContext'
+import { PrototypeEvidencePanel } from './PrototypeEvidencePanel'
 import { SelectiveDecisionEvidence } from './SelectiveDecisionEvidence'
 import { YoloeRoutingEvidence } from './YoloeRoutingEvidence'
 import './evidence.css'
@@ -86,6 +87,8 @@ export function EvidenceLensWorkspace({
           <dd>{replay.unavailableSectionCount}</dd>
         </div>
       </dl>
+
+      <PrototypeEvidencePanel prototype={replay.prototype} />
 
       <section className="discovery-evidence" aria-labelledby="discovery-evidence-title">
         <div className="discovery-evidence__heading">
