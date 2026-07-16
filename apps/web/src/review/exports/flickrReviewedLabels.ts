@@ -125,6 +125,49 @@ export interface BioMinerReviewedLabelV2Row {
   readonly unsuitable_for_species_identification: boolean
 }
 
+export const TAXALENS_REVIEWED_LABEL_PROVENANCE_FIELDS = Object.freeze([
+  'taxalens_campaign_id',
+  'taxalens_campaign_manifest_sha256',
+  'taxalens_question_sha256',
+  'taxalens_taxalens_sha',
+  'taxalens_biominer_sha',
+  'taxalens_sampling_plan_id',
+  'taxalens_sampling_purpose',
+  'taxalens_sampling_design',
+  'taxalens_sampling_plan_json',
+  'taxalens_sampling_plan_sha256',
+  'taxalens_inclusion_probability',
+  'taxalens_sampling_weight',
+  'taxalens_decision_ledger_sha256',
+  'taxalens_effective_event_ids',
+  'taxalens_reviewer_group_ids',
+  'taxalens_blind_review',
+  'taxalens_quality_estimation_allowed',
+  'taxalens_scientific_claim_allowed',
+] as const)
+
+export interface BioMinerReviewedLabelV2ProvenanceRow
+  extends BioMinerReviewedLabelV2Row {
+  readonly taxalens_campaign_id: string
+  readonly taxalens_campaign_manifest_sha256: string
+  readonly taxalens_question_sha256: string
+  readonly taxalens_taxalens_sha: string
+  readonly taxalens_biominer_sha: string
+  readonly taxalens_sampling_plan_id: string
+  readonly taxalens_sampling_purpose: VerificationCampaign['samplingPlan']['purpose']
+  readonly taxalens_sampling_design: VerificationCampaign['samplingPlan']['design']
+  readonly taxalens_sampling_plan_json: string
+  readonly taxalens_sampling_plan_sha256: string
+  readonly taxalens_inclusion_probability: number | null
+  readonly taxalens_sampling_weight: number | null
+  readonly taxalens_decision_ledger_sha256: string
+  readonly taxalens_effective_event_ids: readonly string[]
+  readonly taxalens_reviewer_group_ids: readonly string[]
+  readonly taxalens_blind_review: boolean
+  readonly taxalens_quality_estimation_allowed: boolean
+  readonly taxalens_scientific_claim_allowed: boolean
+}
+
 interface EffectiveDecision {
   readonly event: VerificationEvent
   readonly targetPresent: boolean | null
@@ -238,6 +281,86 @@ export function mapFlickrVerificationEventsToReviewedLabels(
   return Object.freeze(rows)
 }
 
+export async function bindFlickrReviewedLabelSamplingProvenance(
+  campaign: VerificationCampaign,
+  items: readonly VerificationItem[],
+  events: readonly VerificationEvent[],
+  config: FlickrReviewedLabelExportConfig,
+): Promise<readonly BioMinerReviewedLabelV2ProvenanceRow[]> {
+  const coreRows = mapFlickrVerificationEventsToReviewedLabels(
+    campaign,
+    items,
+    events,
+    config,
+  )
+  assertSamplingAndGroupBindings(campaign, items)
+  const canonicalEvents = [...events].sort(compareEvents)
+  const samplingPlanJson = canonicalJson(canonicalSamplingPlan(campaign))
+  const samplingPlanSha256 = await sha256Hex(samplingPlanJson)
+  const decisionLedgerSha256 = await sha256Hex(
+    canonicalJson({
+      schema: 'taxalens-verification-ledger:v1',
+      campaignId: campaign.campaignId,
+      campaignManifestSha256: campaign.manifestSha256,
+      events: canonicalEvents,
+    }),
+  )
+  const itemByPhotoId = new Map(
+    items.map((item) => [item.flickrSource?.flickrPhotoId ?? '', item]),
+  )
+  const rows = coreRows.map((core) => {
+    const item = itemByPhotoId.get(core.flickr_photo_id)
+    if (item === undefined) {
+      throw new Error(
+        `Reviewed-label provenance lost Flickr photo: ${core.flickr_photo_id}`,
+      )
+    }
+    const effectiveEvents = latestEventByReviewer(
+      canonicalEvents.filter((event) => event.itemId === item.itemId),
+    ).filter(
+      ({ outcome }) =>
+        outcome === 'yes' || outcome === 'no' || outcome === 'cant_tell',
+    )
+    const probability = item.inclusionProbability
+    const row: BioMinerReviewedLabelV2ProvenanceRow = Object.freeze({
+      ...core,
+      taxalens_campaign_id: campaign.campaignId,
+      taxalens_campaign_manifest_sha256: campaign.manifestSha256,
+      taxalens_question_sha256: item.questionFingerprint,
+      taxalens_taxalens_sha: campaign.taxalensSha,
+      taxalens_biominer_sha: campaign.biominerSha!,
+      taxalens_sampling_plan_id: campaign.samplingPlan.planId,
+      taxalens_sampling_purpose: campaign.samplingPlan.purpose,
+      taxalens_sampling_design: campaign.samplingPlan.design,
+      taxalens_sampling_plan_json: samplingPlanJson,
+      taxalens_sampling_plan_sha256: samplingPlanSha256,
+      taxalens_inclusion_probability: probability,
+      taxalens_sampling_weight:
+        probability === null ? null : 1 / probability,
+      taxalens_decision_ledger_sha256: decisionLedgerSha256,
+      taxalens_effective_event_ids: Object.freeze(
+        effectiveEvents.map(({ eventId }) => eventId).sort(),
+      ),
+      taxalens_reviewer_group_ids: Object.freeze(
+        [
+          ...new Set(
+            effectiveEvents.map(
+              ({ reviewerId }) => reviewerId.trim() || 'anonymous',
+            ),
+          ),
+        ].sort(),
+      ),
+      taxalens_blind_review: campaign.samplingPlan.blindReview,
+      taxalens_quality_estimation_allowed:
+        campaign.samplingPlan.qualityEstimationAllowed,
+      taxalens_scientific_claim_allowed: campaign.scientificClaimAllowed,
+    })
+    assertExactProvenanceFields(row)
+    return row
+  })
+  return Object.freeze(rows)
+}
+
 function assertCampaign(
   campaign: VerificationCampaign,
   items: readonly VerificationItem[],
@@ -290,6 +413,64 @@ function assertCampaign(
     seenItems.add(item.itemId)
     seenPhotos.add(item.flickrSource.flickrPhotoId)
     seenMedia.add(item.sourceMediaId)
+  }
+}
+
+function assertSamplingAndGroupBindings(
+  campaign: VerificationCampaign,
+  items: readonly VerificationItem[],
+): void {
+  if (
+    !campaign.samplingPlan.blindReview ||
+    campaign.disclosurePolicy.mode !== 'blind'
+  ) {
+    throw new Error('Reviewed-label sampling provenance requires blind review.')
+  }
+  const duplicateBindings = new Map<string, string>()
+  const ownerSplits = new Map<string, string>()
+  for (const item of items) {
+    const source = item.flickrSource
+    if (source === undefined) {
+      throw new Error('Reviewed-label sampling provenance lost Flickr source.')
+    }
+    const duplicateBinding = [
+      source.ownerGroupId,
+      source.datasetPartition,
+    ].join('\u0000')
+    const existingDuplicate = duplicateBindings.get(source.duplicateGroupId)
+    if (
+      existingDuplicate !== undefined &&
+      existingDuplicate !== duplicateBinding
+    ) {
+      throw new Error(
+        'Reviewed-label duplicate group crosses owner or dataset split.',
+      )
+    }
+    duplicateBindings.set(source.duplicateGroupId, duplicateBinding)
+    const existingSplit = ownerSplits.get(source.ownerGroupId)
+    if (
+      existingSplit !== undefined &&
+      existingSplit !== source.datasetPartition
+    ) {
+      throw new Error('Reviewed-label owner group crosses dataset splits.')
+    }
+    ownerSplits.set(source.ownerGroupId, source.datasetPartition)
+    if (
+      campaign.samplingPlan.inclusionProbabilityRequired !==
+      (item.inclusionProbability !== null)
+    ) {
+      throw new Error(
+        'Reviewed-label inclusion probability conflicts with the sampling plan.',
+      )
+    }
+    if (
+      campaign.samplingPlan.purpose === 'failure_discovery' &&
+      item.inclusionProbability !== null
+    ) {
+      throw new Error(
+        'Failure-discovery reviewed labels cannot carry sampling probabilities.',
+      )
+    }
   }
 }
 
@@ -577,6 +758,73 @@ function assertExactCoreFields(row: BioMinerReviewedLabelV2Row): void {
   ) {
     throw new Error('Reviewed-label row fields differ from BioMiner v2.')
   }
+}
+
+function assertExactProvenanceFields(
+  row: BioMinerReviewedLabelV2ProvenanceRow,
+): void {
+  const actual = Object.keys(row).sort()
+  const expected = [
+    ...BIOMINER_REVIEWED_LABEL_V2_FIELDS,
+    ...TAXALENS_REVIEWED_LABEL_PROVENANCE_FIELDS,
+  ].sort()
+  if (
+    actual.length !== expected.length ||
+    actual.some((field, index) => field !== expected[index])
+  ) {
+    throw new Error(
+      'Reviewed-label provenance row fields differ from the bound contract.',
+    )
+  }
+}
+
+function canonicalSamplingPlan(
+  campaign: VerificationCampaign,
+): VerificationCampaign['samplingPlan'] {
+  return Object.freeze({
+    ...campaign.samplingPlan,
+    groupingKeys: Object.freeze(
+      [...campaign.samplingPlan.groupingKeys].sort(),
+    ),
+    strata: Object.freeze(
+      [...campaign.samplingPlan.strata]
+        .sort((left, right) => left.stratumId.localeCompare(right.stratumId))
+        .map((stratum) => Object.freeze({ ...stratum })),
+    ),
+  })
+}
+
+function canonicalJson(value: unknown): string {
+  if (value === null || typeof value === 'boolean' || typeof value === 'string') {
+    return JSON.stringify(value)
+  }
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) {
+      throw new Error('Reviewed-label fingerprint contains a non-finite number.')
+    }
+    return JSON.stringify(value)
+  }
+  if (Array.isArray(value)) {
+    return `[${value.map((item) => canonicalJson(item)).join(',')}]`
+  }
+  if (typeof value === 'object') {
+    const record = value as Record<string, unknown>
+    return `{${Object.keys(record)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${canonicalJson(record[key])}`)
+      .join(',')}}`
+  }
+  throw new Error('Reviewed-label fingerprint contains an unsupported value.')
+}
+
+async function sha256Hex(value: string): Promise<string> {
+  const digest = await crypto.subtle.digest(
+    'SHA-256',
+    new TextEncoder().encode(value),
+  )
+  return Array.from(new Uint8Array(digest), (byte) =>
+    byte.toString(16).padStart(2, '0'),
+  ).join('')
 }
 
 function compareItems(

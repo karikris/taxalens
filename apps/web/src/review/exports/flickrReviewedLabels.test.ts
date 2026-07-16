@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   buildFlickrAuditCampaign,
+  buildFlickrFailureDiscoveryCampaign,
   FLICKR_VERIFICATION_SOURCE_SCHEMA_VERSION,
   VERIFICATION_EVENT_SCHEMA_VERSION,
   type FlickrVerificationSource,
@@ -13,6 +14,7 @@ import {
 import {
   BIOMINER_REVIEWED_LABEL_SCHEMA_VERSION,
   BIOMINER_REVIEWED_LABEL_V2_FIELDS,
+  bindFlickrReviewedLabelSamplingProvenance,
   mapFlickrVerificationEventsToReviewedLabels,
   type FlickrReviewedLabelExportConfig,
 } from './flickrReviewedLabels'
@@ -165,6 +167,127 @@ describe('Flickr reviewed-label v2 mapper', () => {
       'Reviewed-label alternative taxonomy lineage is unavailable or stale.',
     )
   })
+
+  it('binds deterministic blind audit sampling and reviewer provenance', async () => {
+    const packet = await buildFlickrAuditCampaign(
+      [
+        source(1, 'owner-a'),
+        source(2, 'owner-b'),
+        source(3, 'owner-c'),
+        source(4, 'owner-d'),
+      ],
+      {
+        title: 'Probability audit export',
+        description: 'Synthetic probability-sampled campaign.',
+        targetTaxon: target,
+        selectionSeed: 'audit-provenance',
+        ownerGroupTargetByStratum: { export: 2 },
+        requiredIndependentReviewers: 2,
+        taxalensSha: 'a'.repeat(40),
+        biominerSha,
+      },
+    )
+    const item = packet.items[0]!
+    const events = [
+      event(packet.campaign, item, {
+        eventId: 'event-reviewer-b',
+        reviewerId: 'reviewer-b',
+        outcome: 'yes',
+        reviewedAt: '2026-07-16T12:01:00.000Z',
+      }),
+      event(packet.campaign, item, {
+        eventId: 'event-reviewer-a',
+        reviewerId: 'reviewer-a',
+        outcome: 'yes',
+        reviewedAt: '2026-07-16T12:00:00.000Z',
+      }),
+    ]
+
+    const first = await bindFlickrReviewedLabelSamplingProvenance(
+      packet.campaign,
+      packet.items,
+      events,
+      taxonomy,
+    )
+    const second = await bindFlickrReviewedLabelSamplingProvenance(
+      packet.campaign,
+      [...packet.items].reverse(),
+      [...events].reverse(),
+      taxonomy,
+    )
+
+    expect(first).toEqual(second)
+    expect(first[0]).toMatchObject({
+      second_review_status: 'completed',
+      taxalens_campaign_id: packet.campaign.campaignId,
+      taxalens_campaign_manifest_sha256: packet.campaign.manifestSha256,
+      taxalens_sampling_purpose: 'quality_estimation',
+      taxalens_sampling_design: 'clustered_random',
+      taxalens_inclusion_probability: 0.5,
+      taxalens_sampling_weight: 2,
+      taxalens_reviewer_group_ids: ['reviewer-a', 'reviewer-b'],
+      taxalens_blind_review: true,
+      taxalens_quality_estimation_allowed: true,
+      taxalens_scientific_claim_allowed: false,
+    })
+    expect(first[0]?.taxalens_effective_event_ids).toEqual([
+      'event-reviewer-a',
+      'event-reviewer-b',
+    ])
+    expect(first[0]?.taxalens_sampling_plan_sha256).toMatch(/^[a-f0-9]{64}$/)
+    expect(first[0]?.taxalens_decision_ledger_sha256).toMatch(
+      /^[a-f0-9]{64}$/,
+    )
+    expect(
+      JSON.parse(first[0]!.taxalens_sampling_plan_json),
+    ).toMatchObject({
+      purpose: 'quality_estimation',
+      inclusionProbabilityRequired: true,
+    })
+  })
+
+  it('preserves the no-weight boundary for failure discovery', async () => {
+    const packet = await buildFlickrFailureDiscoveryCampaign(
+      [
+        source(10, 'owner-z', {
+          datasetPartition: 'model_selection',
+          lowMargin: true,
+        }),
+      ],
+      {
+        title: 'Failure-discovery export',
+        description: 'Synthetic targeted campaign.',
+        targetTaxon: target,
+        targetItemCount: 1,
+        rankingSeed: 'failure-provenance',
+        requiredIndependentReviewers: 1,
+        taxalensSha: 'a'.repeat(40),
+        biominerSha,
+      },
+    )
+    const item = packet.items[0]!
+    const [row] = await bindFlickrReviewedLabelSamplingProvenance(
+      packet.campaign,
+      packet.items,
+      [
+        event(packet.campaign, item, {
+          eventId: 'event-failure',
+          outcome: 'yes',
+          reviewedAt: '2026-07-16T13:00:00.000Z',
+        }),
+      ],
+      taxonomy,
+    )
+
+    expect(row).toMatchObject({
+      dataset_split: 'model_selection',
+      taxalens_sampling_purpose: 'failure_discovery',
+      taxalens_sampling_design: 'targeted_priority',
+      taxalens_inclusion_probability: null,
+      taxalens_sampling_weight: null,
+      taxalens_quality_estimation_allowed: false,
+    })
+  })
 })
 
 async function campaignPacket() {
@@ -188,7 +311,14 @@ async function campaignPacket() {
   )
 }
 
-function source(index: number, owner: string): FlickrVerificationSource {
+function source(
+  index: number,
+  owner: string,
+  options: {
+    readonly datasetPartition?: FlickrVerificationSource['datasetPartition']
+    readonly lowMargin?: boolean
+  } = {},
+): FlickrVerificationSource {
   return {
     schemaVersion: FLICKR_VERIFICATION_SOURCE_SCHEMA_VERSION,
     flickrRecordId: `flickr-record:${index}`,
@@ -239,9 +369,9 @@ function source(index: number, owner: string): FlickrVerificationSource {
     competitorMarginBand: 'clear_positive',
     samplingStratumId: 'export',
     inclusionProbability: null,
-    datasetPartition: 'final_test',
+    datasetPartition: options.datasetPartition ?? 'final_test',
     prioritySignals: {
-      lowMargin: false,
+      lowMargin: options.lowMargin ?? false,
       visualInputDisagreement: false,
       geographicAnomaly: false,
       commentConflict: false,
@@ -270,6 +400,7 @@ function event(
     readonly eventId: string
     readonly outcome: VerificationEvent['outcome']
     readonly reviewedAt: string
+    readonly reviewerId?: string
     readonly confidence?: VerificationEvent['confidence']
     readonly nonTargetCategory?: VerificationEvent['nonTargetCategory']
     readonly alternativeTaxon?: TaxonIdentity | null
@@ -280,7 +411,7 @@ function event(
     eventId: values.eventId,
     campaignId: campaign.campaignId,
     itemId: item.itemId,
-    reviewerId: 'reviewer-a',
+    reviewerId: values.reviewerId ?? 'reviewer-a',
     reviewRound: 1,
     outcome: values.outcome,
     comment: null,
