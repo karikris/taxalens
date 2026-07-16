@@ -1,3 +1,5 @@
+import { useEffect, useMemo, useState } from 'react'
+
 import type { ReplayEvidence } from '../data/evidenceFacade'
 import { EvidenceState } from '../design-system'
 import {
@@ -16,12 +18,15 @@ import type { ReviewRepository } from './repositories'
 import { resolveVerificationRoute } from './routing'
 import {
   CampaignSelector,
+  filterReferenceReviewItems,
+  ReferenceReviewFilters,
   VerificationControls,
   VerificationItemViewer,
   VerificationProgress,
   VerificationSections,
   VerificationSummary,
   VerificationWorkflowStatus,
+  type ReferenceReviewFilter,
 } from './ui'
 import { useVerificationWorkspaceController } from './ui/useVerificationWorkspaceController'
 import './review.css'
@@ -51,6 +56,51 @@ export function VerificationWorkspace({
     ...(now === undefined ? {} : { now }),
     ...(repository === undefined ? {} : { repository }),
   })
+  const [referenceFilter, setReferenceFilter] =
+    useState<ReferenceReviewFilter>('all')
+  const referenceFilterContext = useMemo(
+    () => ({
+      targetAcceptedTaxonKey:
+        HUMAN_REVIEW_CAMPAIGN.targetTaxon?.acceptedTaxonKey ?? null,
+      currentOutcomes: Object.fromEntries(
+        Object.entries(controller.currentDecisions).map(
+          ([itemId, decision]) => [itemId, decision.outcome],
+        ),
+      ),
+      conflictItemIds: new Set<string>(),
+    }),
+    [controller.currentDecisions],
+  )
+  const filteredReferenceItems = useMemo(
+    () =>
+      filterReferenceReviewItems(
+        HUMAN_REVIEW_PACKET.items,
+        referenceFilter,
+        referenceFilterContext,
+      ),
+    [referenceFilter, referenceFilterContext],
+  )
+  const filteredReferenceIndices = useMemo(
+    () =>
+      filteredReferenceItems.map((item) =>
+        HUMAN_REVIEW_PACKET.items.findIndex(
+          ({ itemId }) => itemId === item.itemId,
+        ),
+      ),
+    [filteredReferenceItems],
+  )
+  const filteredReferenceIndex = filteredReferenceIndices.indexOf(
+    controller.index,
+  )
+
+  useEffect(() => {
+    if (
+      filteredReferenceIndices.length > 0 &&
+      !filteredReferenceIndices.includes(controller.index)
+    ) {
+      controller.openIndex(filteredReferenceIndices[0]!)
+    }
+  }, [controller, filteredReferenceIndices])
 
   return (
     <section
@@ -113,6 +163,13 @@ export function VerificationWorkspace({
               campaigns={[HUMAN_REVIEW_CAMPAIGN]}
               selectedCampaignId={HUMAN_REVIEW_CAMPAIGN.campaignId}
               onSelect={() => undefined}
+            />
+
+            <ReferenceReviewFilters
+              context={referenceFilterContext}
+              items={HUMAN_REVIEW_PACKET.items}
+              value={referenceFilter}
+              onChange={setReferenceFilter}
             />
 
             <EvidenceState
@@ -253,14 +310,28 @@ export function VerificationWorkspace({
         </EvidenceState>
       )}
 
+      {filteredReferenceItems.length === 0 ? (
+        <EvidenceState state="review" title="No reference images match">
+          This campaign has no items in the selected {referenceFilter.replaceAll(
+            '_',
+            ' ',
+          )}{' '}
+          route. Choose another filter to continue.
+        </EvidenceState>
+      ) : filteredReferenceIndex === -1 ? (
+        <EvidenceState state="review" title="Opening filtered reference item">
+          Moving to the first image in the selected reference route.
+        </EvidenceState>
+      ) : (
+        <>
       <div className="human-review__workspace">
         <VerificationItemViewer
           currentOutcome={controller.decision?.outcome}
           imageUrl={controller.imageUrl}
-          index={controller.index}
+          index={filteredReferenceIndex}
           item={controller.item}
           scientificName={replay.target.scientificName}
-          totalItems={HUMAN_REVIEW_PACKET.items.length}
+          totalItems={filteredReferenceItems.length}
           onImageLoad={() =>
             controller.recordImageOpened(controller.item)
           }
@@ -292,10 +363,14 @@ export function VerificationWorkspace({
 
       <VerificationProgress
         currentDecisions={controller.currentDecisions}
-        index={controller.index}
-        items={HUMAN_REVIEW_PACKET.items}
-        onOpenIndex={controller.openIndex}
+        index={filteredReferenceIndex}
+        items={filteredReferenceItems}
+        onOpenIndex={(nextIndex) =>
+          controller.openIndex(filteredReferenceIndices[nextIndex]!)
+        }
       />
+        </>
+      )}
             <VerificationSummary
               clearState={controller.clearState}
               counts={controller.counts}

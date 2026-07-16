@@ -1,6 +1,14 @@
 export { CampaignSelector } from './CampaignSelector'
 export { ConflictQueue } from './ConflictQueue'
 export { QualityPanel } from './QualityPanel'
+export {
+  filterReferenceReviewItems,
+  ReferenceReviewFilters,
+} from './ReferenceReviewFilters'
+export type {
+  ReferenceReviewFilter,
+  ReferenceReviewFilterContext,
+} from './ReferenceReviewFilters'
 export { VerificationControls } from './VerificationControls'
 export type { VerificationCacheState } from './VerificationControls'
 export { VerificationItemViewer } from './VerificationItemViewer'
