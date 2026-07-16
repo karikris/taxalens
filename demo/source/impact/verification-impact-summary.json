@@ -1,0 +1,167 @@
+{
+  "schemaVersion": "taxalens-verification-impact-study-summary:v1.0.0",
+  "studyId": "taxalens-scripted-interaction-pilot-v1",
+  "measurementRunId": "scripted-2026-07-16T23-53-41-528Z",
+  "sourceRawArtifact": {
+    "path": "demo/source/impact/verification-impact-study.raw.json",
+    "sha256": "0be376bba0c2e2aef99d031a148bbfe61686da47e6bf9663f1373efc44496618",
+    "schemaVersion": "taxalens-verification-impact-study-raw:v1.0.0"
+  },
+  "measurementKind": "scripted_browser_protocol",
+  "taskSet": {
+    "taskSetId": "commons-campaign:00087bce738f5098893eea7b8fce238d3c88f85a7ee643eceddfb22466d6087d",
+    "campaignId": "papilio-demoleus-commons-review-v1",
+    "itemIds": [
+      "commons-papilio-demoleus-open-wing",
+      "commons-papilio-demoleus-closed-wing",
+      "commons-papilio-demoleus-lime-swallowtail"
+    ],
+    "decisionCount": 3
+  },
+  "environment": {
+    "automation": "Playwright",
+    "browserName": "chromium",
+    "browserVersion": "149.0.7827.55",
+    "platform": "linux",
+    "architecture": "x64",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "timingSource": "UTC wall clock sampled immediately after awaited visible interactions",
+    "taxalensSha": "f62ac135e9222ea4c39933f420b2e96aa73ce742"
+  },
+  "sample": {
+    "sessionCount": 2,
+    "matchedPairCount": 1,
+    "humanParticipantCount": 0,
+    "scriptedPairCount": 1
+  },
+  "sessionSummaries": [
+    {
+      "schemaVersion": "taxalens-verification-impact-summary:v1.0.0",
+      "protocolVersion": "taxalens-manual-verification-baseline:v1.0.0",
+      "workflow": "manual_baseline",
+      "studyId": "taxalens-scripted-interaction-pilot-v1",
+      "sessionId": "scripted-manual-baseline-001",
+      "taskSetId": "commons-campaign:00087bce738f5098893eea7b8fce238d3c88f85a7ee643eceddfb22466d6087d",
+      "completed": true,
+      "activeMilliseconds": 753,
+      "activeMinutes": 0.01255,
+      "elapsedMilliseconds": 753,
+      "elapsedMinutes": 0.01255,
+      "actions": 20,
+      "pagesOpened": 4,
+      "uniquePagesOpened": 4,
+      "duplicatesInspected": 3,
+      "uniqueDuplicatesInspected": 3,
+      "fieldsCompleted": 10,
+      "uniqueFieldsCompleted": 10,
+      "decisions": 3,
+      "uniqueItemsDecided": 3,
+      "outcomeCounts": {
+        "yes": 3,
+        "no": 0,
+        "cant_tell": 0,
+        "cant_view": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "schemaVersion": "taxalens-verification-impact-summary:v1.0.0",
+      "protocolVersion": "taxalens-assisted-verification-timing:v1.0.0",
+      "workflow": "taxalens_assisted",
+      "studyId": "taxalens-scripted-interaction-pilot-v1",
+      "sessionId": "scripted-taxalens-assisted-001",
+      "taskSetId": "commons-campaign:00087bce738f5098893eea7b8fce238d3c88f85a7ee643eceddfb22466d6087d",
+      "completed": true,
+      "activeMilliseconds": 2752,
+      "activeMinutes": 0.04586666666666667,
+      "elapsedMilliseconds": 2752,
+      "elapsedMinutes": 0.04586666666666667,
+      "actions": 10,
+      "pagesOpened": 1,
+      "uniquePagesOpened": 1,
+      "duplicatesInspected": 0,
+      "uniqueDuplicatesInspected": 0,
+      "fieldsCompleted": 4,
+      "uniqueFieldsCompleted": 4,
+      "decisions": 3,
+      "uniqueItemsDecided": 3,
+      "outcomeCounts": {
+        "yes": 3,
+        "no": 0,
+        "cant_tell": 0,
+        "cant_view": 0,
+        "skipped": 0
+      }
+    }
+  ],
+  "comparison": {
+    "activeMilliseconds": {
+      "manual": 753,
+      "assisted": 2752,
+      "absoluteChange": 1999,
+      "relativeChange": 2.6547144754316068
+    },
+    "actions": {
+      "manual": 20,
+      "assisted": 10,
+      "absoluteChange": -10,
+      "relativeChange": -0.5
+    },
+    "pagesOpened": {
+      "manual": 4,
+      "assisted": 1,
+      "absoluteChange": -3,
+      "relativeChange": -0.75
+    },
+    "duplicatesInspected": {
+      "manual": 3,
+      "assisted": 0,
+      "absoluteChange": -3,
+      "relativeChange": -1.0
+    },
+    "fieldsCompleted": {
+      "manual": 10,
+      "assisted": 4,
+      "absoluteChange": -6,
+      "relativeChange": -0.6
+    },
+    "decisions": {
+      "manual": 3,
+      "assisted": 3,
+      "absoluteChange": 0,
+      "relativeChange": 0.0
+    }
+  },
+  "measuredResult": {
+    "metric": "scripted_action_count",
+    "manual": 20,
+    "assisted": 10,
+    "absoluteChange": -10,
+    "relativeChange": -0.5,
+    "scope": "one frozen three-item scripted Chromium protocol"
+  },
+  "qualityImpact": {
+    "availability": "unavailable",
+    "reason": "The scripted timing run collected no human quality outcome."
+  },
+  "timeSavings": {
+    "availability": "unavailable",
+    "reason": "A scripted browser pair with zero human participants cannot support a human time-savings claim."
+  },
+  "claimBoundaries": {
+    "humanProductivityMeasured": false,
+    "humanTimeSavingsAllowed": false,
+    "populationSavingsAllowed": false,
+    "scientificQualityMeasured": false,
+    "extrapolationAllowed": false
+  },
+  "limitations": [
+    "This is one scripted Chromium protocol run, not a human study.",
+    "Timing includes local browser rendering and awaited UI work on one machine.",
+    "Action counts describe only the frozen three-item protocol.",
+    "The scripted Yes interactions are disposable workflow inputs, not human labels."
+  ]
+}
