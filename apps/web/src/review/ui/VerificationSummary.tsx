@@ -1,20 +1,13 @@
-export interface VerificationOutcomeCounts {
-  readonly recorded: number
-  readonly yes: number
-  readonly no: number
-  readonly cantTell: number
-  readonly cantView: number
-  readonly skipped: number
-}
+import type { VerificationCoverage } from '../domain'
 
 export function VerificationSummary({
   clearState,
-  counts,
+  coverage,
   onClear,
   onExport,
 }: {
   readonly clearState: 'idle' | 'clearing' | 'success' | 'error'
-  readonly counts: VerificationOutcomeCounts
+  readonly coverage: VerificationCoverage
   readonly onClear: () => void
   readonly onExport: () => void
 }) {
@@ -24,14 +17,23 @@ export function VerificationSummary({
         <p className="eyebrow">Local receipt</p>
         <h3 id="review-summary-title">Review summary</h3>
         <p>
-          Yes {counts.yes} · No {counts.no} · Can’t tell {counts.cantTell} ·
-          Can’t view {counts.cantView} · Skipped {counts.skipped}
+          Decisively reviewed {coverage.decisivelyReviewedItems} · Uncertain{' '}
+          {coverage.uncertainItems} · Media failures{' '}
+          {coverage.mediaFailureItems} · Deferred {coverage.deferredItems} ·
+          Pending {coverage.pendingItems}
+        </p>
+        <p>
+          Effective reviews · Yes {coverage.yesReviewCount} · No{' '}
+          {coverage.noReviewCount} · Can’t tell{' '}
+          {coverage.cantTellReviewCount} · Can’t view{' '}
+          {coverage.cantViewReviewCount} · Skipped{' '}
+          {coverage.skippedReviewCount}
         </p>
       </div>
       <div className="review-summary__actions">
         <button
           type="button"
-          disabled={counts.recorded === 0}
+          disabled={coverage.attemptedItems === 0}
           onClick={onExport}
         >
           Export review receipt

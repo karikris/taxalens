@@ -15,11 +15,13 @@ export function VerificationSections({
   defaultSection = 'reference-images',
   conflicts,
   flickrResults,
+  quality,
   referenceImages,
 }: {
   readonly defaultSection?: VerificationSection
   readonly conflicts?: ReactNode
   readonly flickrResults?: ReactNode
+  readonly quality?: ReactNode
   readonly referenceImages: ReactNode
 }) {
   return (
@@ -61,7 +63,7 @@ export function VerificationSections({
         {conflicts ?? <ConflictQueue />}
       </TabPanel>
       <TabPanel id="quality" className="verification-sections__panel">
-        <QualityPanel />
+        {quality ?? <QualityPanel />}
       </TabPanel>
     </Tabs>
   )

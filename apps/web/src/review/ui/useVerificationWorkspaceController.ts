@@ -155,7 +155,6 @@ export function useVerificationWorkspaceController({
     referenceAnnotationFailures.length === 0
       ? null
       : referenceAnnotationFailures.join(' ')
-  const counts = useMemo(() => outcomeCounts(session), [session])
   const adjudicationReadyItemIds = useMemo(
     () =>
       new Set(
@@ -623,7 +622,6 @@ export function useVerificationWorkspaceController({
     comment,
     consensus,
     coverage,
-    counts,
     currentDecisions,
     decisionValidationError,
     decision,
@@ -742,18 +740,6 @@ function preferredReviewIndex(
     }
   }
   return firstPendingIndex(session)
-}
-
-function outcomeCounts(session: HumanReviewSession) {
-  const decisions = Object.values(currentHumanReviewDecisions(session))
-  return {
-    recorded: decisions.length,
-    yes: decisions.filter(({ outcome }) => outcome === 'yes').length,
-    no: decisions.filter(({ outcome }) => outcome === 'no').length,
-    cantTell: decisions.filter(({ outcome }) => outcome === 'cant_tell').length,
-    cantView: decisions.filter(({ outcome }) => outcome === 'cant_view').length,
-    skipped: decisions.filter(({ outcome }) => outcome === 'skipped').length,
-  }
 }
 
 function humanReviewSessionIsComplete(session: HumanReviewSession): boolean {

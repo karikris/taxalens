@@ -22,6 +22,7 @@ import {
   ConflictQueue,
   DecisionHistory,
   filterReferenceReviewItems,
+  QualityPanel,
   ReferenceReviewFilters,
   ReferenceReviewHandoff,
   ReferenceSourceContextPanel,
@@ -132,9 +133,12 @@ export function VerificationWorkspace({
         </div>
         <div className="human-review__progress" aria-live="polite">
           <strong>
-            {controller.counts.recorded} / {HUMAN_REVIEW_PACKET.items.length}
+            {controller.coverage.decisivelyReviewedItems} /{' '}
+            {controller.coverage.eligibleItems}
           </strong>
-          <span>recorded locally</span>
+          <span>
+            decisively reviewed · {controller.coverage.attemptedItems} attempted
+          </span>
         </div>
       </div>
 
@@ -194,6 +198,7 @@ export function VerificationWorkspace({
             />
           )
         }
+        quality={<QualityPanel coverage={controller.coverage} />}
         referenceImages={
           <>
             <CampaignSelector
@@ -423,7 +428,7 @@ export function VerificationWorkspace({
       )}
             <VerificationSummary
               clearState={controller.clearState}
-              counts={controller.counts}
+              coverage={controller.coverage}
               onClear={() => void controller.clearReview()}
               onExport={() => exportHumanReviewReceipt(controller.session)}
             />

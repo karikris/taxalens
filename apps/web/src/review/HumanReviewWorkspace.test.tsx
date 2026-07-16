@@ -422,14 +422,15 @@ describe('HumanReviewWorkspace', () => {
     const cantView = screen.getByRole('button', { name: 'Can’t view' })
     await waitFor(() => expect(cantView).toBeEnabled())
     fireEvent.click(cantView)
-    expect(screen.getByText('1 / 3')).toBeInTheDocument()
+    expect(screen.getByText('0 / 3')).toBeInTheDocument()
+    expect(screen.getByText(/1 attempted/u)).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Clear cache and review' }))
 
     expect(
       await screen.findByText('Local review state could not be cleared'),
     ).toBeInTheDocument()
     expect(screen.getByText(/Cache deletion denied/u)).toBeInTheDocument()
-    expect(screen.getByText('1 / 3')).toBeInTheDocument()
+    expect(screen.getByText('0 / 3')).toBeInTheDocument()
   })
 
   it('keeps work in memory and reports repository quota failure', async () => {
@@ -456,7 +457,8 @@ describe('HumanReviewWorkspace', () => {
       await screen.findByText('Review repository persistence failed'),
     ).toBeInTheDocument()
     expect(screen.getByText(/storage quota is full/u)).toBeInTheDocument()
-    expect(screen.getByText('1 / 3')).toBeInTheDocument()
+    expect(screen.getByText('0 / 3')).toBeInTheDocument()
+    expect(screen.getByText(/1 attempted/u)).toBeInTheDocument()
   })
 
   it('reports temporary media and ledger fallbacks when browser storage is unavailable', async () => {
