@@ -13,7 +13,7 @@ import {
 } from './verificationContracts'
 
 export const VERIFICATION_EVENT_SCHEMA_VERSION =
-  'taxalens-verification-event:v1.1.0' as const
+  'taxalens-verification-event:v1.2.0' as const
 
 export const VERIFICATION_OUTCOMES = Object.freeze([
   'yes',
@@ -59,6 +59,7 @@ export interface VerificationEvent {
   readonly taxalensSha: string
   readonly biominerSha: string | null
   readonly supersedesEventId: string | null
+  readonly conflictsWithDecisionId: string | null
 }
 
 export function validateVerificationEvent(
@@ -166,6 +167,16 @@ export function validateVerificationEvent(
   }
   if (event.supersedesEventId === event.eventId) {
     failures.push('an event cannot supersede itself')
+  }
+  if (
+    event.conflictsWithDecisionId !== null &&
+    !/^reference-review-decision:[0-9a-f]{64}$/.test(
+      event.conflictsWithDecisionId,
+    )
+  ) {
+    failures.push(
+      'conflictsWithDecisionId must be a BioMiner review decision ID',
+    )
   }
   return Object.freeze(failures)
 }

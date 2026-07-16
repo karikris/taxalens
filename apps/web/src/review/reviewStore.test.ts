@@ -75,7 +75,7 @@ describe('human review local session', () => {
       }),
     ).toEqual([
       expect.objectContaining({
-        schemaVersion: 'taxalens-verification-event:v1.1.0',
+        schemaVersion: 'taxalens-verification-event:v1.2.0',
         mediaQuality: 'unknown',
         duplicateConcern: false,
         captiveOrCultivatedConcern: false,

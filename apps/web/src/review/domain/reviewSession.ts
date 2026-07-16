@@ -37,6 +37,7 @@ export interface HumanReviewDecisionInput {
   readonly captiveOrCultivatedConcern?: boolean
   readonly exclusionReason?: string | null
   readonly confidence?: VerificationConfidence
+  readonly conflictsWithDecisionId?: string | null
 }
 
 export interface HumanReviewDecision extends HumanReviewDecisionInput {
@@ -44,6 +45,7 @@ export interface HumanReviewDecision extends HumanReviewDecisionInput {
   readonly reviewerId: string
   readonly reviewRound: number
   readonly supersedesEventId: string | null
+  readonly conflictsWithDecisionId: string | null
   readonly alternativeTaxon: TaxonIdentity | null
   readonly correctedLifeStage: VerificationLifeStage | null
   readonly correctedVisualDomain: VerificationVisualDomain | null
@@ -225,6 +227,7 @@ export function currentHumanReviewDecisions(
       confidence: event.confidence,
       reviewRound: event.reviewRound,
       supersedesEventId: event.supersedesEventId,
+      conflictsWithDecisionId: event.conflictsWithDecisionId,
     })
   }
   return Object.freeze(decisions)
@@ -266,10 +269,13 @@ function restoreVerificationEvent(value: unknown): VerificationEvent {
     throw corruptReviewSession('The stored review event is invalid.')
   }
   const candidate = value as Partial<VerificationEvent>
-  const legacySchemaVersion = 'taxalens-verification-event:v1.0.0'
+  const legacySchemaVersions = new Set([
+    'taxalens-verification-event:v1.0.0',
+    'taxalens-verification-event:v1.1.0',
+  ])
   if (
     (candidate.schemaVersion !== VERIFICATION_EVENT_SCHEMA_VERSION &&
-      candidate.schemaVersion !== legacySchemaVersion) ||
+      !legacySchemaVersions.has(String(candidate.schemaVersion))) ||
     typeof candidate.eventId !== 'string' ||
     typeof candidate.campaignId !== 'string' ||
     typeof candidate.itemId !== 'string' ||
@@ -304,7 +310,10 @@ function restoreVerificationEvent(value: unknown): VerificationEvent {
     (candidate.biominerSha !== null &&
       typeof candidate.biominerSha !== 'string') ||
     (candidate.supersedesEventId !== null &&
-      typeof candidate.supersedesEventId !== 'string')
+      typeof candidate.supersedesEventId !== 'string') ||
+    (candidate.conflictsWithDecisionId !== undefined &&
+      candidate.conflictsWithDecisionId !== null &&
+      typeof candidate.conflictsWithDecisionId !== 'string')
   ) {
     throw corruptReviewSession('The stored review event fields are invalid.')
   }
@@ -315,12 +324,14 @@ function restoreVerificationEvent(value: unknown): VerificationEvent {
       | 'mediaQuality'
       | 'duplicateConcern'
       | 'captiveOrCultivatedConcern'
+      | 'conflictsWithDecisionId'
     >),
     schemaVersion: VERIFICATION_EVENT_SCHEMA_VERSION,
     mediaQuality: candidate.mediaQuality ?? 'unknown',
     duplicateConcern: candidate.duplicateConcern ?? false,
     captiveOrCultivatedConcern:
       candidate.captiveOrCultivatedConcern ?? false,
+    conflictsWithDecisionId: candidate.conflictsWithDecisionId ?? null,
   })
   const item = HUMAN_REVIEW_PACKET.items.find(
     ({ itemId }) => itemId === event.itemId,
@@ -394,6 +405,7 @@ function createVerificationEvent(
     taxalensSha: HUMAN_REVIEW_PACKET.campaign.taxalensSha,
     biominerSha: HUMAN_REVIEW_PACKET.campaign.biominerSha,
     supersedesEventId: currentEvent?.eventId ?? null,
+    conflictsWithDecisionId: decision.conflictsWithDecisionId ?? null,
   })
   const failures = validateVerificationEvent(
     event,

@@ -41,6 +41,7 @@ describe('append-only verification event contract', () => {
       taxalensSha: HUMAN_REVIEW_CAMPAIGN.taxalensSha,
       biominerSha: HUMAN_REVIEW_CAMPAIGN.biominerSha,
       supersedesEventId: null,
+      conflictsWithDecisionId: null,
     }
 
     expect(
@@ -77,6 +78,7 @@ describe('append-only verification event contract', () => {
       taxalensSha: HUMAN_REVIEW_CAMPAIGN.taxalensSha,
       biominerSha: HUMAN_REVIEW_CAMPAIGN.biominerSha,
       supersedesEventId: 'event-2',
+      conflictsWithDecisionId: null,
     }
 
     expect(
@@ -162,5 +164,6 @@ function verificationEvent({
     taxalensSha: HUMAN_REVIEW_CAMPAIGN.taxalensSha,
     biominerSha: HUMAN_REVIEW_CAMPAIGN.biominerSha,
     supersedesEventId,
+    conflictsWithDecisionId: null,
   })
 }

@@ -518,3 +518,20 @@ components:
     tests:
       - "packages/replay/tests/test_biominer_semantic_hash.py"
     status: "migrated"
+  - component_id: "biominer_reference_review_decision_export"
+    source_repository: "karikris/BioMiner"
+    source_commit: "94fa1f634ee3c63917c05d78181dd3cf9ceff940"
+    source_path: "src/biominer/references/review.py"
+    destination_path: "packages/replay/src/biominer_reference_review_decision_export.py"
+    migration_kind: "adapter"
+    reason: "Map TaxaLens append-only reference verification events into the exact committed BioMiner decision-import Parquet contract without coupling the runtimes."
+    build_week_scope: "new"
+    source_license: "MIT License, copyright 2026 Kris Kari"
+    changes:
+      - "Implemented the exact decision-import physical schema, version, closed vocabularies, and deterministic sort order"
+      - "Mapped Yes, No, and Can't tell events while excluding Can't view and Skip from scientific decision rows"
+      - "Preserved reviewer rounds, UTC review times, structured corrections, confidence, notes, exclusions, and conflict references"
+      - "Required campaign, item, media, question, manifest, TaxaLens, and BioMiner source bindings before export"
+    tests:
+      - "packages/replay/tests/test_biominer_reference_review_decision_export.py"
+    status: "verified"
