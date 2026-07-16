@@ -12,7 +12,9 @@ import {
   clearHumanReviewSession,
   emptyHumanReviewSession,
   exportHumanReviewReceipt,
-  loadHumanReviewSession,
+  loadHumanReviewSessionResult,
+  ReviewPersistenceError,
+  reviewPersistenceErrorMessage,
   saveHumanReviewSession,
   withDecision,
   withImageInspection,
@@ -41,8 +43,16 @@ export function HumanReviewWorkspace({
   readonly now?: () => Date
   readonly replay: ReplayEvidence
 }) {
-  const [session, setSession] = useState<HumanReviewSession>(() =>
-    loadHumanReviewSession(),
+  const [initialSession] = useState(() => loadHumanReviewSessionResult())
+  const [session, setSession] = useState<HumanReviewSession>(
+    initialSession.session,
+  )
+  const sessionRef = useRef(session)
+  sessionRef.current = session
+  const [persistenceError, setPersistenceError] = useState<string | null>(() =>
+    initialSession.error === null
+      ? null
+      : reviewPersistenceErrorMessage(initialSession.error),
   )
   const [index, setIndex] = useState(() => firstPendingIndex(session))
   const [cacheStatus, setCacheStatus] =
@@ -213,11 +223,7 @@ export function HumanReviewWorkspace({
   }
 
   function updateReviewerId(reviewerId: string) {
-    setSession((current) => {
-      const next = withReviewerId(current, reviewerId)
-      saveHumanReviewSession(next)
-      return next
-    })
+    applySession(withReviewerId(sessionRef.current, reviewerId))
   }
 
   function record(outcome: HumanReviewOutcome) {
@@ -233,8 +239,8 @@ export function HumanReviewWorkspace({
       openedAt === null || openedAt === undefined
         ? null
         : Math.max(0, reviewedAt.getTime() - new Date(openedAt).getTime())
-    setSession((current) => {
-      const next = withDecision(current, {
+    applySession(
+      withDecision(sessionRef.current, {
         itemId: item.itemId,
         outcome,
         comment: comment.trim() || null,
@@ -243,10 +249,8 @@ export function HumanReviewWorkspace({
           reviewDurationMs !== null && Number.isFinite(reviewDurationMs)
             ? reviewDurationMs
             : null,
-      })
-      saveHumanReviewSession(next)
-      return next
-    })
+      }),
+    )
     if (index < HUMAN_REVIEW_PACKET.items.length - 1) {
       setDisplayedItemId(null)
       setImageUrl(null)
@@ -255,35 +259,48 @@ export function HumanReviewWorkspace({
   }
 
   function recordImageOpened(openedItem: HumanReviewItem) {
-    setSession((current) => {
-      const existing = current.inspections[openedItem.itemId]
-      const next = withImageInspection(current, {
+    const existing = sessionRef.current.inspections[openedItem.itemId]
+    applySession(
+      withImageInspection(sessionRef.current, {
         itemId: openedItem.itemId,
         imageOpened: true,
         imageVerified: true,
         imageOpenedAt: existing?.imageOpenedAt ?? now().toISOString(),
         imageFailureReason: null,
-      })
-      saveHumanReviewSession(next)
-      return next
-    })
+      }),
+    )
     setDisplayedItemId(openedItem.itemId)
   }
 
   function recordImageFailure(failedItem: HumanReviewItem, reason: string) {
-    setSession((current) => {
-      const existing = current.inspections[failedItem.itemId]
-      const next = withImageInspection(current, {
+    const existing = sessionRef.current.inspections[failedItem.itemId]
+    applySession(
+      withImageInspection(sessionRef.current, {
         itemId: failedItem.itemId,
         imageOpened: false,
         imageVerified: false,
         imageOpenedAt: existing?.imageOpenedAt ?? null,
         imageFailureReason: reason,
-      })
-      saveHumanReviewSession(next)
-      return next
-    })
+      }),
+    )
     setDisplayedItemId(null)
+  }
+
+  function applySession(next: HumanReviewSession) {
+    sessionRef.current = next
+    setSession(next)
+    try {
+      saveHumanReviewSession(next)
+      setPersistenceError(null)
+    } catch (reason) {
+      setPersistenceError(
+        reviewPersistenceErrorMessage(
+          reason instanceof ReviewPersistenceError
+            ? reason
+            : new ReviewPersistenceError('unknown', errorMessage(reason)),
+        ),
+      )
+    }
   }
 
   async function clearReview() {
@@ -293,7 +310,10 @@ export function HumanReviewWorkspace({
     try {
       await cache.clear()
       clearHumanReviewSession()
-      setSession(emptyHumanReviewSession())
+      setPersistenceError(null)
+      const emptySession = emptyHumanReviewSession()
+      sessionRef.current = emptySession
+      setSession(emptySession)
       setIndex(0)
       setComment('')
       setImageUrl(null)
@@ -340,6 +360,27 @@ export function HumanReviewWorkspace({
           remain in this browser until you export a receipt; no result is sent to a server.
         </span>
       </aside>
+
+      {persistenceError !== null && (
+        <EvidenceState state="failure" title="Local review persistence failed">
+          {persistenceError}
+        </EvidenceState>
+      )}
+
+      {typeof window.indexedDB === 'undefined' && (
+        <EvidenceState state="review" title="IndexedDB is unavailable">
+          This browser cannot provide the future offline event-ledger repository. The
+          current prototype continues in memory and reports localStorage failures
+          separately.
+        </EvidenceState>
+      )}
+
+      {cacheState !== 'checking' && !cacheStatus.persistentBrowserCache && (
+        <EvidenceState state="review" title="Persistent media cache is unavailable">
+          Cache Storage is unavailable or restricted. Verified images use a temporary
+          in-memory fallback and will need to be prepared again after reload.
+        </EvidenceState>
+      )}
 
       <section className="review-cache" aria-labelledby="review-cache-title">
         <div>

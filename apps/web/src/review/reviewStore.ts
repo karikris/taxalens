@@ -36,6 +36,28 @@ export interface HumanReviewSession {
   readonly inspections: Readonly<Record<string, HumanReviewInspection>>
 }
 
+export type ReviewPersistenceErrorCode =
+  | 'unavailable'
+  | 'quota_exceeded'
+  | 'serialization_failed'
+  | 'corrupt_session'
+  | 'unknown'
+
+export class ReviewPersistenceError extends Error {
+  readonly code: ReviewPersistenceErrorCode
+
+  constructor(code: ReviewPersistenceErrorCode, message: string) {
+    super(message)
+    this.name = 'ReviewPersistenceError'
+    this.code = code
+  }
+}
+
+export interface HumanReviewSessionLoadResult {
+  readonly session: HumanReviewSession
+  readonly error: ReviewPersistenceError | null
+}
+
 export interface ReviewCacheStatus {
   readonly ready: boolean
   readonly cachedCount: number
@@ -67,12 +89,21 @@ export function emptyHumanReviewSession(): HumanReviewSession {
 }
 
 export function loadHumanReviewSession(
-  storage: Pick<Storage, 'getItem'> = window.localStorage,
+  storage?: Pick<Storage, 'getItem'>,
 ): HumanReviewSession {
+  return loadHumanReviewSessionResult(storage).session
+}
+
+export function loadHumanReviewSessionResult(
+  storage?: Pick<Storage, 'getItem'>,
+): HumanReviewSessionLoadResult {
   try {
-    const raw = storage.getItem(REVIEW_SESSION_KEY)
+    const raw = (storage ?? window.localStorage).getItem(REVIEW_SESSION_KEY)
     if (raw === null) {
-      return emptyHumanReviewSession()
+      return Object.freeze({
+        session: emptyHumanReviewSession(),
+        error: null,
+      })
     }
     const value = JSON.parse(raw) as Partial<HumanReviewSession>
     if (
@@ -82,7 +113,13 @@ export function loadHumanReviewSession(
       value.decisions === null ||
       Array.isArray(value.decisions)
     ) {
-      return emptyHumanReviewSession()
+      return Object.freeze({
+        session: emptyHumanReviewSession(),
+        error: new ReviewPersistenceError(
+          'corrupt_session',
+          'The stored local review session is incompatible and was ignored.',
+        ),
+      })
     }
     const decisions: Record<string, HumanReviewDecision> = {}
     const inspections: Record<string, HumanReviewInspection> = {}
@@ -124,27 +161,67 @@ export function loadHumanReviewSession(
       }
     }
     return Object.freeze({
-      packetId: HUMAN_REVIEW_PACKET.packetId,
-      reviewerId: value.reviewerId,
-      decisions: Object.freeze(decisions),
-      inspections: Object.freeze(inspections),
+      session: Object.freeze({
+        packetId: HUMAN_REVIEW_PACKET.packetId,
+        reviewerId: value.reviewerId,
+        decisions: Object.freeze(decisions),
+        inspections: Object.freeze(inspections),
+      }),
+      error: null,
     })
-  } catch {
-    return emptyHumanReviewSession()
+  } catch (reason) {
+    return Object.freeze({
+      session: emptyHumanReviewSession(),
+      error: classifyPersistenceError(reason),
+    })
   }
 }
 
 export function saveHumanReviewSession(
   session: HumanReviewSession,
-  storage: Pick<Storage, 'setItem'> = window.localStorage,
+  storage?: Pick<Storage, 'setItem'>,
 ): void {
-  storage.setItem(REVIEW_SESSION_KEY, JSON.stringify(session))
+  let serialized: string
+  try {
+    serialized = JSON.stringify(session)
+  } catch (reason) {
+    throw new ReviewPersistenceError(
+      'serialization_failed',
+      `The local review session could not be serialized: ${causeMessage(reason)}`,
+    )
+  }
+  try {
+    ;(storage ?? window.localStorage).setItem(REVIEW_SESSION_KEY, serialized)
+  } catch (reason) {
+    throw classifyPersistenceError(reason)
+  }
 }
 
 export function clearHumanReviewSession(
-  storage: Pick<Storage, 'removeItem'> = window.localStorage,
+  storage?: Pick<Storage, 'removeItem'>,
 ): void {
-  storage.removeItem(REVIEW_SESSION_KEY)
+  try {
+    ;(storage ?? window.localStorage).removeItem(REVIEW_SESSION_KEY)
+  } catch (reason) {
+    throw classifyPersistenceError(reason)
+  }
+}
+
+export function reviewPersistenceErrorMessage(
+  error: ReviewPersistenceError,
+): string {
+  switch (error.code) {
+    case 'quota_exceeded':
+      return `${error.message} Browser storage quota is full; the current review remains in memory only.`
+    case 'serialization_failed':
+      return `${error.message} The current review remains in memory and was not persisted.`
+    case 'corrupt_session':
+      return error.message
+    case 'unavailable':
+      return `${error.message} This can occur in private browsing or when site storage is blocked; the current review remains in memory only.`
+    case 'unknown':
+      return `${error.message} The current review remains in memory only.`
+  }
 }
 
 export function withReviewerId(
@@ -478,4 +555,51 @@ function reviewErrorMessage(reason: unknown): string {
   return reason instanceof Error
     ? reason.message
     : 'Review media preparation failed.'
+}
+
+function classifyPersistenceError(reason: unknown): ReviewPersistenceError {
+  if (reason instanceof ReviewPersistenceError) {
+    return reason
+  }
+  const name =
+    typeof DOMException !== 'undefined' && reason instanceof DOMException
+      ? reason.name
+      : reason instanceof Error
+        ? reason.name
+        : ''
+  const message = causeMessage(reason)
+  if (
+    name === 'QuotaExceededError' ||
+    /quota|storage.?full|space available/u.test(message.toLowerCase())
+  ) {
+    return new ReviewPersistenceError(
+      'quota_exceeded',
+      'The browser refused to save the local review session because its storage quota was exceeded.',
+    )
+  }
+  if (
+    name === 'SecurityError' ||
+    /security|denied|disabled|unavailable|not supported|private/u.test(
+      message.toLowerCase(),
+    )
+  ) {
+    return new ReviewPersistenceError(
+      'unavailable',
+      'Browser persistence is unavailable or blocked for this session.',
+    )
+  }
+  if (/json|parse|unexpected token|corrupt/u.test(message.toLowerCase())) {
+    return new ReviewPersistenceError(
+      'corrupt_session',
+      'The stored local review session could not be parsed and was ignored.',
+    )
+  }
+  return new ReviewPersistenceError(
+    'unknown',
+    `Browser persistence failed: ${message}`,
+  )
+}
+
+function causeMessage(reason: unknown): string {
+  return reason instanceof Error ? reason.message : String(reason)
 }
