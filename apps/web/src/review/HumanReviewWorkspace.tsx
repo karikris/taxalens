@@ -10,6 +10,7 @@ import {
   browserReviewMediaCache,
   canRecordHumanReviewOutcome,
   clearHumanReviewSession,
+  currentHumanReviewDecisions,
   emptyHumanReviewSession,
   exportHumanReviewReceipt,
   loadHumanReviewSessionResult,
@@ -73,7 +74,11 @@ export function HumanReviewWorkspace({
   } | null>(null)
   const preparationRequestIdRef = useRef(0)
   const item = itemAt(index)
-  const decision = session.decisions[item.itemId]
+  const currentDecisions = useMemo(
+    () => currentHumanReviewDecisions(session),
+    [session],
+  )
+  const decision = currentDecisions[item.itemId]
   const inspection = session.inspections[item.itemId]
   const scientificDecisionReady =
     displayedItemId === item.itemId &&
@@ -591,7 +596,7 @@ export function HumanReviewWorkspace({
                 type="button"
                 aria-label={`Open review image ${candidateIndex + 1}`}
                 aria-current={candidateIndex === index ? 'step' : undefined}
-                data-reviewed={session.decisions[candidate.itemId] !== undefined}
+                data-reviewed={currentDecisions[candidate.itemId] !== undefined}
                 onClick={() => openIndex(candidateIndex)}
               >
                 {candidateIndex + 1}
@@ -727,14 +732,15 @@ function itemAt(index: number): HumanReviewItem {
 }
 
 function firstPendingIndex(session: HumanReviewSession): number {
+  const decisions = currentHumanReviewDecisions(session)
   const index = HUMAN_REVIEW_PACKET.items.findIndex(
-    (item) => session.decisions[item.itemId] === undefined,
+    (item) => decisions[item.itemId] === undefined,
   )
   return index === -1 ? 0 : index
 }
 
 function outcomeCounts(session: HumanReviewSession) {
-  const decisions = Object.values(session.decisions)
+  const decisions = Object.values(currentHumanReviewDecisions(session))
   return {
     recorded: decisions.length,
     yes: decisions.filter(({ outcome }) => outcome === 'yes').length,

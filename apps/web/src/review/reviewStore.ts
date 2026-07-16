@@ -7,18 +7,31 @@ import {
   type HumanReviewItem,
   type HumanReviewPacket,
 } from './reviewPacket'
+import {
+  VERIFICATION_EVENT_SCHEMA_VERSION,
+  projectCurrentVerificationEvents,
+  validateVerificationEvent,
+  type VerificationEvent,
+  type VerificationOutcome,
+} from './verificationEvents'
 
 const REVIEW_CACHE_NAME = `taxalens-${HUMAN_REVIEW_PACKET.packetId}`
 const REVIEW_SESSION_KEY = `taxalens-human-review:${HUMAN_REVIEW_PACKET.packetId}`
 
-export type HumanReviewOutcome = 'yes' | 'no' | 'cant_tell' | 'cant_view' | 'skipped'
+export type HumanReviewOutcome = VerificationOutcome
 
-export interface HumanReviewDecision {
+export interface HumanReviewDecisionInput {
   readonly itemId: string
   readonly outcome: HumanReviewOutcome
   readonly comment: string | null
   readonly reviewedAt: string
   readonly reviewDurationMs: number | null
+}
+
+export interface HumanReviewDecision extends HumanReviewDecisionInput {
+  readonly eventId: string
+  readonly reviewRound: number
+  readonly supersedesEventId: string | null
 }
 
 export interface HumanReviewInspection {
@@ -32,7 +45,7 @@ export interface HumanReviewInspection {
 export interface HumanReviewSession {
   readonly packetId: HumanReviewPacket['packetId']
   readonly reviewerId: string
-  readonly decisions: Readonly<Record<string, HumanReviewDecision>>
+  readonly events: readonly VerificationEvent[]
   readonly inspections: Readonly<Record<string, HumanReviewInspection>>
 }
 
@@ -83,7 +96,7 @@ export function emptyHumanReviewSession(): HumanReviewSession {
   return Object.freeze({
     packetId: HUMAN_REVIEW_PACKET.packetId,
     reviewerId: '',
-    decisions: Object.freeze({}),
+    events: Object.freeze([]),
     inspections: Object.freeze({}),
   })
 }
@@ -105,13 +118,12 @@ export function loadHumanReviewSessionResult(
         error: null,
       })
     }
-    const value = JSON.parse(raw) as Partial<HumanReviewSession>
+    const value = JSON.parse(raw) as Partial<HumanReviewSession> & {
+      readonly decisions?: Readonly<Record<string, HumanReviewDecisionInput>>
+    }
     if (
       value.packetId !== HUMAN_REVIEW_PACKET.packetId ||
-      typeof value.reviewerId !== 'string' ||
-      typeof value.decisions !== 'object' ||
-      value.decisions === null ||
-      Array.isArray(value.decisions)
+      typeof value.reviewerId !== 'string'
     ) {
       return Object.freeze({
         session: emptyHumanReviewSession(),
@@ -121,25 +133,9 @@ export function loadHumanReviewSessionResult(
         ),
       })
     }
-    const decisions: Record<string, HumanReviewDecision> = {}
+    const events = restoreVerificationEvents(value)
     const inspections: Record<string, HumanReviewInspection> = {}
     for (const item of HUMAN_REVIEW_PACKET.items) {
-      const candidate = value.decisions[item.itemId]
-      if (
-        typeof candidate === 'object' &&
-        candidate !== null &&
-        candidate.itemId === item.itemId &&
-        isOutcome(candidate.outcome) &&
-        (candidate.comment === null || typeof candidate.comment === 'string') &&
-        typeof candidate.reviewedAt === 'string'
-      ) {
-        decisions[item.itemId] = Object.freeze({
-          ...candidate,
-          reviewDurationMs: validDuration(candidate.reviewDurationMs)
-            ? candidate.reviewDurationMs
-            : null,
-        })
-      }
       const inspection =
         typeof value.inspections === 'object' &&
         value.inspections !== null &&
@@ -164,7 +160,7 @@ export function loadHumanReviewSessionResult(
       session: Object.freeze({
         packetId: HUMAN_REVIEW_PACKET.packetId,
         reviewerId: value.reviewerId,
-        decisions: Object.freeze(decisions),
+        events,
         inspections: Object.freeze(inspections),
       }),
       error: null,
@@ -224,6 +220,155 @@ export function reviewPersistenceErrorMessage(
   }
 }
 
+function restoreVerificationEvents(value: {
+  readonly reviewerId?: string
+  readonly events?: readonly unknown[]
+  readonly decisions?: Readonly<Record<string, HumanReviewDecisionInput>>
+}): readonly VerificationEvent[] {
+  if (value.events !== undefined) {
+    if (!Array.isArray(value.events)) {
+      throw corruptReviewSession('The stored review event ledger is invalid.')
+    }
+    const events = value.events.map((candidate) =>
+      restoreVerificationEvent(candidate),
+    )
+    assertVerificationEventLedger(events)
+    return Object.freeze(events)
+  }
+  if (
+    typeof value.decisions !== 'object' ||
+    value.decisions === null ||
+    Array.isArray(value.decisions)
+  ) {
+    throw corruptReviewSession(
+      'The stored local review session has no compatible event ledger.',
+    )
+  }
+
+  let events: readonly VerificationEvent[] = Object.freeze([])
+  for (const item of HUMAN_REVIEW_PACKET.items) {
+    const candidate = value.decisions[item.itemId]
+    if (
+      typeof candidate === 'object' &&
+      candidate !== null &&
+      candidate.itemId === item.itemId &&
+      isOutcome(candidate.outcome) &&
+      (candidate.comment === null || typeof candidate.comment === 'string') &&
+      typeof candidate.reviewedAt === 'string'
+    ) {
+      const event = createVerificationEvent(
+        events,
+        value.reviewerId ?? '',
+        Object.freeze({
+          itemId: candidate.itemId,
+          outcome: candidate.outcome,
+          comment: candidate.comment,
+          reviewedAt: candidate.reviewedAt,
+          reviewDurationMs: validDuration(candidate.reviewDurationMs)
+            ? candidate.reviewDurationMs
+            : null,
+        }),
+      )
+      events = Object.freeze([...events, event])
+    }
+  }
+  return events
+}
+
+function restoreVerificationEvent(value: unknown): VerificationEvent {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    throw corruptReviewSession('The stored review event is invalid.')
+  }
+  const candidate = value as Partial<VerificationEvent>
+  if (
+    candidate.schemaVersion !== VERIFICATION_EVENT_SCHEMA_VERSION ||
+    typeof candidate.eventId !== 'string' ||
+    typeof candidate.campaignId !== 'string' ||
+    typeof candidate.itemId !== 'string' ||
+    typeof candidate.reviewerId !== 'string' ||
+    typeof candidate.reviewRound !== 'number' ||
+    !isOutcome(candidate.outcome) ||
+    (candidate.comment !== null && typeof candidate.comment !== 'string') ||
+    (candidate.alternativeTaxon !== null &&
+      typeof candidate.alternativeTaxon !== 'object') ||
+    (candidate.correctedLifeStage !== null &&
+      typeof candidate.correctedLifeStage !== 'string') ||
+    (candidate.correctedVisualDomain !== null &&
+      typeof candidate.correctedVisualDomain !== 'string') ||
+    (candidate.correctedView !== null &&
+      typeof candidate.correctedView !== 'string') ||
+    (candidate.exclusionReason !== null &&
+      typeof candidate.exclusionReason !== 'string') ||
+    !isConfidence(candidate.confidence) ||
+    typeof candidate.reviewedAt !== 'string' ||
+    (candidate.durationMs !== null &&
+      typeof candidate.durationMs !== 'number') ||
+    typeof candidate.imageSha256 !== 'string' ||
+    typeof candidate.questionSha256 !== 'string' ||
+    typeof candidate.campaignManifestSha256 !== 'string' ||
+    typeof candidate.taxalensSha !== 'string' ||
+    (candidate.biominerSha !== null &&
+      typeof candidate.biominerSha !== 'string') ||
+    (candidate.supersedesEventId !== null &&
+      typeof candidate.supersedesEventId !== 'string')
+  ) {
+    throw corruptReviewSession('The stored review event fields are invalid.')
+  }
+  const event = candidate as VerificationEvent
+  const item = HUMAN_REVIEW_PACKET.items.find(
+    ({ itemId }) => itemId === event.itemId,
+  )
+  if (
+    item === undefined ||
+    validateVerificationEvent(
+      event,
+      HUMAN_REVIEW_PACKET.campaign,
+      item,
+    ).length > 0
+  ) {
+    throw corruptReviewSession(
+      'The stored review event does not match the current campaign.',
+    )
+  }
+  return Object.freeze({ ...event })
+}
+
+function assertVerificationEventLedger(
+  events: readonly VerificationEvent[],
+): void {
+  const byId = new Map<string, VerificationEvent>()
+  const superseded = new Set<string>()
+  const reviewerRounds = new Map<string, number>()
+  for (const event of events) {
+    if (byId.has(event.eventId)) {
+      throw corruptReviewSession('The review event ledger repeats an event ID.')
+    }
+    const reviewerKey = `${event.itemId}\u0000${event.reviewerId}`
+    const expectedRound = (reviewerRounds.get(reviewerKey) ?? 0) + 1
+    if (event.reviewRound !== expectedRound) {
+      throw corruptReviewSession(
+        'The review event ledger has a non-contiguous reviewer round.',
+      )
+    }
+    if (event.supersedesEventId !== null) {
+      const prior = byId.get(event.supersedesEventId)
+      if (
+        prior === undefined ||
+        prior.itemId !== event.itemId ||
+        prior.campaignId !== event.campaignId ||
+        superseded.has(prior.eventId)
+      ) {
+        throw corruptReviewSession(
+          'The review event ledger has an invalid supersession link.',
+        )
+      }
+      superseded.add(prior.eventId)
+    }
+    byId.set(event.eventId, event)
+    reviewerRounds.set(reviewerKey, event.reviewRound)
+  }
+}
+
 export function withReviewerId(
   session: HumanReviewSession,
   reviewerId: string,
@@ -236,15 +381,116 @@ export function withReviewerId(
 
 export function withDecision(
   session: HumanReviewSession,
-  decision: HumanReviewDecision,
+  decision: HumanReviewDecisionInput,
 ): HumanReviewSession {
+  const event = createVerificationEvent(
+    session.events,
+    session.reviewerId,
+    decision,
+  )
   return Object.freeze({
     ...session,
-    decisions: Object.freeze({
-      ...session.decisions,
-      [decision.itemId]: Object.freeze(decision),
-    }),
+    events: Object.freeze([...session.events, event]),
   })
+}
+
+export function currentHumanReviewDecisions(
+  session: HumanReviewSession,
+): Readonly<Record<string, HumanReviewDecision>> {
+  const decisions: Record<string, HumanReviewDecision> = {}
+  for (const event of Object.values(
+    projectCurrentVerificationEvents(session.events),
+  )) {
+    decisions[event.itemId] = Object.freeze({
+      eventId: event.eventId,
+      itemId: event.itemId,
+      outcome: event.outcome,
+      comment: event.comment,
+      reviewedAt: event.reviewedAt,
+      reviewDurationMs: event.durationMs,
+      reviewRound: event.reviewRound,
+      supersedesEventId: event.supersedesEventId,
+    })
+  }
+  return Object.freeze(decisions)
+}
+
+function createVerificationEvent(
+  events: readonly VerificationEvent[],
+  reviewerId: string,
+  decision: HumanReviewDecisionInput,
+): VerificationEvent {
+  const item = HUMAN_REVIEW_PACKET.items.find(
+    ({ itemId }) => itemId === decision.itemId,
+  )
+  if (item === undefined) {
+    throw new Error(
+      `Review item is outside the current campaign: ${decision.itemId}`,
+    )
+  }
+  const currentEvent = projectCurrentVerificationEvents(events)[decision.itemId]
+  const reviewRound =
+    events
+      .filter(
+        (event) =>
+          event.itemId === decision.itemId &&
+          event.reviewerId === reviewerId,
+      )
+      .reduce((maximum, event) => Math.max(maximum, event.reviewRound), 0) + 1
+  const event: VerificationEvent = Object.freeze({
+    schemaVersion: VERIFICATION_EVENT_SCHEMA_VERSION,
+    eventId: localVerificationEventId(
+      decision.itemId,
+      reviewerId,
+      reviewRound,
+      decision.reviewedAt,
+    ),
+    campaignId: HUMAN_REVIEW_PACKET.campaign.campaignId,
+    itemId: decision.itemId,
+    reviewerId,
+    reviewRound,
+    outcome: decision.outcome,
+    comment: decision.comment,
+    alternativeTaxon: null,
+    correctedLifeStage: null,
+    correctedVisualDomain: null,
+    correctedView: null,
+    exclusionReason: null,
+    confidence: 'unknown',
+    reviewedAt: decision.reviewedAt,
+    durationMs: decision.reviewDurationMs,
+    imageSha256: item.imageSha256,
+    questionSha256: item.questionFingerprint,
+    campaignManifestSha256: HUMAN_REVIEW_PACKET.campaign.manifestSha256,
+    taxalensSha: HUMAN_REVIEW_PACKET.campaign.taxalensSha,
+    biominerSha: HUMAN_REVIEW_PACKET.campaign.biominerSha,
+    supersedesEventId: currentEvent?.eventId ?? null,
+  })
+  const failures = validateVerificationEvent(
+    event,
+    HUMAN_REVIEW_PACKET.campaign,
+    item,
+  )
+  if (failures.length > 0) {
+    throw new Error(`Invalid review event: ${failures.join('; ')}`)
+  }
+  assertVerificationEventLedger([...events, event])
+  return event
+}
+
+function localVerificationEventId(
+  itemId: string,
+  reviewerId: string,
+  reviewRound: number,
+  reviewedAt: string,
+): string {
+  return [
+    'local-review-event',
+    encodeURIComponent(itemId),
+    encodeURIComponent(reviewerId.trim() || 'anonymous'),
+    String(reviewRound),
+    encodeURIComponent(reviewedAt),
+  ].join(':')
 }
 
 export function withImageInspection(
@@ -276,8 +522,9 @@ export function exportHumanReviewReceipt(
   session: HumanReviewSession,
   packet: HumanReviewPacket = HUMAN_REVIEW_PACKET,
 ): void {
+  const currentDecisions = currentHumanReviewDecisions(session)
   const decisions = packet.items
-    .map((item) => session.decisions[item.itemId])
+    .map((item) => currentDecisions[item.itemId])
     .filter((decision): decision is HumanReviewDecision => decision !== undefined)
     .map((decision) => ({
       ...decision,
@@ -508,6 +755,17 @@ function isOutcome(value: unknown): value is HumanReviewOutcome {
   )
 }
 
+function isConfidence(
+  value: unknown,
+): value is VerificationEvent['confidence'] {
+  return (
+    value === 'high' ||
+    value === 'medium' ||
+    value === 'low' ||
+    value === 'unknown'
+  )
+}
+
 function isScientificOutcome(outcome: HumanReviewOutcome): boolean {
   return outcome === 'yes' || outcome === 'no' || outcome === 'cant_tell'
 }
@@ -602,4 +860,8 @@ function classifyPersistenceError(reason: unknown): ReviewPersistenceError {
 
 function causeMessage(reason: unknown): string {
   return reason instanceof Error ? reason.message : String(reason)
+}
+
+function corruptReviewSession(message: string): ReviewPersistenceError {
+  return new ReviewPersistenceError('corrupt_session', message)
 }

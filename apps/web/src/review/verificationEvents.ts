@@ -101,6 +101,34 @@ export function validateVerificationEvent(
   return Object.freeze(failures)
 }
 
+export function projectCurrentVerificationEvents(
+  events: readonly VerificationEvent[],
+): Readonly<Record<string, VerificationEvent>> {
+  const supersededEventIds = new Set(
+    events
+      .map(({ supersedesEventId }) => supersedesEventId)
+      .filter((eventId): eventId is string => eventId !== null),
+  )
+  const current: Record<string, VerificationEvent> = {}
+  for (const event of [...events]
+    .filter(({ eventId }) => !supersededEventIds.has(eventId))
+    .sort(compareVerificationEvents)) {
+    current[event.itemId] = event
+  }
+  return Object.freeze(current)
+}
+
+function compareVerificationEvents(
+  left: VerificationEvent,
+  right: VerificationEvent,
+): number {
+  return (
+    left.reviewedAt.localeCompare(right.reviewedAt) ||
+    left.reviewRound - right.reviewRound ||
+    left.eventId.localeCompare(right.eventId)
+  )
+}
+
 function isUtcInstant(value: string): boolean {
   const milliseconds = Date.parse(value)
   return (
