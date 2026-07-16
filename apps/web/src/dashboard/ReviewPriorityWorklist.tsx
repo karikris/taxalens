@@ -1,5 +1,7 @@
 import type { ReplayEvidence } from '../data/evidenceFacade'
 import { EvidenceState } from '../design-system'
+import { flickrCandidateRouteForRecord } from '../review/routing/flickrCandidateRoute'
+import { shellHashForRoute, verificationShellRoute } from '../shell'
 import { buildReviewPriorityModel, type ReviewPriorityFactor } from './reviewPriorityModel'
 
 const STATUS_COPY: Readonly<Record<ReviewPriorityFactor['status'], string>> = {
@@ -12,6 +14,7 @@ const STATUS_COPY: Readonly<Record<ReviewPriorityFactor['status'], string>> = {
 export function ReviewPriorityWorklist({ replay }: { readonly replay: ReplayEvidence }) {
   const model = buildReviewPriorityModel(replay)
   const { item } = model
+  const verificationTarget = flickrCandidateRouteForRecord(item.recordId)
 
   return (
     <section className="review-priority" aria-labelledby="review-priority-title">
@@ -67,6 +70,20 @@ export function ReviewPriorityWorklist({ replay }: { readonly replay: ReplayEvid
             </dd>
           </div>
         </dl>
+        {verificationTarget !== null && (
+          <a
+            className="review-priority__open-queue"
+            href={shellHashForRoute(
+              verificationShellRoute({
+                campaignId: verificationTarget.campaignId,
+                itemId: verificationTarget.itemId,
+                returnView: 'dashboard',
+              }),
+            )}
+          >
+            Open review queue
+          </a>
+        )}
       </article>
 
       <div className="review-priority__factor-heading">

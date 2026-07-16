@@ -1,4 +1,5 @@
 export {
+  flickrCandidateRouteForRecord,
   flickrCandidateRouteForSource,
   resolveFlickrCandidateRouteTarget,
   type FlickrCandidateRouteTarget,

@@ -26,6 +26,16 @@ export function flickrCandidateRouteForSource(
   )
 }
 
+export function flickrCandidateRouteForRecord(
+  recordId: string,
+): FlickrCandidateRouteTarget | null {
+  return (
+    COMMITTED_FLICKR_CANDIDATE_ROUTES.find(
+      (target) => target.recordId === recordId,
+    ) ?? null
+  )
+}
+
 export function resolveFlickrCandidateRouteTarget(
   campaignId: string | null,
   itemId: string | null,

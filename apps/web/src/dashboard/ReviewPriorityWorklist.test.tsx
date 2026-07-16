@@ -30,6 +30,12 @@ describe('ReviewPriorityWorklist', () => {
     expect(screen.getByText('Position basis').parentElement).toHaveTextContent(
       'not score-derived',
     )
+    expect(
+      screen.getByRole('link', { name: 'Open review queue' }),
+    ).toHaveAttribute(
+      'href',
+      '#verification?campaign=papilio-demoleus-flickr-candidate-intake-v1&item=flickr%3A55081300254&return=dashboard',
+    )
   })
 
   it('renders all seven factor states and the complete table and provenance', () => {
