@@ -34,7 +34,7 @@ export const JUDGE_TOUR_STEPS: readonly JudgeTourStep[] = Object.freeze([
       'Open the awaiting-review hero record, compare its evidence variants and regional hypotheses, and keep every unavailable score or decision explicit.',
   },
   {
-    view: 'human-review',
+    view: 'verification',
     title: 'Human Review',
     suggestedSeconds: 20,
     description:

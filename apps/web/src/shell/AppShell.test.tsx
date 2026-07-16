@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { ReplayIdentity } from '../data/evidenceFacade'
 import { AppShell } from './AppShell'
@@ -36,6 +36,10 @@ function renderShell(overrides?: {
 }
 
 describe('AppShell', () => {
+  beforeEach(() => {
+    window.history.replaceState(null, '', '/')
+  })
+
   it('shows target and source lineage with hash-synchronized primary navigation', () => {
     const onReset = vi.fn()
     renderShell({ onReset })
@@ -51,6 +55,9 @@ describe('AppShell', () => {
 
     const mission = screen.getByRole('link', { name: 'Mission' })
     const evidenceLens = screen.getByRole('link', { name: 'Evidence Lens' })
+    expect(
+      screen.getByRole('link', { name: 'Verification' }),
+    ).toHaveAttribute('href', '#verification')
     expect(mission).toHaveAttribute('aria-current', 'page')
 
     fireEvent.click(evidenceLens)
@@ -60,6 +67,21 @@ describe('AppShell', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Reset replay' }))
     expect(onReset).toHaveBeenCalledOnce()
     expect(mission).toHaveAttribute('aria-current', 'page')
+  })
+
+  it('canonicalizes the legacy Human Review hash to Verification', async () => {
+    await new Promise((resolve) => window.setTimeout(resolve, 0))
+    window.history.replaceState(null, '', '/#human-review')
+    renderShell()
+
+    const verification = screen.getByRole('link', { name: 'Verification' })
+    await waitFor(() =>
+      expect(verification).toHaveAttribute('aria-current', 'page'),
+    )
+    expect(window.location.hash).toBe('#verification')
+    expect(
+      screen.getByRole('heading', { name: 'verification view' }),
+    ).toBeInTheDocument()
   })
 
   it('provides a labelled six-step tour that can navigate to a view', () => {

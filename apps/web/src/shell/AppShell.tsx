@@ -3,7 +3,12 @@ import { Button, Link } from 'react-aria-components'
 
 import type { ReplayIdentity } from '../data/evidenceFacade'
 import { GuidedTour } from './GuidedTour'
-import { SHELL_VIEWS, shellViewFromHash, type ShellView } from './shellTypes'
+import {
+  SHELL_VIEWS,
+  canonicalShellHashForLegacyHash,
+  shellViewFromHash,
+  type ShellView,
+} from './shellTypes'
 
 interface GlobalError {
   readonly title: string
@@ -32,9 +37,11 @@ export function AppShell({ replay, globalError, onReset, renderView }: AppShellP
 
   useEffect(() => {
     function handleHashChange() {
+      canonicalizeLegacyHash()
       setActiveView(shellViewFromHash(window.location.hash))
     }
 
+    canonicalizeLegacyHash()
     window.addEventListener('hashchange', handleHashChange)
     return () => window.removeEventListener('hashchange', handleHashChange)
   }, [])
@@ -83,6 +90,19 @@ export function AppShell({ replay, globalError, onReset, renderView }: AppShellP
       window.requestAnimationFrame(() => mainRef.current?.focus())
     } else {
       setPendingTourTarget(targetId)
+    }
+  }
+
+  function canonicalizeLegacyHash() {
+    const canonicalHash = canonicalShellHashForLegacyHash(
+      window.location.hash,
+    )
+    if (canonicalHash !== null) {
+      window.history.replaceState(
+        null,
+        '',
+        `${window.location.pathname}${window.location.search}${canonicalHash}`,
+      )
     }
   }
 

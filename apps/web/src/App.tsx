@@ -20,9 +20,9 @@ const DashboardWorkspace = lazy(async () => {
   return { default: module.DashboardWorkspace }
 })
 
-const HumanReviewWorkspace = lazy(async () => {
+const VerificationWorkspace = lazy(async () => {
   const module = await import('./review')
-  return { default: module.HumanReviewWorkspace }
+  return { default: module.VerificationWorkspace }
 })
 
 const AgentReplayWorkspace = lazy(async () => {
@@ -169,16 +169,17 @@ function ReplayView({
       )
     case 'evidence-lens':
       return <EvidenceLensWorkspace facade={facade} replay={replay} />
-    case 'human-review':
+    case 'verification':
       return (
         <Suspense
           fallback={
-            <EvidenceState state="loading" title="Opening human review">
-              The review packet is local; no image is downloaded until you prepare its cache.
+            <EvidenceState state="loading" title="Opening verification">
+              The verification campaign is local; no image is downloaded until
+              you prepare its cache.
             </EvidenceState>
           }
         >
-          <HumanReviewWorkspace replay={replay} />
+          <VerificationWorkspace replay={replay} />
         </Suspense>
       )
     case 'dashboard':

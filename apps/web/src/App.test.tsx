@@ -63,6 +63,22 @@ describe('TaxaLens scaffold', () => {
     expect(screen.getByText(/chain-of-thought are neither collected/u)).toBeInTheDocument()
   })
 
+  it('opens Verification from the legacy Human Review deep link', async () => {
+    window.location.hash = '#human-review'
+    render(<App />)
+
+    expect(
+      await screen.findByRole('heading', {
+        name: 'Review the label, one image at a time',
+      }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Verification' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+    expect(window.location.hash).toBe('#verification')
+  })
+
   it('renders an assertive local-load failure with an accessible retry action', async () => {
     vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockResolvedValue(jsonResponse({}, 404)))
 
