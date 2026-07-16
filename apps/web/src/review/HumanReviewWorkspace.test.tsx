@@ -20,6 +20,60 @@ beforeEach(async () => {
 })
 
 describe('HumanReviewWorkspace', () => {
+  it('keeps scientific outcomes disabled until the verified image is displayed', async () => {
+    const cache = fakeCache()
+    render(
+      <HumanReviewWorkspace
+        cache={cache}
+        now={() => new Date('2026-07-16T12:00:00Z')}
+        replay={replay}
+      />,
+    )
+
+    const yes = screen.getByRole('button', { name: 'Yes' })
+    const no = screen.getByRole('button', { name: 'No' })
+    const cantTell = screen.getByRole('button', { name: 'Can’t tell' })
+    expect(yes).toBeDisabled()
+    expect(no).toBeDisabled()
+    expect(cantTell).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Can’t view' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Skip' })).toBeEnabled()
+    expect(
+      screen.getByText(/Yes, No, and Can’t tell are unavailable/u),
+    ).toBeInTheDocument()
+
+    fireEvent.click(yes)
+    fireEvent.click(no)
+    fireEvent.click(cantTell)
+    expect(screen.getByText('0 / 3')).toBeInTheDocument()
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Prepare review cache' }),
+    )
+    const image = await screen.findByRole('img', {
+      name: /Does this image show an adult Papilio demoleus/u,
+    })
+    expect(yes).toBeDisabled()
+    expect(no).toBeDisabled()
+    expect(cantTell).toBeDisabled()
+
+    fireEvent.load(image)
+    await waitFor(() => {
+      expect(yes).toBeEnabled()
+      expect(no).toBeEnabled()
+      expect(cantTell).toBeEnabled()
+    })
+    expect(screen.getByText(/Verified image displayed/u)).toBeInTheDocument()
+
+    fireEvent.click(cantTell)
+    expect(screen.getByText(/Can’t tell 1/u)).toBeInTheDocument()
+    expect(
+      window.localStorage.getItem(
+        `taxalens-human-review:${HUMAN_REVIEW_PACKET.packetId}`,
+      ),
+    ).toContain('"outcome":"cant_tell"')
+  })
+
   it('prepares the small cache and records comments, can’t-view, and skip locally', async () => {
     const cache = fakeCache()
     render(
