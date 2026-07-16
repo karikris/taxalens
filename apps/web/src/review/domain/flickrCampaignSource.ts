@@ -33,6 +33,12 @@ const DATASET_PARTITIONS = new Set([
   'calibration',
   'final_test',
 ])
+const REFERENCE_REVIEW_STATES = new Set([
+  'human_verified',
+  'provider_supported',
+  'candidate',
+  'excluded',
+])
 
 export function validateFlickrVerificationSource(
   source: FlickrVerificationSource,
@@ -157,6 +163,76 @@ export function validateFlickrVerificationSource(
     if (value !== null && typeof value !== 'boolean') {
       failures.push(`priority signal ${key} must be Boolean or null`)
     }
+  }
+  const postDecisionEvidence = source.postDecisionEvidence
+  if (
+    typeof postDecisionEvidence !== 'object' ||
+    postDecisionEvidence === null ||
+    !Array.isArray(postDecisionEvidence.strongestCompetitors) ||
+    !Array.isArray(postDecisionEvidence.references) ||
+    !Array.isArray(postDecisionEvidence.comments)
+  ) {
+    failures.push('post-decision evidence contract is invalid')
+    return Object.freeze(failures)
+  }
+  const competitorKeys = new Set<string>()
+  for (const competitor of postDecisionEvidence.strongestCompetitors) {
+    if (
+      competitor.acceptedTaxonKey.trim() === '' ||
+      competitor.scientificName.trim() === '' ||
+      !SCORE_BANDS.has(competitor.scoreBand) ||
+      !/^sha256:[a-f0-9]{64}$/.test(competitor.evidenceFingerprint)
+    ) {
+      failures.push('post-decision competitor evidence is invalid')
+    }
+    const key = `${competitor.acceptedTaxonKey}\u0000${competitor.scientificName}`
+    if (competitorKeys.has(key)) {
+      failures.push('post-decision competitor evidence is repeated')
+    }
+    competitorKeys.add(key)
+  }
+  const referenceIds = new Set<string>()
+  for (const reference of postDecisionEvidence.references) {
+    if (
+      reference.referenceId.trim() === '' ||
+      reference.acceptedTaxonKey.trim() === '' ||
+      reference.scientificName.trim() === '' ||
+      !['target', 'competitor'].includes(reference.role) ||
+      !['gbif', 'inaturalist'].includes(reference.provider) ||
+      !REFERENCE_REVIEW_STATES.has(reference.reviewState)
+    ) {
+      failures.push('post-decision reference evidence is invalid')
+    }
+    if (referenceIds.has(reference.referenceId)) {
+      failures.push('post-decision reference evidence is repeated')
+    }
+    referenceIds.add(reference.referenceId)
+  }
+  const commentIds = new Set<string>()
+  for (const comment of postDecisionEvidence.comments) {
+    if (comment.commentId.trim() === '' || comment.text.trim() === '') {
+      failures.push('post-decision Flickr comment evidence is invalid')
+    }
+    if (commentIds.has(comment.commentId)) {
+      failures.push('post-decision Flickr comment evidence is repeated')
+    }
+    commentIds.add(comment.commentId)
+  }
+  if (
+    postDecisionEvidence.decisionReason !== null &&
+    (typeof postDecisionEvidence.decisionReason !== 'string' ||
+      postDecisionEvidence.decisionReason.trim() === '')
+  ) {
+    failures.push('post-decision decision reason must be null or non-empty')
+  }
+  if (
+    !/^sha256:[a-f0-9]{64}$/.test(
+      postDecisionEvidence.evidenceFingerprint,
+    )
+  ) {
+    failures.push(
+      'post-decision evidence fingerprint must be a prefixed SHA-256 digest',
+    )
   }
   return Object.freeze(failures)
 }

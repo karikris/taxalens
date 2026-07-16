@@ -67,6 +67,13 @@ function source(): FlickrVerificationSource {
       referenceShortfall: true,
       unusualCompetitor: false,
     },
+    postDecisionEvidence: {
+      strongestCompetitors: [],
+      references: [],
+      comments: [],
+      decisionReason: null,
+      evidenceFingerprint: `sha256:${'5'.repeat(64)}`,
+    },
     sourceArtifactFingerprint: `sha256:${'3'.repeat(64)}`,
     biominerSha: '4'.repeat(40),
   }
@@ -108,6 +115,34 @@ describe('Flickr verification campaign source contract', () => {
       'source inclusion probability must be null or greater than zero and at most one',
       'Flickr coordinates must be populated together',
       'geographic outlier state requires coordinates',
+    ])
+  })
+
+  it('rejects malformed post-decision evidence', () => {
+    const candidate = source()
+    expect(
+      validateFlickrVerificationSource({
+        ...candidate,
+        postDecisionEvidence: {
+          strongestCompetitors: [
+            {
+              acceptedTaxonKey: '',
+              scientificName: '',
+              scoreBand: 'high',
+              evidenceFingerprint: 'not-a-digest',
+            },
+          ],
+          references: [],
+          comments: [{ commentId: '', text: '' }],
+          decisionReason: '',
+          evidenceFingerprint: 'not-a-digest',
+        },
+      }),
+    ).toEqual([
+      'post-decision competitor evidence is invalid',
+      'post-decision Flickr comment evidence is invalid',
+      'post-decision decision reason must be null or non-empty',
+      'post-decision evidence fingerprint must be a prefixed SHA-256 digest',
     ])
   })
 })

@@ -6,6 +6,10 @@ import {
   type VerificationView,
   type VerificationVisualDomain,
 } from './verificationContracts'
+import {
+  validateVerificationEvent,
+  type VerificationEvent,
+} from './verificationEvents'
 
 export const FLICKR_BLIND_HIDDEN_FIELDS = Object.freeze([
   'target_score_band',
@@ -46,6 +50,54 @@ export interface BlindFlickrReviewContext {
   }
   readonly sourcePageAvailable: false
   readonly hiddenBeforeDecision: readonly FlickrBlindHiddenField[]
+}
+
+export interface RevealedFlickrReviewContext {
+  readonly mode: 'revealed'
+  readonly decisionRecorded: true
+  readonly humanDecision: {
+    readonly eventId: string
+    readonly outcome: VerificationEvent['outcome']
+    readonly reviewedAt: string
+  }
+  readonly targetQuestion: string
+  readonly modelResult: {
+    readonly targetScoreBand: NonNullable<
+      VerificationItem['flickrSource']
+    >['targetScoreBand']
+    readonly decisionState: NonNullable<
+      VerificationItem['flickrSource']
+    >['decisionState']
+    readonly competitorMarginBand: NonNullable<
+      VerificationItem['flickrSource']
+    >['competitorMarginBand']
+    readonly valuesAreProbabilities: false
+  }
+  readonly strongestCompetitors: NonNullable<
+    VerificationItem['flickrSource']
+  >['postDecisionEvidence']['strongestCompetitors']
+  readonly references: NonNullable<
+    VerificationItem['flickrSource']
+  >['postDecisionEvidence']['references']
+  readonly geography: {
+    readonly geographicClusterId: string | null
+    readonly latitude: number | null
+    readonly longitude: number | null
+    readonly outlier: boolean | null
+  }
+  readonly comments: NonNullable<
+    VerificationItem['flickrSource']
+  >['postDecisionEvidence']['comments']
+  readonly decisionReason: string | null
+  readonly sourceContext: {
+    readonly sourceUri: string
+    readonly queryTerm: string
+    readonly queryTier: string
+    readonly queryTrustTier: string
+    readonly providerSuppliedIdentity: VerificationItem['providerSuppliedIdentity']
+  }
+  readonly releasedAfterDecision: readonly FlickrBlindHiddenField[]
+  readonly scientificClaimAllowed: false
 }
 
 export function projectBlindFlickrReviewContext(
@@ -123,6 +175,77 @@ export function validateFlickrBlindDisclosurePolicy(
     )
   }
   return Object.freeze(failures)
+}
+
+export function projectRevealedFlickrReviewContext(
+  campaign: VerificationCampaign,
+  item: VerificationItem,
+  decision: VerificationEvent,
+): RevealedFlickrReviewContext {
+  const source = item.flickrSource
+  const targetTaxon = campaign.targetTaxon
+  const failures = [
+    ...validateVerificationItem(item, campaign),
+    ...validateFlickrBlindDisclosurePolicy(campaign),
+    ...validateVerificationEvent(decision, campaign, item),
+  ]
+  if (
+    item.source !== 'flickr' ||
+    source === undefined ||
+    targetTaxon === null
+  ) {
+    failures.push(
+      'revealed Flickr review requires a Flickr item and campaign target',
+    )
+  }
+  if (failures.length > 0) {
+    throw new Error(
+      `Invalid revealed Flickr review context: ${failures.join('; ')}`,
+    )
+  }
+  if (source === undefined || targetTaxon === null) {
+    throw new Error('Revealed Flickr review source is unavailable.')
+  }
+
+  return Object.freeze({
+    mode: 'revealed',
+    decisionRecorded: true,
+    humanDecision: Object.freeze({
+      eventId: decision.eventId,
+      outcome: decision.outcome,
+      reviewedAt: decision.reviewedAt,
+    }),
+    targetQuestion: `Does this image show ${targetTaxon.scientificName}?`,
+    modelResult: Object.freeze({
+      targetScoreBand: source.targetScoreBand,
+      decisionState: source.decisionState,
+      competitorMarginBand: source.competitorMarginBand,
+      valuesAreProbabilities: false,
+    }),
+    strongestCompetitors: Object.freeze([
+      ...source.postDecisionEvidence.strongestCompetitors,
+    ]),
+    references: Object.freeze([...source.postDecisionEvidence.references]),
+    geography: Object.freeze({
+      geographicClusterId: source.geographicClusterId,
+      latitude: source.coordinate.latitude,
+      longitude: source.coordinate.longitude,
+      outlier: source.coordinate.outlier,
+    }),
+    comments: Object.freeze([...source.postDecisionEvidence.comments]),
+    decisionReason: source.postDecisionEvidence.decisionReason,
+    sourceContext: Object.freeze({
+      sourceUri: source.fullFrameMedia.rights.sourceUri,
+      queryTerm: source.query.term,
+      queryTier: source.query.tier,
+      queryTrustTier: source.query.trustTier,
+      providerSuppliedIdentity: Object.freeze({
+        ...item.providerSuppliedIdentity,
+      }),
+    }),
+    releasedAfterDecision: FLICKR_BLIND_HIDDEN_FIELDS,
+    scientificClaimAllowed: false,
+  })
 }
 
 export function flickrBlindHiddenFieldLabel(

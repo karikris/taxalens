@@ -213,7 +213,7 @@ export interface ReferenceSourceProvenance {
 }
 
 export const FLICKR_VERIFICATION_SOURCE_SCHEMA_VERSION =
-  'taxalens-flickr-verification-source:v1.0.0' as const
+  'taxalens-flickr-verification-source:v1.1.0' as const
 
 export type FlickrScoreBand =
   | 'not_scored'
@@ -250,6 +250,35 @@ export interface FlickrVerificationPrioritySignals {
   readonly smallSubject: boolean | null
   readonly referenceShortfall: boolean | null
   readonly unusualCompetitor: boolean | null
+}
+
+export type FlickrReferenceReviewState =
+  | 'human_verified'
+  | 'provider_supported'
+  | 'candidate'
+  | 'excluded'
+
+export interface FlickrPostDecisionEvidence {
+  readonly strongestCompetitors: readonly {
+    readonly acceptedTaxonKey: string
+    readonly scientificName: string
+    readonly scoreBand: FlickrScoreBand
+    readonly evidenceFingerprint: string
+  }[]
+  readonly references: readonly {
+    readonly referenceId: string
+    readonly acceptedTaxonKey: string
+    readonly scientificName: string
+    readonly role: 'target' | 'competitor'
+    readonly provider: 'gbif' | 'inaturalist'
+    readonly reviewState: FlickrReferenceReviewState
+  }[]
+  readonly comments: readonly {
+    readonly commentId: string
+    readonly text: string
+  }[]
+  readonly decisionReason: string | null
+  readonly evidenceFingerprint: string
 }
 
 export interface FlickrVerificationSource {
@@ -296,6 +325,7 @@ export interface FlickrVerificationSource {
   readonly inclusionProbability: number | null
   readonly datasetPartition: VerificationDatasetPartition
   readonly prioritySignals: FlickrVerificationPrioritySignals
+  readonly postDecisionEvidence: FlickrPostDecisionEvidence
   readonly sourceArtifactFingerprint: string
   readonly biominerSha: string
 }

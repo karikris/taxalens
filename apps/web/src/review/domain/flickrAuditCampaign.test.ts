@@ -96,6 +96,13 @@ function source(
       referenceShortfall: false,
       unusualCompetitor: false,
     },
+    postDecisionEvidence: {
+      strongestCompetitors: [],
+      references: [],
+      comments: [],
+      decisionReason: null,
+      evidenceFingerprint: `sha256:${'d'.repeat(64)}`,
+    },
     sourceArtifactFingerprint: `sha256:${index
       .toString(16)
       .padStart(64, 'f')}`,

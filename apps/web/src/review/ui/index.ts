@@ -4,6 +4,7 @@ export {
   BlindFlickrReviewBoundary,
   FlickrBlindReviewContextPanel,
 } from './FlickrBlindReviewContext'
+export { FlickrPostDecisionEvidencePanel } from './FlickrPostDecisionEvidence'
 export { QualityPanel } from './QualityPanel'
 export {
   filterReferenceReviewItems,

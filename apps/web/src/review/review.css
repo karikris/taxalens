@@ -645,6 +645,50 @@
   color: var(--tl-ink-muted);
 }
 
+.flickr-post-decision {
+  display: grid;
+  gap: var(--tl-space-3);
+  padding: var(--tl-space-4);
+  background: var(--tl-state-available-bg);
+  border: 1px solid var(--tl-state-available-line);
+}
+
+.flickr-post-decision > button {
+  justify-self: start;
+}
+
+.flickr-post-decision__evidence {
+  display: grid;
+  gap: var(--tl-space-3);
+}
+
+.flickr-post-decision__evidence dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--tl-space-3);
+  margin: 0;
+}
+
+.flickr-post-decision__evidence dt {
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-xs);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.flickr-post-decision__evidence dd {
+  margin: var(--tl-space-1) 0 0;
+}
+
+.flickr-post-decision__caveat {
+  padding: var(--tl-space-2);
+  margin: 0;
+  color: var(--tl-ink-muted);
+  background: var(--tl-surface-paper);
+  border-left: 3px solid var(--tl-state-review-line);
+}
+
 .human-review .review-button--quiet {
   color: var(--tl-ink);
   background: transparent;
@@ -700,6 +744,10 @@
   }
 
   .flickr-blind-review dl {
+    grid-template-columns: 1fr;
+  }
+
+  .flickr-post-decision__evidence dl {
     grid-template-columns: 1fr;
   }
 
