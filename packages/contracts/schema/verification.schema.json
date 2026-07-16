@@ -32,6 +32,10 @@
       "type": "string",
       "pattern": "^[0-9a-f]{64}$"
     },
+    "prefixedSha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
     "gitSha": {
       "type": "string",
       "pattern": "^[0-9a-f]{40}$"
@@ -596,7 +600,7 @@
               "acceptedTaxonKey": {"$ref": "#/$defs/nonEmptyString"},
               "scientificName": {"$ref": "#/$defs/nonEmptyString"},
               "scoreBand": {"$ref": "#/$defs/flickrScoreBand"},
-              "evidenceFingerprint": {"$ref": "#/$defs/sha256"}
+              "evidenceFingerprint": {"$ref": "#/$defs/prefixedSha256"}
             }
           }
         },
@@ -643,7 +647,7 @@
           }
         },
         "decisionReason": {"$ref": "#/$defs/nullableString"},
-        "evidenceFingerprint": {"$ref": "#/$defs/sha256"}
+        "evidenceFingerprint": {"$ref": "#/$defs/prefixedSha256"}
       }
     },
     "flickrVerificationSource": {
@@ -755,7 +759,7 @@
             "visualDomain": {"$ref": "#/$defs/verificationVisualDomain"},
             "view": {"$ref": "#/$defs/verificationView"},
             "subjectAreaRatio": {"$ref": "#/$defs/nullableProbability"},
-            "fingerprint": {"$ref": "#/$defs/sha256"}
+            "fingerprint": {"$ref": "#/$defs/prefixedSha256"}
           }
         },
         "targetScoreBand": {"$ref": "#/$defs/flickrScoreBand"},
@@ -788,7 +792,7 @@
         "postDecisionEvidence": {
           "$ref": "#/$defs/flickrPostDecisionEvidence"
         },
-        "sourceArtifactFingerprint": {"$ref": "#/$defs/sha256"},
+        "sourceArtifactFingerprint": {"$ref": "#/$defs/prefixedSha256"},
         "biominerSha": {"$ref": "#/$defs/gitSha"}
       }
     },
