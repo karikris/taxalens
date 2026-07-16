@@ -29,10 +29,45 @@ export interface SimpleRandomTargetPrecisionEstimate {
     | null
 }
 
+export interface WeightedPrecisionStratumEstimate {
+  readonly stratumId: string
+  readonly label: string
+  readonly decisiveSampleCount: number
+  readonly correctCount: number
+  readonly errorCount: number
+  readonly samplingWeightSum: number
+  readonly populationWeight: number | null
+  readonly analysisWeight: number | null
+  readonly estimate: number | null
+}
+
+export interface WeightedTargetPrecisionEstimate {
+  readonly schemaVersion: typeof TARGET_PRECISION_ESTIMATE_SCHEMA_VERSION
+  readonly method: 'stratified_hajek'
+  readonly availability: TargetPrecisionAvailability
+  readonly blockers: readonly string[]
+  readonly samplingPlanId: string
+  readonly samplingDesign: VerificationCampaign['samplingPlan']['design']
+  readonly sampledItemCount: number
+  readonly decisiveSampleCount: number
+  readonly correctCount: number
+  readonly errorCount: number
+  readonly estimate: number | null
+  readonly effectiveSampleSize: number | null
+  readonly representedStrata: readonly string[]
+  readonly missingStrata: readonly string[]
+  readonly strata: readonly WeightedPrecisionStratumEstimate[]
+}
+
 interface PrecisionRow {
   readonly item: VerificationItem
   readonly consensus: VerificationConsensus
   readonly targetCorrect: 0 | 1
+}
+
+interface WeightedPrecisionRow extends PrecisionRow {
+  readonly samplingWeight: number
+  readonly analysisWeight: number
 }
 
 export function estimateSimpleRandomTargetPrecision(
@@ -146,6 +181,187 @@ export function wilsonInterval(
   })
 }
 
+export function estimateWeightedTargetPrecision(
+  campaign: VerificationCampaign,
+  items: readonly VerificationItem[],
+  consensus: readonly VerificationConsensus[],
+): WeightedTargetPrecisionEstimate {
+  const prepared = preparePrecisionRows(campaign, items, consensus)
+  const blockers = [...prepared.blockers]
+  if (
+    campaign.samplingPlan.design !== 'stratified_random' &&
+    campaign.samplingPlan.design !== 'clustered_random'
+  ) {
+    blockers.push('sampling_design_not_weighted_probability')
+  }
+  if (campaign.samplingPlan.strata.length === 0) {
+    blockers.push('sampling_strata_missing')
+  }
+  const stratumById = new Map(
+    campaign.samplingPlan.strata.map((stratum) => [
+      stratum.stratumId,
+      stratum,
+    ]),
+  )
+  if (
+    stratumById.size !== campaign.samplingPlan.strata.length ||
+    campaign.samplingPlan.strata.some(
+      ({ populationCount, populationWeight }) =>
+        (populationCount !== null &&
+          (!Number.isInteger(populationCount) || populationCount < 1)) ||
+        (populationWeight !== null &&
+          (!Number.isFinite(populationWeight) || populationWeight <= 0)),
+    )
+  ) {
+    blockers.push('sampling_strata_invalid')
+  }
+  if (
+    items.some(({ samplingStratumId }) => !stratumById.has(samplingStratumId))
+  ) {
+    blockers.push('sampling_stratum_undeclared')
+  }
+  const baseRows = prepared.rows.map((row) => {
+    const probability = row.item.inclusionProbability
+    if (probability === null) {
+      if (campaign.samplingPlan.inclusionProbabilityRequired) {
+        blockers.push('inclusion_probability_missing')
+      }
+      return Object.freeze({ ...row, samplingWeight: 1 })
+    }
+    return Object.freeze({ ...row, samplingWeight: 1 / probability })
+  })
+  const representedStrata = [
+    ...new Set(baseRows.map(({ item }) => item.samplingStratumId)),
+  ].sort()
+  const missingStrata = campaign.samplingPlan.strata
+    .map(({ stratumId }) => stratumId)
+    .filter((stratumId) => !representedStrata.includes(stratumId))
+    .sort()
+  if (missingStrata.length > 0) {
+    blockers.push('sampling_strata_missing')
+  }
+  if (baseRows.length === 0) {
+    blockers.push('decisive_sample_empty')
+  }
+  const declaredWeights = populationWeights(campaign)
+  const weightedRows: WeightedPrecisionRow[] = []
+  for (const stratum of campaign.samplingPlan.strata) {
+    const rows = baseRows.filter(
+      ({ item }) => item.samplingStratumId === stratum.stratumId,
+    )
+    const stratumSamplingWeight = rows.reduce(
+      (total, { samplingWeight }) => total + samplingWeight,
+      0,
+    )
+    const declaredWeight = declaredWeights.get(stratum.stratumId)
+    for (const row of rows) {
+      const analysisWeight =
+        declaredWeight === undefined
+          ? row.samplingWeight
+          : (declaredWeight * row.samplingWeight) /
+            stratumSamplingWeight
+      weightedRows.push(
+        Object.freeze({
+          ...row,
+          analysisWeight,
+        }),
+      )
+    }
+  }
+  const analysisWeightSum = weightedRows.reduce(
+    (total, { analysisWeight }) => total + analysisWeight,
+    0,
+  )
+  if (
+    weightedRows.length > 0 &&
+    (!Number.isFinite(analysisWeightSum) || analysisWeightSum <= 0)
+  ) {
+    blockers.push('sampling_weights_invalid')
+  }
+  const strata = campaign.samplingPlan.strata.map((stratum) => {
+    const rows = weightedRows.filter(
+      ({ item }) => item.samplingStratumId === stratum.stratumId,
+    )
+    const correctCount = rows.reduce(
+      (total, { targetCorrect }) => total + targetCorrect,
+      0,
+    )
+    const samplingWeightSum = rows.reduce(
+      (total, { samplingWeight }) => total + samplingWeight,
+      0,
+    )
+    const analysisWeight = rows.reduce(
+      (total, row) => total + row.analysisWeight,
+      0,
+    )
+    return Object.freeze({
+      stratumId: stratum.stratumId,
+      label: stratum.label,
+      decisiveSampleCount: rows.length,
+      correctCount,
+      errorCount: rows.length - correctCount,
+      samplingWeightSum,
+      populationWeight: declaredWeights.get(stratum.stratumId) ?? null,
+      analysisWeight: rows.length === 0 ? null : analysisWeight,
+      estimate:
+        rows.length === 0 || samplingWeightSum <= 0
+          ? null
+          : rows.reduce(
+                (total, row) =>
+                  total + row.samplingWeight * row.targetCorrect,
+                0,
+              ) / samplingWeightSum,
+    } satisfies WeightedPrecisionStratumEstimate)
+  })
+  const canonicalBlockers = [...new Set(blockers)].sort()
+  const correctCount = weightedRows.reduce(
+    (total, { targetCorrect }) => total + targetCorrect,
+    0,
+  )
+  if (canonicalBlockers.length > 0) {
+    return unavailableWeightedEstimate(
+      campaign,
+      items.length,
+      weightedRows.length,
+      correctCount,
+      representedStrata,
+      missingStrata,
+      strata,
+      canonicalBlockers,
+    )
+  }
+  const estimate =
+    weightedRows.reduce(
+      (total, row) =>
+        total + row.analysisWeight * row.targetCorrect,
+      0,
+    ) / analysisWeightSum
+  const squaredWeightSum = weightedRows.reduce(
+    (total, { analysisWeight }) =>
+      total + analysisWeight * analysisWeight,
+    0,
+  )
+  const effectiveSampleSize =
+    (analysisWeightSum * analysisWeightSum) / squaredWeightSum
+  return Object.freeze({
+    schemaVersion: TARGET_PRECISION_ESTIMATE_SCHEMA_VERSION,
+    method: 'stratified_hajek',
+    availability: 'available',
+    blockers: Object.freeze([]),
+    samplingPlanId: campaign.samplingPlan.planId,
+    samplingDesign: campaign.samplingPlan.design,
+    sampledItemCount: items.length,
+    decisiveSampleCount: weightedRows.length,
+    correctCount,
+    errorCount: weightedRows.length - correctCount,
+    estimate,
+    effectiveSampleSize,
+    representedStrata: Object.freeze(representedStrata),
+    missingStrata: Object.freeze([]),
+    strata: Object.freeze(strata),
+  })
+}
+
 function preparePrecisionRows(
   campaign: VerificationCampaign,
   items: readonly VerificationItem[],
@@ -248,6 +464,82 @@ function unavailableSimpleRandomEstimate(
     estimate: null,
     interval: null,
   })
+}
+
+function unavailableWeightedEstimate(
+  campaign: VerificationCampaign,
+  sampledItemCount: number,
+  decisiveSampleCount: number,
+  correctCount: number,
+  representedStrata: readonly string[],
+  missingStrata: readonly string[],
+  strata: readonly WeightedPrecisionStratumEstimate[],
+  blockers: readonly string[],
+): WeightedTargetPrecisionEstimate {
+  return Object.freeze({
+    schemaVersion: TARGET_PRECISION_ESTIMATE_SCHEMA_VERSION,
+    method: 'stratified_hajek',
+    availability: 'unavailable',
+    blockers: Object.freeze([...blockers]),
+    samplingPlanId: campaign.samplingPlan.planId,
+    samplingDesign: campaign.samplingPlan.design,
+    sampledItemCount,
+    decisiveSampleCount,
+    correctCount,
+    errorCount: decisiveSampleCount - correctCount,
+    estimate: null,
+    effectiveSampleSize: null,
+    representedStrata: Object.freeze([...representedStrata]),
+    missingStrata: Object.freeze([...missingStrata]),
+    strata: Object.freeze([...strata]),
+  })
+}
+
+function populationWeights(
+  campaign: VerificationCampaign,
+): ReadonlyMap<string, number> {
+  const strata = campaign.samplingPlan.strata
+  if (
+    strata.length > 0 &&
+    strata.every(
+      ({ populationWeight }) =>
+        populationWeight !== null &&
+        Number.isFinite(populationWeight) &&
+        populationWeight > 0,
+    )
+  ) {
+    const total = strata.reduce(
+      (sum, { populationWeight }) => sum + populationWeight!,
+      0,
+    )
+    return new Map(
+      strata.map(({ stratumId, populationWeight }) => [
+        stratumId,
+        populationWeight! / total,
+      ]),
+    )
+  }
+  if (
+    strata.length > 0 &&
+    strata.every(
+      ({ populationCount }) =>
+        populationCount !== null &&
+        Number.isInteger(populationCount) &&
+        populationCount > 0,
+    )
+  ) {
+    const total = strata.reduce(
+      (sum, { populationCount }) => sum + populationCount!,
+      0,
+    )
+    return new Map(
+      strata.map(({ stratumId, populationCount }) => [
+        stratumId,
+        populationCount! / total,
+      ]),
+    )
+  }
+  return new Map()
 }
 
 function validConfidenceLevel(value: number): boolean {
