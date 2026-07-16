@@ -480,16 +480,18 @@ export function HumanReviewWorkspace({
           </div>
           <h3 id="review-item-title">{item.verificationLabel}</h3>
           <p className="review-item__metadata">
-            Adult · live field · {item.view} view · expected label{' '}
+            {formatReviewDimension(item.expectedLifeStage)} ·{' '}
+            {formatReviewDimension(item.expectedVisualDomain)} ·{' '}
+            {formatReviewDimension(item.expectedView)} view · expected label{' '}
             <i>{replay.target.scientificName}</i>
           </p>
           <p className="review-item__attribution">
-            <a href={item.source.sourceUrl} target="_blank" rel="noreferrer">
-              {item.source.title}
+            <a href={item.rights.sourceUri} target="_blank" rel="noreferrer">
+              {item.providerSuppliedIdentity.rawLabel ?? item.rights.attribution}
             </a>{' '}
-            by {item.source.creator} ·{' '}
-            <a href={item.source.licenseUrl} target="_blank" rel="noreferrer">
-              {item.source.licenseName}
+            by {item.rights.creator ?? 'unknown creator'} ·{' '}
+            <a href={item.rights.licenseUri} target="_blank" rel="noreferrer">
+              {item.rights.licenseName}
             </a>
           </p>
         </section>
@@ -741,6 +743,10 @@ function outcomeCounts(session: HumanReviewSession) {
     cantView: decisions.filter(({ outcome }) => outcome === 'cant_view').length,
     skipped: decisions.filter(({ outcome }) => outcome === 'skipped').length,
   }
+}
+
+function formatReviewDimension(value: string | null): string {
+  return value === null ? 'unspecified' : value.replaceAll('_', ' ')
 }
 
 function errorMessage(reason: unknown): string {

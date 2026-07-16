@@ -1,5 +1,14 @@
 export { HumanReviewWorkspace } from './HumanReviewWorkspace'
-export { HUMAN_REVIEW_PACKET } from './reviewPacket'
+export {
+  COMMONS_VERIFICATION_FIXTURE,
+  HUMAN_REVIEW_CAMPAIGN,
+  HUMAN_REVIEW_ITEMS,
+  HUMAN_REVIEW_PACKET,
+} from './reviewPacket'
+export type {
+  VerificationCampaign,
+  VerificationItem,
+} from './verificationContracts'
 export type {
   HumanReviewDecision,
   HumanReviewOutcome,

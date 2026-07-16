@@ -2,34 +2,68 @@ import { createHash } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 
-const assets = [
-  {
-    file: '../src/review/assets/papilio-demoleus-open-wing.jpg',
-    bytes: 180_698,
-    sha256: '47248e36944cf91256c906e8454adcad99121da049260745d57f4cbffae65a78',
-  },
-  {
-    file: '../src/review/assets/papilio-demoleus-closed-wing.jpg',
-    bytes: 159_332,
-    sha256: '3bd3248347c3b82a977b0890f192f2f0c93253eff13d38b4b54dedb08b39627b',
-  },
-  {
-    file: '../src/review/assets/papilio-demoleus-lime-swallowtail.jpg',
-    bytes: 130_460,
-    sha256: '9ceb5c0e354627441ba7be5a8e75a8eed7c278948e606e4892ae47387ee1bbea',
-  },
-]
+const manifestUrl = new URL(
+  '../src/review/fixtures/papilio-demoleus-commons.campaign.json',
+  import.meta.url,
+)
+const manifest = JSON.parse(await readFile(manifestUrl, 'utf8'))
+const { manifestSha256, ...unsignedManifest } = manifest
+const computedManifestSha256 = createHash('sha256')
+  .update(JSON.stringify(unsignedManifest))
+  .digest('hex')
 
-for (const asset of assets) {
-  const path = fileURLToPath(new URL(asset.file, import.meta.url))
-  const content = await readFile(path)
-  const digest = createHash('sha256').update(content).digest('hex')
-  if (content.byteLength !== asset.bytes || digest !== asset.sha256) {
-    throw new Error(`Human-review asset identity differs: ${asset.file}`)
+if (manifestSha256 !== computedManifestSha256) {
+  throw new Error(
+    `Verification campaign manifest identity differs: ${fileURLToPath(manifestUrl)}`,
+  )
+}
+if (
+  manifest.schemaVersion !==
+  'taxalens-verification-campaign-manifest:v1.0.0'
+) {
+  throw new Error(
+    `Unsupported verification campaign manifest: ${manifest.schemaVersion}`,
+  )
+}
+if (!Array.isArray(manifest.items) || manifest.items.length === 0) {
+  throw new Error('Verification campaign manifest contains no media items')
+}
+
+for (const item of manifest.items) {
+  if (
+    typeof item.previewAsset !== 'string' ||
+    !/^[a-z0-9][a-z0-9.-]+$/u.test(item.previewAsset)
+  ) {
+    throw new Error(`Unsafe verification campaign asset: ${item.previewAsset}`)
   }
-  if (content[0] !== 0xff || content[1] !== 0xd8) {
-    throw new Error(`Human-review asset is not a JPEG: ${asset.file}`)
+  if (item.campaignId !== manifest.campaign.campaignId) {
+    throw new Error(`Verification item campaign differs: ${item.itemId}`)
+  }
+  const assetUrl = new URL(
+    `../src/review/assets/${item.previewAsset}`,
+    import.meta.url,
+  )
+  const content = await readFile(assetUrl)
+  const digest = createHash('sha256').update(content).digest('hex')
+  if (
+    content.byteLength !== item.imageByteCount ||
+    digest !== item.imageSha256
+  ) {
+    throw new Error(
+      `Verification campaign asset identity differs: ${item.previewAsset}`,
+    )
+  }
+  if (
+    item.mediaType !== 'image/jpeg' ||
+    content[0] !== 0xff ||
+    content[1] !== 0xd8
+  ) {
+    throw new Error(
+      `Verification campaign asset is not a JPEG: ${item.previewAsset}`,
+    )
   }
 }
 
-console.log(`Human-review assets verified: ${assets.length}`)
+console.log(
+  `Verification campaign fixture verified: ${manifest.items.length} media items`,
+)
