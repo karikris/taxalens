@@ -71,12 +71,12 @@ describe('generateEvidencePlan', () => {
       'full-frame-transformation',
       'target-aware-scoring',
     ])
-    expect(first.artifactExpectations).toHaveLength(20)
+    expect(first.artifactExpectations).toHaveLength(25)
     expect(
       first.artifactExpectations.filter(
         (expectation) => expectation.purpose === 'future_evidence_required',
       ),
-    ).toHaveLength(6)
+    ).toHaveLength(10)
     expect(first.approvalRequirement).toMatchObject({
       required: true,
       status: 'not_approved',

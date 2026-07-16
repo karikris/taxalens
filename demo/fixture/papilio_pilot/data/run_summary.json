@@ -11,7 +11,7 @@
     "status": "unavailable"
   },
   "fixture_kind": "truthful_metadata_pilot",
-  "fixture_schema_version": "taxalens-truthful-demo-fixture:v1.1.0",
+  "fixture_schema_version": "taxalens-truthful-demo-fixture:v1.2.0",
   "full_frame_transformations": {
     "reason": "No pilot media was processed, so no real transformed full frame is available.",
     "record_count": 0,

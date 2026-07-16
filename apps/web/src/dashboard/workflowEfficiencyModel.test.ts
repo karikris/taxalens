@@ -41,9 +41,9 @@ describe('workflow efficiency model', () => {
     const completeness = model.metrics.find(({ id }) => id === 'evidence-completeness')
 
     expect(completeness?.status).toBe('measured')
-    expect(completeness?.value).toBe('25 of 25 artifacts verified')
+    expect(completeness?.value).toBe('28 of 28 artifacts verified')
     expect(completeness?.interpretation).toContain('not scientific completeness')
-    expect(model.sectionStates).toEqual({ available: 5, partial: 9, unavailable: 6, total: 20 })
+    expect(model.sectionStates).toEqual({ available: 6, partial: 9, unavailable: 10, total: 25 })
     expect(model.provenance.map(({ artifactId }) => artifactId)).toEqual([
       'reference-readiness',
       'duplicate-summaries',

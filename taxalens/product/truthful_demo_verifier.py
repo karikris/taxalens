@@ -31,6 +31,7 @@ from taxalens.product.truthful_demo import (
     TRUTHFUL_DEMO_HERO_ID,
     TRUTHFUL_DEMO_LEGACY_BIOMINER_SHA,
     TRUTHFUL_DEMO_TAXALENS_SHA,
+    TRUTHFUL_DEMO_VERIFICATION_MEDIA_SHA,
 )
 
 DEFAULT_TRUTHFUL_DEMO_MANIFEST = DEFAULT_TRUTHFUL_DEMO_ROOT / "judge_bundle.json"
@@ -92,12 +93,10 @@ class TruthfulDemoVerification:
 
 
 _EXPECTED_ARTIFACT_VERSIONS = {
-    "attribution-manifest": "truthful-demo-attribution-manifest:v1.0.0",
+    "attribution-manifest": "truthful-demo-attribution-manifest:v1.1.0",
     "biological-negatives": "truthful-demo-biological-negative-plan:v1.0.0",
     "biominer-analytics-import-receipt": "taxalens-biominer-analytics-import:v1.0.0",
-    "biominer-flickr-geo-assignments-parquet": (
-        "biominer-flickr-geo-assignments-parquet:v1.0.0"
-    ),
+    "biominer-flickr-geo-assignments-parquet": ("biominer-flickr-geo-assignments-parquet:v1.0.0"),
     "biominer-flickr-geo-clusters-parquet": "biominer-flickr-geo-clusters-parquet:v1.0.0",
     "biominer-flickr-geography-parquet": "biominer-flickr-geography-parquet:v1.0.0",
     "biominer-flickr-query-hits-parquet": "biominer-flickr-query-hits-parquet:v1.0.0",
@@ -112,12 +111,19 @@ _EXPECTED_ARTIFACT_VERSIONS = {
     "query-definitions": "truthful-demo-query-definition:v1.0.0",
     "reference-readiness": "truthful-demo-reference-readiness:v1.0.0",
     "reference-shortfalls": "truthful-demo-reference-shortfall:v1.0.0",
-    "rights-manifest": "truthful-demo-rights-manifest:v1.0.0",
+    "rights-manifest": "truthful-demo-rights-manifest:v1.1.0",
     "run-summary": "truthful-demo-run-summary:v1.0.0",
     "selective-decision-metadata": "truthful-demo-decision-state:v1.0.0",
     "stage-metrics": "truthful-demo-metadata-metric:v1.0.0",
     "stored-analyst-request": "taxalens-stored-analyst-request:v1.0.0",
     "stored-analyst-run": "taxalens-research-analyst-run:v1.0.0",
+    "verification-media-commons-papilio-demoleus-closed-wing": (
+        "taxalens-verification-media:v1.0.0"
+    ),
+    "verification-media-commons-papilio-demoleus-lime-swallowtail": (
+        "taxalens-verification-media:v1.0.0"
+    ),
+    "verification-media-commons-papilio-demoleus-open-wing": ("taxalens-verification-media:v1.0.0"),
     "visual-domain-negatives": "truthful-demo-visual-domain-negative-plan:v1.0.0",
 }
 _PLACEHOLDER_PATTERN = re.compile(
@@ -276,6 +282,14 @@ def _verify_inventory(
                     relative,
                 )
             payload = content
+        elif media_type == "image/jpeg":
+            if not content.startswith(b"\xff\xd8\xff") or not content.endswith(b"\xff\xd9"):
+                _fail(
+                    TruthfulDemoFailure.CONTRACT_VIOLATION,
+                    "artifact does not have complete JPEG markers",
+                    relative,
+                )
+            payload = content
         else:
             _fail(
                 TruthfulDemoFailure.CONTRACT_VIOLATION,
@@ -331,6 +345,18 @@ def _verify_versions(
                     f"payload schema must match inventory version {expected}",
                     str(artifact["path"]),
                 )
+        if artifact_id.startswith("verification-media-") and (
+            artifact.get("source_repository") != "karikris/TaxaLens"
+            or artifact.get("source_commit") != TRUTHFUL_DEMO_VERIFICATION_MEDIA_SHA
+        ):
+            _fail(
+                TruthfulDemoFailure.STALE_ARTIFACT_VERSION,
+                (
+                    "verification media must retain the pinned TaxaLens source commit "
+                    f"{TRUTHFUL_DEMO_VERIFICATION_MEDIA_SHA}"
+                ),
+                f"artifact:{artifact_id}.source_commit",
+            )
     revisions = _object(bundle.get("source_revisions"), "source_revisions")
     if revisions.get("taxalens_sha") != TRUTHFUL_DEMO_TAXALENS_SHA:
         _fail(
@@ -370,9 +396,7 @@ def _verify_biominer_sha(
             "pilot metadata snapshot lacks the historical pinned source SHA",
             "source/pilot_metadata_snapshot.json",
         )
-    prototype = _object(
-        payloads["prototype-evidence-snapshot"], "prototype_evidence_snapshot"
-    )
+    prototype = _object(payloads["prototype-evidence-snapshot"], "prototype_evidence_snapshot")
     if (
         prototype.get("origin_repository") != "karikris/BioMiner"
         or prototype.get("origin_commit") != TRUTHFUL_DEMO_BIOMINER_SHA
@@ -401,9 +425,7 @@ def _verify_biominer_sha(
     release_gate = evaluate_prototype_release_gate(prototype)
     if release_gate["decision"] != GO_PROTOTYPE_ONLY:
         failed = [
-            gate["gate_id"]
-            for gate in release_gate["gate_results"]
-            if gate["status"] == "failed"
+            gate["gate_id"] for gate in release_gate["gate_results"] if gate["status"] == "failed"
         ]
         _fail(
             TruthfulDemoFailure.UNSUPPORTED_GOLD_RESULT,
@@ -416,12 +438,11 @@ def _verify_analytics_receipt(
     artifacts: Mapping[str, Mapping[str, Any]],
     payloads: Mapping[str, object],
 ) -> None:
-    receipt = _object(
-        payloads["biominer-analytics-import-receipt"], "analytics_import_receipt"
-    )
-    if receipt.get("origin_repository") != "karikris/BioMiner" or receipt.get(
-        "origin_commit"
-    ) != TRUTHFUL_DEMO_LEGACY_BIOMINER_SHA:
+    receipt = _object(payloads["biominer-analytics-import-receipt"], "analytics_import_receipt")
+    if (
+        receipt.get("origin_repository") != "karikris/BioMiner"
+        or receipt.get("origin_commit") != TRUTHFUL_DEMO_LEGACY_BIOMINER_SHA
+    ):
         _fail(
             TruthfulDemoFailure.MISSING_BIOMINER_SHA,
             "analytics receipt does not identify the pinned BioMiner revision",
@@ -773,7 +794,11 @@ def _verify_counts(
         )
         payload = payloads[artifact_id]
         if isinstance(payload, bytes):
-            observed = analytics_counts.get(artifact_id, -1)
+            observed = (
+                1
+                if artifact.get("role") == "verification_media"
+                else analytics_counts.get(artifact_id, -1)
+            )
         elif artifact.get("role") == "attribution":
             observed = len(_array(_object(payload, artifact_id).get("entries"), "entries"))
         elif isinstance(payload, list):
@@ -889,6 +914,17 @@ def _verify_rights(
             f"rights coverage differs; missing={sorted(set(artifacts) - covered)}",
             "judge_bundle.rights",
         )
+    media_artifact_ids = {
+        artifact_id
+        for artifact_id, artifact in artifacts.items()
+        if artifact.get("role") == "verification_media"
+    }
+    if len(media_artifact_ids) != 3 or rights.get("all_media_rights_verified") is not True:
+        _fail(
+            TruthfulDemoFailure.MISSING_RIGHTS,
+            "the three verification-media artifacts require verified media rights",
+            "judge_bundle.rights",
+        )
     rights_payload = _object(payloads["rights-manifest"], "rights_manifest")
     payload_covered = {
         artifact_id
@@ -903,11 +939,16 @@ def _verify_rights(
             "rights_manifest.json does not cover every inventory artifact",
             "rights_manifest.json",
         )
-    if rights_payload.get("media_asset_count") != 0:
+    if (
+        rights_payload.get("media_asset_count") != 3
+        or rights_payload.get("licensed_image_count") != 3
+        or rights_payload.get("included_image_count") != 3
+        or rights_payload.get("all_media_rights_verified") is not True
+    ):
         _fail(
             TruthfulDemoFailure.MISSING_RIGHTS,
-            "v1 fixture admits no media assets",
-            "rights_manifest.media_asset_count",
+            "rights manifest must register all three licensed verification images",
+            "rights_manifest",
         )
 
 

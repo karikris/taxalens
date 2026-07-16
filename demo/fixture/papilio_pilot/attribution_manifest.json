@@ -47,7 +47,43 @@
       "license_uri": "https://opensource.org/license/mit",
       "source_title": "TaxaLens",
       "source_url": "https://github.com/karikris/TaxaLens"
+    },
+    {
+      "artifact_ids": [
+        "verification-media-commons-papilio-demoleus-open-wing"
+      ],
+      "attribution_id": "commons-attribution-commons-papilio-demoleus-open-wing",
+      "creator": "Jeevan Jose",
+      "display_text": "Common Lime Butterfly Papilio demoleus UP by Kadavoor by Jeevan Jose, CC BY-SA 4.0",
+      "license_name": "CC BY-SA 4.0",
+      "license_uri": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "source_title": "Common Lime Butterfly Papilio demoleus UP by Kadavoor",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Common_Lime_Butterfly_Papilio_demoleus_UP_by_Kadavoor.jpg"
+    },
+    {
+      "artifact_ids": [
+        "verification-media-commons-papilio-demoleus-closed-wing"
+      ],
+      "attribution_id": "commons-attribution-commons-papilio-demoleus-closed-wing",
+      "creator": "Sayan Sanyal",
+      "display_text": "Close wing position of Papilio demoleus, Linnaeus, 1758 – Lime Butterfly by Sayan Sanyal, CC BY-SA 4.0",
+      "license_name": "CC BY-SA 4.0",
+      "license_uri": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "source_title": "Close wing position of Papilio demoleus, Linnaeus, 1758 – Lime Butterfly",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Close_wing_position_of_Papilio_demoleus,_Linnaeus,_1758_%E2%80%93_Lime_Butterfly_WLB.jpg"
+    },
+    {
+      "artifact_ids": [
+        "verification-media-commons-papilio-demoleus-lime-swallowtail"
+      ],
+      "attribution_id": "commons-attribution-commons-papilio-demoleus-lime-swallowtail",
+      "creator": "Bias Chakraborty",
+      "display_text": "Closed wing of Papilio demoleus Linnaeus, 1758 – Lime Swallowtail by Bias Chakraborty, CC BY-SA 4.0",
+      "license_name": "CC BY-SA 4.0",
+      "license_uri": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "source_title": "Closed wing of Papilio demoleus Linnaeus, 1758 – Lime Swallowtail",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Closed_wing_of_Papilio_demoleus_Linnaeus,_1758_%E2%80%93_Lime_Swallowtail.jpg"
     }
   ],
-  "schema_version": "truthful-demo-attribution-manifest:v1.0.0"
+  "schema_version": "truthful-demo-attribution-manifest:v1.1.0"
 }

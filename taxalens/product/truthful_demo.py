@@ -6,7 +6,7 @@ import hashlib
 import json
 import shutil
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 from packages.replay.src.biominer_phase14_pilot_adapter import (
@@ -31,20 +31,27 @@ from taxalens.product.judge_bundle import (
     load_judge_bundle,
 )
 
-TRUTHFUL_DEMO_SCHEMA_VERSION = "taxalens-truthful-demo-fixture:v1.1.0"
+TRUTHFUL_DEMO_SCHEMA_VERSION = "taxalens-truthful-demo-fixture:v1.2.0"
 TRUTHFUL_DEMO_BUNDLE_ID = "papilio-demoleus-prototype-74a7d648-v3"
 TRUTHFUL_DEMO_CREATED_AT = "2026-07-16T11:57:54Z"
 TRUTHFUL_DEMO_BIOMINER_SHA = "74a7d648a562efa744e6502ef504a23b63b4e02f"
 TRUTHFUL_DEMO_LEGACY_BIOMINER_SHA = "75461d9c065af0cd96b41cd1f845c2e920f7ae34"
 TRUTHFUL_DEMO_TAXALENS_SHA = "fab9d3f1605d28d4bbfc3a4d0074f40e5ffff023"
+TRUTHFUL_DEMO_VERIFICATION_MEDIA_SHA = "ff96b7f8f6feaf8197000b0f5265110a7d331e08"
 TRUTHFUL_DEMO_HERO_ID = "papilio-demoleus-pilot-awaiting-review"
 DEFAULT_TRUTHFUL_DEMO_ROOT = Path("demo/fixture/papilio_pilot")
 DEFAULT_ANALYTICS_IMPORT_MANIFEST = Path(
     "demo/source/biominer_phase14/analytics_import_manifest.json"
 )
+_REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_VERIFICATION_CAMPAIGN_MANIFEST = _REPOSITORY_ROOT / (
+    "apps/web/src/review/fixtures/papilio-demoleus-commons.campaign.json"
+)
+DEFAULT_VERIFICATION_MEDIA_ROOT = _REPOSITORY_ROOT / "apps/web/src/review/assets"
 
 _BIOMINER_REPOSITORY = "karikris/BioMiner"
 _TAXALENS_REPOSITORY = "karikris/TaxaLens"
+_VERIFICATION_MEDIA_SCHEMA_VERSION = "taxalens-verification-media:v1.0.0"
 
 
 @dataclass(frozen=True, slots=True)
@@ -58,6 +65,20 @@ class _ArtifactSpec:
     payload: object | bytes
     record_count: int
     media_type: str = "application/json"
+
+
+@dataclass(frozen=True, slots=True)
+class _VerificationMediaAsset:
+    spec: _ArtifactSpec
+    item_id: str
+    creator: str
+    rights_holder: str
+    source_title: str
+    source_url: str
+    license_name: str
+    license_uri: str
+    attribution: str
+    use_scope: str
 
 
 def _pilot_contract(pilot: dict[str, Any], name: str) -> dict[str, Any]:
@@ -706,8 +727,7 @@ def _stored_agent_payloads() -> list[_ArtifactSpec]:
             {
                 "id": "resolved-target",
                 "claim": (
-                    "Papilio demoleus is the declared replay target with accepted key "
-                    "gbif:1938069."
+                    "Papilio demoleus is the declared replay target with accepted key gbif:1938069."
                 ),
                 "claimType": "provenance_fact",
                 "artifactIds": artifact_ids,
@@ -786,6 +806,127 @@ def _canonical_file_bytes(payload: object) -> bytes:
     return (json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode()
 
 
+def _required_media_text(value: object, label: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{label} must be a non-empty string")
+    return value
+
+
+def _verification_media_assets(
+    campaign_manifest: str | Path = DEFAULT_VERIFICATION_CAMPAIGN_MANIFEST,
+    media_root: str | Path = DEFAULT_VERIFICATION_MEDIA_ROOT,
+) -> list[_VerificationMediaAsset]:
+    manifest_path = Path(campaign_manifest)
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise ValueError(f"could not load verification campaign manifest: {error}") from error
+    if not isinstance(manifest, dict):
+        raise ValueError("verification campaign manifest must be an object")
+    if manifest.get("schemaVersion") != "taxalens-verification-campaign-manifest:v1.0.0":
+        raise ValueError("verification campaign manifest schema differs")
+    items = manifest.get("items")
+    if not isinstance(items, list) or not items:
+        raise ValueError("verification campaign manifest must contain items")
+
+    assets: list[_VerificationMediaAsset] = []
+    seen_item_ids: set[str] = set()
+    seen_paths: set[str] = set()
+    root = Path(media_root)
+    for index, raw_item in enumerate(items):
+        label = f"verification campaign items[{index}]"
+        if not isinstance(raw_item, dict):
+            raise ValueError(f"{label} must be an object")
+        item_id = _required_media_text(raw_item.get("itemId"), f"{label}.itemId")
+        if item_id in seen_item_ids:
+            raise ValueError(f"duplicate verification item ID: {item_id}")
+        seen_item_ids.add(item_id)
+
+        preview_asset = _required_media_text(raw_item.get("previewAsset"), f"{label}.previewAsset")
+        relative = PurePosixPath(preview_asset)
+        if relative.is_absolute() or len(relative.parts) != 1 or relative.name != preview_asset:
+            raise ValueError(f"{label}.previewAsset must be a plain file name")
+        if relative.suffix.lower() not in {".jpg", ".jpeg"}:
+            raise ValueError(f"{label}.previewAsset must be a JPEG")
+        if preview_asset in seen_paths:
+            raise ValueError(f"duplicate verification media path: {preview_asset}")
+        seen_paths.add(preview_asset)
+
+        media_type = _required_media_text(raw_item.get("mediaType"), f"{label}.mediaType")
+        if media_type != "image/jpeg":
+            raise ValueError(f"{label}.mediaType must be image/jpeg")
+        source_path = root / preview_asset
+        try:
+            content = source_path.read_bytes()
+        except OSError as error:
+            raise ValueError(
+                f"could not load verification media {preview_asset}: {error}"
+            ) from error
+        expected_bytes = raw_item.get("imageByteCount")
+        if (
+            not isinstance(expected_bytes, int)
+            or isinstance(expected_bytes, bool)
+            or expected_bytes < 1
+            or len(content) != expected_bytes
+        ):
+            raise ValueError(f"{label}.imageByteCount differs from the committed asset")
+        expected_sha256 = _required_media_text(raw_item.get("imageSha256"), f"{label}.imageSha256")
+        if hashlib.sha256(content).hexdigest() != expected_sha256:
+            raise ValueError(f"{label}.imageSha256 differs from the committed asset")
+        if not content.startswith(b"\xff\xd8\xff") or not content.endswith(b"\xff\xd9"):
+            raise ValueError(f"{label}.previewAsset is not a complete JPEG")
+
+        identity = raw_item.get("providerSuppliedIdentity")
+        rights = raw_item.get("rights")
+        if not isinstance(identity, dict) or not isinstance(rights, dict):
+            raise ValueError(f"{label} requires provider identity and rights objects")
+        if rights.get("policyStatus") != "allowed":
+            raise ValueError(f"{label}.rights.policyStatus must be allowed")
+        use_scope = (
+            "Credential-free TaxaLens human-verification display, offline judge replay, "
+            "and redistributable review packet under the source licence; not scientific "
+            "evidence until a human decision is retained."
+        )
+        artifact_id = f"verification-media-{item_id}"
+        assets.append(
+            _VerificationMediaAsset(
+                spec=_ArtifactSpec(
+                    artifact_id=artifact_id,
+                    path=f"verification/media/{preview_asset}",
+                    role="verification_media",
+                    schema_version=_VERIFICATION_MEDIA_SCHEMA_VERSION,
+                    source_repository=_TAXALENS_REPOSITORY,
+                    source_commit=TRUTHFUL_DEMO_VERIFICATION_MEDIA_SHA,
+                    payload=content,
+                    record_count=1,
+                    media_type=media_type,
+                ),
+                item_id=item_id,
+                creator=_required_media_text(rights.get("creator"), f"{label}.rights.creator"),
+                rights_holder=_required_media_text(
+                    rights.get("rightsHolder"), f"{label}.rights.rightsHolder"
+                ),
+                source_title=_required_media_text(
+                    identity.get("rawLabel"), f"{label}.providerSuppliedIdentity.rawLabel"
+                ),
+                source_url=_required_media_text(
+                    rights.get("sourceUri"), f"{label}.rights.sourceUri"
+                ),
+                license_name=_required_media_text(
+                    rights.get("licenseName"), f"{label}.rights.licenseName"
+                ),
+                license_uri=_required_media_text(
+                    rights.get("licenseUri"), f"{label}.rights.licenseUri"
+                ),
+                attribution=_required_media_text(
+                    rights.get("attribution"), f"{label}.rights.attribution"
+                ),
+                use_scope=use_scope,
+            )
+        )
+    return assets
+
+
 def _section(
     *,
     status: str,
@@ -806,7 +947,9 @@ def _section(
     }
 
 
-def _sections() -> dict[str, dict[str, object]]:
+def _sections(
+    verification_media_ids: list[str] | None = None,
+) -> dict[str, dict[str, object]]:
     available = {
         "run_summary": ("run-summary", "not_applicable", "machine_verified_contract", "available"),
         "pipeline_stages": (
@@ -950,6 +1093,14 @@ def _sections() -> dict[str, dict[str, object]]:
                 candidate_semantics=semantics,
                 verification_status="unavailable",
             )
+    if verification_media_ids:
+        sections["verification_media"] = _section(
+            status="available",
+            artifact_ids=verification_media_ids,
+            reason=None,
+            candidate_semantics="candidate_reference_not_verified_support",
+            verification_status="unreviewed",
+        )
     return sections
 
 
@@ -982,6 +1133,8 @@ def build_truthful_demo_fixture(
     release_gate = evaluate_prototype_release_gate(prototype)
     if release_gate["decision"] != GO_PROTOTYPE_ONLY:
         raise ValueError("truthful demo prototype release gate returned NO_GO")
+    verification_media = _verification_media_assets()
+    verification_media_ids = [asset.spec.artifact_id for asset in verification_media]
 
     root = Path(destination)
     if root.exists():
@@ -997,6 +1150,7 @@ def build_truthful_demo_fixture(
         *_analytics_payloads(analytics_import_manifest),
         *_prototype_payloads(prototype),
         *_stored_agent_payloads(),
+        *(asset.spec for asset in verification_media),
     ]
     biominer_ids = [
         spec.artifact_id for spec in specs if spec.source_repository == _BIOMINER_REPOSITORY
@@ -1004,16 +1158,52 @@ def build_truthful_demo_fixture(
     taxalens_ids = [
         spec.artifact_id for spec in specs if spec.source_repository == _TAXALENS_REPOSITORY
     ]
+    taxalens_fixture_ids = [
+        artifact_id for artifact_id in taxalens_ids if artifact_id not in verification_media_ids
+    ]
+    media_rights_items = [
+        {
+            "rights_id": f"commons-rights-{asset.item_id}",
+            "artifact_ids": [asset.spec.artifact_id],
+            "status": "rights_verified",
+            "license_name": asset.license_name,
+            "license_uri": asset.license_uri,
+            "creator_or_owner": asset.creator,
+            "rights_holder": asset.rights_holder,
+            "source_title": asset.source_title,
+            "source_url": asset.source_url,
+            "sha256": hashlib.sha256(asset.spec.payload).hexdigest(),
+            "bytes": len(asset.spec.payload),
+            "derivative_status": "Unmodified Commons JPEG copied into the judge fixture",
+            "use_scope": asset.use_scope,
+            "permitted_use": asset.use_scope,
+            "attribution_required": True,
+        }
+        for asset in verification_media
+    ]
+    media_attribution_entries = [
+        {
+            "attribution_id": f"commons-attribution-{asset.item_id}",
+            "artifact_ids": [asset.spec.artifact_id],
+            "display_text": asset.attribution,
+            "creator": asset.creator,
+            "source_title": asset.source_title,
+            "source_url": asset.source_url,
+            "license_name": asset.license_name,
+            "license_uri": asset.license_uri,
+        }
+        for asset in verification_media
+    ]
     rights_payload = {
-        "schema_version": "truthful-demo-rights-manifest:v1.0.0",
-        "media_asset_count": 0,
-        "licensed_image_count": 0,
-        "included_image_count": 0,
-        "all_media_rights_verified": False,
+        "schema_version": "truthful-demo-rights-manifest:v1.1.0",
+        "media_asset_count": len(verification_media),
+        "licensed_image_count": len(verification_media),
+        "included_image_count": len(verification_media),
+        "all_media_rights_verified": True,
         "all_artifacts_covered": True,
         "media_policy": (
-            "No image is admitted without a committed license, attribution, and human-review "
-            "record."
+            "Verification media is admitted only with a committed licence, attribution, "
+            "content checksum, byte count, review item, and non-scientific use scope."
         ),
         "items": [
             {
@@ -1029,7 +1219,11 @@ def build_truthful_demo_fixture(
             },
             {
                 "rights_id": "taxalens-mit-fixture",
-                "artifact_ids": [*taxalens_ids, "rights-manifest", "attribution-manifest"],
+                "artifact_ids": [
+                    *taxalens_fixture_ids,
+                    "rights-manifest",
+                    "attribution-manifest",
+                ],
                 "license_name": "MIT",
                 "license_uri": "https://opensource.org/license/mit",
                 "creator_or_owner": "Kris Kari",
@@ -1038,20 +1232,21 @@ def build_truthful_demo_fixture(
                 "permitted_use": "TaxaLens judge replay and redistribution under MIT",
                 "attribution_required": True,
             },
+            *media_rights_items,
         ],
         "notes": [
             (
-                "all_media_rights_verified is deliberately false, not vacuously true, because "
-                "no media is included."
+                "all_media_rights_verified covers the three Commons display assets and their "
+                "licences only; it does not verify their provider-supplied taxonomic labels."
             ),
             (
-                "The target taxon name and candidate metadata are not image labels or occurrence "
-                "claims."
+                "The verification media is separate from the frozen BioMiner reference bank and "
+                "does not change the pilot's zero admitted scientific-image count."
             ),
         ],
     }
     attribution_payload = {
-        "schema_version": "truthful-demo-attribution-manifest:v1.0.0",
+        "schema_version": "truthful-demo-attribution-manifest:v1.1.0",
         "complete": True,
         "entries": [
             {
@@ -1068,7 +1263,11 @@ def build_truthful_demo_fixture(
             },
             {
                 "attribution_id": "taxalens-truthful-fixture",
-                "artifact_ids": [*taxalens_ids, "rights-manifest", "attribution-manifest"],
+                "artifact_ids": [
+                    *taxalens_fixture_ids,
+                    "rights-manifest",
+                    "attribution-manifest",
+                ],
                 "display_text": (
                     "TaxaLens truthful pilot fixture, copyright (c) 2026 Kris Kari, MIT License."
                 ),
@@ -1078,6 +1277,7 @@ def build_truthful_demo_fixture(
                 "license_name": "MIT",
                 "license_uri": "https://opensource.org/license/mit",
             },
+            *media_attribution_entries,
         ],
     }
     specs.extend(
@@ -1109,9 +1309,7 @@ def build_truthful_demo_fixture(
     record_counts: dict[str, int] = {}
     for spec in sorted(specs, key=lambda item: item.artifact_id):
         content = (
-            spec.payload
-            if isinstance(spec.payload, bytes)
-            else _canonical_file_bytes(spec.payload)
+            spec.payload if isinstance(spec.payload, bytes) else _canonical_file_bytes(spec.payload)
         )
         path = root / spec.path
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -1132,9 +1330,9 @@ def build_truthful_demo_fixture(
             }
         )
         if spec.role in JUDGE_BUNDLE_SECTION_NAMES:
-            record_counts[spec.role] = spec.record_count
+            record_counts[spec.role] = record_counts.get(spec.role, 0) + spec.record_count
 
-    sections = _sections()
+    sections = _sections(verification_media_ids)
     section_records = {name: record_counts.get(name, 0) for name in JUDGE_BUNDLE_SECTION_NAMES}
     all_ids = [row["artifact_id"] for row in inventory]
     request_descriptor = next(
@@ -1158,7 +1356,7 @@ def build_truthful_demo_fixture(
         "rights": {
             "status": "license_checked",
             "all_artifacts_covered": True,
-            "all_media_rights_verified": False,
+            "all_media_rights_verified": True,
             "items": [
                 {
                     "rights_id": "biominer-mit-metadata",
@@ -1179,7 +1377,11 @@ def build_truthful_demo_fixture(
                 },
                 {
                     "rights_id": "taxalens-mit-fixture",
-                    "artifact_ids": [item for item in all_ids if item not in biominer_ids],
+                    "artifact_ids": [
+                        item
+                        for item in all_ids
+                        if item not in biominer_ids and item not in verification_media_ids
+                    ],
                     "status": "license_checked",
                     "license_name": "MIT",
                     "license_uri": "https://opensource.org/license/mit",
@@ -1187,8 +1389,30 @@ def build_truthful_demo_fixture(
                     "source_url": "https://github.com/karikris/TaxaLens",
                     "use_scope": "truthful fixture structure and replay metadata",
                     "attribution_required": True,
-                    "notes": ["No image is included; media rights are not asserted vacuously."],
+                    "notes": [
+                        "Commons verification media is covered by its own per-asset rights items."
+                    ],
                 },
+                *[
+                    {
+                        "rights_id": item["rights_id"],
+                        "artifact_ids": item["artifact_ids"],
+                        "status": item["status"],
+                        "license_name": item["license_name"],
+                        "license_uri": item["license_uri"],
+                        "creator_or_owner": item["creator_or_owner"],
+                        "source_url": item["source_url"],
+                        "use_scope": item["use_scope"],
+                        "attribution_required": True,
+                        "notes": [
+                            (
+                                "Rights verification authorizes display for human review; the "
+                                "provider-supplied taxonomic identity remains unreviewed."
+                            )
+                        ],
+                    }
+                    for item in media_rights_items
+                ],
             ],
         },
         "attribution": {
@@ -1258,5 +1482,6 @@ __all__ = [
     "TRUTHFUL_DEMO_LEGACY_BIOMINER_SHA",
     "TRUTHFUL_DEMO_SCHEMA_VERSION",
     "TRUTHFUL_DEMO_TAXALENS_SHA",
+    "TRUTHFUL_DEMO_VERIFICATION_MEDIA_SHA",
     "build_truthful_demo_fixture",
 ]

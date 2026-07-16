@@ -15,6 +15,8 @@ const EXPECTED_BUNDLE_ID = 'papilio-demoleus-prototype-74a7d648-v3'
 const EXPECTED_TAXALENS_SHA = 'fab9d3f1605d28d4bbfc3a4d0074f40e5ffff023'
 const EXPECTED_BIOMINER_SHA = '74a7d648a562efa744e6502ef504a23b63b4e02f'
 const LEGACY_BIOMINER_SHA = '75461d9c065af0cd96b41cd1f845c2e920f7ae34'
+const VERIFICATION_MEDIA_TAXALENS_SHA = 'ff96b7f8f6feaf8197000b0f5265110a7d331e08'
+const VERIFICATION_MEDIA_COUNT = 3
 
 type JsonPrimitive = boolean | null | number | string
 export type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue }
@@ -709,7 +711,9 @@ async function assertManifestSemantics(manifest: JudgeBundleContract): Promise<v
   for (const artifact of manifest.artifact_inventory) {
     const admitted =
       (artifact.source_repository === 'karikris/TaxaLens' &&
-        artifact.source_commit === manifest.source_revisions.taxalens_sha) ||
+        (artifact.source_commit === manifest.source_revisions.taxalens_sha ||
+          (artifact.role === 'verification_media' &&
+            artifact.source_commit === VERIFICATION_MEDIA_TAXALENS_SHA))) ||
       (artifact.source_repository === 'karikris/BioMiner' &&
         (artifact.source_commit === manifest.source_revisions.biominer_sha ||
           artifact.source_commit === LEGACY_BIOMINER_SHA))
@@ -1383,8 +1387,10 @@ function projectGeographyReferenceEvidence(
       'human_verified_source_media_count',
       'reference_readiness.data.counts',
     ) !== 0 ||
-    numberField(rights, 'included_image_count', 'rights_manifest') !== 0 ||
-    numberField(rights, 'licensed_image_count', 'rights_manifest') !== 0
+    numberField(rights, 'included_image_count', 'rights_manifest') !==
+      VERIFICATION_MEDIA_COUNT ||
+    numberField(rights, 'licensed_image_count', 'rights_manifest') !==
+      VERIFICATION_MEDIA_COUNT
   ) {
     throw new EvidenceFacadeError('Geography/reference boundary exceeds the truthful pilot')
   }

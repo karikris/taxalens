@@ -55,7 +55,7 @@ the verified fixture and cannot launch acquisition or inference.
 ### 15–35 seconds — Observatory
 
 1. Resume the tour, advance to Observatory, and choose **Visit Observatory**.
-2. Confirm **25 / 25 verified** and all 13 ordered evidence stages.
+2. Confirm **28 / 28 verified** and all 13 ordered evidence stages.
 3. Select **Final replay record awaiting review**.
 
 Expected: all 13 contributing stages and 12 contributing artifacts highlight. Counts retain their
@@ -151,11 +151,11 @@ Open [`demo/fixture/papilio_pilot/judge_bundle.json`](demo/fixture/papilio_pilot
 and verify:
 
 - schema `taxalens-judge-bundle:v1.0.0`;
-- inventory checksum `e0a77b2e6434647cc97be15f09d0dc1d13452c071638fc7c4624fadf6289c613`;
-- payload root `c74d590edc526683e4323cb00fade5ee0c034e459cab6ed78bf404633d4ce287`;
-- all 25 artifacts are rights-covered and attribution-complete;
-- media-rights verification is false because the fixture contains zero media, not because rights
-  were assumed vacuously.
+- inventory checksum `9e3b52e923a507824ef03fbb46282bce8e73ecfb4272ce92a60ef98d11d8adc0`;
+- payload root `3f379242456b6d53ac63981015590c70e81425cd00e2b4e3fb716adf00183ef3`;
+- all 28 artifacts are rights-covered and attribution-complete;
+- media-rights verification covers three CC BY-SA 4.0 Commons review images, while their
+  provider-supplied taxonomic identities remain unreviewed.
 
 Then run:
 
@@ -281,7 +281,8 @@ label. It must never replace or mutate the deterministic fixture expectations ab
 ## Honest limitations
 
 - The pilot covers one target and one stored analyst session.
-- The fixture contains no rights-cleared image or thumbnail.
+- The fixture contains three rights-cleared Commons images only for the human-verification
+  workflow; none is admitted as scientific evidence or as the hero record's image.
 - The aggregate prototype snapshot records upstream YOLOE/BioCLIP execution, but the fixture
   contains no image bytes and no detector, embedding, or score payload for the hero record.
 - Full-frame transformation identity, embeddings, reuse receipts, target/competitor scores,
@@ -314,7 +315,7 @@ label. It must never replace or mutate the deterministic fixture expectations ab
 - [ ] Public hosted replay opened without login or installation.
 - [ ] Target, bundle ID, TaxaLens source, and BioMiner source were visible.
 - [ ] Five-step route completed and reset worked.
-- [ ] Observatory showed 25 / 25 verified artifacts and 13 stages.
+- [ ] Observatory showed 28 / 28 verified artifacts and 13 stages.
 - [ ] One record highlighted 13 stages and 12 artifacts.
 - [ ] Evidence Lens kept transformed media, scores, competitor rank, uncertainty, and calibration
       unavailable.

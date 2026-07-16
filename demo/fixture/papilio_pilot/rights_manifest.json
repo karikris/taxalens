@@ -1,7 +1,7 @@
 {
   "all_artifacts_covered": true,
-  "all_media_rights_verified": false,
-  "included_image_count": 0,
+  "all_media_rights_verified": true,
+  "included_image_count": 3,
   "items": [
     {
       "artifact_ids": [
@@ -51,14 +51,71 @@
       "permitted_use": "TaxaLens judge replay and redistribution under MIT",
       "rights_id": "taxalens-mit-fixture",
       "source_url": "https://github.com/karikris/TaxaLens"
+    },
+    {
+      "artifact_ids": [
+        "verification-media-commons-papilio-demoleus-open-wing"
+      ],
+      "attribution_required": true,
+      "bytes": 180698,
+      "creator_or_owner": "Jeevan Jose",
+      "derivative_status": "Unmodified Commons JPEG copied into the judge fixture",
+      "license_name": "CC BY-SA 4.0",
+      "license_uri": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "permitted_use": "Credential-free TaxaLens human-verification display, offline judge replay, and redistributable review packet under the source licence; not scientific evidence until a human decision is retained.",
+      "rights_holder": "Jeevan Jose",
+      "rights_id": "commons-rights-commons-papilio-demoleus-open-wing",
+      "sha256": "47248e36944cf91256c906e8454adcad99121da049260745d57f4cbffae65a78",
+      "source_title": "Common Lime Butterfly Papilio demoleus UP by Kadavoor",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Common_Lime_Butterfly_Papilio_demoleus_UP_by_Kadavoor.jpg",
+      "status": "rights_verified",
+      "use_scope": "Credential-free TaxaLens human-verification display, offline judge replay, and redistributable review packet under the source licence; not scientific evidence until a human decision is retained."
+    },
+    {
+      "artifact_ids": [
+        "verification-media-commons-papilio-demoleus-closed-wing"
+      ],
+      "attribution_required": true,
+      "bytes": 159332,
+      "creator_or_owner": "Sayan Sanyal",
+      "derivative_status": "Unmodified Commons JPEG copied into the judge fixture",
+      "license_name": "CC BY-SA 4.0",
+      "license_uri": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "permitted_use": "Credential-free TaxaLens human-verification display, offline judge replay, and redistributable review packet under the source licence; not scientific evidence until a human decision is retained.",
+      "rights_holder": "Sayan Sanyal",
+      "rights_id": "commons-rights-commons-papilio-demoleus-closed-wing",
+      "sha256": "3bd3248347c3b82a977b0890f192f2f0c93253eff13d38b4b54dedb08b39627b",
+      "source_title": "Close wing position of Papilio demoleus, Linnaeus, 1758 – Lime Butterfly",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Close_wing_position_of_Papilio_demoleus,_Linnaeus,_1758_%E2%80%93_Lime_Butterfly_WLB.jpg",
+      "status": "rights_verified",
+      "use_scope": "Credential-free TaxaLens human-verification display, offline judge replay, and redistributable review packet under the source licence; not scientific evidence until a human decision is retained."
+    },
+    {
+      "artifact_ids": [
+        "verification-media-commons-papilio-demoleus-lime-swallowtail"
+      ],
+      "attribution_required": true,
+      "bytes": 130460,
+      "creator_or_owner": "Bias Chakraborty",
+      "derivative_status": "Unmodified Commons JPEG copied into the judge fixture",
+      "license_name": "CC BY-SA 4.0",
+      "license_uri": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "permitted_use": "Credential-free TaxaLens human-verification display, offline judge replay, and redistributable review packet under the source licence; not scientific evidence until a human decision is retained.",
+      "rights_holder": "Bias Chakraborty",
+      "rights_id": "commons-rights-commons-papilio-demoleus-lime-swallowtail",
+      "sha256": "9ceb5c0e354627441ba7be5a8e75a8eed7c278948e606e4892ae47387ee1bbea",
+      "source_title": "Closed wing of Papilio demoleus Linnaeus, 1758 – Lime Swallowtail",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Closed_wing_of_Papilio_demoleus_Linnaeus,_1758_%E2%80%93_Lime_Swallowtail.jpg",
+      "status": "rights_verified",
+      "use_scope": "Credential-free TaxaLens human-verification display, offline judge replay, and redistributable review packet under the source licence; not scientific evidence until a human decision is retained."
     }
   ],
-  "licensed_image_count": 0,
-  "media_asset_count": 0,
-  "media_policy": "No image is admitted without a committed license, attribution, and human-review record.",
+  "licensed_image_count": 3,
+  "media_asset_count": 3,
+  "media_policy": "Verification media is admitted only with a committed licence, attribution, content checksum, byte count, review item, and non-scientific use scope.",
   "notes": [
-    "all_media_rights_verified is deliberately false, not vacuously true, because no media is included.",
-    "The target taxon name and candidate metadata are not image labels or occurrence claims."
+    "all_media_rights_verified covers the three Commons display assets and their licences only; it does not verify their provider-supplied taxonomic labels.",
+    "The verification media is separate from the frozen BioMiner reference bank and does not change the pilot's zero admitted scientific-image count."
   ],
-  "schema_version": "truthful-demo-rights-manifest:v1.0.0"
+  "schema_version": "truthful-demo-rights-manifest:v1.1.0"
 }

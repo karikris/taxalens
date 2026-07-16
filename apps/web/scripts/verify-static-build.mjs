@@ -18,8 +18,8 @@ const manifest = JSON.parse(sourceManifestBytes.toString('utf8'))
 if (manifest.bundle_id !== 'papilio-demoleus-prototype-74a7d648-v3') {
   throw new Error('Static build contains an unexpected bundle ID')
 }
-if (manifest.artifact_inventory.length !== 25) {
-  throw new Error('Static build expects exactly 25 fixture artifacts')
+if (manifest.artifact_inventory.length !== 28) {
+  throw new Error('Static build expects exactly 28 fixture artifacts')
 }
 
 const parquetExtension = await readFile(

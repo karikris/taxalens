@@ -102,13 +102,13 @@ publishes it with an exact source SHA, static fallback, and SHA-256 file invento
 | --- | --- |
 | Target | *Papilio demoleus* (`gbif:1938069`) |
 | Judge bundle | `papilio-demoleus-prototype-74a7d648-v3` |
-| Product evidence | 25 inventoried artifacts, 20 sections, 29 section records |
+| Product evidence | 28 inventoried artifacts, 25 sections, 32 section records |
 | Discovery workload | 76,485 many-to-many query-hit associations and 13,501 canonical source-photo records |
 | Prototype evidence | 81 / 81 user-confirmed as suitable for their assigned prototype roles, 0 independently taxonomically verified; B13 raw-margin policy; 13,496 of 13,501 staged records processed |
 | Release gate | 14 / 14 prototype-entry gates pass; `GO_PROTOTYPE_ONLY` for explicit prototype mode |
 | Product route | Research Mission, 13-stage Observatory, Evidence Lens, Human Review, Dashboard, Agent Trace, and six-step guided tour |
 | Hero record | 1 candidate in `awaiting_human_review` |
-| Media | 0 committed media items; no image or licensed thumbnail is fabricated |
+| Media | 3 licensed Commons review images; the discovery replay and hero record still admit 0 scientific images |
 | Visual and decision output | 0 YOLOE-processed images, 0 calibrated decisions, and no strongest-competitor rank |
 | Scientific evaluation | independently reviewed precision, recall, calibration, and accuracy remain unavailable |
 | Hosted replay | public, resettable, static, credential-free, and fingerprinted |

@@ -42,7 +42,7 @@ describe('TaxaLens scaffold', () => {
     window.location.hash = '#observatory'
     render(<App />)
 
-    expect(await screen.findByText('25 / 25 verified')).toBeInTheDocument()
+    expect(await screen.findByText('28 / 28 verified')).toBeInTheDocument()
     expect(screen.getByText('Inventory and payload verified')).toBeInTheDocument()
 
     window.location.hash = '#dashboard'

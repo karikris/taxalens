@@ -137,9 +137,9 @@ def _apply_failure_mutation(root: Path, case: str) -> None:
         _mutate_artifact(
             root,
             "prototype-evidence-snapshot",
-            lambda payload: payload["contracts"]["phase15_release"]["data"][
-                "gate_summary"
-            ].update({"passed": 13, "failed": 1}),
+            lambda payload: payload["contracts"]["phase15_release"]["data"]["gate_summary"].update(
+                {"passed": 13, "failed": 1}
+            ),
         )
     elif case == "unresolved_placeholder":
         _mutate_artifact(
@@ -168,11 +168,11 @@ def test_verifies_the_committed_truthful_fixture() -> None:
     result = verify_truthful_demo(SOURCE_ROOT / "judge_bundle.json")
 
     assert result.bundle_id == TRUTHFUL_DEMO_BUNDLE_ID
-    assert result.artifact_count == 25
+    assert result.artifact_count == 28
     assert result.section_count == 25
-    assert result.unavailable_section_count == 11
-    assert result.total_section_record_count == 29
-    assert result.media_asset_count == 0
+    assert result.unavailable_section_count == 10
+    assert result.total_section_record_count == 32
+    assert result.media_asset_count == 3
     assert result.hero_state == "awaiting_human_review"
 
 

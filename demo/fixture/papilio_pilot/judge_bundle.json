@@ -2,14 +2,14 @@
   "artifact_inventory": [
     {
       "artifact_id": "attribution-manifest",
-      "bytes": 1780,
+      "bytes": 3854,
       "media_type": "application/json",
       "path": "attribution_manifest.json",
-      "record_count": 2,
+      "record_count": 5,
       "required": true,
       "role": "attribution",
-      "schema_version": "truthful-demo-attribution-manifest:v1.0.0",
-      "sha256": "38bd7773e356b7308965baa1126016e805783ca5cfd1fb9f479d49000011e8e7",
+      "schema_version": "truthful-demo-attribution-manifest:v1.1.0",
+      "sha256": "2bc216df2c44b4c97664b176127de79d9485b35c3c04ac8b606ff9e8fa74bc24",
       "source_commit": "fab9d3f1605d28d4bbfc3a4d0074f40e5ffff023",
       "source_repository": "karikris/TaxaLens"
     },
@@ -236,14 +236,14 @@
     },
     {
       "artifact_id": "rights-manifest",
-      "bytes": 2362,
+      "bytes": 6457,
       "media_type": "application/json",
       "path": "rights_manifest.json",
       "record_count": 1,
       "required": true,
       "role": "rights",
-      "schema_version": "truthful-demo-rights-manifest:v1.0.0",
-      "sha256": "e36d00a60c05e34c2bb4f1fc3496080d9acacd5b268c58d1694d7a0a95af6c98",
+      "schema_version": "truthful-demo-rights-manifest:v1.1.0",
+      "sha256": "2ceca1f6826d78f95c513f39e2739322b3a8aebb4632ee1211c8b73804fe231e",
       "source_commit": "fab9d3f1605d28d4bbfc3a4d0074f40e5ffff023",
       "source_repository": "karikris/TaxaLens"
     },
@@ -256,7 +256,7 @@
       "required": true,
       "role": "run_summary",
       "schema_version": "truthful-demo-run-summary:v1.0.0",
-      "sha256": "f23848bf7f39f5856fd5d2630e559b99e42a529aa3dfb334003d971b7d5056ac",
+      "sha256": "58691803bd5e82197ac080fff5009fb3bd5d91ea28874fc0d3008426390ab3bf",
       "source_commit": "fab9d3f1605d28d4bbfc3a4d0074f40e5ffff023",
       "source_repository": "karikris/TaxaLens"
     },
@@ -310,6 +310,45 @@
       "schema_version": "taxalens-research-analyst-run:v1.0.0",
       "sha256": "ab7b2a80e52bfd7ba11e5d1e7253e7cd0e69bab2e66db567f5a76c0f0bfb9281",
       "source_commit": "fab9d3f1605d28d4bbfc3a4d0074f40e5ffff023",
+      "source_repository": "karikris/TaxaLens"
+    },
+    {
+      "artifact_id": "verification-media-commons-papilio-demoleus-closed-wing",
+      "bytes": 159332,
+      "media_type": "image/jpeg",
+      "path": "verification/media/papilio-demoleus-closed-wing.jpg",
+      "record_count": 1,
+      "required": true,
+      "role": "verification_media",
+      "schema_version": "taxalens-verification-media:v1.0.0",
+      "sha256": "3bd3248347c3b82a977b0890f192f2f0c93253eff13d38b4b54dedb08b39627b",
+      "source_commit": "ff96b7f8f6feaf8197000b0f5265110a7d331e08",
+      "source_repository": "karikris/TaxaLens"
+    },
+    {
+      "artifact_id": "verification-media-commons-papilio-demoleus-lime-swallowtail",
+      "bytes": 130460,
+      "media_type": "image/jpeg",
+      "path": "verification/media/papilio-demoleus-lime-swallowtail.jpg",
+      "record_count": 1,
+      "required": true,
+      "role": "verification_media",
+      "schema_version": "taxalens-verification-media:v1.0.0",
+      "sha256": "9ceb5c0e354627441ba7be5a8e75a8eed7c278948e606e4892ae47387ee1bbea",
+      "source_commit": "ff96b7f8f6feaf8197000b0f5265110a7d331e08",
+      "source_repository": "karikris/TaxaLens"
+    },
+    {
+      "artifact_id": "verification-media-commons-papilio-demoleus-open-wing",
+      "bytes": 180698,
+      "media_type": "image/jpeg",
+      "path": "verification/media/papilio-demoleus-open-wing.jpg",
+      "record_count": 1,
+      "required": true,
+      "role": "verification_media",
+      "schema_version": "taxalens-verification-media:v1.0.0",
+      "sha256": "47248e36944cf91256c906e8454adcad99121da049260745d57f4cbffae65a78",
+      "source_commit": "ff96b7f8f6feaf8197000b0f5265110a7d331e08",
       "source_repository": "karikris/TaxaLens"
     },
     {
@@ -375,6 +414,42 @@
         "license_uri": "https://opensource.org/license/mit",
         "source_title": "TaxaLens",
         "source_url": "https://github.com/karikris/TaxaLens"
+      },
+      {
+        "artifact_ids": [
+          "verification-media-commons-papilio-demoleus-open-wing"
+        ],
+        "attribution_id": "commons-attribution-commons-papilio-demoleus-open-wing",
+        "creator": "Jeevan Jose",
+        "display_text": "Common Lime Butterfly Papilio demoleus UP by Kadavoor by Jeevan Jose, CC BY-SA 4.0",
+        "license_name": "CC BY-SA 4.0",
+        "license_uri": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_title": "Common Lime Butterfly Papilio demoleus UP by Kadavoor",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Common_Lime_Butterfly_Papilio_demoleus_UP_by_Kadavoor.jpg"
+      },
+      {
+        "artifact_ids": [
+          "verification-media-commons-papilio-demoleus-closed-wing"
+        ],
+        "attribution_id": "commons-attribution-commons-papilio-demoleus-closed-wing",
+        "creator": "Sayan Sanyal",
+        "display_text": "Close wing position of Papilio demoleus, Linnaeus, 1758 – Lime Butterfly by Sayan Sanyal, CC BY-SA 4.0",
+        "license_name": "CC BY-SA 4.0",
+        "license_uri": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_title": "Close wing position of Papilio demoleus, Linnaeus, 1758 – Lime Butterfly",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Close_wing_position_of_Papilio_demoleus,_Linnaeus,_1758_%E2%80%93_Lime_Butterfly_WLB.jpg"
+      },
+      {
+        "artifact_ids": [
+          "verification-media-commons-papilio-demoleus-lime-swallowtail"
+        ],
+        "attribution_id": "commons-attribution-commons-papilio-demoleus-lime-swallowtail",
+        "creator": "Bias Chakraborty",
+        "display_text": "Closed wing of Papilio demoleus Linnaeus, 1758 – Lime Swallowtail by Bias Chakraborty, CC BY-SA 4.0",
+        "license_name": "CC BY-SA 4.0",
+        "license_uri": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_title": "Closed wing of Papilio demoleus Linnaeus, 1758 – Lime Swallowtail",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Closed_wing_of_Papilio_demoleus_Linnaeus,_1758_%E2%80%93_Lime_Swallowtail.jpg"
       }
     ]
   },
@@ -382,13 +457,13 @@
   "checksums": {
     "algorithm": "sha256",
     "canonicalization": "json-sorted-keys-utf8-v1",
-    "inventory_sha256": "e0a77b2e6434647cc97be15f09d0dc1d13452c071638fc7c4624fadf6289c613",
-    "payload_root_sha256": "c74d590edc526683e4323cb00fade5ee0c034e459cab6ed78bf404633d4ce287"
+    "inventory_sha256": "9e3b52e923a507824ef03fbb46282bce8e73ecfb4272ce92a60ef98d11d8adc0",
+    "payload_root_sha256": "3f379242456b6d53ac63981015590c70e81425cd00e2b4e3fb716adf00183ef3"
   },
   "created_at": "2026-07-16T11:57:54Z",
   "expected_ui_counts": {
-    "artifact_count": 25,
-    "attribution_count": 2,
+    "artifact_count": 28,
+    "attribution_count": 5,
     "openai_replay_trace_count": 1,
     "screen_items": {
       "butterfly_dashboard": 1,
@@ -418,12 +493,12 @@
       "verification_campaigns": 0,
       "verification_decisions": 0,
       "verification_items": 0,
-      "verification_media": 0,
+      "verification_media": 3,
       "verification_quality": 0,
       "visual_domain_negatives": 1,
       "yoloe_evidence": 0
     },
-    "unavailable_section_count": 11
+    "unavailable_section_count": 10
   },
   "openai_replay": {
     "credentials_required": false,
@@ -448,7 +523,7 @@
   },
   "rights": {
     "all_artifacts_covered": true,
-    "all_media_rights_verified": false,
+    "all_media_rights_verified": true,
     "items": [
       {
         "artifact_ids": [
@@ -498,12 +573,60 @@
         "license_name": "MIT",
         "license_uri": "https://opensource.org/license/mit",
         "notes": [
-          "No image is included; media rights are not asserted vacuously."
+          "Commons verification media is covered by its own per-asset rights items."
         ],
         "rights_id": "taxalens-mit-fixture",
         "source_url": "https://github.com/karikris/TaxaLens",
         "status": "license_checked",
         "use_scope": "truthful fixture structure and replay metadata"
+      },
+      {
+        "artifact_ids": [
+          "verification-media-commons-papilio-demoleus-open-wing"
+        ],
+        "attribution_required": true,
+        "creator_or_owner": "Jeevan Jose",
+        "license_name": "CC BY-SA 4.0",
+        "license_uri": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "notes": [
+          "Rights verification authorizes display for human review; the provider-supplied taxonomic identity remains unreviewed."
+        ],
+        "rights_id": "commons-rights-commons-papilio-demoleus-open-wing",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Common_Lime_Butterfly_Papilio_demoleus_UP_by_Kadavoor.jpg",
+        "status": "rights_verified",
+        "use_scope": "Credential-free TaxaLens human-verification display, offline judge replay, and redistributable review packet under the source licence; not scientific evidence until a human decision is retained."
+      },
+      {
+        "artifact_ids": [
+          "verification-media-commons-papilio-demoleus-closed-wing"
+        ],
+        "attribution_required": true,
+        "creator_or_owner": "Sayan Sanyal",
+        "license_name": "CC BY-SA 4.0",
+        "license_uri": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "notes": [
+          "Rights verification authorizes display for human review; the provider-supplied taxonomic identity remains unreviewed."
+        ],
+        "rights_id": "commons-rights-commons-papilio-demoleus-closed-wing",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Close_wing_position_of_Papilio_demoleus,_Linnaeus,_1758_%E2%80%93_Lime_Butterfly_WLB.jpg",
+        "status": "rights_verified",
+        "use_scope": "Credential-free TaxaLens human-verification display, offline judge replay, and redistributable review packet under the source licence; not scientific evidence until a human decision is retained."
+      },
+      {
+        "artifact_ids": [
+          "verification-media-commons-papilio-demoleus-lime-swallowtail"
+        ],
+        "attribution_required": true,
+        "creator_or_owner": "Bias Chakraborty",
+        "license_name": "CC BY-SA 4.0",
+        "license_uri": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "notes": [
+          "Rights verification authorizes display for human review; the provider-supplied taxonomic identity remains unreviewed."
+        ],
+        "rights_id": "commons-rights-commons-papilio-demoleus-lime-swallowtail",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Closed_wing_of_Papilio_demoleus_Linnaeus,_1758_%E2%80%93_Lime_Swallowtail.jpg",
+        "status": "rights_verified",
+        "use_scope": "Credential-free TaxaLens human-verification display, offline judge replay, and redistributable review packet under the source licence; not scientific evidence until a human decision is retained."
       }
     ],
     "status": "license_checked"
@@ -726,13 +849,17 @@
       "verification_status": "unavailable"
     },
     "verification_media": {
-      "artifact_ids": [],
-      "candidate_semantics": "not_applicable",
+      "artifact_ids": [
+        "verification-media-commons-papilio-demoleus-open-wing",
+        "verification-media-commons-papilio-demoleus-closed-wing",
+        "verification-media-commons-papilio-demoleus-lime-swallowtail"
+      ],
+      "candidate_semantics": "candidate_reference_not_verified_support",
       "human_review_required": true,
-      "reason": "Verification media is not yet registered in the judge bundle rights manifest.",
+      "reason": null,
       "scientific_claim_allowed": false,
-      "status": "unavailable",
-      "verification_status": "unavailable"
+      "status": "available",
+      "verification_status": "unreviewed"
     },
     "verification_quality": {
       "artifact_ids": [],

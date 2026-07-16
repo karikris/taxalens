@@ -19,13 +19,18 @@ const parquetPaths = [
   'analytics/flickr_geography.parquet',
   'analytics/flickr_query_hits.parquet',
 ] as const
+const verificationMediaPaths = [
+  'verification/media/papilio-demoleus-closed-wing.jpg',
+  'verification/media/papilio-demoleus-lime-swallowtail.jpg',
+  'verification/media/papilio-demoleus-open-wing.jpg',
+] as const
 const fixtureDirectory = resolve(
   dirname(fileURLToPath(import.meta.url)),
   '../../../../demo/fixture/papilio_pilot',
 )
 
 const binaryFixtureFiles = Object.fromEntries(
-  parquetPaths.map((path) => [
+  [...parquetPaths, ...verificationMediaPaths].map((path) => [
     path,
     Uint8Array.from(readFileSync(resolve(fixtureDirectory, path))),
   ]),

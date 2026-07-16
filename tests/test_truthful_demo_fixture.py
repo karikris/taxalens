@@ -26,9 +26,9 @@ def test_committed_fixture_is_a_valid_checksum_verified_judge_bundle() -> None:
     loaded = load_judge_bundle(MANIFEST_PATH, verify_files=True)
 
     assert loaded.validation.bundle_id == TRUTHFUL_DEMO_BUNDLE_ID
-    assert loaded.validation.artifact_count == 25
+    assert loaded.validation.artifact_count == 28
     assert loaded.validation.section_count == 25
-    assert loaded.validation.unavailable_section_count == 11
+    assert loaded.validation.unavailable_section_count == 10
     assert loaded.validation.replay_trace_count == 1
     assert loaded.data["source_revisions"]["biominer_sha"] == TRUTHFUL_DEMO_BIOMINER_SHA
     assert loaded.data["target"] == {
@@ -105,22 +105,37 @@ def test_fixture_uses_real_candidate_metadata_without_promoting_it_to_evidence()
     }
 
 
-def test_rights_manifest_has_no_media_and_covers_every_payload() -> None:
+def test_rights_manifest_registers_commons_review_media_and_covers_every_payload() -> None:
     loaded = load_judge_bundle(MANIFEST_PATH, verify_files=True)
     rights = _json("rights_manifest.json")
     assert isinstance(rights, dict)
 
-    assert rights["media_asset_count"] == 0
-    assert rights["licensed_image_count"] == 0
-    assert rights["included_image_count"] == 0
-    assert rights["all_media_rights_verified"] is False
+    assert rights["media_asset_count"] == 3
+    assert rights["licensed_image_count"] == 3
+    assert rights["included_image_count"] == 3
+    assert rights["all_media_rights_verified"] is True
     assert loaded.data["rights"]["all_artifacts_covered"] is True
-    assert loaded.data["rights"]["all_media_rights_verified"] is False
+    assert loaded.data["rights"]["all_media_rights_verified"] is True
     assert loaded.data["attribution"]["complete"] is True
-    assert not any(path.suffix.lower() in RASTER_SUFFIXES for path in FIXTURE_ROOT.rglob("*"))
+    rasters = [path for path in FIXTURE_ROOT.rglob("*") if path.suffix.lower() in RASTER_SUFFIXES]
+    assert len(rasters) == 3
+    media_rights = [
+        item for item in rights["items"] if item["rights_id"].startswith("commons-rights-")
+    ]
+    assert len(media_rights) == 3
+    assert all(item["source_title"] and item["source_url"] for item in media_rights)
+    assert all(item["license_name"] == "CC BY-SA 4.0" for item in media_rights)
+    assert all(item["license_uri"] for item in media_rights)
+    assert all(item["sha256"] and item["bytes"] > 0 for item in media_rights)
+    assert all("human-verification" in item["use_scope"] for item in media_rights)
     media_types = [artifact["media_type"] for artifact in loaded.data["artifact_inventory"]]
     assert media_types.count("application/json") == 21
     assert media_types.count("application/vnd.apache.parquet") == 4
+    assert media_types.count("image/jpeg") == 3
+    media_section = loaded.data["sections"]["verification_media"]
+    assert media_section["status"] == "available"
+    assert len(media_section["artifact_ids"]) == 3
+    assert media_section["scientific_claim_allowed"] is False
 
 
 def test_prototype_snapshot_is_aggregate_only_and_preserves_claim_boundaries() -> None:
@@ -141,10 +156,7 @@ def test_prototype_snapshot_is_aggregate_only_and_preserves_claim_boundaries() -
     goal = contracts["provider_support_goal_verification"]["data"]
     assert goal["verified_record_count"] == 81
     assert goal["records_meeting_goal_count"] == 81
-    assert (
-        goal["semantics"]["independent_human_taxonomic_verification_claimed"]
-        is False
-    )
+    assert goal["semantics"]["independent_human_taxonomic_verification_claimed"] is False
     assert (
         contracts["benchmark"]["data"]["model_selection_comparison"]["B0"][
             "target_scoreability_rate"
@@ -163,9 +175,7 @@ def test_prototype_snapshot_is_aggregate_only_and_preserves_claim_boundaries() -
     assert staged["candidate_score_rows"] == 634_312
     assert staged["staged_preselection_abstention"]["abstained"] == 12_296
     assert (
-        staged["staged_preselection_abstention"]["reason_counts"][
-            "uncalibrated_margin_below_0_02"
-        ]
+        staged["staged_preselection_abstention"]["reason_counts"]["uncalibrated_margin_below_0_02"]
         == 1_602
     )
 
@@ -218,7 +228,6 @@ def test_unavailable_real_pipeline_outputs_are_named_and_empty() -> None:
         "evaluation_summaries",
         "verification_campaigns",
         "verification_items",
-        "verification_media",
         "verification_decisions",
         "verification_quality",
     }
