@@ -129,7 +129,8 @@ Start the guided tour in the app and follow:
 5. **Export** — prepare and download five deterministic local research outputs.
 
 Use **Reset replay** to return to the initial state. The longer technical and limitation route is
-recorded in the phase reports under [`docs/reports`](docs/reports/).
+in the [`JUDGE_GUIDE.md`](JUDGE_GUIDE.md); immutable implementation decisions are recorded under
+[`docs/reports`](docs/reports/).
 
 ## TaxaLens and BioMiner
 
