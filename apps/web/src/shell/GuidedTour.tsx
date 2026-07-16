@@ -29,16 +29,16 @@ export const JUDGE_TOUR_STEPS: readonly JudgeTourStep[] = Object.freeze([
   {
     view: 'evidence-lens',
     title: 'Evidence Lens',
-    suggestedSeconds: 20,
+    suggestedSeconds: 15,
     description:
       'Open the awaiting-review hero record, compare its evidence variants and regional hypotheses, and keep every unavailable score or decision explicit.',
   },
   {
     view: 'verification',
-    title: 'Human Review',
-    suggestedSeconds: 20,
+    title: 'Verification',
+    suggestedSeconds: 25,
     description:
-      'Prepare the small local image cache, inspect each verification label, and record Yes, No, Can’t tell, Can’t view, or Skip with an optional comment.',
+      'Use the central research operation: select a campaign, prepare checksum-verified media, record Yes, No, Can’t tell, Can’t view, or Skip, and keep conflicts and quality boundaries explicit.',
   },
   {
     view: 'dashboard',

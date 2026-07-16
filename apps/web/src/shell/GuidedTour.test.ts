@@ -12,7 +12,7 @@ describe('90-second judge tour contract', () => {
       'Research Mission',
       'Observatory',
       'Evidence Lens',
-      'Human Review',
+      'Verification',
       'Dashboard',
       'Export',
     ])
@@ -22,6 +22,11 @@ describe('90-second judge tour contract', () => {
     expect(JUDGE_TOUR_STEPS.at(-1)).toMatchObject({
       view: 'dashboard',
       targetId: 'research-outputs',
+    })
+    expect(JUDGE_TOUR_STEPS[3]).toMatchObject({
+      view: 'verification',
+      title: 'Verification',
+      suggestedSeconds: 25,
     })
   })
 

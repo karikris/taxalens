@@ -125,7 +125,7 @@ describe('AppShell', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Next: Observatory' }))
     fireEvent.click(screen.getByRole('button', { name: 'Next: Evidence Lens' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Next: Human Review' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Next: Verification' }))
     fireEvent.click(screen.getByRole('button', { name: 'Next: Dashboard' }))
     fireEvent.click(screen.getByRole('button', { name: 'Next: Export' }))
     expect(screen.getByRole('dialog', { name: 'Export' })).toBeInTheDocument()
@@ -156,7 +156,7 @@ describe('AppShell', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Start 90-second judge tour' }))
     fireEvent.click(screen.getByRole('button', { name: 'Next: Observatory' }))
     fireEvent.click(screen.getByRole('button', { name: 'Next: Evidence Lens' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Next: Human Review' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Next: Verification' }))
     fireEvent.click(screen.getByRole('button', { name: 'Next: Dashboard' }))
     fireEvent.click(screen.getByRole('button', { name: 'Next: Export' }))
     fireEvent.click(screen.getByRole('button', { name: 'Visit Export' }))
