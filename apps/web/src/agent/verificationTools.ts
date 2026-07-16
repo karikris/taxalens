@@ -435,12 +435,14 @@ export async function createVerificationToolEvidence(
   const evidence = deepFreeze({
     schemaVersion: VERIFICATION_TOOL_EVIDENCE_VERSION,
     evidenceId,
-    campaign: input.campaign,
-    items: [...input.items],
-    events: [...input.events],
-    consensus: [...input.consensus],
-    inspections: { ...input.inspections },
-    qualitySnapshots: [...input.qualitySnapshots],
+    campaign: clonePlainValue(input.campaign),
+    items: input.items.map((item) => clonePlainValue(item)),
+    events: input.events.map((event) => clonePlainValue(event)),
+    consensus: input.consensus.map((item) => clonePlainValue(item)),
+    inspections: clonePlainValue(input.inspections),
+    qualitySnapshots: input.qualitySnapshots.map((snapshot) =>
+      clonePlainValue(snapshot),
+    ),
     artifactCitations: canonicalArtifactCitations(input.artifactCitations),
     [EVIDENCE_MARKER]: true as const,
   }) satisfies ValidatedVerificationToolEvidence
@@ -1763,6 +1765,33 @@ function canonicalJson(value: unknown): string {
 
 function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function clonePlainValue<T>(value: T): T {
+  if (
+    value === null ||
+    typeof value === 'boolean' ||
+    typeof value === 'number' ||
+    typeof value === 'string' ||
+    value === undefined
+  ) {
+    return value
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => clonePlainValue(item)) as T
+  }
+  if (typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, child]) => [
+        key,
+        clonePlainValue(child),
+      ]),
+    ) as T
+  }
+  throw new VerificationToolError(
+    'invalid_evidence',
+    'Verification evidence contains a non-plain value',
+  )
 }
 
 function deepFreeze<T>(value: T): T {
