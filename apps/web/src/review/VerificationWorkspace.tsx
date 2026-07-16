@@ -19,6 +19,7 @@ import { resolveVerificationRoute } from './routing'
 import {
   BlindFlickrReviewBoundary,
   CampaignSelector,
+  ConflictQueue,
   filterReferenceReviewItems,
   ReferenceReviewFilters,
   ReferenceReviewHandoff,
@@ -71,9 +72,15 @@ export function VerificationWorkspace({
           ([itemId, decision]) => [itemId, decision.outcome],
         ),
       ),
-      conflictItemIds: new Set<string>(),
+      conflictItemIds: new Set(
+        controller.consensus
+          .filter(
+            ({ status }) => status === 'unresolved_disagreement',
+          )
+          .map(({ itemId }) => itemId),
+      ),
     }),
-    [controller.currentDecisions],
+    [controller.consensus, controller.currentDecisions],
   )
   const filteredReferenceItems = useMemo(
     () =>
@@ -153,6 +160,20 @@ export function VerificationWorkspace({
 
       <VerificationSections
         defaultSection={resolvedRoute.section}
+        conflicts={
+          <ConflictQueue
+            consensus={controller.consensus}
+            items={HUMAN_REVIEW_PACKET.items}
+            onOpenItem={(itemId) => {
+              const itemIndex = HUMAN_REVIEW_PACKET.items.findIndex(
+                (candidate) => candidate.itemId === itemId,
+              )
+              if (itemIndex !== -1) {
+                controller.openIndex(itemIndex)
+              }
+            }}
+          />
+        }
         flickrResults={
           resolvedRoute.flickrCandidate === null ? undefined : (
             <FlickrCandidateRouteNotice

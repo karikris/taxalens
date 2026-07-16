@@ -35,7 +35,7 @@ describe('VerificationSections', () => {
       'true',
     )
     expect(
-      screen.getByText('Consensus is not calculated yet'),
+      screen.getByText('No unresolved conflicts'),
     ).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('tab', { name: 'Quality' }))

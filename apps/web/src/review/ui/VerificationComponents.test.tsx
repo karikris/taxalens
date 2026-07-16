@@ -58,7 +58,7 @@ describe('verification UI components', () => {
     expect(onSelectOutcome).toHaveBeenNthCalledWith(2, 'skipped')
   })
 
-  it('withholds conflict and quality claims until their policies exist', () => {
+  it('shows the empty derived conflict queue and withholds quality claims', () => {
     render(
       <>
         <ConflictQueue />
@@ -67,7 +67,7 @@ describe('verification UI components', () => {
     )
 
     expect(
-      screen.getByText('Consensus is not calculated yet'),
+      screen.getByText('No unresolved conflicts'),
     ).toBeInTheDocument()
     expect(
       screen.getByText('Quality estimates are not available'),

@@ -7,6 +7,7 @@ import {
   emptyHumanReviewSession,
   isScientificHumanReviewOutcome,
   ReviewPersistenceError,
+  projectVerificationConsensus,
   reviewPersistenceErrorMessage,
   verificationWorkflowReducer,
   withDecision,
@@ -121,6 +122,15 @@ export function useVerificationWorkspaceController({
   const currentDecisions = useMemo(
     () => currentHumanReviewDecisions(session),
     [session],
+  )
+  const consensus = useMemo(
+    () =>
+      projectVerificationConsensus(
+        HUMAN_REVIEW_CAMPAIGN,
+        HUMAN_REVIEW_ITEMS,
+        session.events,
+      ),
+    [session.events],
   )
   const decision = currentDecisions[item.itemId]
   const inspection = session.inspections[item.itemId]
@@ -540,6 +550,7 @@ export function useVerificationWorkspaceController({
     clearReview,
     clearState,
     comment,
+    consensus,
     counts,
     currentDecisions,
     decisionValidationError,
