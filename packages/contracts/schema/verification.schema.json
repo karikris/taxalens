@@ -1266,15 +1266,13 @@
               "consensusOutcome": {"enum": ["yes", "no"]},
               "resolvedSignature": {
                 "$ref": "#/$defs/verificationDecisionSignature"
-              },
-              "resolvedAt": {"$ref": "#/$defs/utcInstant"}
+              }
             }
           },
           "else": {
             "properties": {
               "consensusOutcome": {"type": "null"},
-              "resolvedSignature": {"type": "null"},
-              "resolvedAt": {"type": "null"}
+              "resolvedSignature": {"type": "null"}
             }
           }
         },

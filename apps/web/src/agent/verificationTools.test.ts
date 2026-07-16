@@ -520,14 +520,20 @@ function itemFixtures(
   if (HUMAN_REVIEW_ITEMS.length !== 3) {
     throw new Error('Verification tool tests require the three-item fixture.')
   }
-  return HUMAN_REVIEW_ITEMS.map((item, index) => ({
-    ...item,
-    campaignId: campaign.campaignId,
-    targetTaxon: campaign.targetTaxon!,
-    samplingStratumId: index === 2 ? 'larva' : 'adult',
-    inclusionProbability: 1,
-    questionFingerprint: campaign.questionFingerprint,
-  }))
+  return HUMAN_REVIEW_ITEMS.map((item, index) => {
+    const { imageUrl, verificationLabel, ...domainItem } = item
+    if (imageUrl.length === 0 || verificationLabel.length === 0) {
+      throw new Error('Verification tool fixture UI metadata is incomplete.')
+    }
+    return {
+      ...domainItem,
+      campaignId: campaign.campaignId,
+      targetTaxon: campaign.targetTaxon!,
+      samplingStratumId: index === 2 ? 'larva' : 'adult',
+      inclusionProbability: 1,
+      questionFingerprint: campaign.questionFingerprint,
+    }
+  })
 }
 
 function event(

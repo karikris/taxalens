@@ -22,7 +22,9 @@ classifiers = [
   "Programming Language :: Python :: 3.14",
   "Topic :: Scientific/Engineering :: Information Analysis",
 ]
-dependencies = []
+dependencies = [
+  "jsonschema[format]>=4.25,<5",
+]
 
 [project.scripts]
 taxalens = "taxalens.cli:entrypoint"
@@ -54,8 +56,11 @@ vision = [
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["taxalens*", "packages.replay.src*"]
+include = ["taxalens*", "packages.replay.src*", "packages.contracts.schema*"]
 namespaces = true
+
+[tool.setuptools.package-data]
+"packages.contracts.schema" = ["*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "packages/replay/tests"]

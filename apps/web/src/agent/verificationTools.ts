@@ -24,6 +24,7 @@ import {
   type VerificationQualitySnapshot,
   type VerificationEvidenceAvailability,
 } from '../review/domain'
+import { validateVerificationSchema } from '../review/schema/verificationSchema'
 
 export const VERIFICATION_TOOL_EVIDENCE_VERSION =
   'taxalens-verification-tool-evidence:v1.2.0' as const
@@ -1437,6 +1438,23 @@ function validateEvidence(
     qualitySnapshots,
     artifactCitations,
   } = input
+  for (const [contract, values] of [
+    ['campaign', [campaign]],
+    ['item', items],
+    ['event', events],
+    ['consensus', consensus],
+    ['quality_snapshot', qualitySnapshots],
+  ] as const) {
+    for (const value of values) {
+      const validation = validateVerificationSchema(contract, value)
+      failures.push(
+        ...validation.failures.map(
+          ({ instancePath, keyword }) =>
+            `${contract} schema ${instancePath || '/'} failed ${keyword}`,
+        ),
+      )
+    }
+  }
   if (campaign.campaignId.trim() === '') {
     failures.push('campaign ID must not be empty')
   }

@@ -88,6 +88,17 @@ from taxalens.product.truthful_demo_verifier import (
     TruthfulDemoVerificationError,
     verify_truthful_demo,
 )
+from taxalens.product.verification_schema import (
+    VERIFICATION_SCHEMA_CONTRACTS,
+    VERIFICATION_SCHEMA_ENTRIES,
+    VerificationSchemaContract,
+    VerificationSchemaError,
+    VerificationSchemaFailure,
+    VerificationSchemaValidation,
+    assert_verification_schema,
+    validate_verification_schema,
+    verification_schema_documents,
+)
 
 __all__ = [
     "ArtifactProvenance",
@@ -123,6 +134,12 @@ __all__ = [
     "TruthfulDemoVerificationError",
     "TRUTHFUL_DEMO_LEGACY_BIOMINER_SHA",
     "VerifiedHandoff",
+    "VERIFICATION_SCHEMA_CONTRACTS",
+    "VERIFICATION_SCHEMA_ENTRIES",
+    "VerificationSchemaContract",
+    "VerificationSchemaError",
+    "VerificationSchemaFailure",
+    "VerificationSchemaValidation",
     "JUDGE_BUNDLE_SCHEMA_VERSION",
     "JUDGE_BUNDLE_SECTION_NAMES",
     "JudgeBundleError",
@@ -130,6 +147,7 @@ __all__ = [
     "compute_inventory_sha256",
     "compute_payload_root_sha256",
     "build_truthful_demo_fixture",
+    "assert_verification_schema",
     "available_evidence",
     "blocked_evidence",
     "export_evidence",
@@ -153,6 +171,8 @@ __all__ = [
     "unavailable_evidence",
     "validate_evidence_availability",
     "validate_judge_bundle",
+    "validate_verification_schema",
+    "verification_schema_documents",
     "verify_biominer_handoff_archive",
     "verify_truthful_demo",
     "DEFAULT_LOCAL_REPLAY_MANIFEST",
