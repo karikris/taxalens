@@ -896,6 +896,21 @@ def _sections() -> dict[str, dict[str, object]]:
         "comments": "No human review comment artifact is committed for this pilot.",
         "candidate_revisions": "No human candidate revision artifact is committed for this pilot.",
         "evaluation_summaries": "No Phase 13 result artifact is supplied to this fixture.",
+        "verification_campaigns": (
+            "Verification campaign manifests are not yet registered in the judge bundle."
+        ),
+        "verification_items": (
+            "Verification item manifests are not yet registered in the judge bundle."
+        ),
+        "verification_media": (
+            "Verification media is not yet registered in the judge bundle rights manifest."
+        ),
+        "verification_decisions": (
+            "No exported append-only verification decision artifact is committed."
+        ),
+        "verification_quality": (
+            "No consensus or statistically valid verification-quality artifact is committed."
+        ),
     }
     sections: dict[str, dict[str, object]] = {}
     for name in JUDGE_BUNDLE_SECTION_NAMES:
@@ -917,7 +932,16 @@ def _sections() -> dict[str, dict[str, object]]:
             )
         else:
             semantics = "diagnostic_only"
-            if name in {"comments", "candidate_revisions", "evaluation_summaries"}:
+            if name in {
+                "comments",
+                "candidate_revisions",
+                "evaluation_summaries",
+                "verification_campaigns",
+                "verification_items",
+                "verification_media",
+                "verification_decisions",
+                "verification_quality",
+            }:
                 semantics = "not_applicable"
             sections[name] = _section(
                 status="unavailable",

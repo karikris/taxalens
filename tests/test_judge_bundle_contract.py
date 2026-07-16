@@ -228,8 +228,8 @@ def test_contract_validates_inventory_sections_rights_counts_and_files(
 
     assert result.bundle_id == "judge-contract-test-v1"
     assert result.artifact_count == 3
-    assert result.section_count == 20
-    assert result.unavailable_section_count == 17
+    assert result.section_count == 25
+    assert result.unavailable_section_count == 22
     assert result.files_verified is True
 
 

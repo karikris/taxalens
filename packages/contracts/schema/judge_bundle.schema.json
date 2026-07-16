@@ -92,7 +92,12 @@
         "selective_decision_metadata",
         "comments",
         "candidate_revisions",
-        "evaluation_summaries"
+        "evaluation_summaries",
+        "verification_campaigns",
+        "verification_items",
+        "verification_media",
+        "verification_decisions",
+        "verification_quality"
       ]
     },
     "artifact": {
@@ -140,6 +145,11 @@
             "comments",
             "candidate_revisions",
             "evaluation_summaries",
+            "verification_campaigns",
+            "verification_items",
+            "verification_media",
+            "verification_decisions",
+            "verification_quality",
             "rights",
             "attribution",
             "openai_replay_traces",
@@ -264,7 +274,12 @@
         "selective_decision_metadata",
         "comments",
         "candidate_revisions",
-        "evaluation_summaries"
+        "evaluation_summaries",
+        "verification_campaigns",
+        "verification_items",
+        "verification_media",
+        "verification_decisions",
+        "verification_quality"
       ],
       "properties": {
         "run_summary": {"$ref": "#/$defs/section"},
@@ -286,7 +301,12 @@
         "selective_decision_metadata": {"$ref": "#/$defs/section"},
         "comments": {"$ref": "#/$defs/section"},
         "candidate_revisions": {"$ref": "#/$defs/section"},
-        "evaluation_summaries": {"$ref": "#/$defs/section"}
+        "evaluation_summaries": {"$ref": "#/$defs/section"},
+        "verification_campaigns": {"$ref": "#/$defs/section"},
+        "verification_items": {"$ref": "#/$defs/section"},
+        "verification_media": {"$ref": "#/$defs/section"},
+        "verification_decisions": {"$ref": "#/$defs/section"},
+        "verification_quality": {"$ref": "#/$defs/section"}
       }
     },
     "rightsStatus": {
@@ -476,7 +496,12 @@
         "selective_decision_metadata",
         "comments",
         "candidate_revisions",
-        "evaluation_summaries"
+        "evaluation_summaries",
+        "verification_campaigns",
+        "verification_items",
+        "verification_media",
+        "verification_decisions",
+        "verification_quality"
       ],
       "properties": {
         "run_summary": {"$ref": "#/$defs/nonNegativeInteger"},
@@ -498,7 +523,12 @@
         "selective_decision_metadata": {"$ref": "#/$defs/nonNegativeInteger"},
         "comments": {"$ref": "#/$defs/nonNegativeInteger"},
         "candidate_revisions": {"$ref": "#/$defs/nonNegativeInteger"},
-        "evaluation_summaries": {"$ref": "#/$defs/nonNegativeInteger"}
+        "evaluation_summaries": {"$ref": "#/$defs/nonNegativeInteger"},
+        "verification_campaigns": {"$ref": "#/$defs/nonNegativeInteger"},
+        "verification_items": {"$ref": "#/$defs/nonNegativeInteger"},
+        "verification_media": {"$ref": "#/$defs/nonNegativeInteger"},
+        "verification_decisions": {"$ref": "#/$defs/nonNegativeInteger"},
+        "verification_quality": {"$ref": "#/$defs/nonNegativeInteger"}
       }
     },
     "expectedUiCounts": {

@@ -93,7 +93,7 @@ describe('loadEvidenceFacade', () => {
     expect(facade.replay.target.scientificName).toBe('Papilio demoleus')
     expect(facade.replay.artifactCount).toBe(25)
     expect(facade.replay.verifiedArtifactCount).toBe(25)
-    expect(facade.replay.unavailableSections).toHaveLength(6)
+    expect(facade.replay.unavailableSections).toHaveLength(11)
     expect(facade.replay.sections.yoloe_evidence.status).toBe('unavailable')
     expect(facade.replay.artifactInventory).toHaveLength(25)
     expect(facade.replay.artifactInventory.every(({ verified }) => verified)).toBe(true)

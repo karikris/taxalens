@@ -27,8 +27,8 @@ def test_committed_fixture_is_a_valid_checksum_verified_judge_bundle() -> None:
 
     assert loaded.validation.bundle_id == TRUTHFUL_DEMO_BUNDLE_ID
     assert loaded.validation.artifact_count == 25
-    assert loaded.validation.section_count == 20
-    assert loaded.validation.unavailable_section_count == 6
+    assert loaded.validation.section_count == 25
+    assert loaded.validation.unavailable_section_count == 11
     assert loaded.validation.replay_trace_count == 1
     assert loaded.data["source_revisions"]["biominer_sha"] == TRUTHFUL_DEMO_BIOMINER_SHA
     assert loaded.data["target"] == {
@@ -216,6 +216,11 @@ def test_unavailable_real_pipeline_outputs_are_named_and_empty() -> None:
         "comments",
         "candidate_revisions",
         "evaluation_summaries",
+        "verification_campaigns",
+        "verification_items",
+        "verification_media",
+        "verification_decisions",
+        "verification_quality",
     }
     observed = {
         name

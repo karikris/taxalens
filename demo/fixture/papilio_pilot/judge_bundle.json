@@ -415,10 +415,15 @@
       "selective_decision_metadata": 1,
       "stage_metrics": 4,
       "target_aware_score_metadata": 0,
+      "verification_campaigns": 0,
+      "verification_decisions": 0,
+      "verification_items": 0,
+      "verification_media": 0,
+      "verification_quality": 0,
       "visual_domain_negatives": 1,
       "yoloe_evidence": 0
     },
-    "unavailable_section_count": 6
+    "unavailable_section_count": 11
   },
   "openai_replay": {
     "credentials_required": false,
@@ -689,6 +694,51 @@
       "candidate_semantics": "diagnostic_only",
       "human_review_required": true,
       "reason": "No real pilot image or candidate visual score artifact is committed.",
+      "scientific_claim_allowed": false,
+      "status": "unavailable",
+      "verification_status": "unavailable"
+    },
+    "verification_campaigns": {
+      "artifact_ids": [],
+      "candidate_semantics": "not_applicable",
+      "human_review_required": true,
+      "reason": "Verification campaign manifests are not yet registered in the judge bundle.",
+      "scientific_claim_allowed": false,
+      "status": "unavailable",
+      "verification_status": "unavailable"
+    },
+    "verification_decisions": {
+      "artifact_ids": [],
+      "candidate_semantics": "not_applicable",
+      "human_review_required": true,
+      "reason": "No exported append-only verification decision artifact is committed.",
+      "scientific_claim_allowed": false,
+      "status": "unavailable",
+      "verification_status": "unavailable"
+    },
+    "verification_items": {
+      "artifact_ids": [],
+      "candidate_semantics": "not_applicable",
+      "human_review_required": true,
+      "reason": "Verification item manifests are not yet registered in the judge bundle.",
+      "scientific_claim_allowed": false,
+      "status": "unavailable",
+      "verification_status": "unavailable"
+    },
+    "verification_media": {
+      "artifact_ids": [],
+      "candidate_semantics": "not_applicable",
+      "human_review_required": true,
+      "reason": "Verification media is not yet registered in the judge bundle rights manifest.",
+      "scientific_claim_allowed": false,
+      "status": "unavailable",
+      "verification_status": "unavailable"
+    },
+    "verification_quality": {
+      "artifact_ids": [],
+      "candidate_semantics": "not_applicable",
+      "human_review_required": true,
+      "reason": "No consensus or statistically valid verification-quality artifact is committed.",
       "scientific_claim_allowed": false,
       "status": "unavailable",
       "verification_status": "unavailable"

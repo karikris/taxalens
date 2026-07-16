@@ -169,8 +169,8 @@ def test_verifies_the_committed_truthful_fixture() -> None:
 
     assert result.bundle_id == TRUTHFUL_DEMO_BUNDLE_ID
     assert result.artifact_count == 25
-    assert result.section_count == 20
-    assert result.unavailable_section_count == 6
+    assert result.section_count == 25
+    assert result.unavailable_section_count == 11
     assert result.total_section_record_count == 29
     assert result.media_asset_count == 0
     assert result.hero_state == "awaiting_human_review"

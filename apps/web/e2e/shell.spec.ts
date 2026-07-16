@@ -242,7 +242,7 @@ test('shows only checksum-verified evidence with explicit analytics and unavaila
 
   await page.getByRole('link', { name: 'Evidence Lens' }).click()
   await expect(page.getByRole('heading', { name: 'Explicitly unavailable evidence' })).toBeVisible()
-  await expect(page.locator('.unavailable-evidence-list > li')).toHaveCount(6)
+  await expect(page.locator('.unavailable-evidence-list > li')).toHaveCount(11)
 
   await page.getByRole('link', { name: 'Dashboard' }).click()
   await expect(page.getByRole('heading', { name: 'Verified local data boundary' })).toBeVisible()
@@ -1137,7 +1137,7 @@ test('reports only measured workflow efficiency without inferring avoided work',
   await expect(metric('Evidence completeness')).toContainText('25 of 25 artifacts verified')
   await expect(metric('Evidence completeness')).toContainText('Available sections5')
   await expect(metric('Evidence completeness')).toContainText('Partial sections9')
-  await expect(metric('Evidence completeness')).toContainText('Unavailable sections6')
+  await expect(metric('Evidence completeness')).toContainText('Unavailable sections11')
 
   const guardrail = report.getByRole('heading', { name: 'Integrity is not scientific completeness' })
     .locator('..')

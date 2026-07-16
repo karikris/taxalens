@@ -34,6 +34,11 @@ JUDGE_BUNDLE_SECTION_NAMES = (
     "comments",
     "candidate_revisions",
     "evaluation_summaries",
+    "verification_campaigns",
+    "verification_items",
+    "verification_media",
+    "verification_decisions",
+    "verification_quality",
 )
 JUDGE_SCREEN_NAMES = (
     "research_mission",

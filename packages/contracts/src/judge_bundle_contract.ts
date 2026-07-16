@@ -23,6 +23,11 @@ export const JUDGE_BUNDLE_SECTION_NAMES = [
   'comments',
   'candidate_revisions',
   'evaluation_summaries',
+  'verification_campaigns',
+  'verification_items',
+  'verification_media',
+  'verification_decisions',
+  'verification_quality',
 ] as const;
 
 export type JudgeBundleSectionName = (typeof JUDGE_BUNDLE_SECTION_NAMES)[number];
