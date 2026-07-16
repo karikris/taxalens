@@ -3,6 +3,7 @@ import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import {
   INITIAL_VERIFICATION_WORKFLOW_STATE,
   canRecordHumanReviewOutcome,
+  calculateVerificationCoverage,
   createVerificationAdjudicationEvent,
   currentHumanReviewDecisions,
   emptyHumanReviewSession,
@@ -166,6 +167,15 @@ export function useVerificationWorkspaceController({
           .map(({ itemId }) => itemId),
       ),
     [session.inspections],
+  )
+  const coverage = useMemo(
+    () =>
+      calculateVerificationCoverage(
+        HUMAN_REVIEW_ITEMS,
+        consensus,
+        session.inspections,
+      ),
+    [consensus, session.inspections],
   )
 
   useEffect(() => {
@@ -612,6 +622,7 @@ export function useVerificationWorkspaceController({
     clearState,
     comment,
     consensus,
+    coverage,
     counts,
     currentDecisions,
     decisionValidationError,
