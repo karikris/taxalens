@@ -9,15 +9,10 @@ import urllib.request
 from pathlib import Path
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
-EXTENSION_URL = (
-    "https://extensions.duckdb.org/v1.4.3/wasm_mvp/parquet.duckdb_extension.wasm"
-)
+EXTENSION_URL = "https://extensions.duckdb.org/v1.4.3/wasm_mvp/parquet.duckdb_extension.wasm"
 EXTENSION_SHA256 = "0785c6c95d003eff4faa7b3b4b660f02c9c92f6d68d135ddf330d42e3a650600"
 EXTENSION_BYTES = 2_867_304
-DEFAULT_DESTINATION = (
-    REPOSITORY_ROOT
-    / "apps/web/src/data/vendor/parquet.duckdb_extension.wasm"
-)
+DEFAULT_DESTINATION = REPOSITORY_ROOT / "apps/web/src/data/vendor/parquet.duckdb_extension.wasm"
 
 
 def _verify(content: bytes) -> None:

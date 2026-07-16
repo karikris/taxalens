@@ -3,6 +3,7 @@
   "upstream_repository": "karikris/BioMiner",
   "policy": {
     "unlisted_replay_source_is_native": true,
+    "unlisted_tracked_python_is_native": true,
     "replay_tests_are_native": true,
     "native_lint_must_pass": true,
     "source_locked_lint_is_reported_separately": true,
@@ -11,7 +12,11 @@
   "native_roots": [
     "taxalens",
     "tests",
-    "packages/replay/tests"
+    "scripts",
+    "packages/replay/tests",
+    "packages/contracts",
+    "packages/__init__.py",
+    "packages/replay/__init__.py"
   ],
   "source_locked_files": [
     {

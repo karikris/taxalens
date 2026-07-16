@@ -9,11 +9,13 @@ checksum, rights, and scientific-claim gates.
 The machine-readable authority is
 [`compatibility_boundary.json`](compatibility_boundary.json). A replay source file
 is exempt from TaxaLens-native formatting only when its exact repository-relative
-path is listed in `source_locked_files`. Everything else is TaxaLens-native,
-including:
+path is listed in `source_locked_files`. Every other tracked Python file is
+TaxaLens-native, including:
 
 - all files under `taxalens/` and `tests/`;
+- all Python tools under `scripts/`;
 - all files under `packages/replay/tests/`;
+- package and schema helpers under `packages/`;
 - `packages/replay/src/validation.py`;
 - TaxaLens artifact adapters and compact extracted vocabularies under
   `packages/replay/src/` that are not listed in the manifest.
@@ -49,10 +51,12 @@ change and must pass the manifest validator.
 
 ## Lint reporting
 
-The native lint gate is fail-closed and must remain clean. Compatibility findings
-are reported separately and do not fail the native gate until an intentional
-re-import or focused repair addresses them. The report must name the locked file and
-Ruff rule; it must never hide findings by applying a blanket repository exclusion.
+The native lint gate discovers every tracked or newly added Python file through Git,
+subtracts only the fourteen exact manifest paths, and is fail-closed for both Ruff
+lint and formatting. Compatibility findings are reported separately and do not fail
+the native gate until an intentional re-import or focused repair addresses them. The
+report names each Ruff rule and locked file; it never hides findings through a
+blanket exclusion or native per-file ignore.
 
 This separation permits incremental cleanup without rewriting source-pinned behavior
 or implying that mechanically restyled code still matches its declared upstream

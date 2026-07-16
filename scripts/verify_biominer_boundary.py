@@ -13,10 +13,8 @@ import os
 import re
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Dict, List, Optional
-
 
 REQUIRED_COMPONENT_FIELDS = {
     "component_id",
@@ -52,8 +50,8 @@ def run(cmd: list[str], cwd: Path) -> str:
     return result.stdout.strip()
 
 
-def find_biominer_path() -> List[Path]:
-    candidates: List[Path] = []
+def find_biominer_path() -> list[Path]:
+    candidates: list[Path] = []
     env_root = os.environ.get("BIOMINER_REPO")
     if env_root:
         candidates.append(Path(env_root).resolve())
@@ -69,16 +67,16 @@ def find_biominer_path() -> List[Path]:
     return []
 
 
-def parse_simple_yaml(path: Path) -> Dict[str, object]:
+def parse_simple_yaml(path: Path) -> dict[str, object]:
     text = path.read_text(encoding="utf-8")
     stripped = text.lstrip()
     if stripped.startswith("{") or stripped.startswith("["):
         return json.loads(text)
 
-    data: Dict[str, object] = {}
+    data: dict[str, object] = {}
     lines = text.splitlines()
-    current_component: Dict[str, object] = {}
-    components: List[Dict[str, object]] = []
+    current_component: dict[str, object] = {}
+    components: list[dict[str, object]] = []
     in_components = False
 
     for raw_line in lines:
@@ -131,7 +129,7 @@ def parse_simple_yaml(path: Path) -> Dict[str, object]:
 def normalize_scalar(value: str):
     if value in {"null", "~", ""}:
         return None
-    if (value.startswith("\"") and value.endswith("\"")) or (
+    if (value.startswith('"') and value.endswith('"')) or (
         value.startswith("'") and value.endswith("'")
     ):
         return value[1:-1]
@@ -142,7 +140,7 @@ def normalize_scalar(value: str):
     return value
 
 
-def parse_pinned_sha(text: str) -> Optional[str]:
+def parse_pinned_sha(text: str) -> str | None:
     match = re.search(r"`([0-9a-f]{40})`", text)
     if match:
         return match.group(1)
@@ -152,7 +150,7 @@ def parse_pinned_sha(text: str) -> Optional[str]:
     return None
 
 
-def pinned_sha_from_upstream_doc(path: Path) -> Optional[str]:
+def pinned_sha_from_upstream_doc(path: Path) -> str | None:
     if not path.exists():
         return None
     return parse_pinned_sha(path.read_text(encoding="utf-8"))
@@ -177,14 +175,14 @@ def inspect_pinned_revision(path: Path, pinned_sha: str, head: str) -> dict[str,
     }
 
 
-def collect_git_status(path: Path) -> Dict[str, List[str]]:
+def collect_git_status(path: Path) -> dict[str, list[str]]:
     status = run(["git", "status", "--short", "--ignore-submodules=all"], path)
-    staged: List[str] = []
-    untracked: List[str] = []
+    staged: list[str] = []
+    untracked: list[str] = []
 
     if status:
         for line in status.splitlines():
-            state, filename = line[:2], line[3:]
+            state = line[:2]
             if state[0] == "?":
                 untracked.append(line)
             elif state.strip():
@@ -193,9 +191,9 @@ def collect_git_status(path: Path) -> Dict[str, List[str]]:
     return {"raw": status.splitlines(), "staged": staged, "untracked": untracked}
 
 
-def write_state_snapshot(dest: Path, payload: Dict[str, object]) -> Path:
+def write_state_snapshot(dest: Path, payload: dict[str, object]) -> Path:
     dest.mkdir(parents=True, exist_ok=True)
-    now = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    now = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     out = dest / f"biominer_boundary_{now}.json"
     out.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
     return out
@@ -216,7 +214,9 @@ def has_phase13_signal(path: Path) -> bool:
     return False
 
 
-def check_component_contracts(manifest: Dict[str, object], failures: List[str], warnings: List[str]) -> None:
+def check_component_contracts(
+    manifest: dict[str, object], failures: list[str], warnings: list[str]
+) -> None:
     components = manifest.get("components", [])
     if not isinstance(components, list):
         return
@@ -226,22 +226,40 @@ def check_component_contracts(manifest: Dict[str, object], failures: List[str], 
             warnings.append(f"Component {idx} is not a mapping and was skipped.")
             continue
 
+        component_label = component.get("component_id", idx)
         missing = REQUIRED_COMPONENT_FIELDS - set(component)
         if missing:
-            failures.append(f"Component {component.get('component_id', idx)} missing required field(s): {', '.join(sorted(missing))}")
+            missing_fields = ", ".join(sorted(missing))
+            failures.append(
+                f"Component {component_label} missing required field(s): {missing_fields}"
+            )
 
-        source_commit = str(component.get("source_commit", "")) if component.get("source_commit") is not None else ""
+        source_commit = (
+            str(component.get("source_commit", ""))
+            if component.get("source_commit") is not None
+            else ""
+        )
         if source_commit and not HEX_SHA.fullmatch(source_commit):
-            failures.append(f"Component {component.get('component_id', idx)} has non-full SHA '{source_commit}'.")
+            failures.append(f"Component {component_label} has non-full SHA '{source_commit}'.")
 
         source_path = str(component.get("source_path", "")).lower()
-        if "staged" in source_path or "working tree" in source_path or "working_tree" in source_path:
-            failures.append(f"Component {component.get('component_id', idx)} points to staged/working-tree content ({source_path}).")
+        if (
+            "staged" in source_path
+            or "working tree" in source_path
+            or "working_tree" in source_path
+        ):
+            failures.append(
+                f"Component {component_label} points to staged/working-tree content "
+                f"({source_path})."
+            )
 
         component_id = str(component.get("component_id", "")).lower()
         if "phase13" in component_id or "phase_13" in component_id:
             if component.get("phase13_explicit_pinned") is not True:
-                warnings.append(f"Component {component.get('component_id', idx)} appears Phase 13 and is not explicitly pinned/approved.")
+                warnings.append(
+                    f"Component {component_label} appears Phase 13 and is not "
+                    "explicitly pinned/approved."
+                )
 
 
 def main() -> None:
@@ -250,15 +268,19 @@ def main() -> None:
     parser.add_argument("--upstream-doc", default="UPSTREAM_BIOMINER.md")
     parser.add_argument("--manifest", default="provenance/biominer_migration_manifest.yaml")
     parser.add_argument("--snapshot-dir", default="provenance/biominer_state")
-    parser.add_argument("--dry-run", action="store_true", help="Run checks and print state without enforcing strict failure policy")
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Run checks and print state without enforcing strict failure policy",
+    )
     args = parser.parse_args()
 
     repo_root = Path(__file__).resolve().parents[1]
 
-    failures: List[str] = []
-    warnings: List[str] = []
+    failures: list[str] = []
+    warnings: list[str] = []
 
-    biominer_path: Optional[Path] = None
+    biominer_path: Path | None = None
     if args.biominer_path:
         explicit = Path(args.biominer_path).resolve()
         if (explicit / ".git").is_dir():
@@ -268,7 +290,9 @@ def main() -> None:
     else:
         found = find_biominer_path()
         if not found:
-            failures.append("No BioMiner repository found in ../BioMiner, ./BioMiner, or BIOMINER_REPO.")
+            failures.append(
+                "No BioMiner repository found in ../BioMiner, ./BioMiner, or BIOMINER_REPO."
+            )
         else:
             biominer_path = found[0]
 
@@ -290,7 +314,9 @@ def main() -> None:
         pinned_sha = manifest_doc.get("pinned_biominer_sha")  # type: ignore[assignment]
 
     if not pinned_sha:
-        failures.append("Pinned BioMiner SHA could not be found in UPSTREAM_BIOMINER.md or manifest metadata.")
+        failures.append(
+            "Pinned BioMiner SHA could not be found in UPSTREAM_BIOMINER.md or manifest metadata."
+        )
 
     pinned_revision: dict[str, object] = {
         "available": False,
@@ -315,16 +341,19 @@ def main() -> None:
 
     if status["staged"]:
         warnings.append(
-            f"BioMiner has staged content: {len(status['staged'])} path(s); migration must exclude all staged content."
+            f"BioMiner has staged content: {len(status['staged'])} path(s); "
+            "migration must exclude all staged content."
         )
 
     if status["untracked"]:
-        warnings.append(
-            f"BioMiner has untracked content: {', '.join(entry[3:] for entry in status['untracked'])}."
-        )
+        untracked_paths = ", ".join(entry[3:] for entry in status["untracked"])
+        warnings.append(f"BioMiner has untracked content: {untracked_paths}.")
 
     if has_phase13_signal(biominer_path):
-        warnings.append("BioMiner worktree contains a phase-13-style path marker. Phase 13 remains excluded unless explicitly pinned.")
+        warnings.append(
+            "BioMiner worktree contains a phase-13-style path marker. Phase 13 "
+            "remains excluded unless explicitly pinned."
+        )
 
     manifest_data = parse_simple_yaml(manifest_path) if manifest_path.exists() else None
     if manifest_data is None:
@@ -337,7 +366,7 @@ def main() -> None:
         phase13_pinned = bool(manifest_data.get("phase13_exclusion"))
 
     output = {
-        "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        "timestamp": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
         "taxalens": {
             "branch": run(["git", "branch", "--show-current"], repo_root),
             "head": run(["git", "rev-parse", "HEAD"], repo_root),

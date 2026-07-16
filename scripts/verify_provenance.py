@@ -7,7 +7,6 @@ import argparse
 import json
 import re
 from pathlib import Path
-from typing import Dict, List
 
 HEX_SHA = re.compile(r"^[0-9a-f]{40}$")
 REQUIRED_COMPONENT_FIELDS = {
@@ -33,7 +32,9 @@ REQUIRED_DOCS = [
 def parse_scalar(value: str):
     if value in {"null", "~", ""}:
         return None
-    if (value.startswith("\"") and value.endswith("\"")) or (value.startswith("'") and value.endswith("'")):
+    if (value.startswith('"') and value.endswith('"')) or (
+        value.startswith("'") and value.endswith("'")
+    ):
         return value[1:-1]
     if value.lower() == "true":
         return True
@@ -42,18 +43,18 @@ def parse_scalar(value: str):
     return value
 
 
-def parse_manifest(path: Path) -> Dict[str, object]:
+def parse_manifest(path: Path) -> dict[str, object]:
     text = path.read_text(encoding="utf-8")
     stripped = text.lstrip()
     if stripped.startswith("{") or stripped.startswith("["):
         return json.loads(text)
 
-    data: Dict[str, object] = {}
+    data: dict[str, object] = {}
     lines = text.splitlines()
 
     in_components = False
-    current_component: Dict[str, object] | None = None
-    components: List[Dict[str, object]] = []
+    current_component: dict[str, object] | None = None
+    components: list[dict[str, object]] = []
 
     for raw in lines:
         if not raw.strip() or raw.lstrip().startswith("#"):
@@ -103,8 +104,8 @@ def main() -> None:
     parser.add_argument("--upstream", default="UPSTREAM_BIOMINER.md")
     args = parser.parse_args()
 
-    failures: List[str] = []
-    warnings: List[str] = []
+    failures: list[str] = []
+    warnings: list[str] = []
     manifest_path = Path(args.manifest)
 
     if not manifest_path.exists():
@@ -132,17 +133,29 @@ def main() -> None:
             if not isinstance(component, dict):
                 failures.append(f"Component index {idx} is not a mapping.")
                 continue
+            component_label = component.get("component_id", idx)
             missing = REQUIRED_COMPONENT_FIELDS - set(component)
             if missing:
-                failures.append(f"Component {component.get('component_id', idx)} missing required fields: {', '.join(sorted(missing))}")
+                missing_fields = ", ".join(sorted(missing))
+                failures.append(
+                    f"Component {component_label} missing required fields: {missing_fields}"
+                )
 
             source_commit = component.get("source_commit")
             if not isinstance(source_commit, str) or not HEX_SHA.fullmatch(source_commit):
-                failures.append(f"Component {component.get('component_id', idx)} has invalid source_commit '{source_commit}'.")
+                failures.append(
+                    f"Component {component_label} has invalid source_commit '{source_commit}'."
+                )
 
             source_path = str(component.get("source_path", "")).lower()
-            if "staged" in source_path or "working tree" in source_path or "working_tree" in source_path:
-                failures.append(f"Component {component.get('component_id', idx)} references non-committed path '{source_path}'.")
+            if (
+                "staged" in source_path
+                or "working tree" in source_path
+                or "working_tree" in source_path
+            ):
+                failures.append(
+                    f"Component {component_label} references non-committed path '{source_path}'."
+                )
 
             component_id = str(component.get("component_id", "")).lower()
             if "phase13" in component_id or "13" in component_id:
@@ -150,17 +163,23 @@ def main() -> None:
                 status = component.get("status")
                 if not is_pinned or status != "migrated":
                     failures.append(
-                        f"Component {component.get('component_id', idx)} is Phase 13-like but not explicitly committed+pinned.")
+                        f"Component {component_label} is Phase 13-like but not "
+                        "explicitly committed+pinned."
+                    )
 
     source_repo = str(manifest.get("upstream_repository", "")).strip()
     if source_repo and source_repo != "karikris/BioMiner":
-        warnings.append(f"Manifest upstream repository is {source_repo} (expected karikris/BioMiner).")
+        warnings.append(
+            f"Manifest upstream repository is {source_repo} (expected karikris/BioMiner)."
+        )
 
     upstream = Path(args.upstream)
     if not upstream.exists():
         warnings.append(f"Missing upstream tracking document: {args.upstream}")
     elif "pinned" not in upstream.read_text(encoding="utf-8").lower():
-        failures.append(f"Upstream tracking document {args.upstream} does not contain a pinned SHA reference.")
+        failures.append(
+            f"Upstream tracking document {args.upstream} does not contain a pinned SHA reference."
+        )
 
     if failures:
         print_report(failures, warnings)
@@ -173,7 +192,7 @@ def main() -> None:
             print(f"  - {warning}")
 
 
-def print_report(failures: List[str], warnings: List[str]) -> None:
+def print_report(failures: list[str], warnings: list[str]) -> None:
     if warnings:
         print("WARNINGS:")
         for warning in warnings:
