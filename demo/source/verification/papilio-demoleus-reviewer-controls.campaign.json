@@ -1,0 +1,562 @@
+{
+  "schemaVersion": "taxalens-reviewer-control-campaign-packet:v1.0.0",
+  "manifestSha256": "60f6731c51ea2c5d01643899144b8ba906fd24d38400537490638140087192db",
+  "campaign": {
+    "schemaVersion": "taxalens-verification-campaign:v1.0.0",
+    "campaignId": "reviewer-controls-60f6731c51ea2c5d01643899",
+    "title": "Papilio demoleus reviewer workflow controls",
+    "description": "A private six-item workflow-control packet for positive, negative, ambiguity, duplicate, media-failure, and adjudication behavior.",
+    "kind": "quality_control",
+    "status": "ready",
+    "targetTaxon": {
+      "acceptedTaxonKey": "gbif:1938069",
+      "scientificName": "Papilio demoleus",
+      "commonName": "lime swallowtail",
+      "rank": "species",
+      "authority": "Linnaeus, 1758"
+    },
+    "sourceProviders": [
+      "wikimedia_commons",
+      "taxalens_fixture"
+    ],
+    "reviewRequirement": {
+      "requiredIndependentReviewers": 2,
+      "secondReviewPolicy": "on_conflict_or_uncertain",
+      "adjudicationRequiredOnConflict": true,
+      "decisiveOutcomes": [
+        "yes",
+        "no"
+      ],
+      "mediaRequiredOutcomes": [
+        "yes",
+        "no",
+        "cant_tell"
+      ],
+      "nonScientificOutcomes": [
+        "cant_view",
+        "skipped"
+      ]
+    },
+    "samplingPlan": {
+      "planId": "reviewer-controls-60f6731c51ea2c5d01643899-fixed-control-design",
+      "purpose": "reviewer_quality_control",
+      "design": "control_items",
+      "representative": false,
+      "blindReview": true,
+      "selectionSeed": "taxalens-papilio-demoleus-reviewer-controls-v1",
+      "targetSampleSize": 6,
+      "inclusionProbabilityRequired": false,
+      "independentUnit": "duplicate_group",
+      "groupingKeys": [
+        "duplicate_group",
+        "observation_group",
+        "owner_group"
+      ],
+      "leakagePolicy": "not_applicable",
+      "strata": [
+        {
+          "stratumId": "known_target",
+          "label": "Reviewer control · known target",
+          "populationCount": 1,
+          "targetSampleCount": 1,
+          "populationWeight": null,
+          "selectionNotes": "Fixed workflow-control case; not a probability sample and not valid for scientific quality estimation."
+        },
+        {
+          "stratumId": "known_negative",
+          "label": "Reviewer control · known negative",
+          "populationCount": 1,
+          "targetSampleCount": 1,
+          "populationWeight": null,
+          "selectionNotes": "Fixed workflow-control case; not a probability sample and not valid for scientific quality estimation."
+        },
+        {
+          "stratumId": "ambiguous",
+          "label": "Reviewer control · ambiguous",
+          "populationCount": 1,
+          "targetSampleCount": 1,
+          "populationWeight": null,
+          "selectionNotes": "Fixed workflow-control case; not a probability sample and not valid for scientific quality estimation."
+        },
+        {
+          "stratumId": "duplicate",
+          "label": "Reviewer control · duplicate",
+          "populationCount": 1,
+          "targetSampleCount": 1,
+          "populationWeight": null,
+          "selectionNotes": "Fixed workflow-control case; not a probability sample and not valid for scientific quality estimation."
+        },
+        {
+          "stratumId": "media_failure",
+          "label": "Reviewer control · media failure",
+          "populationCount": 1,
+          "targetSampleCount": 1,
+          "populationWeight": null,
+          "selectionNotes": "Fixed workflow-control case; not a probability sample and not valid for scientific quality estimation."
+        },
+        {
+          "stratumId": "adjudication_example",
+          "label": "Reviewer control · adjudication example",
+          "populationCount": 1,
+          "targetSampleCount": 1,
+          "populationWeight": null,
+          "selectionNotes": "Fixed workflow-control case; not a probability sample and not valid for scientific quality estimation."
+        }
+      ],
+      "qualityEstimationAllowed": false,
+      "qualityEstimationBlockedReason": "Workflow controls may assess reviewer handling but cannot estimate biological population quality."
+    },
+    "disclosurePolicy": {
+      "mode": "blind",
+      "revealAfterDecision": true,
+      "hiddenBeforeDecision": [
+        "controlScenario",
+        "controlTruth",
+        "expectedWorkflow"
+      ]
+    },
+    "questionFingerprint": "a763d1bc582fca3c75a936b1fd5b1d8a4f0356d491732544f7ff6dd3c27aba9b",
+    "manifestSha256": "60f6731c51ea2c5d01643899144b8ba906fd24d38400537490638140087192db",
+    "taxalensSha": "adb202a9b28f28dd0cb6702945296cb714062236",
+    "biominerSha": null,
+    "publicReplay": false,
+    "scientificClaimAllowed": false
+  },
+  "items": [
+    {
+      "itemId": "reviewer-control:known-target",
+      "campaignId": "reviewer-controls-60f6731c51ea2c5d01643899",
+      "source": "wikimedia_commons",
+      "sourceObservationId": "commons-file:Common_Lime_Butterfly_Papilio_demoleus_UP_by_Kadavoor.jpg",
+      "sourceMediaId": "commons-file:Common_Lime_Butterfly_Papilio_demoleus_UP_by_Kadavoor.jpg",
+      "imageSha256": "47248e36944cf91256c906e8454adcad99121da049260745d57f4cbffae65a78",
+      "imageByteCount": 180698,
+      "mediaType": "image/jpeg",
+      "previewUri": "apps/web/src/review/assets/papilio-demoleus-open-wing.jpg",
+      "targetTaxon": {
+        "acceptedTaxonKey": "gbif:1938069",
+        "scientificName": "Papilio demoleus",
+        "commonName": "lime swallowtail",
+        "rank": "species",
+        "authority": "Linnaeus, 1758"
+      },
+      "providerSuppliedIdentity": {
+        "providerTaxonKey": null,
+        "scientificName": "Papilio demoleus",
+        "commonName": "Common Lime Butterfly",
+        "rawLabel": "Common Lime Butterfly Papilio demoleus UP by Kadavoor",
+        "verificationStatus": "human_curated_fixture:not_independent_taxonomic_verification"
+      },
+      "expectedLifeStage": "adult",
+      "expectedVisualDomain": "live_field",
+      "expectedView": "dorsal",
+      "duplicateGroupId": "sha256:47248e36944cf91256c906e8454adcad99121da049260745d57f4cbffae65a78",
+      "observationGroupId": "commons-file:Common_Lime_Butterfly_Papilio_demoleus_UP_by_Kadavoor.jpg",
+      "ownerPhotographerGroupId": "commons-creator:Jeevan_Jose",
+      "samplingStratumId": "known_target",
+      "inclusionProbability": null,
+      "rights": {
+        "creator": "Jeevan Jose",
+        "rightsHolder": "Jeevan Jose",
+        "licenseName": "CC BY-SA 4.0",
+        "licenseUri": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "policyStatus": "allowed",
+        "attribution": "Common Lime Butterfly Papilio demoleus UP by Kadavoor by Jeevan Jose, CC BY-SA 4.0",
+        "sourceUri": "https://commons.wikimedia.org/wiki/File:Common_Lime_Butterfly_Papilio_demoleus_UP_by_Kadavoor.jpg"
+      },
+      "questionFingerprint": "a763d1bc582fca3c75a936b1fd5b1d8a4f0356d491732544f7ff6dd3c27aba9b"
+    },
+    {
+      "itemId": "reviewer-control:known-negative",
+      "campaignId": "reviewer-controls-60f6731c51ea2c5d01643899",
+      "source": "taxalens_fixture",
+      "sourceObservationId": "taxalens-fixture:dashboard-no-organism",
+      "sourceMediaId": "taxalens-fixture:dashboard-no-organism",
+      "imageSha256": "4f715f98854825ce555265276189f96046c10d1b635d027980fae0d187845934",
+      "imageByteCount": 116584,
+      "mediaType": "image/png",
+      "previewUri": "apps/web/e2e/judge-layout.visual.spec.ts-snapshots/dashboard-1280x720-chromium-linux.png",
+      "targetTaxon": {
+        "acceptedTaxonKey": "gbif:1938069",
+        "scientificName": "Papilio demoleus",
+        "commonName": "lime swallowtail",
+        "rank": "species",
+        "authority": "Linnaeus, 1758"
+      },
+      "providerSuppliedIdentity": {
+        "providerTaxonKey": null,
+        "scientificName": null,
+        "commonName": null,
+        "rawLabel": "TaxaLens dashboard screenshot procedural negative",
+        "verificationStatus": "procedural_negative:not_biological_media"
+      },
+      "expectedLifeStage": "unknown",
+      "expectedVisualDomain": "unsuitable",
+      "expectedView": "unknown",
+      "duplicateGroupId": "sha256:4f715f98854825ce555265276189f96046c10d1b635d027980fae0d187845934",
+      "observationGroupId": "taxalens-fixture:dashboard-no-organism",
+      "ownerPhotographerGroupId": "taxalens-fixture:product-screenshot",
+      "samplingStratumId": "known_negative",
+      "inclusionProbability": null,
+      "rights": {
+        "creator": "TaxaLens contributors",
+        "rightsHolder": "TaxaLens contributors",
+        "licenseName": "MIT",
+        "licenseUri": "https://spdx.org/licenses/MIT.html",
+        "policyStatus": "allowed",
+        "attribution": "TaxaLens deterministic product fixture, MIT",
+        "sourceUri": "https://github.com/karikris/taxalens/blob/adb202a9b28f28dd0cb6702945296cb714062236/apps/web/e2e/judge-layout.visual.spec.ts-snapshots/dashboard-1280x720-chromium-linux.png"
+      },
+      "questionFingerprint": "a763d1bc582fca3c75a936b1fd5b1d8a4f0356d491732544f7ff6dd3c27aba9b"
+    },
+    {
+      "itemId": "reviewer-control:ambiguous",
+      "campaignId": "reviewer-controls-60f6731c51ea2c5d01643899",
+      "source": "taxalens_fixture",
+      "sourceObservationId": "taxalens-fixture:embedded-reference-review",
+      "sourceMediaId": "taxalens-fixture:embedded-reference-review",
+      "imageSha256": "7a2960f08f59821fbc0da942cb19d05ee2df58b99a1c058fc7bde0c6c6b7c326",
+      "imageByteCount": 680147,
+      "mediaType": "image/png",
+      "previewUri": "apps/web/e2e/verification.visual.spec.ts-snapshots/reference-review-chromium-linux.png",
+      "targetTaxon": {
+        "acceptedTaxonKey": "gbif:1938069",
+        "scientificName": "Papilio demoleus",
+        "commonName": "lime swallowtail",
+        "rank": "species",
+        "authority": "Linnaeus, 1758"
+      },
+      "providerSuppliedIdentity": {
+        "providerTaxonKey": null,
+        "scientificName": "Papilio demoleus",
+        "commonName": "lime swallowtail",
+        "rawLabel": "Interface screenshot containing an embedded reference image",
+        "verificationStatus": "workflow_ambiguity:not_a_standalone_source_observation"
+      },
+      "expectedLifeStage": "unknown",
+      "expectedVisualDomain": "ambiguous",
+      "expectedView": "unknown",
+      "duplicateGroupId": "sha256:7a2960f08f59821fbc0da942cb19d05ee2df58b99a1c058fc7bde0c6c6b7c326",
+      "observationGroupId": "taxalens-fixture:embedded-reference-review",
+      "ownerPhotographerGroupId": "taxalens-fixture:product-screenshot",
+      "samplingStratumId": "ambiguous",
+      "inclusionProbability": null,
+      "rights": {
+        "creator": "TaxaLens contributors",
+        "rightsHolder": "TaxaLens contributors",
+        "licenseName": "MIT",
+        "licenseUri": "https://spdx.org/licenses/MIT.html",
+        "policyStatus": "allowed",
+        "attribution": "TaxaLens deterministic product fixture, MIT",
+        "sourceUri": "https://github.com/karikris/taxalens/blob/adb202a9b28f28dd0cb6702945296cb714062236/apps/web/e2e/verification.visual.spec.ts-snapshots/reference-review-chromium-linux.png"
+      },
+      "questionFingerprint": "a763d1bc582fca3c75a936b1fd5b1d8a4f0356d491732544f7ff6dd3c27aba9b"
+    },
+    {
+      "itemId": "reviewer-control:duplicate",
+      "campaignId": "reviewer-controls-60f6731c51ea2c5d01643899",
+      "source": "wikimedia_commons",
+      "sourceObservationId": "commons-file:Common_Lime_Butterfly_Papilio_demoleus_UP_by_Kadavoor.jpg",
+      "sourceMediaId": "commons-file:Common_Lime_Butterfly_Papilio_demoleus_UP_by_Kadavoor.jpg",
+      "imageSha256": "47248e36944cf91256c906e8454adcad99121da049260745d57f4cbffae65a78",
+      "imageByteCount": 180698,
+      "mediaType": "image/jpeg",
+      "previewUri": "apps/web/src/review/assets/papilio-demoleus-open-wing.jpg",
+      "targetTaxon": {
+        "acceptedTaxonKey": "gbif:1938069",
+        "scientificName": "Papilio demoleus",
+        "commonName": "lime swallowtail",
+        "rank": "species",
+        "authority": "Linnaeus, 1758"
+      },
+      "providerSuppliedIdentity": {
+        "providerTaxonKey": null,
+        "scientificName": "Papilio demoleus",
+        "commonName": "Common Lime Butterfly",
+        "rawLabel": "Common Lime Butterfly Papilio demoleus UP by Kadavoor",
+        "verificationStatus": "intentional_duplicate:not_an_independent_observation"
+      },
+      "expectedLifeStage": "adult",
+      "expectedVisualDomain": "live_field",
+      "expectedView": "dorsal",
+      "duplicateGroupId": "sha256:47248e36944cf91256c906e8454adcad99121da049260745d57f4cbffae65a78",
+      "observationGroupId": "commons-file:Common_Lime_Butterfly_Papilio_demoleus_UP_by_Kadavoor.jpg",
+      "ownerPhotographerGroupId": "commons-creator:Jeevan_Jose",
+      "samplingStratumId": "duplicate",
+      "inclusionProbability": null,
+      "rights": {
+        "creator": "Jeevan Jose",
+        "rightsHolder": "Jeevan Jose",
+        "licenseName": "CC BY-SA 4.0",
+        "licenseUri": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "policyStatus": "allowed",
+        "attribution": "Common Lime Butterfly Papilio demoleus UP by Kadavoor by Jeevan Jose, CC BY-SA 4.0",
+        "sourceUri": "https://commons.wikimedia.org/wiki/File:Common_Lime_Butterfly_Papilio_demoleus_UP_by_Kadavoor.jpg"
+      },
+      "questionFingerprint": "a763d1bc582fca3c75a936b1fd5b1d8a4f0356d491732544f7ff6dd3c27aba9b"
+    },
+    {
+      "itemId": "reviewer-control:media-failure",
+      "campaignId": "reviewer-controls-60f6731c51ea2c5d01643899",
+      "source": "taxalens_fixture",
+      "sourceObservationId": "taxalens-fixture:intentionally-missing-media",
+      "sourceMediaId": "taxalens-fixture:intentionally-missing-media",
+      "imageSha256": "21ca48fb4c989630cdbcda743a761bd7f92a692da21941d61f91bb6c653e13be",
+      "imageByteCount": 56,
+      "mediaType": "image/jpeg",
+      "previewUri": "demo/fixture/papilio_pilot/verification/control-media/intentionally-missing.jpg",
+      "targetTaxon": {
+        "acceptedTaxonKey": "gbif:1938069",
+        "scientificName": "Papilio demoleus",
+        "commonName": "lime swallowtail",
+        "rank": "species",
+        "authority": "Linnaeus, 1758"
+      },
+      "providerSuppliedIdentity": {
+        "providerTaxonKey": null,
+        "scientificName": null,
+        "commonName": null,
+        "rawLabel": "Intentionally absent media control",
+        "verificationStatus": "intentionally_absent_media"
+      },
+      "expectedLifeStage": "unknown",
+      "expectedVisualDomain": "unsuitable",
+      "expectedView": "unknown",
+      "duplicateGroupId": "sha256:21ca48fb4c989630cdbcda743a761bd7f92a692da21941d61f91bb6c653e13be",
+      "observationGroupId": "taxalens-fixture:intentionally-missing-media",
+      "ownerPhotographerGroupId": "taxalens-fixture:control-generator",
+      "samplingStratumId": "media_failure",
+      "inclusionProbability": null,
+      "rights": {
+        "creator": "TaxaLens contributors",
+        "rightsHolder": "TaxaLens contributors",
+        "licenseName": "MIT",
+        "licenseUri": "https://spdx.org/licenses/MIT.html",
+        "policyStatus": "allowed",
+        "attribution": "TaxaLens deterministic product fixture, MIT",
+        "sourceUri": "https://github.com/karikris/taxalens/blob/adb202a9b28f28dd0cb6702945296cb714062236/demo/fixture/papilio_pilot/verification/control-media/intentionally-missing.jpg"
+      },
+      "questionFingerprint": "a763d1bc582fca3c75a936b1fd5b1d8a4f0356d491732544f7ff6dd3c27aba9b"
+    },
+    {
+      "itemId": "reviewer-control:adjudication-example",
+      "campaignId": "reviewer-controls-60f6731c51ea2c5d01643899",
+      "source": "wikimedia_commons",
+      "sourceObservationId": "commons-file:Close_wing_position_of_Papilio_demoleus_Linnaeus_1758_Lime_Butterfly_WLB.jpg",
+      "sourceMediaId": "commons-file:Close_wing_position_of_Papilio_demoleus_Linnaeus_1758_Lime_Butterfly_WLB.jpg",
+      "imageSha256": "3bd3248347c3b82a977b0890f192f2f0c93253eff13d38b4b54dedb08b39627b",
+      "imageByteCount": 159332,
+      "mediaType": "image/jpeg",
+      "previewUri": "apps/web/src/review/assets/papilio-demoleus-closed-wing.jpg",
+      "targetTaxon": {
+        "acceptedTaxonKey": "gbif:1938069",
+        "scientificName": "Papilio demoleus",
+        "commonName": "lime swallowtail",
+        "rank": "species",
+        "authority": "Linnaeus, 1758"
+      },
+      "providerSuppliedIdentity": {
+        "providerTaxonKey": null,
+        "scientificName": "Papilio demoleus",
+        "commonName": "Lime Butterfly",
+        "rawLabel": "Close wing position of Papilio demoleus, Linnaeus, 1758 – Lime Butterfly",
+        "verificationStatus": "conflict_exercise:not_a_prepopulated_human_decision"
+      },
+      "expectedLifeStage": "adult",
+      "expectedVisualDomain": "live_field",
+      "expectedView": "dorsal",
+      "duplicateGroupId": "sha256:3bd3248347c3b82a977b0890f192f2f0c93253eff13d38b4b54dedb08b39627b",
+      "observationGroupId": "commons-file:Close_wing_position_of_Papilio_demoleus_Linnaeus_1758_Lime_Butterfly_WLB.jpg",
+      "ownerPhotographerGroupId": "commons-creator:Sayan_Sanyal",
+      "samplingStratumId": "adjudication_example",
+      "inclusionProbability": null,
+      "rights": {
+        "creator": "Sayan Sanyal",
+        "rightsHolder": "Sayan Sanyal",
+        "licenseName": "CC BY-SA 4.0",
+        "licenseUri": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "policyStatus": "allowed",
+        "attribution": "Close wing position of Papilio demoleus, Linnaeus, 1758 – Lime Butterfly by Sayan Sanyal, CC BY-SA 4.0",
+        "sourceUri": "https://commons.wikimedia.org/wiki/File:Close_wing_position_of_Papilio_demoleus,_Linnaeus,_1758_%E2%80%93_Lime_Butterfly_WLB.jpg"
+      },
+      "questionFingerprint": "a763d1bc582fca3c75a936b1fd5b1d8a4f0356d491732544f7ff6dd3c27aba9b"
+    }
+  ],
+  "controlSet": {
+    "schemaVersion": "taxalens-reviewer-control-set:v1.0.0",
+    "controlSetId": "reviewer-controls-60f6731c51ea2c5d01643899-scored-truth",
+    "groundTruthSha256": "7e736fd896ac34142e969088346c7842d9a0982661cb1d4ac6dc501303a5e0ba",
+    "controls": [
+      {
+        "itemId": "reviewer-control:known-target",
+        "expectedMediaState": "viewable",
+        "expectedOutcome": "yes"
+      },
+      {
+        "itemId": "reviewer-control:known-negative",
+        "expectedMediaState": "viewable",
+        "expectedOutcome": "no"
+      },
+      {
+        "itemId": "reviewer-control:media-failure",
+        "expectedMediaState": "unviewable",
+        "expectedOutcome": null
+      }
+    ]
+  },
+  "controlScenarios": [
+    {
+      "scenarioId": "known_target",
+      "itemId": "reviewer-control:known-target",
+      "purpose": "procedural_positive_control",
+      "scoredByReviewerControlMetrics": true,
+      "expectedMediaState": "viewable",
+      "expectedOutcome": "yes",
+      "expectedWorkflow": "record_scientific_decision",
+      "truthScope": "reviewer_workflow_fixture_only",
+      "groundTruthBasis": "Pinned rights-cleared human-curated Commons fixture metadata; not an independent expert taxonomic attestation.",
+      "prepopulatedEventIds": []
+    },
+    {
+      "scenarioId": "known_negative",
+      "itemId": "reviewer-control:known-negative",
+      "purpose": "procedural_negative_control",
+      "scoredByReviewerControlMetrics": true,
+      "expectedMediaState": "viewable",
+      "expectedOutcome": "no",
+      "expectedWorkflow": "record_scientific_decision",
+      "truthScope": "reviewer_workflow_fixture_only",
+      "groundTruthBasis": "The pinned TaxaLens dashboard screenshot contains no standalone biological observation and is a procedural negative.",
+      "prepopulatedEventIds": []
+    },
+    {
+      "scenarioId": "ambiguous",
+      "itemId": "reviewer-control:ambiguous",
+      "purpose": "uncertainty_handling_exercise",
+      "scoredByReviewerControlMetrics": false,
+      "expectedMediaState": "viewable",
+      "expectedOutcome": "cant_tell",
+      "expectedWorkflow": "preserve_uncertainty_without_forcing_yes_or_no",
+      "truthScope": "unscored_workflow_exercise",
+      "groundTruthBasis": "An interface screenshot containing an embedded image is not a standalone source observation; the exercise is intentionally unscored.",
+      "prepopulatedEventIds": []
+    },
+    {
+      "scenarioId": "duplicate",
+      "itemId": "reviewer-control:duplicate",
+      "purpose": "duplicate_handling_exercise",
+      "scoredByReviewerControlMetrics": false,
+      "expectedMediaState": "viewable",
+      "expectedOutcome": null,
+      "expectedWorkflow": "record_duplicate_concern_without_double_counting",
+      "truthScope": "unscored_workflow_exercise",
+      "groundTruthBasis": "The item is byte-identical to the known-target item and shares its duplicate and observation groups.",
+      "prepopulatedEventIds": []
+    },
+    {
+      "scenarioId": "media_failure",
+      "itemId": "reviewer-control:media-failure",
+      "purpose": "media_failure_control",
+      "scoredByReviewerControlMetrics": true,
+      "expectedMediaState": "unviewable",
+      "expectedOutcome": null,
+      "expectedWorkflow": "record_cant_view_without_scientific_decision",
+      "truthScope": "reviewer_workflow_fixture_only",
+      "groundTruthBasis": "The declared fixture path is intentionally absent and the builder fails if it becomes available.",
+      "prepopulatedEventIds": []
+    },
+    {
+      "scenarioId": "adjudication_example",
+      "itemId": "reviewer-control:adjudication-example",
+      "purpose": "adjudication_workflow_exercise",
+      "scoredByReviewerControlMetrics": false,
+      "expectedMediaState": "viewable",
+      "expectedOutcome": null,
+      "expectedWorkflow": "retain_dissent_then_require_independent_adjudication",
+      "truthScope": "unscored_workflow_exercise",
+      "groundTruthBasis": "The displayed source describes a ventral view while the exercise asks about dorsal-view support; no dissent or resolution is prefilled.",
+      "prepopulatedEventIds": []
+    }
+  ],
+  "provenance": {
+    "generator": "scripts/build_reviewer_control_campaign.py",
+    "taxalensBaseSha": "adb202a9b28f28dd0cb6702945296cb714062236",
+    "biominerContextSha": "94fa1f634ee3c63917c05d78181dd3cf9ceff940",
+    "biominerContentUsed": false,
+    "inputArtifacts": [
+      {
+        "inputId": "commons_campaign_manifest",
+        "path": "demo/source/verification/papilio-demoleus-commons.campaign.json",
+        "sha256": "00087bce738f5098893eea7b8fce238d3c88f85a7ee643eceddfb22466d6087d",
+        "byteCount": 9748,
+        "gitTracked": true,
+        "status": "verified"
+      },
+      {
+        "inputId": "media:known_target",
+        "path": "apps/web/src/review/assets/papilio-demoleus-open-wing.jpg",
+        "sha256": "47248e36944cf91256c906e8454adcad99121da049260745d57f4cbffae65a78",
+        "byteCount": 180698,
+        "mediaType": "image/jpeg",
+        "decodedWidth": 960,
+        "decodedHeight": 634,
+        "gitTracked": true,
+        "status": "verified"
+      },
+      {
+        "inputId": "media:known_negative",
+        "path": "apps/web/e2e/judge-layout.visual.spec.ts-snapshots/dashboard-1280x720-chromium-linux.png",
+        "sha256": "4f715f98854825ce555265276189f96046c10d1b635d027980fae0d187845934",
+        "byteCount": 116584,
+        "mediaType": "image/png",
+        "decodedWidth": 1280,
+        "decodedHeight": 720,
+        "gitTracked": true,
+        "status": "verified"
+      },
+      {
+        "inputId": "media:ambiguous",
+        "path": "apps/web/e2e/verification.visual.spec.ts-snapshots/reference-review-chromium-linux.png",
+        "sha256": "7a2960f08f59821fbc0da942cb19d05ee2df58b99a1c058fc7bde0c6c6b7c326",
+        "byteCount": 680147,
+        "mediaType": "image/png",
+        "decodedWidth": 1166,
+        "decodedHeight": 772,
+        "gitTracked": true,
+        "status": "verified"
+      },
+      {
+        "inputId": "media:adjudication_example",
+        "path": "apps/web/src/review/assets/papilio-demoleus-closed-wing.jpg",
+        "sha256": "3bd3248347c3b82a977b0890f192f2f0c93253eff13d38b4b54dedb08b39627b",
+        "byteCount": 159332,
+        "mediaType": "image/jpeg",
+        "decodedWidth": 960,
+        "decodedHeight": 686,
+        "gitTracked": true,
+        "status": "verified"
+      },
+      {
+        "inputId": "media:media_failure",
+        "path": "demo/fixture/papilio_pilot/verification/control-media/intentionally-missing.jpg",
+        "sha256": "21ca48fb4c989630cdbcda743a761bd7f92a692da21941d61f91bb6c653e13be",
+        "byteCount": 56,
+        "mediaType": "image/jpeg",
+        "gitTracked": false,
+        "status": "intentionally_absent",
+        "descriptor": "taxalens intentionally absent reviewer control media v1"
+      }
+    ]
+  },
+  "semantics": {
+    "humanReviewEventsPrepopulated": false,
+    "reviewerPerformancePrepopulated": false,
+    "controlTruthScope": "reviewer_workflow_fixture_only",
+    "knownTargetIsIndependentTaxonomicVerification": false,
+    "bioMinerRoleSuitabilityUsedAsTaxonomicTruth": false,
+    "ambiguousCaseScored": false,
+    "adjudicationOutcomePrepopulated": false,
+    "publicReplay": false,
+    "scientificClaimAllowed": false
+  }
+}
