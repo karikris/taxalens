@@ -18,12 +18,22 @@ export interface HumanReviewDecision {
   readonly outcome: HumanReviewOutcome
   readonly comment: string | null
   readonly reviewedAt: string
+  readonly reviewDurationMs: number | null
+}
+
+export interface HumanReviewInspection {
+  readonly itemId: string
+  readonly imageOpened: boolean
+  readonly imageVerified: boolean
+  readonly imageOpenedAt: string | null
+  readonly imageFailureReason: string | null
 }
 
 export interface HumanReviewSession {
   readonly packetId: HumanReviewPacket['packetId']
   readonly reviewerId: string
   readonly decisions: Readonly<Record<string, HumanReviewDecision>>
+  readonly inspections: Readonly<Record<string, HumanReviewInspection>>
 }
 
 export interface ReviewCacheStatus {
@@ -51,6 +61,7 @@ export function emptyHumanReviewSession(): HumanReviewSession {
     packetId: HUMAN_REVIEW_PACKET.packetId,
     reviewerId: '',
     decisions: Object.freeze({}),
+    inspections: Object.freeze({}),
   })
 }
 
@@ -73,6 +84,7 @@ export function loadHumanReviewSession(
       return emptyHumanReviewSession()
     }
     const decisions: Record<string, HumanReviewDecision> = {}
+    const inspections: Record<string, HumanReviewInspection> = {}
     for (const item of HUMAN_REVIEW_PACKET.items) {
       const candidate = value.decisions[item.itemId]
       if (
@@ -83,13 +95,38 @@ export function loadHumanReviewSession(
         (candidate.comment === null || typeof candidate.comment === 'string') &&
         typeof candidate.reviewedAt === 'string'
       ) {
-        decisions[item.itemId] = Object.freeze({ ...candidate })
+        decisions[item.itemId] = Object.freeze({
+          ...candidate,
+          reviewDurationMs: validDuration(candidate.reviewDurationMs)
+            ? candidate.reviewDurationMs
+            : null,
+        })
+      }
+      const inspection =
+        typeof value.inspections === 'object' &&
+        value.inspections !== null &&
+        !Array.isArray(value.inspections)
+          ? value.inspections[item.itemId]
+          : undefined
+      if (
+        typeof inspection === 'object' &&
+        inspection !== null &&
+        inspection.itemId === item.itemId &&
+        typeof inspection.imageOpened === 'boolean' &&
+        typeof inspection.imageVerified === 'boolean' &&
+        (inspection.imageOpenedAt === null ||
+          typeof inspection.imageOpenedAt === 'string') &&
+        (inspection.imageFailureReason === null ||
+          typeof inspection.imageFailureReason === 'string')
+      ) {
+        inspections[item.itemId] = Object.freeze({ ...inspection })
       }
     }
     return Object.freeze({
       packetId: HUMAN_REVIEW_PACKET.packetId,
       reviewerId: value.reviewerId,
       decisions: Object.freeze(decisions),
+      inspections: Object.freeze(inspections),
     })
   } catch {
     return emptyHumanReviewSession()
@@ -132,6 +169,31 @@ export function withDecision(
   })
 }
 
+export function withImageInspection(
+  session: HumanReviewSession,
+  inspection: HumanReviewInspection,
+): HumanReviewSession {
+  return Object.freeze({
+    ...session,
+    inspections: Object.freeze({
+      ...session.inspections,
+      [inspection.itemId]: Object.freeze(inspection),
+    }),
+  })
+}
+
+export function canRecordHumanReviewOutcome(
+  session: HumanReviewSession,
+  itemId: string,
+  outcome: HumanReviewOutcome,
+): boolean {
+  if (!isScientificOutcome(outcome)) {
+    return true
+  }
+  const inspection = session.inspections[itemId]
+  return inspection?.imageOpened === true && inspection.imageVerified === true
+}
+
 export function exportHumanReviewReceipt(
   session: HumanReviewSession,
   packet: HumanReviewPacket = HUMAN_REVIEW_PACKET,
@@ -141,6 +203,7 @@ export function exportHumanReviewReceipt(
     .filter((decision): decision is HumanReviewDecision => decision !== undefined)
     .map((decision) => ({
       ...decision,
+      inspection: session.inspections[decision.itemId] ?? null,
       scientificDisposition:
         decision.outcome === 'yes'
           ? 'label_supported'
@@ -318,6 +381,14 @@ function isOutcome(value: unknown): value is HumanReviewOutcome {
     value === 'cant_view' ||
     value === 'skipped'
   )
+}
+
+function isScientificOutcome(outcome: HumanReviewOutcome): boolean {
+  return outcome === 'yes' || outcome === 'no' || outcome === 'cant_tell'
+}
+
+function validDuration(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0
 }
 
 async function sha256Hex(bytes: Uint8Array<ArrayBuffer>): Promise<string> {

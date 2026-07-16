@@ -8,12 +8,14 @@ import {
 } from './reviewPacket'
 import {
   browserReviewMediaCache,
+  canRecordHumanReviewOutcome,
   clearHumanReviewSession,
   emptyHumanReviewSession,
   exportHumanReviewReceipt,
   loadHumanReviewSession,
   saveHumanReviewSession,
   withDecision,
+  withImageInspection,
   withReviewerId,
   type HumanReviewOutcome,
   type HumanReviewSession,
@@ -98,6 +100,7 @@ export function HumanReviewWorkspace({
         setImageUrl(null)
         setCacheState('error')
         setCacheError(errorMessage(reason))
+        recordImageFailure(item, errorMessage(reason))
       })
     return () => {
       active = false
@@ -127,23 +130,73 @@ export function HumanReviewWorkspace({
   }
 
   function updateReviewerId(reviewerId: string) {
-    const next = withReviewerId(session, reviewerId)
-    setSession(next)
-    saveHumanReviewSession(next)
+    setSession((current) => {
+      const next = withReviewerId(current, reviewerId)
+      saveHumanReviewSession(next)
+      return next
+    })
   }
 
   function record(outcome: HumanReviewOutcome) {
-    const next = withDecision(session, {
-      itemId: item.itemId,
-      outcome,
-      comment: comment.trim() || null,
-      reviewedAt: now().toISOString(),
+    if (
+      !canRecordHumanReviewOutcome(session, item.itemId, outcome) ||
+      (isScientificOutcome(outcome) && imageUrl === null)
+    ) {
+      return
+    }
+    const reviewedAt = now()
+    const openedAt = session.inspections[item.itemId]?.imageOpenedAt
+    const reviewDurationMs =
+      openedAt === null || openedAt === undefined
+        ? null
+        : Math.max(0, reviewedAt.getTime() - new Date(openedAt).getTime())
+    setSession((current) => {
+      const next = withDecision(current, {
+        itemId: item.itemId,
+        outcome,
+        comment: comment.trim() || null,
+        reviewedAt: reviewedAt.toISOString(),
+        reviewDurationMs:
+          reviewDurationMs !== null && Number.isFinite(reviewDurationMs)
+            ? reviewDurationMs
+            : null,
+      })
+      saveHumanReviewSession(next)
+      return next
     })
-    setSession(next)
-    saveHumanReviewSession(next)
     if (index < HUMAN_REVIEW_PACKET.items.length - 1) {
       setIndex(index + 1)
     }
+  }
+
+  function recordImageOpened(openedItem: HumanReviewItem) {
+    setSession((current) => {
+      const existing = current.inspections[openedItem.itemId]
+      const next = withImageInspection(current, {
+        itemId: openedItem.itemId,
+        imageOpened: true,
+        imageVerified: true,
+        imageOpenedAt: existing?.imageOpenedAt ?? now().toISOString(),
+        imageFailureReason: null,
+      })
+      saveHumanReviewSession(next)
+      return next
+    })
+  }
+
+  function recordImageFailure(failedItem: HumanReviewItem, reason: string) {
+    setSession((current) => {
+      const existing = current.inspections[failedItem.itemId]
+      const next = withImageInspection(current, {
+        itemId: failedItem.itemId,
+        imageOpened: false,
+        imageVerified: false,
+        imageOpenedAt: existing?.imageOpenedAt ?? null,
+        imageFailureReason: reason,
+      })
+      saveHumanReviewSession(next)
+      return next
+    })
   }
 
   function clearReview() {
@@ -236,7 +289,15 @@ export function HumanReviewWorkspace({
                 <span>Prepare the local cache to view this review item.</span>
               </div>
             ) : (
-              <img src={imageUrl} alt={item.verificationLabel} />
+              <img
+                src={imageUrl}
+                alt={item.verificationLabel}
+                onLoad={() => recordImageOpened(item)}
+                onError={() => {
+                  setImageUrl(null)
+                  recordImageFailure(item, 'The verified review image could not be displayed.')
+                }}
+              />
             )}
           </div>
           <h3 id="review-item-title">{item.verificationLabel}</h3>
@@ -409,6 +470,10 @@ function outcomeLabel(outcome: HumanReviewOutcome): string {
     case 'skipped':
       return 'Skip'
   }
+}
+
+function isScientificOutcome(outcome: HumanReviewOutcome): boolean {
+  return outcome === 'yes' || outcome === 'no' || outcome === 'cant_tell'
 }
 
 function itemAt(index: number): HumanReviewItem {
