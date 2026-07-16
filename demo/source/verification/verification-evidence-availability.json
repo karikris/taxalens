@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "taxalens-verification-evidence-availability:v1.0.0",
+  "campaignId": "verification-agent-quality-campaign-v1",
+  "media": {
+    "schemaVersion": "taxalens-evidence-availability:v1.0.0",
+    "state": "available",
+    "value": {
+      "eligibleItemCount": 3,
+      "inspectedItemCount": 2,
+      "viewableItemCount": 2,
+      "failedItemCount": 0
+    }
+  },
+  "decision": {
+    "schemaVersion": "taxalens-evidence-availability:v1.0.0",
+    "state": "available",
+    "value": {
+      "eventCount": 4,
+      "effectiveReviewCount": 4,
+      "decisiveReviewCount": 4
+    }
+  },
+  "consensus": {
+    "schemaVersion": "taxalens-evidence-availability:v1.0.0",
+    "state": "blocked",
+    "reason": "Independent adjudication is required before consensus evidence is resolved.",
+    "blockers": [
+      "unresolved_conflict:commons-papilio-demoleus-open-wing"
+    ]
+  },
+  "quality": {
+    "schemaVersion": "taxalens-evidence-availability:v1.0.0",
+    "state": "available",
+    "value": {
+      "snapshotCount": 2,
+      "latestSnapshotSha256": "6dce27495eb2e5b32635417dfec13291ec668bf01e62718473e02f3d935e155d",
+      "releaseStatus": "not_evaluated"
+    }
+  },
+  "calibration": {
+    "schemaVersion": "taxalens-evidence-availability:v1.0.0",
+    "state": "blocked",
+    "reason": "The target precision estimate is blocked.",
+    "blockers": [
+      "decisive_item_ineligible",
+      "decisive_sample_empty"
+    ]
+  },
+  "comments": {
+    "schemaVersion": "taxalens-evidence-availability:v1.0.0",
+    "state": "measured_zero",
+    "value": 0
+  },
+  "referenceReadiness": {
+    "schemaVersion": "taxalens-evidence-availability:v1.0.0",
+    "state": "blocked",
+    "reason": "Reference readiness is blocked in the latest quality snapshot.",
+    "blockers": [
+      "independent_taxonomic_verification_missing"
+    ]
+  }
+}

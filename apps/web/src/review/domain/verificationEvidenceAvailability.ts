@@ -115,16 +115,39 @@ export function projectVerificationEvidenceAvailability(
 }
 
 export function validateVerificationEvidenceAvailability(
-  value: VerificationEvidenceAvailability,
+  value: unknown,
 ): readonly string[] {
+  if (!isRecord(value)) {
+    return Object.freeze([
+      'verification evidence availability must be an object',
+    ])
+  }
   const failures: string[] = []
+  if (
+    !hasExactKeys(value, [
+      'calibration',
+      'campaignId',
+      'comments',
+      'consensus',
+      'decision',
+      'media',
+      'quality',
+      'referenceReadiness',
+      'schemaVersion',
+    ])
+  ) {
+    failures.push('verification evidence availability fields are invalid')
+  }
   if (
     value.schemaVersion !==
     VERIFICATION_EVIDENCE_AVAILABILITY_SCHEMA_VERSION
   ) {
     failures.push('verification evidence availability schema version is unsupported')
   }
-  if (value.campaignId.trim().length === 0) {
+  if (
+    typeof value.campaignId !== 'string' ||
+    value.campaignId.trim().length === 0
+  ) {
     failures.push('verification evidence availability campaign ID is empty')
   }
   validateCategory('media', value.media, isMediaEvidence, failures)
@@ -396,14 +419,14 @@ function numericEvidence(
   if (value === null) {
     return unavailableEvidence(unavailableReason)
   }
-  return Object.is(value, 0)
+  return value === 0
     ? measuredZeroEvidence()
     : availableEvidence(value)
 }
 
 function validateCategory<T>(
   label: string,
-  value: EvidenceAvailability<T>,
+  value: unknown,
   validateAvailable: (value: unknown) => value is T,
   failures: string[],
 ): void {

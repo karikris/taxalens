@@ -75,7 +75,7 @@ export function availableEvidence<T>(
       'Available evidence cannot contain null or undefined',
     )
   }
-  if (typeof value === 'number' && Object.is(value, 0)) {
+  if (typeof value === 'number' && value === 0) {
     throw new EvidenceAvailabilityError(
       'Measured numeric zero must use the measured_zero evidence state',
     )
@@ -237,7 +237,7 @@ function validateAvailable<T>(
     failures.push('available evidence value must not be null or undefined')
   }
   if (typeof value.value === 'number') {
-    if (Object.is(value.value, 0)) {
+    if (value.value === 0) {
       failures.push('numeric zero must use measured_zero evidence')
     }
     if (!Number.isFinite(value.value)) {
@@ -261,7 +261,7 @@ function validateMeasuredZero(
   if (!sameKeys(keys, ['schemaVersion', 'state', 'value'])) {
     failures.push('measured-zero evidence fields are invalid')
   }
-  if (!Object.is(value.value, 0)) {
+  if (value.value !== 0) {
     failures.push('measured-zero evidence value must equal numeric zero')
   }
   return Object.freeze(failures)
