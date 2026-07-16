@@ -21,10 +21,35 @@ const database = new PGlite()
 
 try {
   await database.exec(`
+    create role anon nologin;
+    create role authenticated nologin;
+    create role service_role nologin bypassrls;
     create schema auth;
     create table auth.users (
       id uuid primary key
     );
+    create function auth.uid()
+    returns uuid
+    language sql
+    stable
+    as $$
+      select nullif(
+        current_setting('request.jwt.claim.sub', true),
+        ''
+      )::uuid
+    $$;
+    create function auth.jwt()
+    returns jsonb
+    language sql
+    stable
+    as $$
+      select coalesce(
+        nullif(current_setting('request.jwt.claims', true), '')::jsonb,
+        '{}'::jsonb
+      )
+    $$;
+    grant usage on schema auth to authenticated;
+    grant execute on function auth.uid(), auth.jwt() to authenticated;
   `)
 
   const migrationNames = (await readdir(migrationsRoot))
@@ -90,13 +115,107 @@ try {
     assert.ok(indexNames.has(indexName), `Missing index: ${indexName}`)
   }
 
+  await verifyRowLevelSecurityCatalog(database)
   await verifyImmutableEventLedger(database)
+  await verifyRowLevelSecurity(database)
 
   console.log(
     `Supabase migrations validated in PostgreSQL: ${migrationNames.join(', ')}`,
   )
 } finally {
   await database.close()
+}
+
+async function verifyRowLevelSecurityCatalog(database) {
+  const rowLevelSecurity = await database.query(`
+    select
+      relname as table_name,
+      relrowsecurity as enabled,
+      relforcerowsecurity as forced
+    from pg_class
+    join pg_namespace
+      on pg_namespace.oid = pg_class.relnamespace
+    where pg_namespace.nspname = 'public'
+      and relname like 'verification_%'
+      and relkind = 'r'
+    order by relname
+  `)
+  assert.deepEqual(
+    rowLevelSecurity.rows.map(({ table_name: tableName, enabled, forced }) => ({
+      tableName,
+      enabled,
+      forced,
+    })),
+    expectedTables.map((tableName) => ({
+      tableName,
+      enabled: true,
+      forced: true,
+    })),
+  )
+
+  const policies = await database.query(`
+    select tablename, count(*)::integer as policy_count
+    from pg_policies
+    where schemaname = 'public'
+      and tablename like 'verification_%'
+    group by tablename
+    order by tablename
+  `)
+  assert.deepEqual(
+    policies.rows.map(
+      ({ tablename: tableName, policy_count: policyCount }) => ({
+        tableName,
+        policyCount,
+      }),
+    ),
+    [
+      { tableName: 'verification_assignments', policyCount: 3 },
+      { tableName: 'verification_campaigns', policyCount: 3 },
+      { tableName: 'verification_consensus', policyCount: 3 },
+      { tableName: 'verification_events', policyCount: 3 },
+      { tableName: 'verification_items', policyCount: 3 },
+      { tableName: 'verification_quality_snapshots', policyCount: 2 },
+    ],
+  )
+
+  const authorizationHelpers = await database.query(`
+    select
+      proname as function_name,
+      prosecdef as security_definer,
+      has_function_privilege(
+        'anon',
+        pg_proc.oid,
+        'EXECUTE'
+      ) as anon_can_execute,
+      has_function_privilege(
+        'authenticated',
+        pg_proc.oid,
+        'EXECUTE'
+      ) as authenticated_can_execute
+    from pg_proc
+    join pg_namespace
+      on pg_namespace.oid = pg_proc.pronamespace
+    where pg_namespace.nspname = 'taxalens_private'
+      and proname in (
+        'has_verification_role',
+        'owns_verification_campaign'
+      )
+    order by proname
+  `)
+  assert.deepEqual(authorizationHelpers.rows, [
+    {
+      function_name: 'has_verification_role',
+      security_definer: false,
+      anon_can_execute: false,
+      authenticated_can_execute: true,
+    },
+    {
+      function_name: 'owns_verification_campaign',
+      security_definer: true,
+      anon_can_execute: false,
+      authenticated_can_execute: true,
+    },
+  ])
 }
 
 async function verifyImmutableEventLedger(database) {
@@ -385,6 +504,357 @@ async function verifyImmutableEventLedger(database) {
       ],
     )
   }
+}
+
+async function verifyRowLevelSecurity(database) {
+  const reviewerId = '00000000-0000-4000-8000-000000000001'
+  const unassignedReviewerId = '00000000-0000-4000-8000-000000000006'
+  const adjudicatorId = '00000000-0000-4000-8000-000000000003'
+  const managerId = '00000000-0000-4000-8000-000000000004'
+  const analystId = '00000000-0000-4000-8000-000000000005'
+
+  await database.query('insert into auth.users (id) values ($1), ($2), ($3)', [
+    managerId,
+    analystId,
+    unassignedReviewerId,
+  ])
+  await database.query(
+    `
+      insert into public.verification_assignments (
+        campaign_id,
+        item_id,
+        reviewer_id,
+        assignment_role,
+        status,
+        assigned_by
+      )
+      values
+        (
+          'campaign-test',
+          'item-test',
+          $1,
+          'reviewer',
+          'in_progress',
+          $3
+        ),
+        (
+          'campaign-test',
+          'item-test',
+          $2,
+          'adjudicator',
+          'in_progress',
+          $3
+        )
+    `,
+    [reviewerId, adjudicatorId, managerId],
+  )
+
+  await setAnonymousContext(database)
+  await assertRejectsSql(
+    () => countRows(database, 'public.verification_campaigns'),
+    /permission denied/iu,
+  )
+
+  await setAuthenticatedContext(database, reviewerId, ['reviewer'])
+  assert.equal(await countRows(database, 'public.verification_campaigns'), 1)
+  assert.equal(await countRows(database, 'public.verification_items'), 1)
+  assert.equal(await countRows(database, 'public.verification_assignments'), 1)
+  await assertRejectsSql(
+    () =>
+      database.exec(`
+        insert into public.verification_campaigns (
+          campaign_id,
+          schema_version,
+          title,
+          description,
+          kind,
+          status,
+          review_requirement,
+          sampling_plan,
+          disclosure_policy,
+          question_sha256,
+          manifest_sha256,
+          taxalens_sha,
+          created_by
+        )
+        values (
+          'reviewer-created',
+          'campaign:v1',
+          'Rejected',
+          'Rejected',
+          'quality_control',
+          'draft',
+          '{}'::jsonb,
+          '{}'::jsonb,
+          '{}'::jsonb,
+          '${'6'.repeat(64)}',
+          '${'7'.repeat(64)}',
+          '${'8'.repeat(40)}',
+          '${reviewerId}'
+        )
+      `),
+    /row-level security|permission denied/iu,
+  )
+  await database.exec(`
+    insert into public.verification_events (
+      event_id,
+      campaign_id,
+      item_id,
+      actor_id,
+      schema_version,
+      review_round,
+      outcome,
+      event_payload,
+      reviewed_at,
+      received_at,
+      image_sha256,
+      question_sha256,
+      campaign_manifest_sha256,
+      taxalens_sha,
+      biominer_sha
+    )
+    select
+      'event-rls-reviewer',
+      campaign.campaign_id,
+      item.item_id,
+      '${reviewerId}',
+      'event:v1',
+      1,
+      'yes',
+      '{}'::jsonb,
+      '2026-07-16T19:10:00.000Z',
+      '2026-07-16T19:10:00.000Z',
+      item.image_sha256,
+      item.question_sha256,
+      campaign.manifest_sha256,
+      campaign.taxalens_sha,
+      campaign.biominer_sha
+    from public.verification_campaigns as campaign
+    join public.verification_items as item
+      on item.campaign_id = campaign.campaign_id
+    where campaign.campaign_id = 'campaign-test'
+      and item.item_id = 'item-test'
+  `)
+  await assertRejectsSql(
+    () =>
+      database.exec(`
+        update public.verification_events
+        set outcome = 'no'
+        where event_id = 'event-rls-reviewer'
+      `),
+    /permission denied|append only/iu,
+  )
+
+  await setAuthenticatedContext(database, unassignedReviewerId, ['reviewer'])
+  assert.equal(await countRows(database, 'public.verification_campaigns'), 0)
+  assert.equal(await countRows(database, 'public.verification_events'), 0)
+  await setAuthenticatedClaims(database, {
+    sub: unassignedReviewerId,
+    user_metadata: {
+      verification_roles: ['campaign_manager'],
+    },
+  })
+  assert.equal(await countRows(database, 'public.verification_campaigns'), 0)
+
+  await setAuthenticatedContext(database, adjudicatorId, ['adjudicator'])
+  assert.equal(await countRows(database, 'public.verification_events'), 5)
+  await database.exec(`
+    insert into public.verification_events (
+      event_id,
+      campaign_id,
+      item_id,
+      actor_id,
+      schema_version,
+      event_type,
+      review_round,
+      outcome,
+      event_payload,
+      reviewed_at,
+      received_at,
+      image_sha256,
+      question_sha256,
+      campaign_manifest_sha256,
+      taxalens_sha,
+      biominer_sha,
+      source_conflict_event_ids,
+      source_conflict_fields
+    )
+    select
+      'event-rls-adjudication',
+      campaign.campaign_id,
+      item.item_id,
+      '${adjudicatorId}',
+      'event:v1',
+      'adjudication',
+      2,
+      'yes',
+      '{}'::jsonb,
+      '2026-07-16T19:11:00.000Z',
+      '2026-07-16T19:11:00.000Z',
+      item.image_sha256,
+      item.question_sha256,
+      campaign.manifest_sha256,
+      campaign.taxalens_sha,
+      campaign.biominer_sha,
+      array['event-rls-reviewer', 'event-reviewer-b'],
+      array['outcome']
+    from public.verification_campaigns as campaign
+    join public.verification_items as item
+      on item.campaign_id = campaign.campaign_id
+    where campaign.campaign_id = 'campaign-test'
+      and item.item_id = 'item-test'
+  `)
+  assert.equal(await countRows(database, 'public.verification_events'), 6)
+
+  await setAuthenticatedContext(database, managerId, ['campaign_manager'])
+  await database.exec(`
+    update public.verification_assignments
+    set status = 'cancelled'
+    where campaign_id = 'campaign-test'
+      and reviewer_id = '${reviewerId}'
+  `)
+  const protectedAssignment = await database.query(`
+    select status
+    from public.verification_assignments
+    where campaign_id = 'campaign-test'
+      and reviewer_id = '${reviewerId}'
+  `)
+  assert.equal(protectedAssignment.rows[0]?.status, 'in_progress')
+  await database.exec(`
+    insert into public.verification_campaigns (
+      campaign_id,
+      schema_version,
+      title,
+      description,
+      kind,
+      status,
+      review_requirement,
+      sampling_plan,
+      disclosure_policy,
+      question_sha256,
+      manifest_sha256,
+      taxalens_sha,
+      created_by
+    )
+    values (
+      'campaign-manager-created',
+      'campaign:v1',
+      'Manager campaign',
+      'Created through the manager policy',
+      'quality_control',
+      'draft',
+      '{}'::jsonb,
+      '{"qualityEstimationAllowed": false}'::jsonb,
+      '{}'::jsonb,
+      '${'6'.repeat(64)}',
+      '${'7'.repeat(64)}',
+      '${'8'.repeat(40)}',
+      '${managerId}'
+    )
+  `)
+  await database.exec(`
+    insert into public.verification_quality_snapshots (
+      snapshot_sha256,
+      campaign_id,
+      schema_version,
+      captured_at,
+      decisive_sample_count,
+      release_status,
+      snapshot_payload,
+      created_by
+    )
+    values (
+      '${'a'.repeat(64)}',
+      'campaign-manager-created',
+      'quality:v1',
+      now(),
+      0,
+      'not_evaluated',
+      '{}'::jsonb,
+      '${managerId}'
+    )
+  `)
+  await database.exec(`
+    update public.verification_campaigns
+    set title = 'Manager campaign updated'
+    where campaign_id = 'campaign-manager-created'
+  `)
+  const managerCampaign = await database.query(`
+    select title
+    from public.verification_campaigns
+    where campaign_id = 'campaign-manager-created'
+  `)
+  assert.equal(managerCampaign.rows[0]?.title, 'Manager campaign updated')
+
+  await setAuthenticatedContext(database, analystId, ['read_only_analyst'])
+  assert.equal(await countRows(database, 'public.verification_campaigns'), 2)
+  assert.equal(
+    await countRows(database, 'public.verification_quality_snapshots'),
+    1,
+  )
+  await assertRejectsSql(
+    () =>
+      database.exec(`
+        insert into public.verification_quality_snapshots (
+          snapshot_sha256,
+          campaign_id,
+          schema_version,
+          captured_at,
+          decisive_sample_count,
+          release_status,
+          snapshot_payload,
+          created_by
+        )
+        values (
+          '${'9'.repeat(64)}',
+          'campaign-test',
+          'quality:v1',
+          now(),
+          0,
+          'not_evaluated',
+          '{}'::jsonb,
+          '${analystId}'
+        )
+      `),
+    /row-level security|permission denied/iu,
+  )
+
+  await database.exec('reset role')
+}
+
+async function setAnonymousContext(database) {
+  await database.exec(`
+    reset role;
+    reset request.jwt.claim.sub;
+    reset request.jwt.claims;
+    set role anon;
+  `)
+}
+
+async function setAuthenticatedContext(database, userId, roles) {
+  await setAuthenticatedClaims(database, {
+    sub: userId,
+    app_metadata: {
+      verification_roles: roles,
+    },
+  })
+}
+
+async function setAuthenticatedClaims(database, claimsValue) {
+  const claims = JSON.stringify(claimsValue).replaceAll("'", "''")
+  await database.exec(`
+    reset role;
+    set request.jwt.claim.sub = '${claimsValue.sub}';
+    set request.jwt.claims = '${claims}';
+    set role authenticated;
+  `)
+}
+
+async function countRows(database, table) {
+  const result = await database.query(
+    `select count(*)::integer as count from ${table}`,
+  )
+  return result.rows[0]?.count
 }
 
 async function assertRejectsSql(operation, pattern) {
