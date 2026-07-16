@@ -288,6 +288,97 @@ describe('Flickr reviewed-label v2 mapper', () => {
       taxalens_quality_estimation_allowed: false,
     })
   })
+
+  it('does not derive human labels from model-only Flickr evidence', async () => {
+    const packet = await campaignPacket()
+    const item = packet.items[0]!
+    const decision = event(packet.campaign, item, {
+      eventId: 'event-label-leakage',
+      outcome: 'yes',
+      reviewedAt: '2026-07-16T14:00:00.000Z',
+    })
+    const expected = await bindFlickrReviewedLabelSamplingProvenance(
+      packet.campaign,
+      packet.items,
+      [decision],
+      taxonomy,
+    )
+    const alteredItems = packet.items.map((candidate) =>
+      candidate.itemId === item.itemId
+        ? {
+            ...candidate,
+            flickrSource: {
+              ...candidate.flickrSource!,
+              targetScoreBand: 'low' as const,
+              decisionState: 'non_target' as const,
+              competitorMarginBand: 'negative' as const,
+              prioritySignals: {
+                lowMargin: true,
+                visualInputDisagreement: true,
+                geographicAnomaly: true,
+                commentConflict: true,
+                smallSubject: true,
+                referenceShortfall: true,
+                unusualCompetitor: true,
+              },
+              postDecisionEvidence: {
+                ...candidate.flickrSource!.postDecisionEvidence,
+                comments: [
+                  {
+                    commentId: 'comment-model-only',
+                    text: 'A model-visible comment that must not become a label.',
+                  },
+                ],
+                decisionReason: 'Synthetic model rejection.',
+              },
+            },
+          }
+        : candidate,
+    )
+
+    const actual = await bindFlickrReviewedLabelSamplingProvenance(
+      packet.campaign,
+      alteredItems,
+      [decision],
+      taxonomy,
+    )
+
+    expect(actual).toEqual(expected)
+  })
+
+  it('rejects owner groups that cross evaluation splits', async () => {
+    const packet = await campaignPacket()
+    const [first, second] = packet.items
+    const firstSource = first!.flickrSource!
+    const alteredItems = packet.items.map((candidate) =>
+      candidate.itemId === second!.itemId
+        ? {
+            ...candidate,
+            ownerPhotographerGroupId: firstSource.ownerGroupId,
+            flickrSource: {
+              ...candidate.flickrSource!,
+              ownerGroupId: firstSource.ownerGroupId,
+              datasetPartition: 'model_selection' as const,
+            },
+          }
+        : candidate,
+    )
+
+    await expect(
+      bindFlickrReviewedLabelSamplingProvenance(
+        packet.campaign,
+        alteredItems,
+        [
+          event(packet.campaign, first!, {
+            eventId: 'event-group-leakage',
+            outcome: 'yes',
+            reviewedAt: '2026-07-16T14:01:00.000Z',
+          }),
+        ],
+        taxonomy,
+      ),
+    ).rejects.toThrow('Reviewed-label owner group crosses dataset splits.')
+  })
 })
 
 async function campaignPacket() {

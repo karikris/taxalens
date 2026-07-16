@@ -1,3 +1,10 @@
+import type { AsyncDuckDBConnection } from '@duckdb/duckdb-wasm'
+
+import {
+  createDuckDbRuntime,
+  DUCKDB_ENGINE_VERSION,
+  loadLocalParquetExtension,
+} from '../../data/duckdbRuntime'
 import {
   validateFlickrVerificationSource,
   validateVerificationItem,
@@ -17,6 +24,10 @@ import {
 
 export const BIOMINER_REVIEWED_LABEL_SCHEMA_VERSION =
   'reviewed-labels-v2' as const
+export const FLICKR_REVIEWED_LABELS_V2_FILE =
+  'flickr_reviewed_labels_v2.parquet' as const
+export const FLICKR_REVIEWED_LABELS_V2_MEDIA_TYPE =
+  'application/vnd.apache.parquet' as const
 
 export const BIOMINER_REVIEWED_LABEL_V2_FIELDS = Object.freeze([
   'schema_version',
@@ -166,6 +177,16 @@ export interface BioMinerReviewedLabelV2ProvenanceRow
   readonly taxalens_blind_review: boolean
   readonly taxalens_quality_estimation_allowed: boolean
   readonly taxalens_scientific_claim_allowed: boolean
+}
+
+export interface FlickrReviewedLabelsV2File {
+  readonly filename: typeof FLICKR_REVIEWED_LABELS_V2_FILE
+  readonly mediaType: typeof FLICKR_REVIEWED_LABELS_V2_MEDIA_TYPE
+  readonly bytes: Uint8Array<ArrayBuffer>
+  readonly sha256: string
+  readonly rowCount: number
+  readonly decisionLedgerSha256: string
+  readonly samplingPlanSha256: string
 }
 
 interface EffectiveDecision {
@@ -360,6 +381,150 @@ export async function bindFlickrReviewedLabelSamplingProvenance(
   })
   return Object.freeze(rows)
 }
+
+export async function prepareFlickrReviewedLabelsV2Export(
+  campaign: VerificationCampaign,
+  items: readonly VerificationItem[],
+  events: readonly VerificationEvent[],
+  config: FlickrReviewedLabelExportConfig,
+): Promise<FlickrReviewedLabelsV2File> {
+  const rows = await bindFlickrReviewedLabelSamplingProvenance(
+    campaign,
+    items,
+    events,
+    config,
+  )
+  return writeFlickrReviewedLabelsV2Parquet(rows)
+}
+
+export async function writeFlickrReviewedLabelsV2Parquet(
+  rows: readonly BioMinerReviewedLabelV2ProvenanceRow[],
+): Promise<FlickrReviewedLabelsV2File> {
+  if (rows.length === 0) {
+    throw new Error('Reviewed-label export has no scientific decision rows.')
+  }
+  const decisionLedgerSha256 = singleBoundValue(
+    rows.map(({ taxalens_decision_ledger_sha256 }) =>
+      taxalens_decision_ledger_sha256,
+    ),
+    'decision ledger fingerprint',
+  )
+  const samplingPlanSha256 = singleBoundValue(
+    rows.map(({ taxalens_sampling_plan_sha256 }) =>
+      taxalens_sampling_plan_sha256,
+    ),
+    'sampling plan fingerprint',
+  )
+  for (const row of rows) {
+    assertExactProvenanceFields(row)
+  }
+  const canonicalRows = [...rows].sort(compareReviewedLabelRows)
+  const { database } = await createDuckDbRuntime()
+  let connection: AsyncDuckDBConnection | undefined
+  let outputCreated = false
+  try {
+    const engineVersion = await database.getVersion()
+    if (engineVersion !== DUCKDB_ENGINE_VERSION) {
+      throw new Error(
+        `DuckDB engine ${engineVersion} differs from the pinned ${DUCKDB_ENGINE_VERSION} runtime`,
+      )
+    }
+    const parquetExtensionUrl = await loadLocalParquetExtension()
+    connection = await database.connect()
+    await connection.query(`SET autoinstall_known_extensions = false;
+      SET autoload_known_extensions = false;
+      SET TimeZone = 'UTC';
+      SET preserve_insertion_order = true;
+      LOAD ${sqlLiteral(parquetExtensionUrl)}`)
+    await connection.query(REVIEWED_LABEL_TABLE_SQL)
+    for (const row of canonicalRows) {
+      await connection.query(
+        `INSERT INTO flickr_reviewed_labels_v2 VALUES (${reviewedLabelValues(
+          row,
+        ).join(', ')})`,
+      )
+    }
+    await connection.query(
+      `COPY flickr_reviewed_labels_v2
+       TO ${sqlLiteral(FLICKR_REVIEWED_LABELS_V2_FILE)}
+       (FORMAT PARQUET, COMPRESSION ZSTD)`,
+    )
+    outputCreated = true
+    const copied = await database.copyFileToBuffer(
+      FLICKR_REVIEWED_LABELS_V2_FILE,
+    )
+    const bytes = new Uint8Array(copied)
+    return Object.freeze({
+      filename: FLICKR_REVIEWED_LABELS_V2_FILE,
+      mediaType: FLICKR_REVIEWED_LABELS_V2_MEDIA_TYPE,
+      bytes,
+      sha256: await sha256BytesHex(bytes),
+      rowCount: rows.length,
+      decisionLedgerSha256,
+      samplingPlanSha256,
+    })
+  } finally {
+    await connection?.close()
+    if (outputCreated) {
+      await database.dropFile(FLICKR_REVIEWED_LABELS_V2_FILE)
+    }
+    await database.terminate()
+  }
+}
+
+const REVIEWED_LABEL_TABLE_SQL = `CREATE TABLE flickr_reviewed_labels_v2 (
+  schema_version VARCHAR NOT NULL,
+  source VARCHAR NOT NULL,
+  flickr_photo_id VARCHAR NOT NULL,
+  detection_id VARCHAR NOT NULL,
+  crop_hash VARCHAR NOT NULL,
+  label_level VARCHAR NOT NULL,
+  is_butterfly BOOLEAN,
+  accepted_taxon_key VARCHAR,
+  scientific_name VARCHAR,
+  family_key VARCHAR,
+  family VARCHAR,
+  genus_key VARCHAR,
+  genus VARCHAR,
+  label_source VARCHAR NOT NULL,
+  reviewer_id VARCHAR NOT NULL,
+  reviewed_at VARCHAR NOT NULL,
+  review_confidence VARCHAR NOT NULL,
+  review_notes VARCHAR NOT NULL,
+  target_present BOOLEAN,
+  label_certainty VARCHAR NOT NULL,
+  life_stage VARCHAR NOT NULL,
+  visual_domain VARCHAR NOT NULL,
+  view VARCHAR NOT NULL,
+  route VARCHAR,
+  geo_cluster_id VARCHAR,
+  source_query_tier VARCHAR NOT NULL,
+  source_query_term VARCHAR NOT NULL,
+  duplicate_group_id VARCHAR NOT NULL,
+  observer_owner_group_id VARCHAR NOT NULL,
+  dataset_split VARCHAR NOT NULL,
+  second_review_status VARCHAR NOT NULL,
+  ambiguity_reason VARCHAR NOT NULL,
+  unsuitable_for_species_identification BOOLEAN NOT NULL,
+  taxalens_campaign_id VARCHAR NOT NULL,
+  taxalens_campaign_manifest_sha256 VARCHAR NOT NULL,
+  taxalens_question_sha256 VARCHAR NOT NULL,
+  taxalens_taxalens_sha VARCHAR NOT NULL,
+  taxalens_biominer_sha VARCHAR NOT NULL,
+  taxalens_sampling_plan_id VARCHAR NOT NULL,
+  taxalens_sampling_purpose VARCHAR NOT NULL,
+  taxalens_sampling_design VARCHAR NOT NULL,
+  taxalens_sampling_plan_json VARCHAR NOT NULL,
+  taxalens_sampling_plan_sha256 VARCHAR NOT NULL,
+  taxalens_inclusion_probability DOUBLE,
+  taxalens_sampling_weight DOUBLE,
+  taxalens_decision_ledger_sha256 VARCHAR NOT NULL,
+  taxalens_effective_event_ids VARCHAR[] NOT NULL,
+  taxalens_reviewer_group_ids VARCHAR[] NOT NULL,
+  taxalens_blind_review BOOLEAN NOT NULL,
+  taxalens_quality_estimation_allowed BOOLEAN NOT NULL,
+  taxalens_scientific_claim_allowed BOOLEAN NOT NULL
+)`
 
 function assertCampaign(
   campaign: VerificationCampaign,
@@ -778,6 +943,53 @@ function assertExactProvenanceFields(
   }
 }
 
+function singleBoundValue(
+  values: readonly string[],
+  label: string,
+): string {
+  const unique = [...new Set(values)]
+  if (unique.length !== 1 || !/^[a-f0-9]{64}$/.test(unique[0] ?? '')) {
+    throw new Error(`Reviewed-label rows do not share one valid ${label}.`)
+  }
+  return unique[0]!
+}
+
+function reviewedLabelValues(
+  row: BioMinerReviewedLabelV2ProvenanceRow,
+): readonly string[] {
+  const fields = [
+    ...BIOMINER_REVIEWED_LABEL_V2_FIELDS,
+    ...TAXALENS_REVIEWED_LABEL_PROVENANCE_FIELDS,
+  ] as const
+  return fields.map((field) => sqlValue(row[field]))
+}
+
+function sqlValue(
+  value:
+    | string
+    | number
+    | boolean
+    | null
+    | readonly string[],
+): string {
+  if (value === null) {
+    return 'NULL'
+  }
+  if (typeof value === 'string') {
+    return sqlLiteral(value)
+  }
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) {
+      throw new Error('Reviewed-label Parquet value is not finite.')
+    }
+    return value.toString()
+  }
+  if (typeof value === 'boolean') {
+    return value ? 'TRUE' : 'FALSE'
+  }
+  return `[${value.map((entry) => sqlLiteral(entry)).join(', ')}]`
+}
+
 function canonicalSamplingPlan(
   campaign: VerificationCampaign,
 ): VerificationCampaign['samplingPlan'] {
@@ -827,6 +1039,19 @@ async function sha256Hex(value: string): Promise<string> {
   ).join('')
 }
 
+function sqlLiteral(value: string): string {
+  return `'${value.replaceAll("'", "''")}'`
+}
+
+async function sha256BytesHex(
+  bytes: Uint8Array<ArrayBuffer>,
+): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', bytes)
+  return Array.from(new Uint8Array(digest), (byte) =>
+    byte.toString(16).padStart(2, '0'),
+  ).join('')
+}
+
 function compareItems(
   left: VerificationItem,
   right: VerificationItem,
@@ -835,6 +1060,18 @@ function compareItems(
     (left.flickrSource?.flickrPhotoId ?? '').localeCompare(
       right.flickrSource?.flickrPhotoId ?? '',
     ) || left.itemId.localeCompare(right.itemId)
+  )
+}
+
+function compareReviewedLabelRows(
+  left: BioMinerReviewedLabelV2ProvenanceRow,
+  right: BioMinerReviewedLabelV2ProvenanceRow,
+): number {
+  return (
+    left.flickr_photo_id.localeCompare(right.flickr_photo_id) ||
+    left.detection_id.localeCompare(right.detection_id) ||
+    left.reviewer_id.localeCompare(right.reviewer_id) ||
+    left.reviewed_at.localeCompare(right.reviewed_at)
   )
 }
 
