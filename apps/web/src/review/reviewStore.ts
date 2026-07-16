@@ -41,6 +41,7 @@ export interface ReviewCacheStatus {
   readonly cachedCount: number
   readonly totalCount: number
   readonly persistentBrowserCache: boolean
+  readonly itemFailures: Readonly<Record<string, string>>
 }
 
 export interface ReviewMediaCache {
@@ -255,6 +256,7 @@ export const browserReviewMediaCache: ReviewMediaCache = Object.freeze({
   async inspect(packet = HUMAN_REVIEW_PACKET) {
     const persistent = hasCacheStorage()
     let cachedCount = 0
+    const itemFailures: Record<string, string> = {}
     if (persistent) {
       const cache = await window.caches.open(REVIEW_CACHE_NAME)
       for (const item of packet.items) {
@@ -267,6 +269,9 @@ export const browserReviewMediaCache: ReviewMediaCache = Object.freeze({
               )
         if (blob !== undefined) {
           cachedCount += 1
+        } else if (response !== undefined) {
+          itemFailures[item.itemId] =
+            'Cached media failed integrity verification and was removed.'
         }
       }
     } else {
@@ -280,10 +285,13 @@ export const browserReviewMediaCache: ReviewMediaCache = Object.freeze({
               })
         if (verified !== undefined) {
           cachedCount += 1
+        } else if (blob !== undefined) {
+          itemFailures[item.itemId] =
+            'Cached media failed integrity verification and was removed.'
         }
       }
     }
-    return cacheStatus(packet, cachedCount, persistent)
+    return cacheStatus(packet, cachedCount, persistent, itemFailures)
   },
 
   async prepare(
@@ -294,58 +302,70 @@ export const browserReviewMediaCache: ReviewMediaCache = Object.freeze({
     const persistent = hasCacheStorage()
     const cache = persistent ? await window.caches.open(REVIEW_CACHE_NAME) : null
     let cachedCount = 0
+    const itemFailures: Record<string, string> = {}
     for (const item of packet.items) {
-      if (signal.aborted) {
-        throw new DOMException('Review cache preparation was cancelled', 'AbortError')
-      }
-      const existing =
-        cache === null
-          ? memoryCache.get(item.imageUrl)
-          : await cache.match(item.imageUrl)
-      const verifiedExisting =
-        existing === undefined
-          ? undefined
-          : await readVerifiedMedia(item, existing, () =>
-              cache === null
-                ? memoryCache.delete(item.imageUrl)
-                : cache.delete(item.imageUrl),
-            )
-      if (verifiedExisting !== undefined) {
+      try {
+        if (signal.aborted) {
+          throw new DOMException(
+            'Review cache preparation was cancelled',
+            'AbortError',
+          )
+        }
+        const existing =
+          cache === null
+            ? memoryCache.get(item.imageUrl)
+            : await cache.match(item.imageUrl)
+        const verifiedExisting =
+          existing === undefined
+            ? undefined
+            : await readVerifiedMedia(item, existing, () =>
+                cache === null
+                  ? memoryCache.delete(item.imageUrl)
+                  : cache.delete(item.imageUrl),
+              )
+        if (verifiedExisting !== undefined) {
+          cachedCount += 1
+          onProgress(
+            cacheStatus(packet, cachedCount, persistent, itemFailures),
+          )
+          continue
+        }
+        const response = await fetch(item.imageUrl, {
+          signal,
+          cache: 'reload',
+          credentials: 'same-origin',
+        })
+        if (!response.ok) {
+          throw new Error(`Review image returned HTTP ${response.status}`)
+        }
+        const blob = await readVerifiedMedia(item, response, () => undefined)
+        if (blob === undefined) {
+          throw new Error(
+            `Review image ${item.itemId} failed media integrity verification`,
+          )
+        }
+        if (cache === null) {
+          memoryCache.set(item.imageUrl, blob)
+        } else {
+          await cache.put(
+            item.imageUrl,
+            new Response(blob, {
+              headers: {
+                'Content-Type': item.mediaType,
+                'X-TaxaLens-SHA256': item.imageSha256,
+              },
+            }),
+          )
+        }
         cachedCount += 1
-        onProgress(cacheStatus(packet, cachedCount, persistent))
-        continue
+        onProgress(cacheStatus(packet, cachedCount, persistent, itemFailures))
+      } catch (reason) {
+        itemFailures[item.itemId] = reviewErrorMessage(reason)
+        onProgress(cacheStatus(packet, cachedCount, persistent, itemFailures))
+        throw reason
       }
-      const response = await fetch(item.imageUrl, {
-        signal,
-        cache: 'reload',
-        credentials: 'same-origin',
-      })
-      if (!response.ok) {
-        throw new Error(`Review image returned HTTP ${response.status}`)
-      }
-      const blob = await readVerifiedMedia(item, response, () => undefined)
-      if (blob === undefined) {
-        throw new Error(
-          `Review image ${item.itemId} failed media integrity verification`,
-        )
-      }
-      if (cache === null) {
-        memoryCache.set(item.imageUrl, blob)
-      } else {
-        await cache.put(
-          item.imageUrl,
-          new Response(blob, {
-            headers: {
-              'Content-Type': item.mediaType,
-              'X-TaxaLens-SHA256': item.imageSha256,
-            },
-          }),
-        )
-      }
-      cachedCount += 1
-      onProgress(cacheStatus(packet, cachedCount, persistent))
     }
-    return cacheStatus(packet, cachedCount, persistent)
+    return cacheStatus(packet, cachedCount, persistent, itemFailures)
   },
 
   async open(item: HumanReviewItem) {
@@ -386,12 +406,14 @@ function cacheStatus(
   packet: HumanReviewPacket,
   cachedCount: number,
   persistentBrowserCache: boolean,
+  itemFailures: Readonly<Record<string, string>> = {},
 ): ReviewCacheStatus {
   return Object.freeze({
     ready: cachedCount === packet.items.length,
     cachedCount,
     totalCount: packet.items.length,
     persistentBrowserCache,
+    itemFailures: Object.freeze({ ...itemFailures }),
   })
 }
 
@@ -450,4 +472,10 @@ async function readVerifiedMedia(
 
 function normalizeMediaType(value: string | null): string {
   return (value ?? '').split(';', 1)[0]?.trim().toLowerCase() ?? ''
+}
+
+function reviewErrorMessage(reason: unknown): string {
+  return reason instanceof Error
+    ? reason.message
+    : 'Review media preparation failed.'
 }

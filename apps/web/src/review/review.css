@@ -12,6 +12,21 @@
   gap: var(--tl-space-4);
 }
 
+.review-cache__failures {
+  padding: var(--tl-space-3);
+  color: var(--tl-state-failure-ink);
+  background: var(--tl-state-failure-bg);
+  border-left: 4px solid var(--tl-state-failure-line);
+}
+
+.review-cache__failures ul {
+  margin-bottom: 0;
+}
+
+.review-cache__failures code {
+  color: inherit;
+}
+
 .human-review__heading .lede {
   margin-top: var(--tl-space-2);
 }

@@ -29,6 +29,7 @@ const EMPTY_CACHE_STATUS: ReviewCacheStatus = Object.freeze({
   cachedCount: 0,
   totalCount: HUMAN_REVIEW_PACKET.items.length,
   persistentBrowserCache: false,
+  itemFailures: Object.freeze({}),
 })
 
 export function HumanReviewWorkspace({
@@ -280,6 +281,19 @@ export function HumanReviewWorkspace({
               : 'Prepare review cache'}
         </button>
       </section>
+
+      {Object.keys(cacheStatus.itemFailures).length > 0 && (
+        <aside className="review-cache__failures" aria-live="polite">
+          <strong>Media cache issues</strong>
+          <ul>
+            {Object.entries(cacheStatus.itemFailures).map(([itemId, reason]) => (
+              <li key={itemId}>
+                <code>{itemId}</code>: {reason}
+              </li>
+            ))}
+          </ul>
+        </aside>
+      )}
 
       {cacheState === 'error' && (
         <EvidenceState state="failure" title="The review cache could not be prepared">

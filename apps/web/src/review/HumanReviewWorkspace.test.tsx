@@ -150,7 +150,8 @@ function fakeCache(initiallyReady = false): ReviewMediaCache & {
     ready: true,
     cachedCount: 3,
     totalCount: 3,
-    persistentBrowserCache: true,
+      persistentBrowserCache: true,
+      itemFailures: {},
   }
   return {
     inspect: vi.fn().mockResolvedValue(
@@ -161,6 +162,7 @@ function fakeCache(initiallyReady = false): ReviewMediaCache & {
             cachedCount: 0,
             totalCount: 3,
             persistentBrowserCache: true,
+            itemFailures: {},
           },
     ),
     prepare: vi.fn().mockImplementation(
