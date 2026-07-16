@@ -921,6 +921,10 @@ def _build_campaigns_and_items(
                             ),
                         },
                         "observerId": observation["observer_id"],
+                        "observedAt": _datetime_text_or_none(
+                            observation["observed_at"]
+                        ),
+                        "fallbackLevel": observation["fallback_level"],
                         "geography": {
                             "locality": observation["locality"],
                             "country": observation["country"],
@@ -1058,6 +1062,16 @@ def _jsonable(value: Any) -> Any:
     if isinstance(value, (list, tuple, set, frozenset)):
         return [_jsonable(item) for item in value]
     return value
+
+
+def _datetime_text_or_none(value: Any) -> str | None:
+    if value is None:
+        return None
+    if not isinstance(value, datetime) or value.tzinfo is None:
+        raise ReferenceReviewPacketAdapterError(
+            "reference source date must be timezone-aware"
+        )
+    return value.astimezone(UTC).isoformat(timespec="microseconds")
 
 
 def _read_parquet_descriptor(

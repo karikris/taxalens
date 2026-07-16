@@ -144,6 +144,8 @@ def test_adapt_reference_review_packet_into_verification_contracts(
             "policyStatus": "allowed",
         },
         "observerId": "observer-1",
+        "observedAt": "2026-07-14T01:02:03.000000+00:00",
+        "fallbackLevel": 0,
         "geography": {
             "locality": "Sydney",
             "country": "Australia",

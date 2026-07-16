@@ -10,6 +10,10 @@ export type {
   ReferenceReviewFilterContext,
 } from './ReferenceReviewFilters'
 export {
+  referenceRouteExpectation,
+  ReferenceSourceContextPanel,
+} from './ReferenceSourceContextPanel'
+export {
   EMPTY_REFERENCE_REVIEW_ANNOTATION_DRAFT,
   referenceReviewEventFields,
   StructuredReferenceReviewControls,

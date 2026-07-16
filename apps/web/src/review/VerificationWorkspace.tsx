@@ -20,6 +20,7 @@ import {
   CampaignSelector,
   filterReferenceReviewItems,
   ReferenceReviewFilters,
+  ReferenceSourceContextPanel,
   StructuredReferenceReviewControls,
   VerificationControls,
   VerificationItemViewer,
@@ -325,6 +326,12 @@ export function VerificationWorkspace({
         </EvidenceState>
       ) : (
         <>
+      <ReferenceSourceContextPanel
+        campaignTargetAcceptedTaxonKey={
+          HUMAN_REVIEW_CAMPAIGN.targetTaxon?.acceptedTaxonKey ?? null
+        }
+        item={controller.item}
+      />
       <div className="human-review__workspace">
         <VerificationItemViewer
           currentOutcome={controller.decision?.outcome}

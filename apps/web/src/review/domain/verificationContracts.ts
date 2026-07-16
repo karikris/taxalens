@@ -197,6 +197,8 @@ export interface ReferenceSourceProvenance {
     readonly policyStatus: VerificationItemRights['policyStatus']
   }
   readonly observerId: string | null
+  readonly observedAt: string | null
+  readonly fallbackLevel: number
   readonly geography: {
     readonly locality: string | null
     readonly country: string | null
@@ -366,6 +368,18 @@ export function validateVerificationItem(
     }
     if (provenance.providerMediaId.trim() === '') {
       failures.push('source provenance requires a provider media ID')
+    }
+    if (
+      !Number.isInteger(provenance.fallbackLevel) ||
+      provenance.fallbackLevel < 0
+    ) {
+      failures.push('source provenance fallback level must be non-negative')
+    }
+    if (
+      provenance.observedAt !== null &&
+      !Number.isFinite(Date.parse(provenance.observedAt))
+    ) {
+      failures.push('source provenance observed date is invalid')
     }
     if (
       provenance.mediaLicense.name !== item.rights.licenseName ||

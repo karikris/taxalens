@@ -308,6 +308,8 @@ describe('verification campaign contracts', () => {
           policyStatus: 'allowed',
         },
         observerId: 'observer-1',
+        observedAt: '2025-01-02T03:04:00.000Z',
+        fallbackLevel: 0,
         geography: {
           locality: 'Sydney',
           country: 'Australia',
