@@ -30,6 +30,7 @@ export interface HumanReviewDecisionInput {
 
 export interface HumanReviewDecision extends HumanReviewDecisionInput {
   readonly eventId: string
+  readonly reviewerId: string
   readonly reviewRound: number
   readonly supersedesEventId: string | null
 }
@@ -383,9 +384,10 @@ export function withDecision(
   session: HumanReviewSession,
   decision: HumanReviewDecisionInput,
 ): HumanReviewSession {
+  const reviewerIdAtEventCreation = session.reviewerId.trim()
   const event = createVerificationEvent(
     session.events,
-    session.reviewerId,
+    reviewerIdAtEventCreation,
     decision,
   )
   return Object.freeze({
@@ -404,6 +406,7 @@ export function currentHumanReviewDecisions(
     decisions[event.itemId] = Object.freeze({
       eventId: event.eventId,
       itemId: event.itemId,
+      reviewerId: event.reviewerId,
       outcome: event.outcome,
       comment: event.comment,
       reviewedAt: event.reviewedAt,
