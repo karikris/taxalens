@@ -51,9 +51,9 @@ function secretSource(): FlickrVerificationSource {
       outlier: true,
     },
     query: {
-      tier: 'scientific_name:SECRET_TRUST_TIER:text',
+      tier: 'scientific_name:T5:text',
       rank: 'scientific_name',
-      trustTier: 'SECRET_TRUST_TIER',
+      trustTier: 'T5',
       searchField: 'text',
       term: 'SECRET_QUERY_TERM',
     },
@@ -147,7 +147,8 @@ describe('blind Flickr review disclosure', () => {
     for (const forbidden of [
       'SECRET_PROVIDER_LABEL',
       'SECRET_QUERY_TERM',
-      'SECRET_TRUST_TIER',
+      'scientific_name:T5:text',
+      '"queryTrustTier":"T5"',
       'SECRET_COMPETITOR',
       'SECRET_FLICKR_COMMENT',
       'SECRET_DECISION_REASON',

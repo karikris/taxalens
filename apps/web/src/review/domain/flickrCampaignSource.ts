@@ -33,6 +33,7 @@ const DATASET_PARTITIONS = new Set([
   'calibration',
   'final_test',
 ])
+const QUERY_TRUST_TIERS = new Set(['T1', 'T2', 'T3', 'T4', 'T5'])
 const REFERENCE_REVIEW_STATES = new Set([
   'human_verified',
   'provider_supported',
@@ -88,6 +89,7 @@ export function validateFlickrVerificationSource(
     queryParts[0] !== source.query.rank ||
     queryParts[1] !== source.query.trustTier ||
     queryParts[2] !== source.query.searchField ||
+    !QUERY_TRUST_TIERS.has(source.query.trustTier) ||
     queryParts.some((part) => part.length === 0)
   ) {
     failures.push('query tier parts do not match the raw tier')

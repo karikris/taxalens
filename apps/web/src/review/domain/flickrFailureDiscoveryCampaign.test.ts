@@ -76,9 +76,9 @@ function source(
       outlier: signals.geographicAnomaly ?? false,
     },
     query: {
-      tier: 'scientific_name:high:text',
+      tier: 'scientific_name:T1:text',
       rank: 'scientific_name',
-      trustTier: 'high',
+      trustTier: 'T1',
       searchField: 'text',
       term: 'Papilio demoleus',
     },

@@ -48,8 +48,8 @@ const context: RevealedFlickrReviewContext = {
   sourceContext: {
     sourceUri: 'https://www.flickr.com/photos/example/1',
     queryTerm: 'Papilio demoleus',
-    queryTier: 'scientific_name:high:text',
-    queryTrustTier: 'high',
+    queryTier: 'scientific_name:T1:text',
+    queryTrustTier: 'T1',
     providerSuppliedIdentity: {
       providerTaxonKey: null,
       scientificName: null,
