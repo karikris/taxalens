@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "taxalens-stored-verification-analyst-replay:v1.0.0",
+  "request": {
+    "requestKind": "next_review_action",
+    "request": "Which review action most directly addresses the recorded verification state, and why?",
+    "snapshotSha256": "6dce27495eb2e5b32635417dfec13291ec668bf01e62718473e02f3d935e155d",
+    "batchSize": 2,
+    "reasoningEffort": "medium",
+    "budget": {
+      "maxToolCalls": 6,
+      "maxResponseTurns": 7
+    }
+  },
+  "responses": [
+    {
+      "id": "stored-verification-turn-01",
+      "model": "gpt-5.6-sol",
+      "status": "completed",
+      "output": [
+        {
+          "type": "function_call",
+          "call_id": "stored-verification-call-01",
+          "name": "inspect_verification_campaign",
+          "arguments": "{\"campaign_id\":\"verification-agent-quality-campaign-v1\"}",
+          "caller": {
+            "type": "direct"
+          },
+          "status": "completed"
+        }
+      ],
+      "output_text": "",
+      "usage": null
+    },
+    {
+      "id": "stored-verification-turn-02",
+      "model": "gpt-5.6-sol",
+      "status": "completed",
+      "output": [
+        {
+          "type": "function_call",
+          "call_id": "stored-verification-call-02",
+          "name": "inspect_review_conflicts",
+          "arguments": "{\"campaign_id\":\"verification-agent-quality-campaign-v1\"}",
+          "caller": {
+            "type": "direct"
+          },
+          "status": "completed"
+        }
+      ],
+      "output_text": "",
+      "usage": null
+    },
+    {
+      "id": "stored-verification-turn-03",
+      "model": "gpt-5.6-sol",
+      "status": "completed",
+      "output": [
+        {
+          "type": "function_call",
+          "call_id": "stored-verification-call-03",
+          "name": "inspect_sampling_plan",
+          "arguments": "{\"campaign_id\":\"verification-agent-quality-campaign-v1\"}",
+          "caller": {
+            "type": "direct"
+          },
+          "status": "completed"
+        }
+      ],
+      "output_text": "",
+      "usage": null
+    },
+    {
+      "id": "stored-verification-turn-04",
+      "model": "gpt-5.6-sol",
+      "status": "completed",
+      "output": [
+        {
+          "type": "function_call",
+          "call_id": "stored-verification-call-04",
+          "name": "inspect_reference_readiness",
+          "arguments": "{\"campaign_id\":\"verification-agent-quality-campaign-v1\",\"snapshot_sha256\":\"6dce27495eb2e5b32635417dfec13291ec668bf01e62718473e02f3d935e155d\"}",
+          "caller": {
+            "type": "direct"
+          },
+          "status": "completed"
+        }
+      ],
+      "output_text": "",
+      "usage": null
+    },
+    {
+      "id": "stored-verification-turn-05",
+      "model": "gpt-5.6-sol",
+      "status": "completed",
+      "output": [
+        {
+          "type": "function_call",
+          "call_id": "stored-verification-call-05",
+          "name": "recommend_next_review_batch",
+          "arguments": "{\"campaign_id\":\"verification-agent-quality-campaign-v1\",\"batch_size\":2}",
+          "caller": {
+            "type": "direct"
+          },
+          "status": "completed"
+        }
+      ],
+      "output_text": "",
+      "usage": null
+    },
+    {
+      "id": "stored-verification-turn-06",
+      "model": "gpt-5.6-sol",
+      "status": "completed",
+      "output": [],
+      "output_text": "{\"schemaVersion\":\"taxalens-verification-analyst-output:v1.2.0\",\"requestKind\":\"next_review_action\",\"campaign\":{\"campaignId\":\"verification-agent-quality-campaign-v1\",\"title\":\"Verification analyst quality campaign\",\"target\":{\"acceptedTaxonKey\":\"gbif:1938069\",\"scientificName\":\"Papilio demoleus\"}},\"recommendation\":{\"action\":\"adjudication\",\"basis\":\"unresolved_review_conflict\",\"nextItemIds\":[\"commons-papilio-demoleus-open-wing\"],\"why\":\"One recorded reviewer disagreement remains unresolved, so an independent adjudication directly addresses the current decision blocker while preserving both source reviews.\",\"artifactIds\":[\"verification-campaign-manifest\",\"verification-item-manifest\",\"verification-event-ledger\",\"verification-consensus\",\"verification-quality-before\",\"verification-quality-after\",\"provider-support-goal-verification\"]},\"qualityChange\":null,\"campaignAnalysis\":null,\"evidenceBackedClaims\":[{\"id\":\"unresolved-conflict\",\"claim\":\"The immutable consensus projection retains one unresolved disagreement for the recommended campaign item.\",\"artifactIds\":[\"verification-campaign-manifest\",\"verification-item-manifest\",\"verification-event-ledger\",\"verification-consensus\",\"verification-quality-before\",\"verification-quality-after\",\"provider-support-goal-verification\"]}],\"unavailableEvidence\":[],\"answer\":\"Assign the conflicted item to an independent adjudicator and retain the complete dissenting event history.\",\"limitations\":[\"This action addresses a recorded blocker and does not predict a quality, taxonomic, or release outcome.\"],\"artifactIds\":[\"verification-campaign-manifest\",\"verification-item-manifest\",\"verification-event-ledger\",\"verification-consensus\",\"verification-quality-before\",\"verification-quality-after\",\"provider-support-goal-verification\"],\"externalActionsExecuted\":false,\"unsupportedClaimsRejected\":true,\"scientificClaimAllowed\":false}",
+      "usage": null
+    }
+  ],
+  "storage": {
+    "storedOutputOnly": true,
+    "liveRequestExecuted": false,
+    "credentialsRequired": false,
+    "syntheticEvaluationEvidence": true,
+    "scientificEvaluation": false
+  }
+}

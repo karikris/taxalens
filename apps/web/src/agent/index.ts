@@ -25,6 +25,11 @@ export {
   StoredAnalystReplayError,
 } from './storedAnalystReplay'
 export {
+  loadStoredVerificationAnalystReplay,
+  STORED_VERIFICATION_ANALYST_REPLAY_VERSION,
+  StoredVerificationAnalystReplayError,
+} from './storedVerificationAnalystReplay'
+export {
   buildResponsesRequest,
   ResearchAnalystError,
   runResearchAnalyst,
@@ -76,6 +81,7 @@ export {
   deriveNextVerificationAction,
   deriveVerificationCampaignAnalysis,
   runVerificationAnalyst,
+  verificationAnalystClaimViolation,
   VerificationAnalystError,
   type VerificationAnalystResponsesTransport,
   type VerificationAnalystToolExecutor,
@@ -101,3 +107,14 @@ export {
   type VerificationAnalystToolReceipt,
   type VerificationQualityChangeExplanation,
 } from './verificationAnalystContract'
+export {
+  runVerificationAgentEvaluation,
+  VERIFICATION_AGENT_CASE_THRESHOLD,
+  VERIFICATION_AGENT_EVALUATION_CASES,
+  VERIFICATION_AGENT_EVALUATION_THRESHOLD,
+  VERIFICATION_AGENT_EVALUATION_VERSION,
+  type VerificationAgentEvaluationCaseResult,
+  type VerificationAgentEvaluationCheck,
+  type VerificationAgentEvaluationReport,
+  type VerificationAgentEvaluationTopic,
+} from './verificationAgentEvaluation'

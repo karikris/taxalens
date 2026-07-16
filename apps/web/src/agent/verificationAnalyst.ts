@@ -1337,21 +1337,49 @@ function rejectUnsupportedClaims(output: VerificationAnalystOutput): void {
     ...output.evidenceBackedClaims.map(({ claim }) => claim),
     ...output.unavailableEvidence.map(({ reason }) => reason),
   ].join(' ')
+  const violation = verificationAnalystClaimViolation(text)
+  if (violation !== null) {
+    throw new VerificationAnalystError(
+      'invalid_model_output',
+      `The answer contains an unsupported ${violation} claim`,
+    )
+  }
+}
+
+export function verificationAnalystClaimViolation(
+  text: string,
+): 'causality' | 'guarantee' | 'release' | 'verification' | null {
   const forbidden: readonly RegExp[] = [
     /\bguarantee(?:d|s)?\b/iu,
     /\bprove(?:d|s)?\b.{0,80}\b(?:accuracy|correctness|quality)\b/iu,
     /\b(?:accuracy|precision|quality)\b.{0,80}\bwill improve\b/iu,
-    /\b(?:release[- ]ready|approved for (?:scientific )?release)\b/iu,
-    /\bindependent(?:ly)? human taxonomic(?:ally)? verified\b/iu,
-    /\b(?:this|the|one|individual) review\b.{0,80}\b(?:caused|resulted in|made)\b/iu,
-    /\b(?:caused|resulted in|made)\b.{0,80}\b(?:this|the|one|individual) review\b/iu,
   ]
   if (forbidden.some((pattern) => pattern.test(text))) {
-    throw new VerificationAnalystError(
-      'invalid_model_output',
-      'The answer contains an unsupported guarantee, release, or verification claim',
-    )
+    return 'guarantee'
   }
+  if (
+    /\b(?:release[- ]ready|approved for (?:scientific )?release)\b/iu.test(
+      text,
+    )
+  ) {
+    return 'release'
+  }
+  if (
+    /\bindependent(?:ly)? human taxonomic(?:ally)? verified\b/iu.test(text)
+  ) {
+    return 'verification'
+  }
+  if (
+    /\b(?:this|the|one|individual) review\b.{0,80}\b(?:caused|resulted in|made)\b/iu.test(
+      text,
+    ) ||
+    /\b(?:caused|resulted in|made)\b.{0,80}\b(?:this|the|one|individual) review\b/iu.test(
+      text,
+    )
+  ) {
+    return 'causality'
+  }
+  return null
 }
 
 function validateCitations(
