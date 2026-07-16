@@ -1,0 +1,107 @@
+# BioMiner Phase 14 and Phase 15 contract audit
+
+## Outcome
+
+TaxaLens may integrate the committed BioMiner target-aware few-shot prototype at
+`67c1c2a3a2c9b909b256b3094913af342f4ccbed`, but only as an explicit
+prototype evidence mode. The handoff does not authorize a scientific release,
+a production-default change, public display of reference images, calibrated
+probabilities, or an accuracy claim.
+
+This is TaxaLens Task 14.1. It pins the upstream boundary before any bytes are
+imported or any product state is changed.
+
+## Source boundary
+
+| Item | Audited value |
+| --- | --- |
+| Repository | `karikris/BioMiner` |
+| Branch | `main` |
+| Audited and pushed SHA | `67c1c2a3a2c9b909b256b3094913af342f4ccbed` |
+| Previous TaxaLens pin | `75461d9c065af0cd96b41cd1f845c2e920f7ae34` |
+| Phase 14 report status | `complete_prototype_only` |
+| Phase 15 GO gates | 14 required, 14 passed |
+| Phase 15 release status | `accepted_prototype_only_with_limitations` |
+| Phase 15 final verification | `passed_prototype_only` |
+
+Only committed Git objects at the audited SHA are authoritative. The six
+pre-existing untracked BioMiner paths remain outside the TaxaLens boundary and
+were not modified or treated as evidence.
+
+## Prototype evidence now available
+
+- A frozen 81-record metadata-qualified support bank: 80 adult-field and one
+  larval record, all at trust level R4.
+- All 81 rows retain provider, attribution, licence, geographic-layer, route,
+  split, and hash identities.
+- Frozen 1,024-dimensional BioCLIP embeddings at model revision
+  `191d741545e4c741cdef4b22c6eb69c945c1e592`.
+- Nineteen B0–B16 experiment rows per reference record and a selected B13
+  global-reference policy.
+- A selected raw target-versus-competitor margin threshold of `0.10`, with the
+  target always scored and higher-rank pruning forbidden.
+- Staged inference over 13,501 planned Flickr records: 13,496 classified, five
+  retryable failures, 34 species candidates and 47 union candidates scored per
+  classified record.
+- A separate staged diagnostic abstention state on 12,296 records using a
+  `0.02` preselection rule.
+- Exact fingerprints for the support bank, model, embeddings, classifier,
+  configuration, and selected policy.
+- Phase 15 GO, acceptance, final-verification, and post-Build-Week backlog
+  artifacts.
+
+## Scientific and rights boundaries
+
+- Independently human-verified reference labels: **0**.
+- Provider-supported references: **81**. Provider support is not independent
+  taxonomic verification.
+- Licence policy: two `allowed`, 79 `research_only`; public reference-image
+  display is not authorized.
+- Owner evidence is missing for two records, so complete identity-leakage
+  protection is not claimed.
+- No calibrator is fitted. Raw similarities and margins are not probabilities.
+- Accuracy and calibration error are unavailable because no independently
+  reviewed labels exist.
+- Retrieval consistency, scoreability, action distributions, route
+  distributions, and abstention distributions are not classification accuracy,
+  biological occurrence, absence evidence, prevalence, or taxonomic
+  validation.
+- YOLOE is a gate/router only, operates separately from BioCLIP classification,
+  and its routing accuracy has not been independently validated.
+- BioCLIP uses the raw full image. Focused and masked visual-input ablations were
+  unavailable.
+- No pinned-specimen prototype, larval `support_train` reference, or frozen
+  visual-domain negative exists.
+
+## TaxaLens work items
+
+| Task | Planned product boundary |
+| --- | --- |
+| 14.1 | Pin and audit the committed Phase 14/15 handoff. |
+| 14.2 | Import only compact manifests and reports with exact checksums; exclude media, models, databases, caches, and untracked paths. |
+| 14.3 | Add a thin TaxaLens prototype-evidence adapter and rebuild the truthful judge bundle without copying BioMiner engine code. |
+| 14.4 | Present prototype reference, scoring, routing, abstention, and limitation evidence through the TaxaLens facade and UI. |
+| 15.1 | Add the fail-closed prototype GO/release gate and preserve production/scientific/public-display prohibitions. |
+| 15.2 | Extend agent tools, deterministic evaluations, and exports to explain the new prototype boundary with at least 30 cases. |
+| 15.3 | Complete Phase 14/15 reports, judge documentation, full acceptance, and deployment verification. |
+
+## GitHits status
+
+GitHits is unavailable in this Codex environment: no service, MCP resource, or
+CLI is exposed. The focused attempted query and outage are recorded in
+`provenance/githits.jsonl#14.1`. This task therefore relies on the exact
+committed BioMiner artifacts, TaxaLens local contracts, and fail-closed
+repository policy. No external code was copied.
+
+## Task 14.1 patch plan and verification
+
+- Objective: freeze the exact new upstream identity and integration authority.
+- Files: `UPSTREAM_BIOMINER.md`, migration manifest, GitHits ledger, this audit,
+  and one generated BioMiner boundary snapshot.
+- Contracts: artifact-first integration; explicit prototype mode; no scientific
+  claim; no public image display; raw scores are not probabilities.
+- Tests: strict BioMiner boundary verification, provenance verification, JSONL
+  parse, and `git diff --check`.
+- Rights: no media bytes are imported by this task.
+- Competition value: lets the existing product consume newly committed real
+  prototype evidence without overstating scientific validity.

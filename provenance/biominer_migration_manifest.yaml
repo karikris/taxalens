@@ -1,5 +1,5 @@
 upstream_repository: "karikris/BioMiner"
-pinned_biominer_sha: "75461d9c065af0cd96b41cd1f845c2e920f7ae34"
+pinned_biominer_sha: "67c1c2a3a2c9b909b256b3094913af342f4ccbed"
 product_boundary_version: "artifact-first-product-boundary-v1.0.0"
 migration_policy: "committed_artifact > versioned_schema > thin_adapter > stable_biominer_command > small_shared_package > copied_source"
 broad_module_copying: "frozen-no-new-broad-copies"
@@ -10,11 +10,14 @@ verified_reference_requirement: "human-verified-rights-checked-only"
 phase12_status: "pushed-and-eligible-for-committed-migration-only"
 phase13_status: "evaluation-infrastructure-committed-real-reviewed-papilio-results-unavailable"
 phase13_exclusion: "unmaterialized-or-unreviewed-results-excluded"
-phase14_status: "metadata-handoff-partial-human-review-and-evaluation-blocked"
+phase14_status: "prototype-artifacts-committed-explicit-prototype-mode-only"
 phase14_candidate_semantics: "search-and-source-media-rows-are-candidates-not-occurrences-labels-or-support"
+phase14_prototype_status: "81-provider-supported-zero-human-verified-uncalibrated-raw-margin"
+phase15_status: "go-for-explicit-prototype-integration-only"
+phase15_authorization: "no-production-default-no-scientific-release-no-public-reference-images"
 scientific_claim_gate: "blocked-until-reviewed-references-leakage-safe-splits-calibration-and-final-evaluation"
 handoff_contract: "storage-handoff-inventory-v1.0.0-with-explicit-uri-sha256-source-sha-and-receipt"
-recorded_at: "2026-07-15"
+recorded_at: "2026-07-16"
 components:
   - component_id: biominer_decision_policy
     source_repository: karikris/BioMiner

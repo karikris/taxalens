@@ -2,7 +2,7 @@
 
 ## Frozen product boundary
 
-- Current reviewed BioMiner handoff SHA: `75461d9c065af0cd96b41cd1f845c2e920f7ae34` on `main`.
+- Current reviewed BioMiner handoff SHA: `67c1c2a3a2c9b909b256b3094913af342f4ccbed` on `main`.
 - Boundary version: `artifact-first-product-boundary-v1.0.0`.
 - Broad BioMiner module copying is frozen. Existing copied modules remain as provenance-bound compatibility contracts; they are not precedent for more copies.
 - New integration order is: committed artifact, versioned schema, thin adapter, stable BioMiner command, small shared package, and copied source only after an explicit documented finding that every earlier option is unsuitable.
@@ -14,13 +14,17 @@ The pin identifies the latest reviewed upstream handoff boundary. Each historica
 migration below retains its own exact source commit; updating the boundary pin
 does not rewrite component provenance.
 
-## Phase 13 and Phase 14 availability
+## Phase 13, Phase 14, and Phase 15 availability
 
 - Phase 13 evaluation schemas and machinery are committed, but no real reviewed Papilio evaluation result bundle is committed for TaxaLens to display.
-- Phase 14 geographic workload and positive/competitor reference-source metadata are committed as compact manifests.
-- Phase 14 search and source-media rows are candidates, not occurrences, truth labels, or verified support.
-- Human-verified source media count is zero at the pinned handoff.
-- Human review, immutable leakage-safe split freeze, ablations, calibration selection, and final evaluation remain blocked.
+- Phase 14 now includes a committed prototype-only Papilio few-shot report plus compact manifests for a frozen 81-record metadata-qualified support bank, reference embeddings, B0–B16 retrieval experiments, a selected raw-margin policy, and staged Flickr inference.
+- Phase 15 includes a committed 14-of-14 prototype-entry GO audit, prototype release acceptance, final verification, and a post-Build-Week backlog.
+- The GO decision authorizes explicit prototype integration only. It does not authorize a production-default change, scientific release, calibrated accuracy claim, or public display of the reference images.
+- All 81 support rows are provider-supported and independently hash-pinned, but zero are independently human taxonomically verified. Seventy-nine are research-only and two lack owner evidence.
+- The selected B13 policy always scores the target and uses a raw target-versus-competitor margin threshold of `0.10`. It is uncalibrated, emits no probabilities, and was not fitted from reviewed labels.
+- Staged inference classified 13,496 of 13,501 planned Flickr records, scored the target and 34 species candidates for every classified record, and recorded five retryable source failures. These distributions are retrieval diagnostics, not classification accuracy, biological occurrence, or prevalence.
+- The staged runner's `0.02` preselection abstention rule is distinct from the selected `0.10` integration policy and must not be conflated.
+- Human review, calibration from independently reviewed labels, final-test scientific evaluation, public-display rights review, focused/masked visual-input ablations, and independent YOLOE routing validation remain blocked or deferred.
 - A present path, candidate count, source-provider verification, or taxon match does not make a scientific claim available.
 - Missing or blocked evidence must be returned as an explicit unavailable/review state through the product facade.
 
@@ -123,7 +127,7 @@ TaxaLens treats `karikris/BioMiner` as the upstream research engine and treats t
 ## Pinned SHA
 
 - `biominer_repository`: `karikris/BioMiner`
-- `pinned_sha`: `75461d9c065af0cd96b41cd1f845c2e920f7ae34`
+- `pinned_sha`: `67c1c2a3a2c9b909b256b3094913af342f4ccbed`
 - `branch`: `main`
 
 ## Contracts consumed (current phase)
@@ -168,7 +172,10 @@ TaxaLens treats `karikris/BioMiner` as the upstream research engine and treats t
 
 - Any staged/uncommitted BioMiner files and changes are excluded.
 - Any unpinned, unreviewed, or unmaterialized Phase 13 result is excluded.
-- Any unverified Phase 14 reference, unfinished model result, calibration selection, or final evaluation is excluded.
+- Reference image bytes and any public display of the prototype bank are excluded.
+- Any interpretation of provider-supported rows as independently human-verified labels is excluded.
+- Any interpretation of raw similarity or raw margin as a probability, accuracy, occurrence, or prevalence estimate is excluded.
+- Any scientific release, production-default change, or calibrated performance claim is excluded until the explicit human-review and evaluation gates are satisfied.
 - Any legacy family-first result is excluded from the TaxaLens target-aware decision path.
 
 ## Compatibility constraints
