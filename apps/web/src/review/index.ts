@@ -4,6 +4,7 @@ export * from './domain'
 export * from './exports'
 export * from './media'
 export * from './repositories'
+export * from './routing'
 export * from './ui'
 export {
   COMMONS_VERIFICATION_FIXTURE,

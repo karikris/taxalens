@@ -8,7 +8,7 @@ import { EvidenceState } from './design-system'
 import { EvidenceLensWorkspace } from './evidence'
 import type { ReplayLaunchReceipt } from './mission'
 import { ObservatoryWorkspace } from './observatory'
-import { AppShell, type ShellView } from './shell'
+import { AppShell, type ShellRoute } from './shell'
 
 const MissionWorkspace = lazy(async () => {
   const module = await import('./mission')
@@ -82,10 +82,10 @@ export function App() {
           : undefined
       }
       onReset={resetReplay}
-      renderView={(view) => (
+      renderView={(route) => (
         <ReplayContent
           state={state}
-          view={view}
+          route={route}
           replayLaunch={replayLaunch}
           onReplayLaunch={setReplayLaunch}
         />
@@ -97,13 +97,13 @@ export function App() {
 function ReplayContent({
   onReplayLaunch,
   replayLaunch,
+  route,
   state,
-  view,
 }: {
   readonly onReplayLaunch: (receipt: ReplayLaunchReceipt) => void
   readonly replayLaunch: ReplayLaunchReceipt | null
+  readonly route: ShellRoute
   readonly state: LoadState
-  readonly view: ShellView
 }) {
   if (state.kind === 'loading') {
     return (
@@ -130,7 +130,7 @@ function ReplayContent({
   return (
     <ReplayView
       facade={state.facade}
-      view={view}
+      route={route}
       replayLaunch={replayLaunch}
       onReplayLaunch={onReplayLaunch}
     />
@@ -141,15 +141,15 @@ function ReplayView({
   facade,
   onReplayLaunch,
   replayLaunch,
-  view,
+  route,
 }: {
   readonly facade: EvidenceFacade
   readonly onReplayLaunch: (receipt: ReplayLaunchReceipt) => void
   readonly replayLaunch: ReplayLaunchReceipt | null
-  readonly view: ShellView
+  readonly route: ShellRoute
 }) {
   const replay = facade.replay
-  switch (view) {
+  switch (route.view) {
     case 'mission':
       return (
         <Suspense
@@ -179,7 +179,10 @@ function ReplayView({
             </EvidenceState>
           }
         >
-          <VerificationWorkspace replay={replay} />
+          <VerificationWorkspace
+            replay={replay}
+            route={route.verification}
+          />
         </Suspense>
       )
     case 'dashboard':

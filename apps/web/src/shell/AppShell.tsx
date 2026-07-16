@@ -6,7 +6,10 @@ import { GuidedTour } from './GuidedTour'
 import {
   SHELL_VIEWS,
   canonicalShellHashForLegacyHash,
-  shellViewFromHash,
+  shellHashForRoute,
+  shellRouteForView,
+  shellRouteFromHash,
+  type ShellRoute,
   type ShellView,
 } from './shellTypes'
 
@@ -20,7 +23,7 @@ interface AppShellProps {
   readonly replay: ReplayIdentity | undefined
   readonly globalError: GlobalError | undefined
   readonly onReset: () => void
-  readonly renderView: (view: ShellView) => ReactNode
+  readonly renderView: (route: ShellRoute) => ReactNode
 }
 
 function compactSha(sha: string): string {
@@ -28,9 +31,10 @@ function compactSha(sha: string): string {
 }
 
 export function AppShell({ replay, globalError, onReset, renderView }: AppShellProps) {
-  const [activeView, setActiveView] = useState<ShellView>(() =>
-    shellViewFromHash(window.location.hash),
+  const [activeRoute, setActiveRoute] = useState<ShellRoute>(() =>
+    shellRouteFromHash(window.location.hash),
   )
+  const activeView = activeRoute.view
   const mainRef = useRef<HTMLElement>(null)
   const [pendingTourTarget, setPendingTourTarget] = useState<string | null>(null)
   const [tourRevision, setTourRevision] = useState(0)
@@ -38,7 +42,7 @@ export function AppShell({ replay, globalError, onReset, renderView }: AppShellP
   useEffect(() => {
     function handleHashChange() {
       canonicalizeLegacyHash()
-      setActiveView(shellViewFromHash(window.location.hash))
+      setActiveRoute(shellRouteFromHash(window.location.hash))
     }
 
     canonicalizeLegacyHash()
@@ -82,10 +86,12 @@ export function AppShell({ replay, globalError, onReset, renderView }: AppShellP
   }, [activeView, pendingTourTarget])
 
   function visitView(view: ShellView, targetId?: string) {
-    if (window.location.hash !== `#${view}`) {
-      window.history.pushState(null, '', `#${view}`)
+    const route = shellRouteForView(view)
+    const hash = shellHashForRoute(route)
+    if (window.location.hash !== hash) {
+      window.history.pushState(null, '', hash)
     }
-    setActiveView(view)
+    setActiveRoute(route)
     if (targetId === undefined) {
       window.requestAnimationFrame(() => mainRef.current?.focus())
     } else {
@@ -112,7 +118,7 @@ export function AppShell({ replay, globalError, onReset, renderView }: AppShellP
       '',
       `${window.location.pathname}${window.location.search}`,
     )
-    setActiveView('mission')
+    setActiveRoute(shellRouteForView('mission'))
     setPendingTourTarget(null)
     setTourRevision((value) => value + 1)
     onReset()
@@ -205,7 +211,7 @@ export function AppShell({ replay, globalError, onReset, renderView }: AppShellP
       )}
 
       <main id="main-content" className="shell-main" tabIndex={-1} ref={mainRef}>
-        {renderView(activeView)}
+        {renderView(activeRoute)}
       </main>
 
       <footer>

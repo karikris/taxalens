@@ -1,5 +1,11 @@
 import type { ReplayEvidence } from '../data/evidenceFacade'
 import { EvidenceState } from '../design-system'
+import {
+  SHELL_VIEWS,
+  shellHashForRoute,
+  shellRouteForView,
+  type VerificationRouteParams,
+} from '../shell'
 import { exportHumanReviewReceipt } from './exports'
 import type { ReviewMediaCache } from './media'
 import {
@@ -7,6 +13,7 @@ import {
   HUMAN_REVIEW_PACKET,
 } from './reviewPacket'
 import type { ReviewRepository } from './repositories'
+import { resolveVerificationRoute } from './routing'
 import {
   CampaignSelector,
   VerificationControls,
@@ -25,15 +32,21 @@ export function VerificationWorkspace({
   now,
   replay,
   repository,
+  route,
 }: {
   readonly cache?: ReviewMediaCache
   readonly legacyStorage?: Pick<Storage, 'getItem' | 'removeItem'>
   readonly now?: () => Date
   readonly replay: ReplayEvidence
   readonly repository?: ReviewRepository
+  readonly route?: VerificationRouteParams
 }) {
+  const resolvedRoute = resolveVerificationRoute(route)
   const controller = useVerificationWorkspaceController({
     ...(cache === undefined ? {} : { cache }),
+    ...(resolvedRoute.itemId === null
+      ? {}
+      : { initialItemId: resolvedRoute.itemId }),
     ...(legacyStorage === undefined ? {} : { legacyStorage }),
     ...(now === undefined ? {} : { now }),
     ...(repository === undefined ? {} : { repository }),
@@ -65,9 +78,30 @@ export function VerificationWorkspace({
 
       <CampaignSelector
         campaigns={[HUMAN_REVIEW_CAMPAIGN]}
-        selectedCampaignId={HUMAN_REVIEW_CAMPAIGN.campaignId}
+        selectedCampaignId={resolvedRoute.campaignId}
         onSelect={() => undefined}
       />
+
+      {resolvedRoute.errors.length > 0 && (
+        <EvidenceState
+          state="failure"
+          title="Verification deep link was rejected"
+        >
+          {resolvedRoute.errors.join('; ')}. The committed default campaign is
+          shown instead.
+        </EvidenceState>
+      )}
+
+      {resolvedRoute.returnView !== null && (
+        <a
+          className="verification-return-link"
+          href={shellHashForRoute(
+            shellRouteForView(resolvedRoute.returnView),
+          )}
+        >
+          Return to {shellViewLabel(resolvedRoute.returnView)}
+        </a>
+      )}
 
       <VerificationSections
         referenceImages={
@@ -264,4 +298,8 @@ export function VerificationWorkspace({
       />
     </section>
   )
+}
+
+function shellViewLabel(view: string): string {
+  return SHELL_VIEWS.find(({ id }) => id === view)?.label ?? view
 }

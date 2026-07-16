@@ -49,11 +49,13 @@ const EMPTY_CACHE_STATUS: ReviewCacheStatus = Object.freeze({
 
 export function useVerificationWorkspaceController({
   cache = browserReviewMediaCache,
+  initialItemId,
   legacyStorage = window.localStorage,
   now = () => new Date(),
   repository,
 }: {
   readonly cache?: ReviewMediaCache
+  readonly initialItemId?: string
   readonly legacyStorage?: Pick<Storage, 'getItem' | 'removeItem'>
   readonly now?: () => Date
   readonly repository?: ReviewRepository
@@ -90,7 +92,9 @@ export function useVerificationWorkspaceController({
       ? null
       : reviewPersistenceErrorMessage(legacySnapshot.error),
   )
-  const [index, setIndex] = useState(() => firstPendingIndex(session))
+  const [index, setIndex] = useState(() =>
+    preferredReviewIndex(session, initialItemId),
+  )
   const [cacheStatus, setCacheStatus] =
     useState<ReviewCacheStatus>(EMPTY_CACHE_STATUS)
   const [cacheState, setCacheState] =
@@ -165,7 +169,7 @@ export function useVerificationWorkspaceController({
         })
         sessionRef.current = next
         setSession(next)
-        setIndex(firstPendingIndex(next))
+        setIndex(preferredReviewIndex(next, initialItemId))
         setRepositoryState('ready')
         dispatchWorkflow({
           type: 'campaign_ready',
@@ -185,7 +189,9 @@ export function useVerificationWorkspaceController({
           )
           sessionRef.current = legacySnapshot.session
           setSession(legacySnapshot.session)
-          setIndex(firstPendingIndex(legacySnapshot.session))
+          setIndex(
+            preferredReviewIndex(legacySnapshot.session, initialItemId),
+          )
           setRepositoryState('ready')
           setActiveRepository(fallback)
           return
@@ -198,6 +204,7 @@ export function useVerificationWorkspaceController({
     }
   }, [
     activeRepository,
+    initialItemId,
     legacySnapshot.session,
     legacyStorage,
     repository,
@@ -251,6 +258,18 @@ export function useVerificationWorkspaceController({
   useEffect(() => {
     setComment(decision?.comment ?? '')
   }, [decision, item.itemId])
+
+  useEffect(() => {
+    if (initialItemId === undefined) {
+      return
+    }
+    const requestedIndex = HUMAN_REVIEW_PACKET.items.findIndex(
+      ({ itemId }) => itemId === initialItemId,
+    )
+    if (requestedIndex !== -1) {
+      openIndex(requestedIndex)
+    }
+  }, [initialItemId])
 
   useEffect(() => {
     setDisplayedItemId(null)
@@ -576,6 +595,21 @@ function firstPendingIndex(session: HumanReviewSession): number {
     (item) => decisions[item.itemId] === undefined,
   )
   return index === -1 ? 0 : index
+}
+
+function preferredReviewIndex(
+  session: HumanReviewSession,
+  itemId: string | undefined,
+): number {
+  if (itemId !== undefined) {
+    const requestedIndex = HUMAN_REVIEW_PACKET.items.findIndex(
+      (item) => item.itemId === itemId,
+    )
+    if (requestedIndex !== -1) {
+      return requestedIndex
+    }
+  }
+  return firstPendingIndex(session)
 }
 
 function outcomeCounts(session: HumanReviewSession) {

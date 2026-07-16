@@ -2,6 +2,10 @@ import { render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { App } from './App'
+import {
+  HUMAN_REVIEW_CAMPAIGN,
+  HUMAN_REVIEW_ITEMS,
+} from './review'
 import { createCommittedFixtureFetcher, jsonResponse } from './test/fixtures'
 
 describe('TaxaLens scaffold', () => {
@@ -85,6 +89,31 @@ describe('TaxaLens scaffold', () => {
     expect(screen.getByRole('tab', { name: 'Conflicts' })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: 'Quality' })).toBeInTheDocument()
     expect(window.location.hash).toBe('#verification')
+  })
+
+  it('selects a validated campaign item and preserves return context', async () => {
+    const item = HUMAN_REVIEW_ITEMS[1]!
+    const query = new URLSearchParams({
+      campaign: HUMAN_REVIEW_CAMPAIGN.campaignId,
+      item: item.itemId,
+      return: 'evidence-lens',
+    })
+    window.history.replaceState(
+      null,
+      '',
+      `/#verification?${query.toString()}`,
+    )
+    render(<App />)
+
+    expect(
+      await screen.findByRole('heading', {
+        name: item.verificationLabel,
+      }),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Image 2 of 3')).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: 'Return to Evidence Lens' }),
+    ).toHaveAttribute('href', '#evidence-lens')
   })
 
   it('renders an assertive local-load failure with an accessible retry action', async () => {

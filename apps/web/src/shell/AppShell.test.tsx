@@ -30,7 +30,7 @@ function renderShell(overrides?: {
       replay={replay}
       globalError={overrides?.globalError}
       onReset={overrides?.onReset ?? vi.fn()}
-      renderView={(view) => <h2>{view} view</h2>}
+      renderView={(route) => <h2>{route.view} view</h2>}
     />,
   )
 }
@@ -143,11 +143,11 @@ describe('AppShell', () => {
         replay={replay}
         globalError={undefined}
         onReset={vi.fn()}
-        renderView={(view) =>
-          view === 'dashboard' ? (
+        renderView={(route) =>
+          route.view === 'dashboard' ? (
             <section id="research-outputs" tabIndex={-1}>Export research outputs</section>
           ) : (
-            <h2>{view} view</h2>
+            <h2>{route.view} view</h2>
           )
         }
       />,
