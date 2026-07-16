@@ -6,6 +6,8 @@ import type {
   ReplayEvidence,
 } from '../data/evidenceFacade'
 import { EvidenceDesignation, EvidenceState, EvidenceTier } from '../design-system'
+import { flickrCandidateRouteForSource } from '../review/routing/flickrCandidateRoute'
+import { shellHashForRoute, verificationShellRoute } from '../shell'
 import type { DiscoveryProvenanceResult } from './discoveryProvenance'
 import { CandidateSpeciesComparison } from './CandidateSpeciesComparison'
 import { EvidenceExport } from './EvidenceExport'
@@ -183,6 +185,8 @@ function DiscoveryProvenanceCard({
   readonly replay: ReplayEvidence
   readonly result: DiscoveryProvenanceResult
 }) {
+  const verificationTarget = flickrCandidateRouteForSource(result.sourceId)
+
   return (
     <article className="provenance-card" aria-labelledby="provenance-card-title">
       <div className="provenance-card__heading">
@@ -231,6 +235,21 @@ function DiscoveryProvenanceCard({
         The canonical source hash identifies one source payload; it is not a duplicate-group ID.
         Coordinate quality is <code>{result.coordinateQuality}</code>.
       </p>
+
+      {verificationTarget !== null && (
+        <a
+          className="provenance-card__verify-link"
+          href={shellHashForRoute(
+            verificationShellRoute({
+              campaignId: verificationTarget.campaignId,
+              itemId: verificationTarget.itemId,
+              returnView: 'evidence-lens',
+            }),
+          )}
+        >
+          Verify this result
+        </a>
+      )}
 
       <details className="query-associations">
         <summary>

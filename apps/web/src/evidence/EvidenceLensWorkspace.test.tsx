@@ -119,6 +119,12 @@ describe('EvidenceLensWorkspace', () => {
     expect(screen.getByText('Duplicate group').parentElement).toHaveTextContent(
       'duplicate relationship rows are unavailable',
     )
+    expect(
+      screen.getByRole('link', { name: 'Verify this result' }),
+    ).toHaveAttribute(
+      'href',
+      '#verification?campaign=papilio-demoleus-flickr-candidate-intake-v1&item=flickr%3A55081300254&return=evidence-lens',
+    )
 
     fireEvent.click(screen.getByText('Inspect all 2 query associations'))
     const associations = screen.getByRole('list', { name: 'Discovery query associations' })

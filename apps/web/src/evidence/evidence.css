@@ -283,6 +283,22 @@
   border-radius: var(--tl-radius-sm);
 }
 
+.provenance-card__verify-link {
+  justify-self: start;
+  min-height: 2.75rem;
+  padding: var(--tl-space-2) var(--tl-space-3);
+  color: var(--tl-surface-paper);
+  font-weight: 800;
+  text-decoration: none;
+  background: var(--tl-brand-strong);
+  border: 1px solid var(--tl-brand-strong);
+  border-radius: var(--tl-radius-sm);
+}
+
+.provenance-card__verify-link:hover {
+  background: var(--tl-brand);
+}
+
 .query-associations summary,
 .provenance-card__artifacts summary {
   color: var(--tl-brand-strong);

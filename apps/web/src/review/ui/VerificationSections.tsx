@@ -12,14 +12,18 @@ export type VerificationSection =
   | 'quality'
 
 export function VerificationSections({
+  defaultSection = 'reference-images',
+  flickrResults,
   referenceImages,
 }: {
+  readonly defaultSection?: VerificationSection
+  readonly flickrResults?: ReactNode
   readonly referenceImages: ReactNode
 }) {
   return (
     <Tabs
       className="verification-sections"
-      defaultSelectedKey="reference-images"
+      defaultSelectedKey={defaultSection}
     >
       <TabList
         className="verification-sections__tabs"
@@ -34,14 +38,16 @@ export function VerificationSections({
         id="flickr-results"
         className="verification-sections__panel"
       >
-        <EvidenceState
-          state="blocked"
-          title="No Flickr verification campaign is attached yet"
-        >
-          Flickr candidate campaigns will appear here when their item manifest
-          and sampling design are committed. The Commons reference fixture is
-          kept in Reference Images.
-        </EvidenceState>
+        {flickrResults ?? (
+          <EvidenceState
+            state="blocked"
+            title="No Flickr verification campaign is attached yet"
+          >
+            Flickr candidate campaigns will appear here when their item
+            manifest and sampling design are committed. The Commons reference
+            fixture is kept in Reference Images.
+          </EvidenceState>
+        )}
       </TabPanel>
       <TabPanel
         id="reference-images"

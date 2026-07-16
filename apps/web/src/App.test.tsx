@@ -116,6 +116,35 @@ describe('TaxaLens scaffold', () => {
     ).toHaveAttribute('href', '#evidence-lens')
   })
 
+  it('opens a routed Flickr candidate and preserves its Evidence Lens return', async () => {
+    const query = new URLSearchParams({
+      campaign: 'papilio-demoleus-flickr-candidate-intake-v1',
+      item: 'flickr:55081300254',
+      return: 'evidence-lens',
+    })
+    window.history.replaceState(
+      null,
+      '',
+      `/#verification?${query.toString()}`,
+    )
+    render(<App />)
+
+    expect(
+      await screen.findByRole('heading', {
+        name: 'Papilio demoleus Flickr candidate intake',
+      }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('tab', { name: 'Flickr Results' }),
+    ).toHaveAttribute('aria-selected', 'true')
+    expect(
+      screen.getByText('Flickr candidate review media is unavailable'),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: 'Return to Evidence Lens' }),
+    ).toHaveAttribute('href', '#evidence-lens')
+  })
+
   it('renders an assertive local-load failure with an accessible retry action', async () => {
     vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockResolvedValue(jsonResponse({}, 404)))
 

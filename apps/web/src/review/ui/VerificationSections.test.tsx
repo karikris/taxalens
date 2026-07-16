@@ -48,4 +48,19 @@ describe('VerificationSections', () => {
       screen.getByText('No Flickr verification campaign is attached yet'),
     ).toBeInTheDocument()
   })
+
+  it('opens routed Flickr candidate context in the Flickr section', () => {
+    render(
+      <VerificationSections
+        defaultSection="flickr-results"
+        flickrResults={<p>Routed Flickr candidate</p>}
+        referenceImages={<p>Reference campaign workspace</p>}
+      />,
+    )
+
+    expect(
+      screen.getByRole('tab', { name: 'Flickr Results' }),
+    ).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByText('Routed Flickr candidate')).toBeVisible()
+  })
 })

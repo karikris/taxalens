@@ -4,6 +4,7 @@ import {
   HUMAN_REVIEW_CAMPAIGN,
   HUMAN_REVIEW_ITEMS,
 } from '../reviewPacket'
+import { flickrCandidateRouteForSource } from './flickrCandidateRoute'
 import { resolveVerificationRoute } from './verificationRoute'
 
 describe('verification route resolution', () => {
@@ -20,6 +21,28 @@ describe('verification route resolution', () => {
       itemId: HUMAN_REVIEW_ITEMS[1]!.itemId,
       returnView: 'evidence-lens',
       errors: [],
+      section: 'reference-images',
+      flickrCandidate: null,
+    })
+  })
+
+  it('accepts a committed Flickr candidate route without inventing review media', () => {
+    const target = flickrCandidateRouteForSource('flickr:55081300254')
+    expect(target).not.toBeNull()
+    expect(
+      resolveVerificationRoute({
+        campaignId: target!.campaignId,
+        itemId: target!.itemId,
+        returnView: 'evidence-lens',
+        errors: [],
+      }),
+    ).toEqual({
+      campaignId: target!.campaignId,
+      itemId: target!.itemId,
+      returnView: 'evidence-lens',
+      errors: [],
+      section: 'flickr-results',
+      flickrCandidate: target,
     })
   })
 
@@ -40,6 +63,8 @@ describe('verification route resolution', () => {
         'unknown verification campaign: unknown-campaign',
         'unknown verification item: unknown-item',
       ],
+      section: 'reference-images',
+      flickrCandidate: null,
     })
   })
 })

@@ -76,12 +76,6 @@ export function VerificationWorkspace({
         </div>
       </div>
 
-      <CampaignSelector
-        campaigns={[HUMAN_REVIEW_CAMPAIGN]}
-        selectedCampaignId={resolvedRoute.campaignId}
-        onSelect={() => undefined}
-      />
-
       {resolvedRoute.errors.length > 0 && (
         <EvidenceState
           state="failure"
@@ -104,8 +98,23 @@ export function VerificationWorkspace({
       )}
 
       <VerificationSections
+        defaultSection={resolvedRoute.section}
+        flickrResults={
+          resolvedRoute.flickrCandidate === null ? undefined : (
+            <FlickrCandidateRouteNotice
+              candidate={resolvedRoute.flickrCandidate}
+              mediaReason={replay.discovery.media.reason}
+            />
+          )
+        }
         referenceImages={
           <>
+            <CampaignSelector
+              campaigns={[HUMAN_REVIEW_CAMPAIGN]}
+              selectedCampaignId={HUMAN_REVIEW_CAMPAIGN.campaignId}
+              onSelect={() => undefined}
+            />
+
             <EvidenceState
               state="available"
               title="BioMiner suitability confirmation acknowledged"
@@ -302,4 +311,69 @@ export function VerificationWorkspace({
 
 function shellViewLabel(view: string): string {
   return SHELL_VIEWS.find(({ id }) => id === view)?.label ?? view
+}
+
+function FlickrCandidateRouteNotice({
+  candidate,
+  mediaReason,
+}: {
+  readonly candidate: {
+    readonly campaignId: string
+    readonly itemId: string
+    readonly recordId: string
+    readonly sourceId: string
+    readonly title: string
+  }
+  readonly mediaReason: string
+}) {
+  return (
+    <section
+      className="flickr-candidate-route"
+      aria-labelledby="flickr-candidate-route-title"
+    >
+      <div>
+        <p className="eyebrow">Routed candidate context</p>
+        <h3 id="flickr-candidate-route-title">{candidate.title}</h3>
+        <p>
+          Evidence Lens selected this exact Flickr source for verification. The
+          route is retained while its review media and sampling manifest remain
+          unavailable.
+        </p>
+      </div>
+      <dl>
+        <div>
+          <dt>Campaign route</dt>
+          <dd>
+            <code>{candidate.campaignId}</code>
+          </dd>
+        </div>
+        <div>
+          <dt>Candidate item</dt>
+          <dd>
+            <code>{candidate.itemId}</code>
+          </dd>
+        </div>
+        <div>
+          <dt>Source record</dt>
+          <dd>
+            <code>{candidate.sourceId}</code>
+          </dd>
+        </div>
+        <div>
+          <dt>Evidence record</dt>
+          <dd>
+            <code>{candidate.recordId}</code>
+          </dd>
+        </div>
+      </dl>
+      <EvidenceState
+        state="blocked"
+        title="Flickr candidate review media is unavailable"
+      >
+        {mediaReason} A scientific Yes, No, or Can’t tell decision cannot be
+        recorded until checksum-verified media is committed. This candidate
+        remains a search hypothesis.
+      </EvidenceState>
+    </section>
+  )
 }
