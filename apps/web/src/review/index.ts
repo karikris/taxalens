@@ -10,6 +10,10 @@ export type {
   VerificationItem,
 } from './verificationContracts'
 export type {
+  VerificationEvent,
+  VerificationOutcome,
+} from './verificationEvents'
+export type {
   HumanReviewDecision,
   HumanReviewOutcome,
   HumanReviewSession,
