@@ -121,6 +121,20 @@ success. Candidate/reference product contracts record candidate semantics,
 verification status, human-review requirement, and whether a scientific claim
 is allowed.
 
+### Prototype authorization is explicit and narrow
+
+The committed Phase 14/15 handoff may be integrated only in an unmistakable
+`explicit_prototype` mode after all fourteen fail-closed entry gates pass.
+`GO_PROTOTYPE_ONLY` does not authorize a production-default change, scientific
+release, public display of the reference images, calibrated probability,
+accuracy claim, or scientific conclusion. A request for any broader mode is
+`NO_GO`.
+
+Provider-supported prototype rows are not independently human-verified labels.
+The selected B13 raw-margin policy and staged inference distributions are
+operational retrieval evidence only; they are not per-record hero evidence,
+classification accuracy, biological occurrence, or prevalence.
+
 ### Legacy family-first output is diagnostic only
 
 Family-first filtering and reranking may be shown as a labelled historical
@@ -130,11 +144,13 @@ complete configured candidate scoring.
 
 ### Scientific claims remain blocked until their gates pass
 
-No Papilio Phase 14 classification, verified reference bank, calibrated
-probability, ablation winner, precision, recall, accuracy, or final evaluation
-is available until attributable human review, rights checks, immutable
-leakage-safe splits, model selection, calibration selection, and final-test
-publication are committed and independently verified.
+The Phase 14 prototype may expose its selected B13 retrieval policy and
+operational staged-inference evidence, but no independently reviewed Papilio
+classification, production reference bank, calibrated probability, precision,
+recall, accuracy, or final scientific evaluation is available until
+attributable human review, rights checks, immutable leakage-safe splits,
+calibration selection, and final-test publication are committed and
+independently verified.
 
 ## Change control
 

@@ -27,13 +27,14 @@ assets and makes no live scientific or model request.
 | Question | Judge answer |
 | --- | --- |
 | What is the product? | An auditable research workflow over social-media biodiversity evidence |
-| What is the pilot? | One *Papilio demoleus* metadata-only butterfly replay |
+| What is the pilot? | One *Papilio demoleus* replay with aggregate prototype evidence and no public image |
 | Does it identify the species in the candidate photo? | No; the hero is `awaiting_human_review` |
 | Does GPT-5.6 run live? | No; the judge path replays one stored structured output |
 | Does BioMiner run live? | No; TaxaLens reads a bounded checksum-verified artifact import |
 | Is a backend required? | No; the hosted product is static |
 | Can it be reset? | Yes; **Reset replay** clears client state and returns to Research Mission |
-| Is this Phase 14 scientific evaluation? | No; reviewed precision, recall, calibration, and accuracy are unavailable |
+| Is Phase 14 evidence present? | Yes, as an aggregate prototype-only snapshot; independently reviewed precision, recall, calibration, and accuracy remain unavailable |
+| What did Phase 15 authorize? | `GO_PROTOTYPE_ONLY` for explicit prototype mode; no production default, scientific release, public reference images, or scientific claim |
 
 Stop the evaluation and record a replay failure if the product asks for a credential, contacts an
 unexpected cross-origin scientific service, displays a scientific result after fixture verification
@@ -54,7 +55,7 @@ the verified fixture and cannot launch acquisition or inference.
 ### 15–35 seconds — Observatory
 
 1. Resume the tour, advance to Observatory, and choose **Visit Observatory**.
-2. Confirm **24 / 24 verified** and all 13 ordered evidence stages.
+2. Confirm **25 / 25 verified** and all 13 ordered evidence stages.
 3. Select **Final replay record awaiting review**.
 
 Expected: all 13 contributing stages and 12 contributing artifacts highlight. Counts retain their
@@ -70,7 +71,10 @@ own units, and unavailable stages do not become zero-valued scientific results.
 Expected: source `flickr:55081300254` has two query associations. The masked mode says crossfade is
 unavailable because no transformed image exists. *Papilio memnon* is a planning alternative, the
 best regional competitor remains unavailable, geographic uncertainty is unavailable in metres, and
-the calibrated output is unavailable. The page states **No scientific result is promoted**.
+the calibrated output is unavailable. The aggregate prototype panel separately shows the frozen
+81-row support bank, exact BioCLIP revision, B13 raw-margin policy, staged operational counts, and
+the prototype-only release boundary. It does not attach those values to the hero record. The page
+states **No scientific result is promoted**.
 
 ### 60–80 seconds — Dashboard
 
@@ -86,11 +90,12 @@ metrics unavailable.
 
 1. Resume, advance to Export, and choose **Visit Export**.
 2. Confirm focus moves to **Export research outputs**.
-3. Choose **Prepare five research outputs**.
+3. Choose **Prepare six research outputs**.
 
-Expected: five files are prepared locally with deterministic checksums. The evaluation report has
-zero committed reviewed metrics, Phase 14 status `blocked`, a human-verified shortfall of 490, seven
-unavailable metric values, and `scientificClaimAllowed: false`.
+Expected: six files are prepared locally with deterministic checksums. The prototype-boundary file
+records `GO_PROTOTYPE_ONLY` and the prohibited release modes. The evaluation report still has zero
+committed reviewed metrics, Phase 14 reviewed-evaluation status `blocked`, a human-verified
+shortfall of 490, seven unavailable metric values, and `scientificClaimAllowed: false`.
 
 Use **Replay 90-second judge tour** to repeat the route or **Reset replay** to restore all initial
 client state.
@@ -99,7 +104,7 @@ client state.
 
 | Evidence | Expected value |
 | --- | ---: |
-| Inventoried and verified artifacts | 24 |
+| Inventoried and verified artifacts | 25 |
 | Bundle sections | 20 |
 | Unavailable sections | 6 |
 | Section records | 29 |
@@ -110,9 +115,11 @@ client state.
 | Regional candidate plans | 5 |
 | Stored GPT-5.6 traces | 1 |
 | Stored response turns / tool calls | 2 / 1 |
-| Initial agent-evaluation cases / named checks | 19 / 151 |
-| Local research outputs | 5 |
+| Deterministic evaluation cases / named checks | 31 / 247 |
+| Local research outputs | 6 |
 | Committed reviewed scientific metrics | 0 |
+| Prototype-entry gates passed / required | 14 / 14 |
+| Prototype support rows / independently human-verified | 81 / 0 |
 
 The main workload counts are 76,485 many-to-many Flickr query-hit associations, 13,501 canonical
 source-photo records, 838 eligible source-media candidates, and zero human-verified source media.
@@ -130,7 +137,7 @@ uv run --locked python scripts/verify_demo.py
 Expected terminal receipt:
 
 ```text
-Truthful demo verification passed: bundle=papilio-demoleus-pilot-75461d9c-v1, artifacts=24, records=29, media=0, hero=awaiting_human_review.
+Truthful demo verification passed: bundle=papilio-demoleus-prototype-67c1c2a3-v2, artifacts=25, records=29, media=0, hero=awaiting_human_review.
 ```
 
 The verifier rejects undeclared, missing, changed, stale, or semantically inconsistent fixture
@@ -142,9 +149,9 @@ Open [`demo/fixture/papilio_pilot/judge_bundle.json`](demo/fixture/papilio_pilot
 and verify:
 
 - schema `taxalens-judge-bundle:v1.0.0`;
-- inventory checksum `02fe3eda46b4e4d41ac07a58d2ef8c3d1691061f784e18032e7b6cb737731f43`;
-- payload root `cc9fb1fbbc6c9131bc3f33459ee57d390328899f91a931891e6369dfd468cac2`;
-- all 24 artifacts are rights-covered and attribution-complete;
+- inventory checksum `8dbbcd48c1bf7bf026708bb960ee46cae61df02f44f71e6039c9aac5714625f6`;
+- payload root `2adc186fc77fb8554c3bc0a8ce4b89541eb96e4da8ce6255cf29b0439cb523f7`;
+- all 25 artifacts are rights-covered and attribution-complete;
 - media-rights verification is false because the fixture contains zero media, not because rights
   were assumed vacuously.
 
@@ -205,7 +212,7 @@ Open
 - public is true;
 - login, backend, and credentials required are false;
 - resettable is true;
-- `files` contains 49 sorted regular-file receipts;
+- `files` contains the current sorted regular-file receipts (50 in the Phase 15.3 acceptance build);
 - `build_fingerprint_sha256` is present.
 
 The exact source and root fingerprint change on every `main` deployment. The manifest values, not a
@@ -216,18 +223,18 @@ copied screenshot or stale guide value, are authoritative.
 | Component | Exact version or revision | Judge interpretation |
 | --- | --- | --- |
 | TaxaLens hosted source | Live `build-fingerprint.json` `source_sha` | Current static product source |
-| Fixture TaxaLens source | `77cd51e7a61945ffef9f0603b9ecd960460abaa9` | Commit that assembled the current fixture lineage |
-| BioMiner source | `75461d9c065af0cd96b41cd1f845c2e920f7ae34` | Pinned upstream evidence source; no runtime launch |
+| Fixture TaxaLens source | `fab9d3f1605d28d4bbfc3a4d0074f40e5ffff023` | Commit that assembled the current prototype snapshot lineage |
+| BioMiner source | `67c1c2a3a2c9b909b256b3094913af342f4ccbed` | Current reviewed prototype handoff; no runtime launch |
 | Approved AGENTS.md | SHA-256 `39d8bf1df80402d0cfb135d1093618b120f288f525a516196c3ceb6f3eb04ccb` | Product and evidence policy baseline |
-| Judge bundle | `papilio-demoleus-pilot-75461d9c-v1` | Supported replay fixture |
+| Judge bundle | `papilio-demoleus-prototype-67c1c2a3-v2` | Supported replay fixture |
 | Source registry | `butterflies-v2-20260712` | Registry contract displayed in Mission |
 | Source snapshot | `gbif-reference-search-20260715` | Reference-search planning snapshot |
 | Research analyst | `gpt-5.6-sol` | Stored by default; server-only live contract |
 | OpenAI JavaScript SDK | `6.47.0` | Server transport dependency; absent from the live judge route |
 | DuckDB-Wasm | `1.32.0` | Same-origin local Parquet analytics |
 | React | `19.2.7` | Static judge product |
-| BioCLIP | 2.5 upstream contract | Zero images processed in this fixture |
-| YOLOE | result/model version unavailable | Zero images processed; no detection artifact or weights are claimed |
+| BioCLIP | `imageomics/bioclip-2.5-vith14` at `191d741545e4c741cdef4b22c6eb69c945c1e592` | Aggregate prototype metadata records 81 frozen support embeddings; no image bytes or hero embedding are included |
+| YOLOE | `yoloe26:yoloe-26s-seg` | Aggregate router metadata only; no hero detection artifact or classification authority |
 
 Primary provenance is recorded in [`UPSTREAM_BIOMINER.md`](UPSTREAM_BIOMINER.md),
 [`provenance/biominer_migration_manifest.yaml`](provenance/biominer_migration_manifest.yaml),
@@ -252,8 +259,9 @@ There is no supported live judge command in this slice.
 
 - The repository contains a server-only, transport-injected GPT-5.6 analyst contract, but no
   production server route, secret-store integration, approval workflow, or live-model E2E test.
-- Live Flickr acquisition, licensed media download, YOLOE, BioCLIP, calibration, and reviewed Phase
-  14 evaluation remain BioMiner work and require a separate approved environment.
+- Live Flickr acquisition, licensed media download, new YOLOE/BioCLIP execution, calibration, and
+  independently reviewed scientific evaluation remain BioMiner work and require a separate approved
+  environment.
 - The future vision commands named as targets in `AGENTS.md` are not implemented TaxaLens judge
   commands and must not be substituted into the scored replay.
 
@@ -265,14 +273,18 @@ label. It must never replace or mutate the deterministic fixture expectations ab
 
 - The pilot covers one target and one stored analyst session.
 - The fixture contains no rights-cleared image or thumbnail.
-- No pilot image was processed by YOLOE or BioCLIP for this product slice.
+- The aggregate prototype snapshot records upstream YOLOE/BioCLIP execution, but the fixture
+  contains no image bytes and no detector, embedding, or score payload for the hero record.
 - Full-frame transformation identity, embeddings, reuse receipts, target/competitor scores,
   calibration, abstention evidence, strongest-competitor rank, and reviewed labels are unavailable.
 - Geographic data describes candidate workload and planning evidence, not confirmed occurrences.
 - Source-media candidates remain unverified support leads with a 247-item sourcing shortfall and a
   490-item human-verification shortfall.
-- The 19-case agent evaluation tests deterministic workflow and policy behaviour, not live GPT-5.6
+- The 31-case agent evaluation tests deterministic workflow and policy behaviour, not live GPT-5.6
   answer quality or biodiversity accuracy.
+- Chromium E2E requires the Playwright host libraries. In the Phase 15.3 workspace the browser
+  cannot launch because `libnspr4.so` is absent; unit, contract, static-build, and deployment gates
+  still run, and CI remains the authoritative browser environment.
 - The build and artifact fingerprints are checksum-bearing but not cryptographically signed.
 
 ## Troubleshooting
@@ -293,13 +305,15 @@ label. It must never replace or mutate the deterministic fixture expectations ab
 - [ ] Public hosted replay opened without login or installation.
 - [ ] Target, bundle ID, TaxaLens source, and BioMiner source were visible.
 - [ ] Five-step route completed and reset worked.
-- [ ] Observatory showed 24 / 24 verified artifacts and 13 stages.
+- [ ] Observatory showed 25 / 25 verified artifacts and 13 stages.
 - [ ] One record highlighted 13 stages and 12 artifacts.
 - [ ] Evidence Lens kept transformed media, scores, competitor rank, uncertainty, and calibration
       unavailable.
 - [ ] Dashboard did not promote workload into an occurrence or reviewed result.
-- [ ] Five outputs were prepared and the evaluation report remained non-scientific.
+- [ ] Six outputs were prepared, the prototype receipt stayed prototype-only, and the evaluation
+      report remained non-scientific.
 - [ ] Agent Trace was visibly stored, cited, bounded, and credential-free.
 - [ ] Technical fixture, provenance, rights, and deployment fingerprint checks passed.
 - [ ] Optional live work remained disabled and separate.
-- [ ] Limitations were disclosed without a Phase 14 or accuracy claim.
+- [ ] Limitations were disclosed without promoting Phase 14 prototype evidence into an accuracy or
+      scientific-release claim.

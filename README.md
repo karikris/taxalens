@@ -7,8 +7,8 @@ and human-review gaps into one inspectable research workflow. It helps a researc
 “what might this be?” but also “why was it found, what evidence exists, what is missing, and what
 must a human do next?”
 
-**Status:** first butterfly pilot · **Replay:** credential-free · **Hosting:** public static site ·
-**Scientific result:** awaiting human review
+**Status:** explicit prototype evidence mode · **Replay:** credential-free ·
+**Hosting:** public static site · **Hero result:** awaiting human review
 
 [Open the public judge replay](https://karikris.github.io/taxalens/)
 
@@ -52,7 +52,8 @@ TaxaLens is research decision support for evidence-heavy review work:
   reference, decision, and lifecycle evidence together without promoting any one signal into a
   scientific conclusion.
 - **Prioritize the human handoff:** the Dashboard separates measured workload from unavailable
-  scientific metrics and prepares five deterministic, provenance-bearing research outputs.
+  scientific metrics and prepares six deterministic, provenance-bearing research outputs,
+  including the explicit prototype boundary.
 - **Explain without guessing:** the GPT-5.6 analyst reads the same verified evidence through bounded
   tools and is required to cite artifacts, disclose missing evidence, and reject unsupported claims.
 
@@ -63,14 +64,14 @@ how to make the work inspectable, repeatable, and safer to hand between research
 
 GPT-5.6 is central to the research workflow, not to species identification. The exact
 `gpt-5.6-sol` contract uses the Responses API, strict Structured Outputs, explicit standard
-reasoning, and nine read-only evidence tools to plan research, inspect pipeline state, trace
+reasoning, and 12 read-only evidence tools to plan research, inspect pipeline state, trace
 lineage, compare available candidate evidence, explain unavailable decisions, and prepare exports.
 
 The public Agent Trace shows only reviewable plans, tool parameters and results, citations,
 structured output, budgets, and status. It never exposes hidden reasoning. The default judge path
-replays one checksum-bound stored output and makes **no live model call**. Its initial deterministic
-evaluation covers 19 research workflows and 151 named checks; it is not a scientific-accuracy
-benchmark.
+replays one checksum-bound stored output and makes **no live model call**. Its deterministic
+evaluation contains 30 tool cases plus the stored public replay, with 247 named checks; it is not a
+scientific-accuracy benchmark.
 
 GPT-5.6 does not decide that a Flickr candidate is *Papilio demoleus*, infer an occurrence, replace
 human review, or manufacture a missing score, probability, competitor rank, reference, or image.
@@ -79,11 +80,11 @@ human review, or manufacture a missing score, probability, competitor rank, refe
 
 ```mermaid
 flowchart LR
-    B["Pinned BioMiner evidence artifacts"] --> J["Judge bundle<br/>24 inventoried artifacts"]
+    B["Pinned BioMiner evidence artifacts"] --> J["Judge bundle<br/>25 inventoried artifacts"]
     J --> V["Semantic + checksum verification"]
     V --> F["Typed evidence facade"]
     F --> Q["DuckDB-Wasm analytics"]
-    F --> T["9 read-only evidence tools"]
+    F --> T["12 read-only evidence tools"]
     F --> U["Static React product"]
     Q --> U
     T --> G["GPT-5.6 server-only analyst contract"]
@@ -100,14 +101,16 @@ publishes it with an exact source SHA, static fallback, and SHA-256 file invento
 | Boundary | Verified pilot state |
 | --- | --- |
 | Target | *Papilio demoleus* (`gbif:1938069`) |
-| Judge bundle | `papilio-demoleus-pilot-75461d9c-v1` |
-| Product evidence | 24 inventoried artifacts, 20 sections, 29 section records |
+| Judge bundle | `papilio-demoleus-prototype-67c1c2a3-v2` |
+| Product evidence | 25 inventoried artifacts, 20 sections, 29 section records |
 | Discovery workload | 76,485 many-to-many query-hit associations and 13,501 canonical source-photo records |
+| Prototype evidence | 81 provider-supported frozen references, 0 independently human-verified; B13 raw-margin policy; 13,496 of 13,501 staged records processed |
+| Release gate | 14 / 14 prototype-entry gates pass; `GO_PROTOTYPE_ONLY` for explicit prototype mode |
 | Product route | Research Mission, 13-stage Observatory, Evidence Lens, Dashboard, Agent Trace, and five-step guided tour |
 | Hero record | 1 candidate in `awaiting_human_review` |
 | Media | 0 committed media items; no image or licensed thumbnail is fabricated |
 | Visual and decision output | 0 YOLOE-processed images, 0 calibrated decisions, and no strongest-competitor rank |
-| Scientific evaluation | precision, recall, calibration, and accuracy unavailable until reviewed Phase 14 evidence exists |
+| Scientific evaluation | independently reviewed precision, recall, calibration, and accuracy remain unavailable |
 | Hosted replay | public, resettable, static, credential-free, and fingerprinted |
 
 This is an honest product slice, not a finished global biodiversity platform. Candidate identities,
@@ -126,7 +129,8 @@ Start the guided tour in the app and follow:
    candidates, uncertainty, and the unavailable calibrated decision.
 4. **Dashboard** — review the evidence funnel, geographic workload, review priority, query yield,
    workflow efficiency, and blocked scientific evaluation.
-5. **Export** — prepare and download five deterministic local research outputs.
+5. **Export** — prepare and download six deterministic local research outputs, including the
+   prototype boundary.
 
 Use **Reset replay** to return to the initial state. The longer technical and limitation route is
 in the [`JUDGE_GUIDE.md`](JUDGE_GUIDE.md); immutable implementation decisions are recorded under
@@ -141,7 +145,9 @@ evidence, never taxonomic validation.
 
 TaxaLens is the product and audit surface over a bounded import of BioMiner contracts and committed
 pilot artifacts. The source repository is pinned at
-`75461d9c065af0cd96b41cd1f845c2e920f7ae34`; the judge replay never launches the BioMiner runtime.
+`67c1c2a3a2c9b909b256b3094913af342f4ccbed`; the judge replay never launches the BioMiner runtime.
+The current GO decision authorizes only explicit prototype integration—not a production-default
+change, scientific release, calibrated accuracy claim, or public display of the reference images.
 The migration boundary and component-level provenance are documented in
 [`UPSTREAM_BIOMINER.md`](UPSTREAM_BIOMINER.md) and
 [`provenance/biominer_migration_manifest.yaml`](provenance/biominer_migration_manifest.yaml).
@@ -160,6 +166,8 @@ The principal verification commands are:
 
 ```bash
 uv run --locked pytest
+uv run --locked python scripts/import_biominer_prototype_artifacts.py --check
+uv run --locked python scripts/import_biominer_analytics.py --check
 uv run --locked python scripts/verify_demo.py
 uv run --locked python scripts/verify_provenance.py
 cd apps/web && npm test

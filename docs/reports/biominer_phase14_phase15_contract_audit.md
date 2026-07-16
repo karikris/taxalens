@@ -214,3 +214,29 @@ remain unsigned, perform no network request, and add no scientific claim.
 GitHits remained unavailable; the focused agent/export query and
 adopted/rejected approaches are recorded at
 `provenance/githits.jsonl#15.2`.
+
+## Task 15.3 judge documentation and full acceptance
+
+Task 15.3 updates the current README, Judge Guide, human-decision register, and
+known-limitations document to the prototype bundle
+`papilio-demoleus-prototype-67c1c2a3-v2`. The current judge contract is 25
+checksum-verified artifacts, 20 sections, 29 section records, six unavailable
+sections, zero media items, 12 read-only tools, 30 deterministic tool cases
+plus the stored replay, 247 named checks, and six deterministic output files.
+
+The full local acceptance matrix passed 670 Python tests, 111 Vitest tests,
+strict TypeScript, three static-deployment contract tests, zero production npm
+vulnerabilities, truthful fixture and provenance verification, both pinned
+import-receipt checks, the BioMiner boundary at `67c1c2a3…`, and a 50-file
+Pages artifact at `/taxalens/`. Chromium could not start on this host because
+`libnspr4.so` is absent; the browser process exited before any page or test code
+ran, so the limitation is recorded separately from product acceptance.
+
+The pushed GitHub Pages build remains authoritative for the final source SHA
+and deployment fingerprint. The guide directs judges to
+`build-fingerprint.json` instead of copying a self-referential deployment SHA
+into the same commit.
+
+GitHits remained unavailable; the focused completion-report query and
+adopted/rejected approaches are recorded at
+`provenance/githits.jsonl#15.3`.
