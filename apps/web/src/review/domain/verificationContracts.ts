@@ -212,6 +212,94 @@ export interface ReferenceSourceProvenance {
   readonly providerVerificationStatus: string | null
 }
 
+export const FLICKR_VERIFICATION_SOURCE_SCHEMA_VERSION =
+  'taxalens-flickr-verification-source:v1.0.0' as const
+
+export type FlickrScoreBand =
+  | 'not_scored'
+  | 'low'
+  | 'middle'
+  | 'high'
+  | 'unavailable'
+
+export type FlickrCompetitorMarginBand =
+  | 'negative'
+  | 'near_tie'
+  | 'small_positive'
+  | 'clear_positive'
+  | 'unavailable'
+
+export type FlickrDecisionState =
+  | 'target'
+  | 'non_target'
+  | 'abstain'
+  | 'awaiting_human_review'
+  | 'unavailable'
+
+export type VerificationDatasetPartition =
+  | 'support'
+  | 'model_selection'
+  | 'calibration'
+  | 'final_test'
+
+export interface FlickrVerificationPrioritySignals {
+  readonly lowMargin: boolean | null
+  readonly visualInputDisagreement: boolean | null
+  readonly geographicAnomaly: boolean | null
+  readonly commentConflict: boolean | null
+  readonly smallSubject: boolean | null
+  readonly referenceShortfall: boolean | null
+  readonly unusualCompetitor: boolean | null
+}
+
+export interface FlickrVerificationSource {
+  readonly schemaVersion: typeof FLICKR_VERIFICATION_SOURCE_SCHEMA_VERSION
+  readonly flickrRecordId: string
+  readonly flickrPhotoId: string
+  readonly fullFrameMedia: {
+    readonly mediaId: string
+    readonly previewUri: string
+    readonly mediaType: `image/${string}`
+    readonly sha256: string
+    readonly byteCount: number
+    readonly checksumVerified: true
+    readonly rights: VerificationItemRights
+  }
+  readonly duplicateGroupId: string
+  readonly ownerGroupId: string
+  readonly observationGroupId: string
+  readonly geographicClusterId: string | null
+  readonly coordinate: {
+    readonly latitude: number | null
+    readonly longitude: number | null
+    readonly outlier: boolean | null
+  }
+  readonly query: {
+    readonly tier: string
+    readonly rank: string
+    readonly trustTier: string
+    readonly searchField: string
+    readonly term: string
+  }
+  readonly route: {
+    readonly routeLabel: string
+    readonly lifeStage: VerificationLifeStage
+    readonly visualDomain: VerificationVisualDomain
+    readonly view: VerificationView
+    readonly subjectAreaRatio: number | null
+    readonly fingerprint: string
+  }
+  readonly targetScoreBand: FlickrScoreBand
+  readonly decisionState: FlickrDecisionState
+  readonly competitorMarginBand: FlickrCompetitorMarginBand
+  readonly samplingStratumId: string
+  readonly inclusionProbability: number | null
+  readonly datasetPartition: VerificationDatasetPartition
+  readonly prioritySignals: FlickrVerificationPrioritySignals
+  readonly sourceArtifactFingerprint: string
+  readonly biominerSha: string
+}
+
 export interface VerificationItem {
   readonly itemId: string
   readonly campaignId: string
@@ -234,6 +322,7 @@ export interface VerificationItem {
   readonly inclusionProbability: number | null
   readonly rights: VerificationItemRights
   readonly sourceProvenance?: ReferenceSourceProvenance
+  readonly flickrSource?: FlickrVerificationSource
   readonly questionFingerprint: string
 }
 
@@ -400,6 +489,25 @@ export function validateVerificationItem(
         longitude > 180)
     ) {
       failures.push('source provenance coordinates are outside valid bounds')
+    }
+  }
+  if (item.flickrSource !== undefined) {
+    const source = item.flickrSource
+    if (
+      item.source !== 'flickr' ||
+      source.flickrPhotoId !== item.sourceObservationId ||
+      source.fullFrameMedia.mediaId !== item.sourceMediaId ||
+      source.fullFrameMedia.sha256 !== item.imageSha256 ||
+      source.fullFrameMedia.byteCount !== item.imageByteCount ||
+      source.fullFrameMedia.mediaType !== item.mediaType ||
+      source.fullFrameMedia.previewUri !== item.previewUri ||
+      source.duplicateGroupId !== item.duplicateGroupId ||
+      source.ownerGroupId !== item.ownerPhotographerGroupId ||
+      source.observationGroupId !== item.observationGroupId ||
+      source.samplingStratumId !== item.samplingStratumId ||
+      source.inclusionProbability !== item.inclusionProbability
+    ) {
+      failures.push('Flickr source does not match the verification item')
     }
   }
   return Object.freeze(failures)
