@@ -24,11 +24,14 @@ import {
 } from '../review/domain'
 
 export const VERIFICATION_TOOL_EVIDENCE_VERSION =
-  'taxalens-verification-tool-evidence:v1.0.0' as const
+  'taxalens-verification-tool-evidence:v1.1.0' as const
 export const VERIFICATION_TOOL_RESULT_VERSION =
-  'taxalens-verification-tool-result:v1.0.0' as const
+  'taxalens-verification-tool-result:v1.1.0' as const
+export const VERIFICATION_ARTIFACT_CITATION_VERSION =
+  'taxalens-verification-artifact-citation:v1.0.0' as const
 
 const MAX_BATCH_SIZE = 50
+const MAX_ARTIFACT_CITATIONS = 64
 const MAX_FACTS = 48
 const MAX_RECORDS = 64
 
@@ -63,6 +66,28 @@ export type VerificationToolRecordStatus =
   | 'blocked'
 export type VerificationToolFactValue = boolean | null | number | string
 
+export const VERIFICATION_ARTIFACT_KINDS = Object.freeze([
+  'campaign_manifest',
+  'item_manifest',
+  'event_ledger',
+  'consensus',
+  'quality_snapshot',
+  'biominer_source',
+] as const)
+
+export type VerificationArtifactKind =
+  (typeof VERIFICATION_ARTIFACT_KINDS)[number]
+
+export interface VerificationArtifactCitation {
+  readonly schemaVersion: typeof VERIFICATION_ARTIFACT_CITATION_VERSION
+  readonly artifactKind: VerificationArtifactKind
+  readonly artifactId: string
+  readonly sha256: string
+  readonly sourceRepository: string
+  readonly sourceCommit: string
+  readonly sourcePath: string
+}
+
 export interface VerificationToolFact {
   readonly id: string
   readonly label: string
@@ -85,6 +110,8 @@ export interface VerificationToolResult {
   readonly summary: string
   readonly facts: readonly VerificationToolFact[]
   readonly records: readonly VerificationToolRecord[]
+  readonly artifactIds: readonly string[]
+  readonly artifactCitations: readonly VerificationArtifactCitation[]
   readonly limitations: readonly string[]
   readonly scientificClaimAllowed: false
 }
@@ -97,6 +124,7 @@ export interface VerificationToolEvidenceInput {
   readonly consensus: readonly VerificationConsensus[]
   readonly inspections: Readonly<Record<string, HumanReviewInspection>>
   readonly qualitySnapshots: readonly VerificationQualitySnapshot[]
+  readonly artifactCitations: readonly VerificationArtifactCitation[]
 }
 
 export interface VerificationToolEvidence
@@ -222,6 +250,41 @@ const OUTPUT_SCHEMA: JsonObjectSchema = deepFreeze({
         required: ['id', 'label', 'status', 'detail'],
       },
     },
+    artifactIds: {
+      type: 'array',
+      items: { type: 'string' },
+    },
+    artifactCitations: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          schemaVersion: {
+            type: 'string',
+            const: VERIFICATION_ARTIFACT_CITATION_VERSION,
+          },
+          artifactKind: {
+            type: 'string',
+            enum: VERIFICATION_ARTIFACT_KINDS,
+          },
+          artifactId: { type: 'string' },
+          sha256: { type: 'string' },
+          sourceRepository: { type: 'string' },
+          sourceCommit: { type: 'string' },
+          sourcePath: { type: 'string' },
+        },
+        required: [
+          'schemaVersion',
+          'artifactKind',
+          'artifactId',
+          'sha256',
+          'sourceRepository',
+          'sourceCommit',
+          'sourcePath',
+        ],
+      },
+    },
     limitations: {
       type: 'array',
       items: { type: 'string' },
@@ -236,6 +299,8 @@ const OUTPUT_SCHEMA: JsonObjectSchema = deepFreeze({
     'summary',
     'facts',
     'records',
+    'artifactIds',
+    'artifactCitations',
     'limitations',
     'scientificClaimAllowed',
   ],
@@ -376,6 +441,7 @@ export async function createVerificationToolEvidence(
     consensus: [...input.consensus],
     inspections: { ...input.inspections },
     qualitySnapshots: [...input.qualitySnapshots],
+    artifactCitations: canonicalArtifactCitations(input.artifactCitations),
     [EVIDENCE_MARKER]: true as const,
   }) satisfies ValidatedVerificationToolEvidence
   return evidence
@@ -497,7 +563,7 @@ function inspectVerificationCampaign(
     limitations: [
       'Campaign metadata does not itself establish population quality or taxonomic correctness.',
     ],
-  })
+  }, evidence)
 }
 
 function inspectReviewCoverage(
@@ -550,7 +616,7 @@ function inspectReviewCoverage(
     limitations: [
       'Coverage is descriptive; only a representative probability sample can support population-quality estimation.',
     ],
-  })
+  }, evidence)
 }
 
 function inspectQualitySnapshot(
@@ -671,7 +737,7 @@ function inspectQualitySnapshot(
     limitations: [
       'A quality snapshot is immutable evidence at one milestone, not a guarantee about future data.',
     ],
-  })
+  }, evidence)
 }
 
 function inspectReviewConflicts(
@@ -720,7 +786,7 @@ function inspectReviewConflicts(
     limitations: [
       'Reviewer disagreement is retained as evidence; a majority does not overwrite a dissenting effective judgment.',
     ],
-  })
+  }, evidence)
 }
 
 function inspectReferenceReadiness(
@@ -812,7 +878,7 @@ function inspectReferenceReadiness(
     limitations: [
       'Prototype-role suitability attestations are not independent human taxonomic verification unless the evidence explicitly says so.',
     ],
-  })
+  }, evidence)
 }
 
 function inspectSamplingPlan(
@@ -870,7 +936,7 @@ function inspectSamplingPlan(
           plan.qualityEstimationBlockedReason ??
             'The sampling plan does not authorize population-quality estimation.',
         ],
-  })
+  }, evidence)
 }
 
 function recommendNextReviewBatch(
@@ -935,7 +1001,7 @@ function recommendNextReviewBatch(
     limitations: [
       'The ranking selects only existing campaign items and cannot repair missing media, sampling bias, or upstream evidence.',
     ],
-  })
+  }, evidence)
 }
 
 function explainQualityChange(
@@ -970,7 +1036,7 @@ function explainQualityChange(
       limitations: [
         'Quality changes require two exact immutable snapshot digests.',
       ],
-    })
+    }, evidence)
   }
   const changes = qualityChanges(before, after)
   const partial = changes.some(({ value }) => value === null)
@@ -999,7 +1065,7 @@ function explainQualityChange(
     limitations: [
       'This tool describes recorded deltas and gate transitions; it does not infer a causal effect for an individual review.',
     ],
-  })
+  }, evidence)
 }
 
 interface ReviewCandidate {
@@ -1228,7 +1294,7 @@ function unavailableSnapshotResult(
       ),
     ],
     limitations: ['Snapshot identifiers must match committed evidence exactly.'],
-  })
+  }, evidence)
 }
 
 function findSnapshot(
@@ -1250,7 +1316,13 @@ interface ResultInput {
   readonly limitations: readonly string[]
 }
 
-function result(input: ResultInput): VerificationToolResult {
+function result(
+  input: ResultInput,
+  evidence: VerificationToolEvidence,
+): VerificationToolResult {
+  const artifactCitations = canonicalArtifactCitations(
+    evidence.artifactCitations,
+  )
   return deepFreeze({
     schemaVersion: VERIFICATION_TOOL_RESULT_VERSION,
     tool: input.tool,
@@ -1259,6 +1331,8 @@ function result(input: ResultInput): VerificationToolResult {
     summary: input.summary,
     facts: [...input.facts],
     records: [...input.records],
+    artifactIds: artifactCitations.map(({ artifactId }) => artifactId),
+    artifactCitations,
     limitations: [...input.limitations],
     scientificClaimAllowed: false as const,
   })
@@ -1299,6 +1373,7 @@ function verifyToolResult(
     )
   }
   if (
+    resultValue.artifactCitations.length > MAX_ARTIFACT_CITATIONS ||
     resultValue.facts.length > MAX_FACTS ||
     resultValue.records.length > MAX_RECORDS ||
     !boundedText(resultValue.summary, 1_000) ||
@@ -1321,6 +1396,25 @@ function verifyToolResult(
       `${resultValue.tool} exceeded the bounded result contract`,
     )
   }
+  const expectedCitations = canonicalArtifactCitations(
+    evidence.artifactCitations,
+  )
+  if (
+    canonicalJson(resultValue.artifactCitations) !==
+      canonicalJson(expectedCitations) ||
+    canonicalJson(resultValue.artifactIds) !==
+      canonicalJson(expectedCitations.map(({ artifactId }) => artifactId)) ||
+    !VERIFICATION_ARTIFACT_KINDS.every((kind) =>
+      resultValue.artifactCitations.some(
+        ({ artifactKind }) => artifactKind === kind,
+      ),
+    )
+  ) {
+    throw new VerificationToolError(
+      'invalid_result',
+      `${resultValue.tool} did not preserve the complete verification artifact chain`,
+    )
+  }
   return resultValue
 }
 
@@ -1328,8 +1422,15 @@ function validateEvidence(
   input: VerificationToolEvidenceInput,
 ): readonly string[] {
   const failures: string[] = []
-  const { campaign, items, events, consensus, inspections, qualitySnapshots } =
-    input
+  const {
+    campaign,
+    items,
+    events,
+    consensus,
+    inspections,
+    qualitySnapshots,
+    artifactCitations,
+  } = input
   if (campaign.campaignId.trim() === '') {
     failures.push('campaign ID must not be empty')
   }
@@ -1408,7 +1509,108 @@ function validateEvidence(
     }
     failures.push(...validateVerificationQualitySnapshot(snapshot))
   }
+  const artifactIds = new Set<string>()
+  for (const citation of artifactCitations) {
+    if (artifactIds.has(citation.artifactId)) {
+      failures.push(`artifact citation ID is repeated: ${citation.artifactId}`)
+    }
+    artifactIds.add(citation.artifactId)
+    failures.push(...validateArtifactCitation(citation))
+  }
+  for (const kind of VERIFICATION_ARTIFACT_KINDS) {
+    if (
+      !artifactCitations.some(({ artifactKind }) => artifactKind === kind)
+    ) {
+      failures.push(`artifact citation kind is missing: ${kind}`)
+    }
+  }
+  if (
+    !artifactCitations.some(
+      ({ artifactKind, sha256 }) =>
+        artifactKind === 'campaign_manifest' &&
+        sha256 === campaign.manifestSha256,
+    )
+  ) {
+    failures.push('campaign manifest citation does not match the campaign')
+  }
+  for (const snapshot of qualitySnapshots) {
+    if (
+      !artifactCitations.some(
+        ({ artifactKind, sha256 }) =>
+          artifactKind === 'quality_snapshot' &&
+          sha256 === snapshot.snapshotSha256,
+      )
+    ) {
+      failures.push(
+        `quality snapshot citation is missing: ${snapshot.snapshotSha256}`,
+      )
+    }
+  }
+  if (
+    campaign.biominerSha !== null &&
+    !artifactCitations.some(
+      ({ artifactKind, sourceCommit }) =>
+        artifactKind === 'biominer_source' &&
+        sourceCommit === campaign.biominerSha,
+    )
+  ) {
+    failures.push('BioMiner source citation does not match the campaign')
+  }
   return Object.freeze(failures)
+}
+
+function validateArtifactCitation(
+  citation: VerificationArtifactCitation,
+): readonly string[] {
+  const failures: string[] = []
+  if (
+    citation.schemaVersion !== VERIFICATION_ARTIFACT_CITATION_VERSION ||
+    !VERIFICATION_ARTIFACT_KINDS.includes(citation.artifactKind)
+  ) {
+    failures.push(`artifact citation contract is invalid: ${citation.artifactId}`)
+  }
+  if (
+    citation.artifactId.trim() === '' ||
+    citation.artifactId.length > 200
+  ) {
+    failures.push('artifact citation ID is invalid')
+  }
+  if (!/^[a-f0-9]{64}$/u.test(citation.sha256)) {
+    failures.push(`artifact citation digest is invalid: ${citation.artifactId}`)
+  }
+  if (!/^[a-f0-9]{40}$/u.test(citation.sourceCommit)) {
+    failures.push(`artifact source commit is invalid: ${citation.artifactId}`)
+  }
+  if (
+    !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/u.test(
+      citation.sourceRepository,
+    )
+  ) {
+    failures.push(
+      `artifact source repository is invalid: ${citation.artifactId}`,
+    )
+  }
+  if (
+    citation.sourcePath.trim() === '' ||
+    citation.sourcePath.startsWith('/') ||
+    citation.sourcePath.includes('\\') ||
+    citation.sourcePath.split('/').some((part) => part === '..')
+  ) {
+    failures.push(`artifact source path is invalid: ${citation.artifactId}`)
+  }
+  return Object.freeze(failures)
+}
+
+function canonicalArtifactCitations(
+  citations: readonly VerificationArtifactCitation[],
+): readonly VerificationArtifactCitation[] {
+  return citations
+    .map((citation) => Object.freeze({ ...citation }))
+    .sort(
+      (left, right) =>
+        left.artifactKind.localeCompare(right.artifactKind) ||
+        left.artifactId.localeCompare(right.artifactId),
+    )
 }
 
 function assertValidatedEvidence(
