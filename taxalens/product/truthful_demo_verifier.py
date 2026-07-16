@@ -35,6 +35,10 @@ from taxalens.product.truthful_demo import (
     TRUTHFUL_DEMO_VERIFICATION_MEDIA_SHA,
     TRUTHFUL_DEMO_VERIFICATION_USE_SCOPE,
 )
+from taxalens.product.verification_schema import (
+    VerificationSchemaContract,
+    validate_verification_schema,
+)
 
 DEFAULT_TRUTHFUL_DEMO_MANIFEST = DEFAULT_TRUTHFUL_DEMO_ROOT / "judge_bundle.json"
 
@@ -1017,6 +1021,21 @@ def _verify_verification_media_integrity(
     payloads: Mapping[str, object],
 ) -> None:
     sections = _object(bundle.get("sections"), "sections")
+    verification_section_names = (
+        "verification_campaigns",
+        "verification_items",
+        "verification_media",
+        "verification_decisions",
+        "verification_quality",
+    )
+    _require_verification_schema(
+        "judge_bundle_verification_sections",
+        {
+            name: _object(sections.get(name), f"sections.{name}")
+            for name in verification_section_names
+        },
+        location="judge_bundle.sections.verification",
+    )
     expected_sections = {
         "verification_campaigns": ["verification-campaign-manifest"],
         "verification_items": ["verification-items"],
@@ -1076,6 +1095,11 @@ def _verify_verification_media_integrity(
             "verification campaign must remain public, unsigned internally, and non-scientific",
             "verification campaign",
         )
+    _require_verification_schema(
+        "campaign",
+        {**campaign, "manifestSha256": manifest_sha256},
+        location="verification/campaign_manifest.json:campaign",
+    )
     semantics = _object(manifest.get("semantics"), "verification semantics")
     if semantics.get("scientificClaimAllowed") is not False:
         _fail(
@@ -1169,6 +1193,33 @@ def _verify_verification_media_integrity(
             f"verification manifest item {item_id}.previewAsset",
         )
         expected_path = f"verification/media/{preview_asset}"
+        source_contract = {
+            key: value
+            for key, value in source_item.items()
+            if key not in {"previewAsset", "verificationLabel"}
+        }
+        source_contract["previewUri"] = expected_path
+        projected_contract = {
+            key: value
+            for key, value in projected.items()
+            if key
+            not in {
+                "mediaArtifactId",
+                "previewAsset",
+                "verificationLabel",
+                "scientificClaimAllowed",
+            }
+        }
+        _require_verification_schema(
+            "item",
+            source_contract,
+            location=f"verification manifest item {item_id}",
+        )
+        _require_verification_schema(
+            "item",
+            projected_contract,
+            location=f"verification/items.json:{item_id}",
+        )
         if (
             projected.get("mediaArtifactId") != media_artifact_id
             or projected.get("previewAsset") != preview_asset
@@ -1198,6 +1249,12 @@ def _verify_verification_media_integrity(
                 TruthfulDemoFailure.CHECKSUM_MISMATCH,
                 "verification item byte count differs from the displayed artifact",
                 f"verification/items.json:{item_id}.imageByteCount",
+            )
+        if source_contract != projected_contract:
+            _fail(
+                TruthfulDemoFailure.CONTRACT_VIOLATION,
+                "normalized verification item export differs from its source contract",
+                f"verification/items.json:{item_id}",
             )
 
         identity = _object(
@@ -1282,6 +1339,26 @@ def _verify_verification_media_integrity(
                     "verification media attribution differs from its manifest item",
                     f"{location}:{media_artifact_id}",
                 )
+
+
+def _require_verification_schema(
+    contract: VerificationSchemaContract,
+    value: object,
+    *,
+    location: str,
+) -> None:
+    validation = validate_verification_schema(contract, value)
+    if validation.valid:
+        return
+    failures = ", ".join(
+        f"{failure.instance_path or '/'}:{failure.keyword}"
+        for failure in validation.failures
+    )
+    _fail(
+        TruthfulDemoFailure.CONTRACT_VIOLATION,
+        f"{contract} failed authoritative JSON Schema validation: {failures}",
+        location,
+    )
 
 
 def _verification_items_by_id(

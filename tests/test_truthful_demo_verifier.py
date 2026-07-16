@@ -168,6 +168,12 @@ def _apply_failure_mutation(root: Path, case: str) -> None:
             "verification-items",
             lambda payload: payload[0].update({"campaignId": "missing-campaign"}),
         )
+    elif case == "verification_item_schema_extra_field":
+        _mutate_artifact(
+            root,
+            "verification-items",
+            lambda payload: payload[0].update({"undeclaredEvidence": True}),
+        )
     elif case == "candidate_as_occurrence":
         _mutate_artifact(
             root,
@@ -276,6 +282,10 @@ def test_verifies_the_committed_truthful_fixture() -> None:
         (
             "verification_item_without_campaign",
             TruthfulDemoFailure.ORPHANED_ID,
+        ),
+        (
+            "verification_item_schema_extra_field",
+            TruthfulDemoFailure.CONTRACT_VIOLATION,
         ),
         ("candidate_as_occurrence", TruthfulDemoFailure.CANDIDATE_AS_OCCURRENCE),
         (
