@@ -20,6 +20,7 @@ import {
   CampaignSelector,
   filterReferenceReviewItems,
   ReferenceReviewFilters,
+  ReferenceReviewHandoff,
   ReferenceSourceContextPanel,
   StructuredReferenceReviewControls,
   VerificationControls,
@@ -391,6 +392,11 @@ export function VerificationWorkspace({
               counts={controller.counts}
               onClear={() => void controller.clearReview()}
               onExport={() => exportHumanReviewReceipt(controller.session)}
+            />
+            <ReferenceReviewHandoff
+              campaign={HUMAN_REVIEW_CAMPAIGN}
+              events={controller.session.events}
+              items={HUMAN_REVIEW_PACKET.items}
             />
           </>
         }

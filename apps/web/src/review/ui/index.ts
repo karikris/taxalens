@@ -14,6 +14,10 @@ export {
   ReferenceSourceContextPanel,
 } from './ReferenceSourceContextPanel'
 export {
+  referenceReviewHandoffUnavailableReason,
+  ReferenceReviewHandoff,
+} from './ReferenceReviewHandoff'
+export {
   EMPTY_REFERENCE_REVIEW_ANNOTATION_DRAFT,
   referenceReviewEventFields,
   StructuredReferenceReviewControls,

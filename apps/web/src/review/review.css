@@ -5,7 +5,8 @@
 
 .human-review__heading,
 .review-cache,
-.review-summary {
+.review-summary,
+.reference-review-handoff {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -282,7 +283,8 @@
 }
 
 .review-cache,
-.review-summary {
+.review-summary,
+.reference-review-handoff {
   padding: var(--tl-space-3);
   background: var(--tl-surface-subtle);
   border: 1px solid var(--tl-line);
@@ -291,6 +293,7 @@
 
 .review-cache h3,
 .review-summary h3,
+.reference-review-handoff h3,
 .review-image-panel h3 {
   margin: 0;
 }
@@ -303,7 +306,8 @@
 }
 
 .review-cache p:last-child,
-.review-summary p:last-child {
+.review-summary p:last-child,
+.reference-review-handoff p:last-child {
   margin-bottom: 0;
   color: var(--tl-ink-muted);
 }
@@ -580,6 +584,18 @@
   gap: var(--tl-space-2);
 }
 
+.reference-review-handoff__reason {
+  color: var(--tl-ink-muted);
+}
+
+.reference-review-handoff__error {
+  color: var(--tl-state-failure-ink);
+}
+
+.reference-review-handoff code {
+  overflow-wrap: anywhere;
+}
+
 .human-review .review-button--quiet {
   color: var(--tl-ink);
   background: transparent;
@@ -612,6 +628,7 @@
   .human-review__heading,
   .review-cache,
   .review-summary,
+  .reference-review-handoff,
   .review-navigation {
     align-items: stretch;
     display: grid;

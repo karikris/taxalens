@@ -535,3 +535,22 @@ components:
     tests:
       - "packages/replay/tests/test_biominer_reference_review_decision_export.py"
     status: "verified"
+  - component_id: "biominer_reference_review_browser_handoff"
+    source_repository: "karikris/BioMiner"
+    source_commit: "94fa1f634ee3c63917c05d78181dd3cf9ceff940"
+    source_path: "src/biominer/references/review.py"
+    destination_path: "apps/web/src/review/exports/referenceDecisionImport.ts"
+    migration_kind: "adapter"
+    reason: "Prepare the exact BioMiner reference decision import as a browser-local Parquet handoff without mutating or contacting BioMiner."
+    build_week_scope: "new"
+    source_license: "MIT License, copyright 2026 Kris Kari"
+    changes:
+      - "Mapped current and superseded scientific events to exact snake-case BioMiner import rows"
+      - "Created the exact typed table in the pinned DuckDB-Wasm runtime and exported Parquet locally"
+      - "Disabled extension autoload and loaded only the checksum-pinned same-origin Parquet extension"
+      - "Exposed explicit unavailable state for the credential-free Commons campaign"
+    tests:
+      - "apps/web/src/review/exports/referenceDecisionImport.test.ts"
+      - "apps/web/src/review/ui/ReferenceReviewHandoff.test.tsx"
+      - "packages/replay/tests/test_biominer_reference_review_decision_export.py"
+    status: "verified"
