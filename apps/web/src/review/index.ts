@@ -5,6 +5,10 @@ export {
   HUMAN_REVIEW_ITEMS,
   HUMAN_REVIEW_PACKET,
 } from './reviewPacket'
+export {
+  InMemoryReviewRepository,
+  REVIEW_REPOSITORY_RECEIPT_SCHEMA_VERSION,
+} from './inMemoryReviewRepository'
 export type {
   VerificationCampaign,
   VerificationItem,

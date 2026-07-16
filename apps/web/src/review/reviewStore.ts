@@ -11,6 +11,7 @@ import {
   VERIFICATION_EVENT_SCHEMA_VERSION,
   projectCurrentVerificationEvents,
   validateVerificationEvent,
+  validateVerificationEventLedger,
   type VerificationEvent,
   type VerificationOutcome,
 } from './verificationEvents'
@@ -337,36 +338,11 @@ function restoreVerificationEvent(value: unknown): VerificationEvent {
 function assertVerificationEventLedger(
   events: readonly VerificationEvent[],
 ): void {
-  const byId = new Map<string, VerificationEvent>()
-  const superseded = new Set<string>()
-  const reviewerRounds = new Map<string, number>()
-  for (const event of events) {
-    if (byId.has(event.eventId)) {
-      throw corruptReviewSession('The review event ledger repeats an event ID.')
-    }
-    const reviewerKey = `${event.itemId}\u0000${event.reviewerId}`
-    const expectedRound = (reviewerRounds.get(reviewerKey) ?? 0) + 1
-    if (event.reviewRound !== expectedRound) {
-      throw corruptReviewSession(
-        'The review event ledger has a non-contiguous reviewer round.',
-      )
-    }
-    if (event.supersedesEventId !== null) {
-      const prior = byId.get(event.supersedesEventId)
-      if (
-        prior === undefined ||
-        prior.itemId !== event.itemId ||
-        prior.campaignId !== event.campaignId ||
-        superseded.has(prior.eventId)
-      ) {
-        throw corruptReviewSession(
-          'The review event ledger has an invalid supersession link.',
-        )
-      }
-      superseded.add(prior.eventId)
-    }
-    byId.set(event.eventId, event)
-    reviewerRounds.set(reviewerKey, event.reviewRound)
+  const failures = validateVerificationEventLedger(events)
+  if (failures.length > 0) {
+    throw corruptReviewSession(
+      `The stored review event ledger is invalid: ${failures.join('; ')}`,
+    )
   }
 }
 

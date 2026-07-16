@@ -118,6 +118,48 @@ export function projectCurrentVerificationEvents(
   return Object.freeze(current)
 }
 
+export function validateVerificationEventLedger(
+  events: readonly VerificationEvent[],
+): readonly string[] {
+  const failures: string[] = []
+  const byId = new Map<string, VerificationEvent>()
+  const superseded = new Set<string>()
+  const reviewerRounds = new Map<string, number>()
+  for (const event of events) {
+    if (byId.has(event.eventId)) {
+      failures.push(`event ID is repeated: ${event.eventId}`)
+      continue
+    }
+    const reviewerKey = [
+      event.campaignId,
+      event.itemId,
+      event.reviewerId,
+    ].join('\u0000')
+    const expectedRound = (reviewerRounds.get(reviewerKey) ?? 0) + 1
+    if (event.reviewRound !== expectedRound) {
+      failures.push(
+        `reviewer round is not contiguous for event: ${event.eventId}`,
+      )
+    }
+    if (event.supersedesEventId !== null) {
+      const prior = byId.get(event.supersedesEventId)
+      if (
+        prior === undefined ||
+        prior.itemId !== event.itemId ||
+        prior.campaignId !== event.campaignId ||
+        superseded.has(prior.eventId)
+      ) {
+        failures.push(`supersession link is invalid for event: ${event.eventId}`)
+      } else {
+        superseded.add(prior.eventId)
+      }
+    }
+    byId.set(event.eventId, event)
+    reviewerRounds.set(reviewerKey, event.reviewRound)
+  }
+  return Object.freeze(failures)
+}
+
 function compareVerificationEvents(
   left: VerificationEvent,
   right: VerificationEvent,
