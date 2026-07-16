@@ -1,4 +1,5 @@
 import type { ReplayEvidence } from '../data/evidenceFacade'
+import type { HumanVerificationEvidence } from './humanVerificationEvidence'
 
 export type LedgerEventStatus = 'available' | 'metadata' | 'unavailable' | 'pending'
 
@@ -13,6 +14,7 @@ export interface EvidenceLedgerEvent {
     | 'candidates'
     | 'decision'
     | 'review-state'
+    | 'local-human-verification'
     | 'export'
   readonly sequence: number
   readonly label: string
@@ -21,6 +23,7 @@ export interface EvidenceLedgerEvent {
   readonly detail: string
   readonly verification: string
   readonly artifactIds: readonly string[]
+  readonly sourceEventIds: readonly string[]
   readonly scientificClaimAllowed: false
 }
 
@@ -34,7 +37,10 @@ export interface EvidenceLedgerModel {
   readonly commentPromotionAllowed: false
 }
 
-export function buildEvidenceLedger(replay: ReplayEvidence): EvidenceLedgerModel {
+export function buildEvidenceLedger(
+  replay: ReplayEvidence,
+  humanVerification: HumanVerificationEvidence | null = null,
+): EvidenceLedgerModel {
   if (
     replay.observatory.humanCommentCount !== 0 ||
     replay.observatory.calibratedDecisionCount !== 0 ||
@@ -44,7 +50,7 @@ export function buildEvidenceLedger(replay: ReplayEvidence): EvidenceLedgerModel
     throw new Error('Evidence ledger requires the verified awaiting-review pilot boundary')
   }
 
-  const events: readonly EvidenceLedgerEvent[] = [
+  const events: EvidenceLedgerEvent[] = [
     event(
       'discovery',
       1,
@@ -127,9 +133,26 @@ export function buildEvidenceLedger(replay: ReplayEvidence): EvidenceLedgerModel
       replay.selectiveDecision.verificationStatus,
       ['run-summary', 'selective-decision-metadata'],
     ),
+  ]
+  if (humanVerification?.state === 'recorded') {
+    events.push(
+      event(
+        'local-human-verification',
+        events.length + 1,
+        'Local human verification',
+        'available',
+        `${humanVerification.recordedItemCount} of ${humanVerification.totalItemCount} Commons reference items have current local outcomes across ${humanVerification.reviewerCount} recorded reviewer identities. Conflict status is not calculated; the Flickr candidate remains unverified.`,
+        'local_append_only_events_projected_without_consensus',
+        [],
+        humanVerification.latestReviewedAt,
+        humanVerification.eventIds,
+      ),
+    )
+  }
+  events.push(
     event(
       'export',
-      10,
+      events.length + 1,
       'Export',
       'available',
       `Static judge bundle contains ${replay.verifiedArtifactCount} / ${replay.artifactCount} checksum-verified artifacts. A local audit export can package this boundary without recording new evidence.`,
@@ -137,7 +160,7 @@ export function buildEvidenceLedger(replay: ReplayEvidence): EvidenceLedgerModel
       ['rights-manifest', 'attribution-manifest'],
       replay.bundleCreatedAt,
     ),
-  ]
+  )
   const inventoryIds = new Set(replay.artifactInventory.map(({ artifactId }) => artifactId))
   for (const item of events) {
     if (item.artifactIds.some((artifactId) => !inventoryIds.has(artifactId))) {
@@ -165,6 +188,7 @@ function event(
   verification: string,
   artifactIds: readonly string[],
   recordedAt: string | null = null,
+  sourceEventIds: readonly string[] = [],
 ): EvidenceLedgerEvent {
   return Object.freeze({
     id,
@@ -175,6 +199,7 @@ function event(
     detail,
     verification,
     artifactIds: Object.freeze(artifactIds),
+    sourceEventIds: Object.freeze(sourceEventIds),
     scientificClaimAllowed: false,
   })
 }

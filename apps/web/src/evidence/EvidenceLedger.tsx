@@ -1,6 +1,7 @@
 import type { ReplayEvidence } from '../data/evidenceFacade'
 import { EvidenceState } from '../design-system'
 import { buildEvidenceLedger, type LedgerEventStatus } from './evidenceLedgerModel'
+import type { HumanVerificationEvidence } from './humanVerificationEvidence'
 
 const STATUS_LABELS: Readonly<Record<LedgerEventStatus, string>> = {
   available: 'Available',
@@ -9,8 +10,14 @@ const STATUS_LABELS: Readonly<Record<LedgerEventStatus, string>> = {
   pending: 'Pending',
 }
 
-export function EvidenceLedger({ replay }: { readonly replay: ReplayEvidence }) {
-  const ledger = buildEvidenceLedger(replay)
+export function EvidenceLedger({
+  humanVerification = null,
+  replay,
+}: {
+  readonly humanVerification?: HumanVerificationEvidence | null
+  readonly replay: ReplayEvidence
+}) {
+  const ledger = buildEvidenceLedger(replay, humanVerification)
 
   return (
     <section className="evidence-ledger" aria-labelledby="evidence-ledger-title">
@@ -63,8 +70,18 @@ export function EvidenceLedger({ replay }: { readonly replay: ReplayEvidence }) 
                 </div>
                 <div>
                   <dt>Artifacts</dt>
-                  <dd>{event.artifactIds.join(' · ')}</dd>
+                  <dd>
+                    {event.artifactIds.length === 0
+                      ? 'None — local browser evidence'
+                      : event.artifactIds.join(' · ')}
+                  </dd>
                 </div>
+                {event.sourceEventIds.length > 0 && (
+                  <div>
+                    <dt>Review event IDs</dt>
+                    <dd>{event.sourceEventIds.join(' · ')}</dd>
+                  </div>
+                )}
               </dl>
             </article>
           </li>

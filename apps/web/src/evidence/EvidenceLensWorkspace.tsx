@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import type {
   DiscoveryProvenanceInput,
@@ -14,6 +14,8 @@ import { EvidenceExport } from './EvidenceExport'
 import { EvidenceLedger } from './EvidenceLedger'
 import { FullFrameInputComparison } from './FullFrameInputComparison'
 import { GeographyReferenceContext } from './GeographyReferenceContext'
+import { HumanVerificationEvidencePanel } from './HumanVerificationEvidencePanel'
+import type { HumanVerificationEvidence } from './humanVerificationEvidence'
 import { PrototypeEvidencePanel } from './PrototypeEvidencePanel'
 import { SelectiveDecisionEvidence } from './SelectiveDecisionEvidence'
 import { YoloeRoutingEvidence } from './YoloeRoutingEvidence'
@@ -23,10 +25,21 @@ export type DiscoveryProvenanceExecutor = (
   input: DiscoveryProvenanceInput,
 ) => Promise<DiscoveryProvenanceResult>
 
+export type HumanVerificationEvidenceLoader =
+  () => Promise<HumanVerificationEvidence>
+
 const defaultDiscoveryProvenanceExecutor: DiscoveryProvenanceExecutor = async (input) => {
   const { executeDiscoveryProvenance } = await import('./discoveryProvenance')
   return executeDiscoveryProvenance(input)
 }
+
+const defaultHumanVerificationEvidenceLoader: HumanVerificationEvidenceLoader =
+  async () => {
+    const { loadLocalHumanVerificationEvidence } = await import(
+      './humanVerificationEvidence'
+    )
+    return loadLocalHumanVerificationEvidence()
+  }
 
 type InspectionState =
   | { readonly kind: 'idle' }
@@ -37,13 +50,43 @@ type InspectionState =
 export function EvidenceLensWorkspace({
   executeProvenance = defaultDiscoveryProvenanceExecutor,
   facade,
+  loadHumanVerificationEvidence = defaultHumanVerificationEvidenceLoader,
   replay,
 }: {
   readonly executeProvenance?: DiscoveryProvenanceExecutor
   readonly facade: EvidenceFacade
+  readonly loadHumanVerificationEvidence?: HumanVerificationEvidenceLoader
   readonly replay: ReplayEvidence
 }) {
   const [inspection, setInspection] = useState<InspectionState>({ kind: 'idle' })
+  const [humanVerification, setHumanVerification] =
+    useState<HumanVerificationEvidence | null>(null)
+  const [humanVerificationError, setHumanVerificationError] =
+    useState<string | null>(null)
+
+  useEffect(() => {
+    let active = true
+    setHumanVerification(null)
+    setHumanVerificationError(null)
+    void loadHumanVerificationEvidence()
+      .then((evidence) => {
+        if (active) {
+          setHumanVerification(evidence)
+        }
+      })
+      .catch((reason: unknown) => {
+        if (active) {
+          setHumanVerificationError(
+            reason instanceof Error
+              ? reason.message
+              : 'The local verification ledger could not be read.',
+          )
+        }
+      })
+    return () => {
+      active = false
+    }
+  }, [loadHumanVerificationEvidence])
 
   const inspectRecord = () => {
     setInspection({ kind: 'running' })
@@ -89,6 +132,11 @@ export function EvidenceLensWorkspace({
           <dd>{replay.unavailableSectionCount}</dd>
         </div>
       </dl>
+
+      <HumanVerificationEvidencePanel
+        evidence={humanVerification}
+        loadError={humanVerificationError}
+      />
 
       <PrototypeEvidencePanel prototype={replay.prototype} />
 
@@ -161,7 +209,10 @@ export function EvidenceLensWorkspace({
 
       <SelectiveDecisionEvidence replay={replay} />
 
-      <EvidenceLedger replay={replay} />
+      <EvidenceLedger
+        humanVerification={humanVerification}
+        replay={replay}
+      />
 
       <EvidenceExport facade={facade} replay={replay} />
 

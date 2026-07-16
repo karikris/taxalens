@@ -6,9 +6,16 @@ import {
   type EvidenceFacade,
   type ReplayEvidence,
 } from '../data/evidenceFacade'
+import {
+  emptyHumanReviewSession,
+  withDecision,
+  withReviewerId,
+} from '../review/domain'
+import { HUMAN_REVIEW_ITEMS } from '../review/reviewPacket'
 import { createCommittedFixtureFetcher } from '../test/fixtures'
 import { EvidenceLensWorkspace } from './EvidenceLensWorkspace'
 import type { DiscoveryProvenanceResult } from './discoveryProvenance'
+import { buildHumanVerificationEvidence } from './humanVerificationEvidence'
 
 let facade: EvidenceFacade
 let replay: ReplayEvidence
@@ -133,5 +140,57 @@ describe('EvidenceLensWorkspace', () => {
     expect(within(associations).getByText('Papilio demoleus')).toBeInTheDocument()
     expect(within(associations).getByText('common name')).toBeInTheDocument()
     expect(within(associations).getAllByText('high')).toHaveLength(2)
+  })
+
+  it('returns current human outcomes, reviewer count, conflict status, and event IDs to lineage', async () => {
+    let session = withReviewerId(emptyHumanReviewSession(), 'reviewer-a')
+    session = withDecision(session, {
+      itemId: HUMAN_REVIEW_ITEMS[0]!.itemId,
+      outcome: 'yes',
+      comment: 'Visible adult reference.',
+      reviewedAt: '2026-07-16T12:00:00.000Z',
+      reviewDurationMs: 1_200,
+    })
+    const evidence = buildHumanVerificationEvidence(session.events)
+    render(
+      <EvidenceLensWorkspace
+        facade={facade}
+        loadHumanVerificationEvidence={vi.fn().mockResolvedValue(evidence)}
+        replay={replay}
+      />,
+    )
+
+    expect(
+      await screen.findByRole('heading', {
+        name: 'Local human verification evidence',
+      }),
+    ).toBeInTheDocument()
+    const summary = screen.getByText('Current human outcomes').closest('dl')
+    expect(summary).not.toBeNull()
+    expect(
+      within(summary!).getByText('Current human outcomes').parentElement,
+    ).toHaveTextContent('1 of 3')
+    expect(
+      within(summary!).getByText('Reviewer count').parentElement,
+    ).toHaveTextContent('1 recorded reviewer identity')
+    expect(
+      within(summary!).getByText('Conflict status').parentElement,
+    ).toHaveTextContent('Not calculated')
+    const outcomes = screen.getByRole('list', {
+      name: 'Current human verification outcomes',
+    })
+    expect(outcomes.children).toHaveLength(1)
+    expect(outcomes).toHaveTextContent('Yes')
+    expect(outcomes).toHaveTextContent(session.events[0]!.eventId)
+
+    const ledger = screen.getByRole('list', {
+      name: 'Evidence lifecycle ledger',
+    })
+    expect(
+      within(ledger).getByRole('heading', {
+        name: 'Local human verification',
+      }),
+    ).toBeInTheDocument()
+    expect(ledger).toHaveTextContent(session.events[0]!.eventId)
   })
 })

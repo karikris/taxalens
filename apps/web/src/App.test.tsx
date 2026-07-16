@@ -1,5 +1,6 @@
-import { render, screen } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { IDBFactory } from 'fake-indexeddb'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { App } from './App'
 import {
@@ -12,6 +13,10 @@ describe('TaxaLens scaffold', () => {
   beforeEach(() => {
     window.history.replaceState(null, '', '/')
     vi.stubGlobal('fetch', vi.fn(createCommittedFixtureFetcher()))
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
   })
 
   it('renders semantic landmarks and the truthful review state', async () => {
@@ -143,6 +148,54 @@ describe('TaxaLens scaffold', () => {
     expect(
       screen.getByRole('link', { name: 'Return to Evidence Lens' }),
     ).toHaveAttribute('href', '#evidence-lens')
+  })
+
+  it('returns a saved review event to Evidence Lens lineage', async () => {
+    vi.stubGlobal('indexedDB', new IDBFactory())
+    const item = HUMAN_REVIEW_ITEMS[0]!
+    const query = new URLSearchParams({
+      campaign: HUMAN_REVIEW_CAMPAIGN.campaignId,
+      item: item.itemId,
+      return: 'evidence-lens',
+    })
+    window.history.replaceState(
+      null,
+      '',
+      `/#verification?${query.toString()}`,
+    )
+    render(<App />)
+
+    const cantView = await screen.findByRole('button', {
+      name: 'Can’t view',
+    })
+    await waitFor(() => expect(cantView).toBeEnabled())
+    fireEvent.click(cantView)
+    expect(
+      await screen.findByText('Review event saved locally'),
+    ).toBeInTheDocument()
+
+    fireEvent.click(
+      screen.getByRole('link', { name: 'Return to Evidence Lens' }),
+    )
+    window.history.pushState(null, '', '#evidence-lens')
+    window.dispatchEvent(new HashChangeEvent('hashchange'))
+
+    expect(
+      await screen.findByRole('heading', {
+        name: 'Local human verification evidence',
+      }),
+    ).toBeInTheDocument()
+    expect(
+      await screen.findByText('1 recorded reviewer identity'),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('list', {
+        name: 'Current human verification outcomes',
+      }),
+    ).toHaveTextContent('Can’t view')
+    expect(
+      screen.getByRole('list', { name: 'Evidence lifecycle ledger' }),
+    ).toHaveTextContent('local-review-event')
   })
 
   it('renders an assertive local-load failure with an accessible retry action', async () => {
