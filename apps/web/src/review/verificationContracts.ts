@@ -27,6 +27,43 @@ export type SourceProvider =
   | 'wikimedia_commons'
   | 'taxalens_fixture'
 
+export const VERIFICATION_LIFE_STAGES = Object.freeze([
+  'adult',
+  'larva',
+  'pupa',
+  'egg',
+  'unknown',
+] as const)
+
+export type VerificationLifeStage =
+  (typeof VERIFICATION_LIFE_STAGES)[number]
+
+export const VERIFICATION_VISUAL_DOMAINS = Object.freeze([
+  'live_field',
+  'pinned_specimen',
+  'artwork',
+  'logo',
+  'tattoo',
+  'partial_wing',
+  'dead_or_damaged_specimen',
+  'ambiguous',
+  'unsuitable',
+] as const)
+
+export type VerificationVisualDomain =
+  (typeof VERIFICATION_VISUAL_DOMAINS)[number]
+
+export const VERIFICATION_VIEWS = Object.freeze([
+  'dorsal',
+  'ventral',
+  'lateral',
+  'frontal',
+  'oblique',
+  'unknown',
+] as const)
+
+export type VerificationView = (typeof VERIFICATION_VIEWS)[number]
+
 export interface TaxonIdentity {
   readonly acceptedTaxonKey: string
   readonly scientificName: string
@@ -128,6 +165,48 @@ export interface VerificationCampaign {
   readonly scientificClaimAllowed: boolean
 }
 
+export interface ProviderSuppliedIdentity {
+  readonly providerTaxonKey: string | null
+  readonly scientificName: string | null
+  readonly commonName: string | null
+  readonly rawLabel: string | null
+  readonly verificationStatus: string | null
+}
+
+export interface VerificationItemRights {
+  readonly creator: string | null
+  readonly rightsHolder: string | null
+  readonly licenseName: string
+  readonly licenseUri: string
+  readonly policyStatus: 'allowed' | 'restricted' | 'pending' | 'unknown'
+  readonly attribution: string
+  readonly sourceUri: string
+}
+
+export interface VerificationItem {
+  readonly itemId: string
+  readonly campaignId: string
+  readonly source: SourceProvider
+  readonly sourceObservationId: string
+  readonly sourceMediaId: string
+  readonly imageSha256: string
+  readonly imageByteCount: number
+  readonly mediaType: `image/${string}`
+  readonly previewUri: string
+  readonly targetTaxon: TaxonIdentity
+  readonly providerSuppliedIdentity: ProviderSuppliedIdentity
+  readonly expectedLifeStage: VerificationLifeStage | null
+  readonly expectedVisualDomain: VerificationVisualDomain | null
+  readonly expectedView: VerificationView | null
+  readonly duplicateGroupId: string
+  readonly observationGroupId: string
+  readonly ownerPhotographerGroupId: string
+  readonly samplingStratumId: string
+  readonly inclusionProbability: number | null
+  readonly rights: VerificationItemRights
+  readonly questionFingerprint: string
+}
+
 export function isVerificationCampaignKind(
   value: unknown,
 ): value is VerificationCampaignKind {
@@ -191,6 +270,61 @@ export function validateSamplingPlan(
     (!Number.isInteger(plan.targetSampleSize) || plan.targetSampleSize < 1)
   ) {
     failures.push('targetSampleSize must be null or a positive integer')
+  }
+  return Object.freeze(failures)
+}
+
+export function validateVerificationItem(
+  item: VerificationItem,
+  campaign: VerificationCampaign,
+): readonly string[] {
+  const failures: string[] = []
+  if (item.campaignId !== campaign.campaignId) {
+    failures.push('item campaignId does not match the campaign')
+  }
+  if (!campaign.sourceProviders.includes(item.source)) {
+    failures.push('item source is not declared by the campaign')
+  }
+  if (
+    campaign.targetTaxon !== null &&
+    item.targetTaxon.acceptedTaxonKey !== campaign.targetTaxon.acceptedTaxonKey
+  ) {
+    failures.push('item target taxon does not match the campaign')
+  }
+  if (item.questionFingerprint !== campaign.questionFingerprint) {
+    failures.push('item question fingerprint does not match the campaign')
+  }
+  if (!/^[a-f0-9]{64}$/.test(item.imageSha256)) {
+    failures.push('imageSha256 must be a lowercase SHA-256 digest')
+  }
+  if (!Number.isInteger(item.imageByteCount) || item.imageByteCount < 1) {
+    failures.push('imageByteCount must be a positive integer')
+  }
+  if (
+    item.inclusionProbability !== null &&
+    (!Number.isFinite(item.inclusionProbability) ||
+      item.inclusionProbability <= 0 ||
+      item.inclusionProbability > 1)
+  ) {
+    failures.push(
+      'inclusionProbability must be null or greater than zero and at most one',
+    )
+  }
+  if (
+    campaign.samplingPlan.inclusionProbabilityRequired &&
+    item.inclusionProbability === null
+  ) {
+    failures.push('campaign sampling design requires an inclusion probability')
+  }
+  if (
+    !campaign.samplingPlan.strata.some(
+      (stratum) => stratum.stratumId === item.samplingStratumId,
+    )
+  ) {
+    failures.push('item sampling stratum is not declared by the campaign')
+  }
+  if (item.rights.policyStatus === 'allowed' && item.rights.attribution === '') {
+    failures.push('allowed media requires attribution')
   }
   return Object.freeze(failures)
 }
