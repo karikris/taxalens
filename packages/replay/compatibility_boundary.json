@@ -1,0 +1,102 @@
+{
+  "schema_version": "taxalens-replay-compatibility-boundary:v1.0.0",
+  "upstream_repository": "karikris/BioMiner",
+  "policy": {
+    "unlisted_replay_source_is_native": true,
+    "replay_tests_are_native": true,
+    "native_lint_must_pass": true,
+    "source_locked_lint_is_reported_separately": true,
+    "blanket_repository_exclusion_allowed": false
+  },
+  "native_roots": [
+    "taxalens",
+    "tests",
+    "packages/replay/tests"
+  ],
+  "source_locked_files": [
+    {
+      "path": "packages/replay/src/biominer_decision_policy.py",
+      "mode": "complete_source_adaptation",
+      "source_path": "src/biominer/ml/decision_policy.py",
+      "source_commit": "0561906d994d6b9e56e0b6405fdb68272759595f"
+    },
+    {
+      "path": "packages/replay/src/biominer_detection_policy.py",
+      "mode": "complete_source_adaptation",
+      "source_path": "src/biominer/detection/policy.py",
+      "source_commit": "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    },
+    {
+      "path": "packages/replay/src/biominer_detection_routing.py",
+      "mode": "copied",
+      "source_path": "src/biominer/detection/routing.py",
+      "source_commit": "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    },
+    {
+      "path": "packages/replay/src/biominer_detection_schema.py",
+      "mode": "complete_source_adaptation",
+      "source_path": "src/biominer/detection/schema.py",
+      "source_commit": "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    },
+    {
+      "path": "packages/replay/src/biominer_detector_base.py",
+      "mode": "copied",
+      "source_path": "src/biominer/detection/detector_base.py",
+      "source_commit": "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    },
+    {
+      "path": "packages/replay/src/biominer_evidence_review_policy.py",
+      "mode": "copied",
+      "source_path": "src/biominer/evidence/review_policy.py",
+      "source_commit": "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    },
+    {
+      "path": "packages/replay/src/biominer_full_frame_attention.py",
+      "mode": "complete_source_adaptation",
+      "source_path": "src/biominer/vision/full_frame_attention.py",
+      "source_commit": "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    },
+    {
+      "path": "packages/replay/src/biominer_nonmatch.py",
+      "mode": "complete_source_adaptation",
+      "source_path": "src/biominer/ml/nonmatch.py",
+      "source_commit": "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    },
+    {
+      "path": "packages/replay/src/biominer_semantic_hash.py",
+      "mode": "copied",
+      "source_path": "src/biominer/common/semantic_hash.py",
+      "source_commit": "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    },
+    {
+      "path": "packages/replay/src/biominer_storage_parquet.py",
+      "mode": "copied",
+      "source_path": "src/biominer/storage/parquet.py",
+      "source_commit": "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    },
+    {
+      "path": "packages/replay/src/biominer_target_aware_output.py",
+      "mode": "complete_source_adaptation",
+      "source_path": "src/biominer/bioclip/target_aware_output.py",
+      "source_commit": "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    },
+    {
+      "path": "packages/replay/src/biominer_target_full_frame.py",
+      "mode": "complete_source_adaptation",
+      "source_path": "src/biominer/vision/target_full_frame.py",
+      "source_commit": "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    },
+    {
+      "path": "packages/replay/src/biominer_vision_gates.py",
+      "mode": "copied",
+      "source_path": "src/biominer/vision/gates.py",
+      "source_commit": "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    },
+    {
+      "path": "packages/replay/src/biominer_visual_input_fusion.py",
+      "mode": "complete_source_adaptation",
+      "source_path": "src/biominer/bioclip/visual_input_fusion.py",
+      "source_commit": "1535c494f9403e22ed9b163f3ae0ce3706e17f4c"
+    }
+  ]
+}
