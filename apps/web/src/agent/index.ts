@@ -74,11 +74,13 @@ export {
 export {
   buildVerificationResponsesRequest,
   deriveNextVerificationAction,
+  deriveVerificationCampaignAnalysis,
   runVerificationAnalyst,
   VerificationAnalystError,
   type VerificationAnalystResponsesTransport,
   type VerificationAnalystToolExecutor,
   type VerificationAnalystTransportResponse,
+  type DeterministicCampaignAnalysis,
 } from './verificationAnalyst'
 export {
   VERIFICATION_ANALYST_MODEL,
@@ -89,10 +91,13 @@ export {
   type VerificationActionKind,
   type VerificationActionRecommendation,
   type VerificationAnalystBudgetLimits,
+  type VerificationCampaignAnalysis,
+  type VerificationCampaignStratumAnalysis,
   type VerificationAnalystInput,
   type VerificationAnalystOutput,
   type VerificationAnalystReasoningEffort,
   type VerificationAnalystRequestKind,
   type VerificationAnalystRun,
   type VerificationAnalystToolReceipt,
+  type VerificationQualityChangeExplanation,
 } from './verificationAnalystContract'

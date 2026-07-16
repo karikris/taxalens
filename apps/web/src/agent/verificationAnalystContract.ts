@@ -5,13 +5,14 @@ import type {
 
 export const VERIFICATION_ANALYST_MODEL = 'gpt-5.6-sol' as const
 export const VERIFICATION_ANALYST_OUTPUT_VERSION =
-  'taxalens-verification-analyst-output:v1.1.0' as const
+  'taxalens-verification-analyst-output:v1.2.0' as const
 export const VERIFICATION_ANALYST_RUN_VERSION =
-  'taxalens-verification-analyst-run:v1.1.0' as const
+  'taxalens-verification-analyst-run:v1.2.0' as const
 
 export type VerificationAnalystRequestKind =
   | 'next_review_action'
   | 'quality_change'
+  | 'campaign_analysis'
 export type VerificationAnalystReasoningEffort = 'medium' | 'high'
 export type VerificationActionKind =
   | 'unbiased_audit'
@@ -69,6 +70,27 @@ export interface VerificationQualityChangeExplanation {
   readonly causalEffectClaimed: false
 }
 
+export interface VerificationCampaignStratumAnalysis {
+  readonly stratumId: string | null
+  readonly label: string
+  readonly itemCount: number
+  readonly eventCount: number
+  readonly attemptedItems: number
+  readonly decisiveItems: number
+  readonly unresolvedConflictItems: number
+  readonly priorityItemIds: readonly string[]
+}
+
+export interface VerificationCampaignAnalysis {
+  readonly status: VerificationToolResult['status']
+  readonly strata: readonly VerificationCampaignStratumAnalysis[]
+  readonly blockerIds: readonly string[]
+  readonly priorityItemIds: readonly string[]
+  readonly conflictItemIds: readonly string[]
+  readonly summary: string
+  readonly artifactIds: readonly string[]
+}
+
 export interface VerificationAnalystOutput {
   readonly schemaVersion: typeof VERIFICATION_ANALYST_OUTPUT_VERSION
   readonly requestKind: VerificationAnalystRequestKind
@@ -82,6 +104,7 @@ export interface VerificationAnalystOutput {
   }
   readonly recommendation: VerificationActionRecommendation | null
   readonly qualityChange: VerificationQualityChangeExplanation | null
+  readonly campaignAnalysis: VerificationCampaignAnalysis | null
   readonly evidenceBackedClaims: readonly VerificationAnalystClaim[]
   readonly unavailableEvidence: readonly VerificationAnalystUnavailableEvidence[]
   readonly answer: string
@@ -97,7 +120,14 @@ export interface VerificationAnalystToolReceipt {
   readonly callId: string
   readonly tool: VerificationToolName
   readonly arguments: Readonly<Record<string, unknown>>
-  readonly caller: 'direct'
+  readonly caller:
+    | {
+        readonly type: 'direct'
+      }
+    | {
+        readonly type: 'programmatic'
+        readonly programCallId: string
+      }
   readonly resultStatus: VerificationToolResult['status']
   readonly artifactIds: readonly string[]
 }
@@ -107,6 +137,8 @@ export interface VerificationAnalystRun {
   readonly model: typeof VERIFICATION_ANALYST_MODEL
   readonly reasoningEffort: VerificationAnalystReasoningEffort
   readonly responseStatus: 'completed'
+  readonly toolCallingMode: 'direct' | 'programmatic'
+  readonly programCallCount: number
   readonly output: VerificationAnalystOutput
   readonly budget: {
     readonly maxToolCalls: number
@@ -136,7 +168,11 @@ export const VERIFICATION_ANALYST_OUTPUT_SCHEMA: Readonly<Record<string, unknown
       },
       requestKind: {
         type: 'string',
-        enum: ['next_review_action', 'quality_change'],
+        enum: [
+          'next_review_action',
+          'quality_change',
+          'campaign_analysis',
+        ],
       },
       campaign: {
         type: 'object',
@@ -230,6 +266,79 @@ export const VERIFICATION_ANALYST_OUTPUT_SCHEMA: Readonly<Record<string, unknown
           { type: 'null' },
         ],
       },
+      campaignAnalysis: {
+        anyOf: [
+          {
+            type: 'object',
+            additionalProperties: false,
+            properties: {
+              status: {
+                type: 'string',
+                enum: ['available', 'partial', 'unavailable', 'blocked'],
+              },
+              strata: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  additionalProperties: false,
+                  properties: {
+                    stratumId: {
+                      anyOf: [
+                        { type: 'string' },
+                        { type: 'null' },
+                      ],
+                    },
+                    label: { type: 'string' },
+                    itemCount: { type: 'integer' },
+                    eventCount: { type: 'integer' },
+                    attemptedItems: { type: 'integer' },
+                    decisiveItems: { type: 'integer' },
+                    unresolvedConflictItems: { type: 'integer' },
+                    priorityItemIds: {
+                      type: 'array',
+                      items: { type: 'string' },
+                    },
+                  },
+                  required: [
+                    'stratumId',
+                    'label',
+                    'itemCount',
+                    'eventCount',
+                    'attemptedItems',
+                    'decisiveItems',
+                    'unresolvedConflictItems',
+                    'priorityItemIds',
+                  ],
+                },
+              },
+              blockerIds: {
+                type: 'array',
+                items: { type: 'string' },
+              },
+              priorityItemIds: {
+                type: 'array',
+                items: { type: 'string' },
+              },
+              conflictItemIds: {
+                type: 'array',
+                items: { type: 'string' },
+              },
+              summary: { type: 'string' },
+              artifactIds: ARTIFACT_IDS,
+            },
+            required: [
+              'status',
+              'strata',
+              'blockerIds',
+              'priorityItemIds',
+              'conflictItemIds',
+              'summary',
+              'artifactIds',
+            ],
+          },
+          { type: 'null' },
+        ],
+      },
       evidenceBackedClaims: {
         type: 'array',
         items: {
@@ -272,6 +381,7 @@ export const VERIFICATION_ANALYST_OUTPUT_SCHEMA: Readonly<Record<string, unknown
       'campaign',
       'recommendation',
       'qualityChange',
+      'campaignAnalysis',
       'evidenceBackedClaims',
       'unavailableEvidence',
       'answer',

@@ -9,6 +9,7 @@ import { describe, expect, it } from 'vitest'
 import {
   buildVerificationResponsesRequest,
   deriveNextVerificationAction,
+  deriveVerificationCampaignAnalysis,
   runVerificationAnalyst,
   VerificationAnalystError,
   type VerificationAnalystResponsesTransport,
@@ -136,7 +137,7 @@ describe('GPT-5.6 verification analyst next action', () => {
     )
 
     expect(run).toMatchObject({
-      schemaVersion: 'taxalens-verification-analyst-run:v1.1.0',
+      schemaVersion: 'taxalens-verification-analyst-run:v1.2.0',
       model: VERIFICATION_ANALYST_MODEL,
       reasoningEffort: 'medium',
       responseStatus: 'completed',
@@ -330,6 +331,232 @@ describe('GPT-5.6 verification analyst next action', () => {
     })
   })
 
+  it('uses bounded Programmatic Tool Calling for deterministic campaign analysis', async () => {
+    const results = campaignToolResults()
+    const calls: readonly [
+      VerificationToolName,
+      Readonly<Record<string, unknown>>,
+    ][] = [
+      ['inspect_verification_campaign', { campaign_id: CAMPAIGN_ID }],
+      ['inspect_review_coverage', { campaign_id: CAMPAIGN_ID }],
+      ['inspect_review_conflicts', { campaign_id: CAMPAIGN_ID }],
+      ['inspect_sampling_plan', { campaign_id: CAMPAIGN_ID }],
+      [
+        'inspect_quality_snapshot',
+        { campaign_id: CAMPAIGN_ID, snapshot_sha256: SNAPSHOT_SHA },
+      ],
+      [
+        'inspect_reference_readiness',
+        { campaign_id: CAMPAIGN_ID, snapshot_sha256: SNAPSHOT_SHA },
+      ],
+      [
+        'recommend_next_review_batch',
+        { campaign_id: CAMPAIGN_ID, batch_size: 2 },
+      ],
+    ]
+    const transport = new ScriptedTransport([
+      response('campaign-response-1', [
+        program(
+          'campaign-program-item',
+          'campaign-program-call',
+          `throw new Error('TaxaLens must never execute this program locally')`,
+          'opaque-program-fingerprint-v1',
+        ),
+        ...calls.map(([name, args], index) =>
+          programFunctionCall(
+            `campaign-function-call-${index}`,
+            'campaign-program-call',
+            name,
+            args,
+          ),
+        ),
+      ]),
+      response('campaign-response-2', [
+        programOutput(
+          'campaign-program-output',
+          'campaign-program-call',
+          '{"completed":true}',
+        ),
+      ]),
+      response('campaign-response-3', [], campaignOutput()),
+    ])
+
+    const run = await runVerificationAnalyst(
+      {
+        requestKind: 'campaign_analysis',
+        request:
+          'Join review state to strata, calculate blockers, rank priorities, and aggregate conflicts.',
+        snapshotSha256: SNAPSHOT_SHA,
+        batchSize: 2,
+      },
+      evidence(),
+      transport,
+      executor(results),
+    )
+
+    expect(run).toMatchObject({
+      schemaVersion: 'taxalens-verification-analyst-run:v1.2.0',
+      toolCallingMode: 'programmatic',
+      programCallCount: 1,
+      budget: {
+        maxToolCalls: 8,
+        usedToolCalls: 7,
+        maxResponseTurns: 10,
+        usedResponseTurns: 3,
+        exhausted: false,
+      },
+    })
+    expect(run.toolReceipts.every(({ caller }) => caller.type === 'programmatic'))
+      .toBe(true)
+    expect(run.output.campaignAnalysis).toEqual(
+      expect.objectContaining({
+        status: 'blocked',
+        blockerIds: [
+          `conflict:${CONFLICT_ITEM_ID}`,
+          'quality:precision:missing_interval',
+          'reference:readiness:independent_taxonomic_verification_missing',
+        ],
+        priorityItemIds: [CONFLICT_ITEM_ID, PENDING_ITEM_ID],
+        conflictItemIds: [CONFLICT_ITEM_ID],
+        strata: [
+          {
+            stratumId: 'adult',
+            label: 'Adult',
+            itemCount: 1,
+            eventCount: 2,
+            attemptedItems: 1,
+            decisiveItems: 0,
+            unresolvedConflictItems: 1,
+            priorityItemIds: [CONFLICT_ITEM_ID],
+          },
+          {
+            stratumId: 'larva',
+            label: 'Larva',
+            itemCount: 1,
+            eventCount: 1,
+            attemptedItems: 1,
+            decisiveItems: 0,
+            unresolvedConflictItems: 0,
+            priorityItemIds: [PENDING_ITEM_ID],
+          },
+        ],
+      }),
+    )
+    expect(run.output.recommendation).toBeNull()
+    expect(run.output.qualityChange).toBeNull()
+    expect(transport.requests[0]).toMatchObject({
+      tool_choice: { type: 'programmatic_tool_calling' },
+    })
+    expect(transport.requests[0]?.tools).toHaveLength(8)
+    expect(transport.requests[0]?.tools?.[0]).toEqual({
+      type: 'programmatic_tool_calling',
+    })
+    expect(
+      transport.requests[0]?.tools
+        ?.filter((tool) => tool.type === 'function')
+        .every(
+          ({ allowed_callers }) =>
+            JSON.stringify(allowed_callers) ===
+            JSON.stringify(['programmatic']),
+        ),
+    ).toBe(true)
+    expect(transport.requests[1]?.tool_choice).toBe('auto')
+    expect(inputItems(transport.requests[1]!).map(itemType)).toEqual([
+      'message',
+      'program',
+      'function_call',
+      'function_call',
+      'function_call',
+      'function_call',
+      'function_call',
+      'function_call',
+      'function_call',
+      'function_call_output',
+      'function_call_output',
+      'function_call_output',
+      'function_call_output',
+      'function_call_output',
+      'function_call_output',
+      'function_call_output',
+    ])
+    expect(JSON.stringify(transport.requests[1])).toContain(
+      'opaque-program-fingerprint-v1',
+    )
+    expect(JSON.stringify(run)).not.toContain(
+      'opaque-program-fingerprint-v1',
+    )
+    expect(JSON.stringify(run)).not.toContain(
+      'TaxaLens must never execute this program locally',
+    )
+  })
+
+  it('rejects direct or unbound campaign calls and model-modified campaign calculations', async () => {
+    const directTransport = new ScriptedTransport([
+      response('campaign-direct-response', [
+        program(
+          'campaign-direct-program',
+          'campaign-direct-program-call',
+          'return null',
+          'campaign-direct-fingerprint',
+        ),
+        functionCall(
+          'campaign-direct-function',
+          'inspect_verification_campaign',
+          { campaign_id: CAMPAIGN_ID },
+        ),
+      ]),
+    ])
+    await expect(
+      runVerificationAnalyst(
+        {
+          requestKind: 'campaign_analysis',
+          request: 'Analyse the campaign.',
+          snapshotSha256: SNAPSHOT_SHA,
+          batchSize: 2,
+        },
+        evidence(),
+        directTransport,
+        executor(campaignToolResults()),
+      ),
+    ).rejects.toMatchObject({ code: 'invalid_tool_call' })
+
+    const unboundTransport = new ScriptedTransport([
+      response('campaign-unbound-response', [
+        program(
+          'campaign-known-program',
+          'campaign-known-program-call',
+          'return null',
+          'campaign-known-fingerprint',
+        ),
+        programFunctionCall(
+          'campaign-unbound-function',
+          'another-program-call',
+          'inspect_verification_campaign',
+          { campaign_id: CAMPAIGN_ID },
+        ),
+      ]),
+    ])
+    await expect(
+      runVerificationAnalyst(
+        {
+          requestKind: 'campaign_analysis',
+          request: 'Analyse the campaign.',
+          snapshotSha256: SNAPSHOT_SHA,
+          batchSize: 2,
+        },
+        evidence(),
+        unboundTransport,
+        executor(campaignToolResults()),
+      ),
+    ).rejects.toMatchObject({ code: 'invalid_tool_call' })
+
+    const changed = campaignOutput()
+    changed.campaignAnalysis!.priorityItemIds.reverse()
+    await expect(runCampaignScriptedFinal(changed)).rejects.toMatchObject({
+      code: 'invalid_model_output',
+    })
+  })
+
   it('rejects model-selected actions, invented items, and guarantee claims', async () => {
     const wrongAction = analystOutput()
     wrongAction.recommendation!.action = 'unbiased_audit'
@@ -491,6 +718,50 @@ function functionCall(
   }
 }
 
+function program(
+  id: string,
+  callId: string,
+  code: string,
+  fingerprint: string,
+): Extract<ResponseOutputItem, { type: 'program' }> {
+  return {
+    id,
+    call_id: callId,
+    code,
+    fingerprint,
+    type: 'program',
+  }
+}
+
+function programOutput(
+  id: string,
+  callId: string,
+  result: string,
+): Extract<ResponseOutputItem, { type: 'program_output' }> {
+  return {
+    id,
+    call_id: callId,
+    result,
+    status: 'completed',
+    type: 'program_output',
+  }
+}
+
+function programFunctionCall(
+  callId: string,
+  programCallId: string,
+  name: string,
+  args: Readonly<Record<string, unknown>>,
+): ResponseFunctionToolCall {
+  return {
+    ...functionCall(callId, name, args),
+    caller: {
+      type: 'program',
+      caller_id: programCallId,
+    },
+  }
+}
+
 function analystInput() {
   return {
     requestKind: 'next_review_action' as const,
@@ -522,6 +793,7 @@ function analystOutput(): Mutable<VerificationAnalystOutput> {
       artifactIds: [...artifactIds],
     },
     qualityChange: null,
+    campaignAnalysis: null,
     evidenceBackedClaims: [
       {
         id: 'unresolved-conflict',
@@ -570,6 +842,7 @@ function qualityOutput(): Mutable<VerificationAnalystOutput> {
       artifactIds: [...artifactIds],
       causalEffectClaimed: false,
     },
+    campaignAnalysis: null,
     evidenceBackedClaims: [
       {
         id: 'recorded-quality-deltas',
@@ -598,6 +871,59 @@ function qualityOutput(): Mutable<VerificationAnalystOutput> {
   }
 }
 
+function campaignOutput(): Mutable<VerificationAnalystOutput> {
+  const artifactIds = citations().map(({ artifactId }) => artifactId)
+  const deterministic = deriveVerificationCampaignAnalysis(
+    campaignToolResults(),
+    evidence(),
+  )
+  return {
+    schemaVersion: VERIFICATION_ANALYST_OUTPUT_VERSION,
+    requestKind: 'campaign_analysis',
+    campaign: {
+      campaignId: CAMPAIGN_ID,
+      title: 'Verification analyst campaign',
+      target: {
+        acceptedTaxonKey: 'gbif:1938069',
+        scientificName: 'Papilio demoleus',
+      },
+    },
+    recommendation: null,
+    qualityChange: null,
+    campaignAnalysis: {
+      status: deterministic.status,
+      strata: deterministic.strata.map((stratum) => ({
+        ...stratum,
+        priorityItemIds: [...stratum.priorityItemIds],
+      })),
+      blockerIds: [...deterministic.blockerIds],
+      priorityItemIds: [...deterministic.priorityItemIds],
+      conflictItemIds: [...deterministic.conflictItemIds],
+      summary:
+        'The deterministic join retains one unresolved adult conflict, one pending larval priority, and the recorded quality and reference blockers.',
+      artifactIds: [...artifactIds],
+    },
+    evidenceBackedClaims: [
+      {
+        id: 'bounded-campaign-analysis',
+        claim:
+          'The exact campaign evidence contains two attempted strata, one unresolved conflict, and two ranked existing item IDs.',
+        artifactIds: [...artifactIds],
+      },
+    ],
+    unavailableEvidence: [],
+    answer:
+      'Resolve the retained conflict and reference and interval blockers before any separate scientific-promotion assessment.',
+    limitations: [
+      'The analysis is descriptive and does not make a scientific release claim.',
+    ],
+    artifactIds: [...artifactIds],
+    externalActionsExecuted: false,
+    unsupportedClaimsRejected: true,
+    scientificClaimAllowed: false,
+  }
+}
+
 function evidence(): VerificationToolEvidence {
   return {
     schemaVersion: 'taxalens-verification-tool-evidence:v1.1.0',
@@ -609,13 +935,37 @@ function evidence(): VerificationToolEvidence {
         acceptedTaxonKey: 'gbif:1938069',
         scientificName: 'Papilio demoleus',
       },
+      samplingPlan: {
+        purpose: 'quality_estimation',
+        strata: [
+          { stratumId: 'adult', label: 'Adult' },
+          { stratumId: 'larva', label: 'Larva' },
+        ],
+      },
     },
     items: [
+      { itemId: CONFLICT_ITEM_ID, samplingStratumId: 'adult' },
+      { itemId: PENDING_ITEM_ID, samplingStratumId: 'larva' },
+    ],
+    events: [
+      { itemId: CONFLICT_ITEM_ID },
       { itemId: CONFLICT_ITEM_ID },
       { itemId: PENDING_ITEM_ID },
     ],
-    events: [],
-    consensus: [],
+    consensus: [
+      {
+        itemId: CONFLICT_ITEM_ID,
+        effectiveReviewCount: 2,
+        status: 'unresolved_disagreement',
+        consensusOutcome: null,
+      },
+      {
+        itemId: PENDING_ITEM_ID,
+        effectiveReviewCount: 1,
+        status: 'pending',
+        consensusOutcome: null,
+      },
+    ],
     inspections: {},
     qualitySnapshots: [
       {
@@ -738,6 +1088,92 @@ function qualityToolResults(): readonly VerificationToolResult[] {
       ],
       limitations: [
         'The recorded deltas do not infer a causal effect for an individual review.',
+      ],
+    }),
+  ]
+}
+
+function campaignToolResults(): readonly VerificationToolResult[] {
+  return [
+    result('inspect_verification_campaign', {
+      facts: [
+        fact('item_count', 2),
+        fact('event_count', 3),
+      ],
+    }),
+    result('inspect_review_coverage', {
+      facts: [
+        fact('attempted_items', 2),
+        fact('decisively_reviewed_items', 0),
+      ],
+    }),
+    result('inspect_review_conflicts', {
+      status: 'blocked',
+      facts: [fact('unresolved_conflict_items', 1)],
+      records: [
+        {
+          id: CONFLICT_ITEM_ID,
+          label: CONFLICT_ITEM_ID,
+          status: 'blocked',
+          detail: 'Unresolved fields: outcome.',
+        },
+      ],
+    }),
+    result('inspect_sampling_plan', {
+      facts: [fact('sampling_purpose', 'quality_estimation')],
+      records: [
+        {
+          id: 'adult',
+          label: 'Adult',
+          status: 'metadata',
+          detail: 'Population=1; target=1; weight=0.5.',
+        },
+        {
+          id: 'larva',
+          label: 'Larva',
+          status: 'metadata',
+          detail: 'Population=1; target=1; weight=0.5.',
+        },
+      ],
+    }),
+    result('inspect_quality_snapshot', {
+      status: 'partial',
+      facts: [fact('precision_interval_lower', null)],
+      records: [
+        {
+          id: 'precision:missing_interval',
+          label: 'missing_interval',
+          status: 'blocked',
+          detail: 'Precision interval blocker.',
+        },
+      ],
+    }),
+    result('inspect_reference_readiness', {
+      status: 'blocked',
+      facts: [fact('reference_readiness_status', 'not_ready')],
+      records: [
+        {
+          id: 'readiness:independent_taxonomic_verification_missing',
+          label: 'independent_taxonomic_verification_missing',
+          status: 'blocked',
+          detail: 'Reference-readiness blocker.',
+        },
+      ],
+    }),
+    result('recommend_next_review_batch', {
+      records: [
+        {
+          id: CONFLICT_ITEM_ID,
+          label: CONFLICT_ITEM_ID,
+          status: 'blocked',
+          detail: 'Resolve disagreement.',
+        },
+        {
+          id: PENDING_ITEM_ID,
+          label: PENDING_ITEM_ID,
+          status: 'pending',
+          detail: 'Complete the next review.',
+        },
       ],
     }),
   ]
@@ -892,6 +1328,62 @@ async function runQualityScriptedFinal(
     evidence(),
     transport,
     executor(qualityToolResults()),
+  )
+}
+
+async function runCampaignScriptedFinal(
+  output: unknown,
+): Promise<unknown> {
+  const calls: readonly [
+    VerificationToolName,
+    Readonly<Record<string, unknown>>,
+  ][] = [
+    ['inspect_verification_campaign', { campaign_id: CAMPAIGN_ID }],
+    ['inspect_review_coverage', { campaign_id: CAMPAIGN_ID }],
+    ['inspect_review_conflicts', { campaign_id: CAMPAIGN_ID }],
+    ['inspect_sampling_plan', { campaign_id: CAMPAIGN_ID }],
+    [
+      'inspect_quality_snapshot',
+      { campaign_id: CAMPAIGN_ID, snapshot_sha256: SNAPSHOT_SHA },
+    ],
+    [
+      'inspect_reference_readiness',
+      { campaign_id: CAMPAIGN_ID, snapshot_sha256: SNAPSHOT_SHA },
+    ],
+    [
+      'recommend_next_review_batch',
+      { campaign_id: CAMPAIGN_ID, batch_size: 2 },
+    ],
+  ]
+  const transport = new ScriptedTransport([
+    response('campaign-validation-response', [
+      program(
+        'campaign-validation-program',
+        'campaign-validation-program-call',
+        'return verification_tools',
+        'campaign-validation-fingerprint',
+      ),
+      ...calls.map(([name, args], index) =>
+        programFunctionCall(
+          `campaign-validation-function-${index}`,
+          'campaign-validation-program-call',
+          name,
+          args,
+        ),
+      ),
+    ]),
+    response('campaign-validation-final', [], output),
+  ])
+  return runVerificationAnalyst(
+    {
+      requestKind: 'campaign_analysis',
+      request: 'Analyse the deterministic campaign state.',
+      snapshotSha256: SNAPSHOT_SHA,
+      batchSize: 2,
+    },
+    evidence(),
+    transport,
+    executor(campaignToolResults()),
   )
 }
 

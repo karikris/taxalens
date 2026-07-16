@@ -1,6 +1,5 @@
 import Ajv2020, { type ErrorObject } from 'ajv/dist/2020.js'
 import type {
-  FunctionTool,
   ResponseCreateParamsNonStreaming,
   ResponseFunctionToolCall,
   ResponseInput,
@@ -8,6 +7,7 @@ import type {
   ResponseOutputItem,
   ResponseStatus,
   ResponseUsage,
+  Tool,
 } from 'openai/resources/responses/responses'
 
 import { canonicalExportJsonBytes } from '../evidence/evidenceExport'
@@ -26,6 +26,7 @@ import {
   type VerificationActionBasis,
   type VerificationActionKind,
   type VerificationAnalystBudgetLimits,
+  type VerificationCampaignAnalysis,
   type VerificationAnalystInput,
   type VerificationAnalystOutput,
   type VerificationAnalystReasoningEffort,
@@ -58,6 +59,15 @@ const REQUIRED_QUALITY_CHANGE_TOOLS = Object.freeze([
   'inspect_quality_snapshot',
   'explain_quality_change',
 ] as const satisfies readonly VerificationToolName[])
+const REQUIRED_CAMPAIGN_ANALYSIS_TOOLS = Object.freeze([
+  'inspect_verification_campaign',
+  'inspect_review_coverage',
+  'inspect_review_conflicts',
+  'inspect_sampling_plan',
+  'inspect_quality_snapshot',
+  'inspect_reference_readiness',
+  'recommend_next_review_batch',
+] as const satisfies readonly VerificationToolName[])
 
 const BASE_INSTRUCTIONS = `You are the TaxaLens verification analyst. Explain the next best human verification action from checksum-verified campaign evidence only.
 
@@ -69,6 +79,7 @@ Policy:
 - Distinguish an unbiased audit, targeted failure discovery, reference shortfall work, and independent adjudication.
 - For a next-action request, the deterministic TaxaLens policy selects the action and exact item IDs. Explain that selection; do not replace it.
 - For a quality-change request, describe only recorded differences between the two exact immutable snapshots. Do not attribute a causal effect to an individual review.
+- For campaign analysis, use Programmatic Tool Calling only to orchestrate strict read-only functions. All joins, blocker aggregation, conflict aggregation, and priority ranking remain deterministic TaxaLens code.
 - Describe the action as addressing recorded evidence or blockers. Do not promise that it will improve accuracy, guarantee release, prove taxonomic correctness, or cause a metric change.
 - BioMiner prototype-role suitability is not independent human taxonomic verification.
 - Missing evidence is unavailable or unknown, never proof of absence.
@@ -122,6 +133,11 @@ interface DeterministicRecommendation {
   readonly nextItemIds: readonly string[]
 }
 
+export type DeterministicCampaignAnalysis = Omit<
+  VerificationCampaignAnalysis,
+  'summary' | 'artifactIds'
+>
+
 interface ValidatedVerificationAnalystInput {
   readonly request: string
   readonly snapshotSha256: string
@@ -140,7 +156,7 @@ export async function runVerificationAnalyst(
   executeTool: VerificationAnalystToolExecutor = executeVerificationTool,
 ): Promise<VerificationAnalystRun> {
   const validated = validateInput(input, evidence)
-  const budget = validateBudget(input.budget)
+  const budget = validateBudget(input.budget, input.requestKind)
   const reasoningEffort = input.reasoningEffort ?? 'medium'
   const conversation: ResponseInput = [
     {
@@ -161,6 +177,8 @@ export async function runVerificationAnalyst(
   const responseIds: string[] = []
   const toolReceipts: VerificationAnalystToolReceipt[] = []
   const toolResults: VerificationToolResult[] = []
+  const programCallIds = new Set<string>()
+  const programItemIds = new Set<string>()
 
   while (responseIds.length < budget.maxResponseTurns) {
     const response = await transport.create(
@@ -170,27 +188,52 @@ export async function runVerificationAnalyst(
         budget,
         reasoningEffort,
         input.requestKind,
+        programCallIds.size > 0,
       ),
     )
     validateResponseEnvelope(response, responseIds)
     responseIds.push(response.id)
+    registerProgramItems(
+      response.output,
+      input.requestKind,
+      programCallIds,
+      programItemIds,
+    )
 
     const calls = response.output.filter(
       (item): item is ResponseFunctionToolCall => item.type === 'function_call',
     )
     if (calls.length === 0) {
+      if (
+        input.requestKind === 'campaign_analysis' &&
+        response.output_text.trim().length === 0 &&
+        response.output.some(
+          ({ type }) => type === 'program' || type === 'program_output',
+        )
+      ) {
+        conversation.push(
+          ...continuationItems(response.output, input.requestKind),
+        )
+        continue
+      }
       const output = parseAndValidateOutput(
         response,
         input,
         evidence,
         toolReceipts,
         toolResults,
+        programCallIds.size,
       )
       return deepFreeze({
         schemaVersion: VERIFICATION_ANALYST_RUN_VERSION,
         model: VERIFICATION_ANALYST_MODEL,
         reasoningEffort,
         responseStatus: 'completed' as const,
+        toolCallingMode:
+          input.requestKind === 'campaign_analysis'
+            ? 'programmatic' as const
+            : 'direct' as const,
+        programCallCount: programCallIds.size,
         output,
         budget: {
           maxToolCalls: budget.maxToolCalls,
@@ -205,99 +248,97 @@ export async function runVerificationAnalyst(
       })
     }
 
-    if (calls.length !== 1) {
+    if (input.requestKind !== 'campaign_analysis' && calls.length !== 1) {
       throw new VerificationAnalystError(
         'invalid_tool_call',
         'Exactly one direct verification function call is allowed per response turn',
       )
     }
-    if (toolReceipts.length >= budget.maxToolCalls) {
+    if (toolReceipts.length + calls.length > budget.maxToolCalls) {
       throw new VerificationAnalystError(
         'tool_budget_exceeded',
         `The verification analyst exceeded its ${budget.maxToolCalls}-call tool budget`,
       )
     }
 
-    const call = calls[0]!
-    if (
-      call.caller !== undefined &&
-      call.caller !== null &&
-      call.caller.type !== 'direct'
-    ) {
-      throw new VerificationAnalystError(
-        'invalid_tool_call',
-        'Programmatic Tool Calling is not enabled for next-review-action analysis',
-      )
-    }
-    if (toolReceipts.some(({ callId }) => callId === call.call_id)) {
-      throw new VerificationAnalystError(
-        'invalid_tool_call',
-        `Duplicate call_id: ${call.call_id}`,
-      )
-    }
-    if (
-      !isAllowedTool(input.requestKind, call.name) ||
-      exceedsAllowedToolMultiplicity(
+    conversation.push(
+      ...continuationItems(response.output, input.requestKind),
+    )
+    for (const call of calls) {
+      const caller = validateFunctionCaller(
+        call,
         input.requestKind,
+        programCallIds,
+      )
+      if (toolReceipts.some(({ callId }) => callId === call.call_id)) {
+        throw new VerificationAnalystError(
+          'invalid_tool_call',
+          `Duplicate call_id: ${call.call_id}`,
+        )
+      }
+      if (
+        !isAllowedTool(input.requestKind, call.name) ||
+        exceedsAllowedToolMultiplicity(
+          input.requestKind,
+          call.name,
+          toolReceipts,
+        )
+      ) {
+        throw new VerificationAnalystError(
+          'invalid_tool_call',
+          `Unexpected or repeated ${input.requestKind} tool: ${call.name}`,
+        )
+      }
+      if (
+        toolReceipts.length === 0 &&
+        call.name !== 'inspect_verification_campaign'
+      ) {
+        throw new VerificationAnalystError(
+          'invalid_tool_call',
+          'The first verification tool call must inspect the exact campaign',
+        )
+      }
+
+      const args = parseToolArguments(call)
+      validateToolCallBinding(
         call.name,
+        args,
+        evidence,
+        validated.snapshotSha256,
+        validated.beforeSnapshotSha256,
+        validated.batchSize,
         toolReceipts,
       )
-    ) {
-      throw new VerificationAnalystError(
-        'invalid_tool_call',
-        `Unexpected or repeated ${input.requestKind} tool: ${call.name}`,
-      )
-    }
-    if (
-      toolReceipts.length === 0 &&
-      call.name !== 'inspect_verification_campaign'
-    ) {
-      throw new VerificationAnalystError(
-        'invalid_tool_call',
-        'The first verification tool call must inspect the exact campaign',
-      )
-    }
+      let toolResult: VerificationToolResult
+      try {
+        toolResult = await executeTool(call.name, args, evidence)
+      } catch (error) {
+        throw new VerificationAnalystError(
+          'invalid_tool_call',
+          `${call.name} could not execute: ${errorMessage(error)}`,
+        )
+      }
+      validateToolResult(call.name, toolResult, evidence)
 
-    const args = parseToolArguments(call)
-    validateToolCallBinding(
-      call.name,
-      args,
-      evidence,
-      validated.snapshotSha256,
-      validated.beforeSnapshotSha256,
-      validated.batchSize,
-      toolReceipts,
-    )
-    let toolResult: VerificationToolResult
-    try {
-      toolResult = await executeTool(call.name, args, evidence)
-    } catch (error) {
-      throw new VerificationAnalystError(
-        'invalid_tool_call',
-        `${call.name} could not execute: ${errorMessage(error)}`,
+      toolResults.push(toolResult)
+      toolReceipts.push(
+        deepFreeze({
+          sequence: toolReceipts.length + 1,
+          callId: call.call_id,
+          tool: toolResult.tool,
+          arguments: args,
+          caller: caller.receipt,
+          resultStatus: toolResult.status,
+          artifactIds: [...toolResult.artifactIds],
+        }),
       )
+      conversation.push({
+        type: 'function_call_output',
+        call_id: call.call_id,
+        caller: caller.output,
+        output: decoder.decode(canonicalExportJsonBytes(toolResult)),
+      })
     }
-    validateToolResult(call.name, toolResult, evidence)
-
-    toolResults.push(toolResult)
-    toolReceipts.push(
-      deepFreeze({
-        sequence: toolReceipts.length + 1,
-        callId: call.call_id,
-        tool: toolResult.tool,
-        arguments: args,
-        caller: 'direct' as const,
-        resultStatus: toolResult.status,
-        artifactIds: [...toolResult.artifactIds],
-      }),
-    )
-    conversation.push(...continuationItems(response.output))
-    conversation.push({
-      type: 'function_call_output',
-      call_id: call.call_id,
-      caller: { type: 'direct' },
-      output: decoder.decode(canonicalExportJsonBytes(toolResult)),
-    })
   }
 
   throw new VerificationAnalystError(
@@ -312,6 +353,7 @@ export function buildVerificationResponsesRequest(
   budget: VerificationAnalystBudgetLimits,
   reasoningEffort: VerificationAnalystReasoningEffort,
   requestKind: VerificationAnalystInput['requestKind'] = 'next_review_action',
+  programmaticStarted = false,
 ): ResponseCreateParamsNonStreaming {
   return {
     model: VERIFICATION_ANALYST_MODEL,
@@ -323,7 +365,10 @@ export function buildVerificationResponsesRequest(
     stream: false,
     include: ['reasoning.encrypted_content'],
     parallel_tool_calls: false,
-    tool_choice: 'auto',
+    tool_choice:
+      requestKind === 'campaign_analysis' && !programmaticStarted
+        ? { type: 'programmatic_tool_calling' }
+        : 'auto',
     max_output_tokens: MAX_OUTPUT_TOKENS,
     instructions: `${BASE_INSTRUCTIONS}\n\n${requestInstructions(requestKind)}\nExact campaign: ${evidence.campaign.campaignId}. Maximum tool calls: ${budget.maxToolCalls}. Maximum response turns: ${budget.maxResponseTurns}.`,
     input: [...input],
@@ -406,10 +451,118 @@ export function deriveNextVerificationAction(
   })
 }
 
+export function deriveVerificationCampaignAnalysis(
+  toolResults: readonly VerificationToolResult[],
+  evidence: VerificationToolEvidence,
+): DeterministicCampaignAnalysis {
+  const conflicts = requiredToolResult(
+    toolResults,
+    'inspect_review_conflicts',
+  )
+  const quality = requiredToolResult(
+    toolResults,
+    'inspect_quality_snapshot',
+  )
+  const references = requiredToolResult(
+    toolResults,
+    'inspect_reference_readiness',
+  )
+  const batch = requiredToolResult(
+    toolResults,
+    'recommend_next_review_batch',
+  )
+  requiredToolResult(toolResults, 'inspect_verification_campaign')
+  requiredToolResult(toolResults, 'inspect_review_coverage')
+  requiredToolResult(toolResults, 'inspect_sampling_plan')
+
+  const priorityItemIds = batch.records.map(({ id }) => id)
+  const conflictItemIds = uniqueSorted(
+    conflicts.records
+      .filter(({ status }) => status === 'blocked')
+      .map(({ id }) => id),
+  )
+  const blockerIds = uniqueSorted([
+    ...conflicts.records
+      .filter(({ status }) => status === 'blocked')
+      .map(({ id }) => `conflict:${id}`),
+    ...quality.records
+      .filter(({ status }) => status === 'blocked')
+      .map(({ id }) => `quality:${id}`),
+    ...references.records
+      .filter(({ status }) => status === 'blocked')
+      .map(({ id }) => `reference:${id}`),
+  ])
+  const consensusByItem = new Map(
+    evidence.consensus.map((item) => [item.itemId, item]),
+  )
+  const eventsByItem = new Map<string, number>()
+  for (const event of evidence.events) {
+    eventsByItem.set(event.itemId, (eventsByItem.get(event.itemId) ?? 0) + 1)
+  }
+  const declaredStrata = evidence.campaign.samplingPlan.strata.map(
+    ({ stratumId, label }) => ({ stratumId, label }),
+  )
+  const hasUnstratified = evidence.items.some(
+    ({ samplingStratumId }) => samplingStratumId === null,
+  )
+  const strata = [
+    ...declaredStrata,
+    ...(hasUnstratified
+      ? [{ stratumId: null, label: 'Unstratified campaign items' }]
+      : []),
+  ].map(({ stratumId, label }) => {
+    const items = evidence.items.filter(
+      (item) => item.samplingStratumId === stratumId,
+    )
+    const consensus = items.map((item) => consensusByItem.get(item.itemId)!)
+    return deepFreeze({
+      stratumId,
+      label,
+      itemCount: items.length,
+      eventCount: items.reduce(
+        (count, item) => count + (eventsByItem.get(item.itemId) ?? 0),
+        0,
+      ),
+      attemptedItems: consensus.filter(
+        (item) => item.effectiveReviewCount > 0,
+      ).length,
+      decisiveItems: consensus.filter(
+        (item) =>
+          (item.status === 'complete_agreement' ||
+            item.status === 'adjudicated') &&
+          (item.consensusOutcome === 'yes' ||
+            item.consensusOutcome === 'no'),
+      ).length,
+      unresolvedConflictItems: consensus.filter(
+        ({ status }) => status === 'unresolved_disagreement',
+      ).length,
+      priorityItemIds: priorityItemIds.filter((itemId) =>
+        items.some((item) => item.itemId === itemId),
+      ),
+    })
+  })
+  const statuses = toolResults.map(({ status }) => status)
+  const status: VerificationToolResult['status'] =
+    blockerIds.length > 0 || statuses.includes('blocked')
+      ? 'blocked'
+      : statuses.includes('partial')
+        ? 'partial'
+        : statuses.includes('unavailable')
+          ? 'unavailable'
+          : 'available'
+  return deepFreeze({
+    status,
+    strata,
+    blockerIds,
+    priorityItemIds,
+    conflictItemIds,
+  })
+}
+
 function responseTools(
   requestKind: VerificationAnalystInput['requestKind'],
-): FunctionTool[] {
-  return VERIFICATION_TOOL_DEFINITIONS.filter(({ name }) =>
+): Tool[] {
+  const functions: Tool[] = VERIFICATION_TOOL_DEFINITIONS.filter(({ name }) =>
     isAllowedTool(requestKind, name),
   ).map((tool) => ({
     type: 'function',
@@ -418,8 +571,14 @@ function responseTools(
     strict: tool.strict,
     parameters: mutableJsonObject(tool.parameters),
     output_schema: mutableJsonObject(tool.output_schema),
-    allowed_callers: ['direct'],
+    allowed_callers:
+      requestKind === 'campaign_analysis'
+        ? ['programmatic']
+        : ['direct'],
   }))
+  return requestKind === 'campaign_analysis'
+    ? [{ type: 'programmatic_tool_calling' }, ...functions]
+    : functions
 }
 
 function validateInput(
@@ -428,7 +587,8 @@ function validateInput(
 ): ValidatedVerificationAnalystInput {
   if (
     input.requestKind !== 'next_review_action' &&
-    input.requestKind !== 'quality_change'
+    input.requestKind !== 'quality_change' &&
+    input.requestKind !== 'campaign_analysis'
   ) {
     throw new VerificationAnalystError(
       'invalid_input',
@@ -532,28 +692,37 @@ function validateInput(
 
 function validateBudget(
   input: Partial<VerificationAnalystBudgetLimits> | undefined,
+  requestKind: VerificationAnalystInput['requestKind'],
 ): VerificationAnalystBudgetLimits {
-  const maxToolCalls = input?.maxToolCalls ?? DEFAULT_BUDGET.maxToolCalls
+  const maxToolCalls =
+    input?.maxToolCalls ??
+    (requestKind === 'campaign_analysis'
+      ? MAX_TOOL_CALLS
+      : DEFAULT_BUDGET.maxToolCalls)
   const maxResponseTurns =
-    input?.maxResponseTurns ?? DEFAULT_BUDGET.maxResponseTurns
+    input?.maxResponseTurns ??
+    (requestKind === 'campaign_analysis'
+      ? MAX_RESPONSE_TURNS
+      : DEFAULT_BUDGET.maxResponseTurns)
+  const requiredToolCalls = requiredTools(requestKind).length
   if (
     !Number.isInteger(maxToolCalls) ||
-    maxToolCalls < REQUIRED_NEXT_ACTION_TOOLS.length ||
+    maxToolCalls < requiredToolCalls ||
     maxToolCalls > MAX_TOOL_CALLS
   ) {
     throw new VerificationAnalystError(
       'invalid_input',
-      `maxToolCalls must be an integer between ${REQUIRED_NEXT_ACTION_TOOLS.length} and ${MAX_TOOL_CALLS}`,
+      `maxToolCalls must be an integer between ${requiredToolCalls} and ${MAX_TOOL_CALLS}`,
     )
   }
   if (
     !Number.isInteger(maxResponseTurns) ||
-    maxResponseTurns < REQUIRED_NEXT_ACTION_TOOLS.length + 1 ||
+    maxResponseTurns < 2 ||
     maxResponseTurns > MAX_RESPONSE_TURNS
   ) {
     throw new VerificationAnalystError(
       'invalid_input',
-      `maxResponseTurns must be an integer between ${REQUIRED_NEXT_ACTION_TOOLS.length + 1} and ${MAX_RESPONSE_TURNS}`,
+      `maxResponseTurns must be an integer between 2 and ${MAX_RESPONSE_TURNS}`,
     )
   }
   return Object.freeze({ maxToolCalls, maxResponseTurns })
@@ -637,41 +806,61 @@ function validateToolCallBinding(
   }
   if (name === 'inspect_quality_snapshot') {
     const requestedSnapshot = args.snapshot_sha256
-    if (
-      beforeSnapshotSha256 === null ||
-      (requestedSnapshot !== beforeSnapshotSha256 &&
-        requestedSnapshot !== snapshotSha256)
+    if (beforeSnapshotSha256 === null) {
+      if (
+        requestedSnapshot !== snapshotSha256 ||
+        receipts.some(({ tool }) => tool === 'inspect_quality_snapshot')
+      ) {
+        throw new VerificationAnalystError(
+          'invalid_tool_call',
+          'Campaign analysis must inspect the exact requested quality snapshot once',
+        )
+      }
+    } else if (
+      requestedSnapshot !== beforeSnapshotSha256 &&
+      requestedSnapshot !== snapshotSha256
     ) {
       throw new VerificationAnalystError(
         'invalid_tool_call',
         'Quality inspection must use one of the two exact requested snapshot digests',
       )
-    }
-    const priorQualityInspections = receipts.filter(
-      ({ tool }) => tool === 'inspect_quality_snapshot',
-    ).length
-    const expectedSnapshot =
-      priorQualityInspections === 0
-        ? beforeSnapshotSha256
-        : priorQualityInspections === 1
-          ? snapshotSha256
-          : null
-    if (requestedSnapshot !== expectedSnapshot) {
-      throw new VerificationAnalystError(
-        'invalid_tool_call',
-        'Quality snapshots must be inspected exactly once in before-then-after order',
-      )
+    } else {
+      const priorQualityInspections = receipts.filter(
+        ({ tool }) => tool === 'inspect_quality_snapshot',
+      ).length
+      const expectedSnapshot =
+        priorQualityInspections === 0
+          ? beforeSnapshotSha256
+          : priorQualityInspections === 1
+            ? snapshotSha256
+            : null
+      if (requestedSnapshot !== expectedSnapshot) {
+        throw new VerificationAnalystError(
+          'invalid_tool_call',
+          'Quality snapshots must be inspected exactly once in before-then-after order',
+        )
+      }
     }
   }
   if (
     name === 'explain_quality_change' &&
-    (args.before_snapshot_sha256 !== beforeSnapshotSha256 ||
-      args.after_snapshot_sha256 !== snapshotSha256)
+    beforeSnapshotSha256 === null
   ) {
     throw new VerificationAnalystError(
       'invalid_tool_call',
-      'Quality change must compare the exact ordered snapshot digests',
+      'Quality-change explanation is not available without an exact before snapshot',
     )
+  }
+  if (
+    name === 'explain_quality_change' &&
+    beforeSnapshotSha256 !== null &&
+    (args.before_snapshot_sha256 !== beforeSnapshotSha256 ||
+      args.after_snapshot_sha256 !== snapshotSha256)
+  ) {
+      throw new VerificationAnalystError(
+        'invalid_tool_call',
+        'Quality change must compare the exact ordered snapshot digests',
+      )
   }
   if (
     name === 'explain_quality_change' &&
@@ -724,6 +913,7 @@ function validateToolResult(
 
 function continuationItems(
   output: readonly ResponseOutputItem[],
+  requestKind: VerificationAnalystInput['requestKind'],
 ): ResponseInputItem[] {
   const items: ResponseInputItem[] = []
   for (const item of output) {
@@ -733,14 +923,129 @@ function continuationItems(
       case 'message':
         items.push(item)
         break
+      case 'program':
+      case 'program_output':
+        if (requestKind !== 'campaign_analysis') {
+          throw new VerificationAnalystError(
+            'invalid_response',
+            `Unexpected Programmatic Tool Calling item for ${requestKind}`,
+          )
+        }
+        items.push(item)
+        break
       default:
         throw new VerificationAnalystError(
           'invalid_response',
-          `Unexpected Responses output item for next-action analysis: ${item.type}`,
+          `Unexpected Responses output item for verification analysis: ${item.type}`,
         )
     }
   }
   return items
+}
+
+function registerProgramItems(
+  output: readonly ResponseOutputItem[],
+  requestKind: VerificationAnalystInput['requestKind'],
+  programCallIds: Set<string>,
+  programItemIds: Set<string>,
+): void {
+  for (const item of output) {
+    if (item.type !== 'program' && item.type !== 'program_output') {
+      continue
+    }
+    if (requestKind !== 'campaign_analysis') {
+      throw new VerificationAnalystError(
+        'invalid_response',
+        `Programmatic Tool Calling is not enabled for ${requestKind}`,
+      )
+    }
+    if (
+      !boundedText(item.id, 200) ||
+      !boundedText(item.call_id, 200) ||
+      programItemIds.has(item.id)
+    ) {
+      throw new VerificationAnalystError(
+        'invalid_response',
+        'Program items require unique bounded item and call identities',
+      )
+    }
+    programItemIds.add(item.id)
+    if (item.type === 'program') {
+      if (
+        programCallIds.has(item.call_id) ||
+        !boundedText(item.code, 100_000) ||
+        !boundedText(item.fingerprint, 8_000)
+      ) {
+        throw new VerificationAnalystError(
+          'invalid_response',
+          'Program source and replay fingerprint must be bounded and uniquely identified',
+        )
+      }
+      programCallIds.add(item.call_id)
+    } else if (
+      !programCallIds.has(item.call_id) ||
+      item.result.length > 100_000
+    ) {
+      throw new VerificationAnalystError(
+        'invalid_response',
+        'Program output must reference a known program call and remain bounded',
+      )
+    }
+  }
+}
+
+function validateFunctionCaller(
+  call: ResponseFunctionToolCall,
+  requestKind: VerificationAnalystInput['requestKind'],
+  programCallIds: ReadonlySet<string>,
+): {
+  readonly receipt: VerificationAnalystToolReceipt['caller']
+  readonly output:
+    | {
+        readonly type: 'direct'
+      }
+    | {
+        readonly type: 'program'
+        readonly caller_id: string
+      }
+} {
+  if (requestKind !== 'campaign_analysis') {
+    if (
+      call.caller !== undefined &&
+      call.caller !== null &&
+      call.caller.type !== 'direct'
+    ) {
+      throw new VerificationAnalystError(
+        'invalid_tool_call',
+        `Programmatic Tool Calling is not enabled for ${requestKind}`,
+      )
+    }
+    return {
+      receipt: { type: 'direct' },
+      output: { type: 'direct' },
+    }
+  }
+  if (
+    call.caller === undefined ||
+    call.caller === null ||
+    call.caller.type !== 'program' ||
+    !programCallIds.has(call.caller.caller_id)
+  ) {
+    throw new VerificationAnalystError(
+      'invalid_tool_call',
+      'Campaign-analysis functions must be called by a known program item',
+    )
+  }
+  return {
+    receipt: {
+      type: 'programmatic',
+      programCallId: call.caller.caller_id,
+    },
+    output: {
+      type: 'program',
+      caller_id: call.caller.caller_id,
+    },
+  }
 }
 
 function parseAndValidateOutput(
@@ -749,12 +1054,33 @@ function parseAndValidateOutput(
   evidence: VerificationToolEvidence,
   receipts: readonly VerificationAnalystToolReceipt[],
   toolResults: readonly VerificationToolResult[],
+  programCallCount: number,
 ): VerificationAnalystOutput {
   const calledTools = receipts.map(({ tool }) => tool)
   if (!sameMultiset(calledTools, requiredTools(input.requestKind))) {
     throw new VerificationAnalystError(
       'invalid_model_output',
       `A final answer requires the exact ${input.requestKind} verification tool sequence`,
+    )
+  }
+  if (
+    input.requestKind === 'campaign_analysis' &&
+    (programCallCount < 1 ||
+      receipts.some(({ caller }) => caller.type !== 'programmatic'))
+  ) {
+    throw new VerificationAnalystError(
+      'invalid_model_output',
+      'Campaign analysis requires at least one program item and programmatic callers for every function',
+    )
+  }
+  if (
+    input.requestKind !== 'campaign_analysis' &&
+    (programCallCount !== 0 ||
+      receipts.some(({ caller }) => caller.type !== 'direct'))
+  ) {
+    throw new VerificationAnalystError(
+      'invalid_model_output',
+      'Direct verification workflows cannot contain programmatic tool calls',
     )
   }
   let parsed: unknown
@@ -809,6 +1135,7 @@ function parseAndValidateOutput(
 function validateOutputBounds(output: VerificationAnalystOutput): void {
   const recommendation = output.recommendation
   const qualityChange = output.qualityChange
+  const campaignAnalysis = output.campaignAnalysis
   const invalid =
     (recommendation !== null &&
       (recommendation.nextItemIds.length > MAX_BATCH_SIZE ||
@@ -829,6 +1156,29 @@ function validateOutputBounds(output: VerificationAnalystOutput): void {
           qualityChange.changedFactIds.length ||
         qualityChange.changedFactIds.some(
           (factId) => !boundedText(factId, 160),
+        ))) ||
+    (campaignAnalysis !== null &&
+      (campaignAnalysis.strata.length > 48 ||
+        campaignAnalysis.blockerIds.length > 96 ||
+        campaignAnalysis.priorityItemIds.length > MAX_BATCH_SIZE ||
+        campaignAnalysis.conflictItemIds.length > MAX_BATCH_SIZE ||
+        !boundedText(campaignAnalysis.summary, 4_000) ||
+        !boundedArtifactIds(campaignAnalysis.artifactIds) ||
+        !boundedUniqueIds(campaignAnalysis.blockerIds, 220) ||
+        !boundedUniqueIds(campaignAnalysis.priorityItemIds, 160) ||
+        !boundedUniqueIds(campaignAnalysis.conflictItemIds, 160) ||
+        campaignAnalysis.strata.some(
+          (stratum) =>
+            (stratum.stratumId !== null &&
+              !boundedText(stratum.stratumId, 160)) ||
+            !boundedText(stratum.label, 300) ||
+            !boundedCount(stratum.itemCount) ||
+            !boundedCount(stratum.eventCount) ||
+            !boundedCount(stratum.attemptedItems) ||
+            !boundedCount(stratum.decisiveItems) ||
+            !boundedCount(stratum.unresolvedConflictItems) ||
+            stratum.priorityItemIds.length > MAX_BATCH_SIZE ||
+            !boundedUniqueIds(stratum.priorityItemIds, 160),
         ))) ||
     output.evidenceBackedClaims.length > 24 ||
     output.unavailableEvidence.length > 24 ||
@@ -865,10 +1215,14 @@ function validateWorkflowOutput(
   toolResults: readonly VerificationToolResult[],
 ): void {
   if (input.requestKind === 'next_review_action') {
-    if (output.recommendation === null || output.qualityChange !== null) {
+    if (
+      output.recommendation === null ||
+      output.qualityChange !== null ||
+      output.campaignAnalysis !== null
+    ) {
       throw new VerificationAnalystError(
         'invalid_model_output',
-        'Next-review-action output requires a recommendation and no quality-change object',
+        'Next-review-action output requires only a recommendation object',
       )
     }
     const deterministic = deriveNextVerificationAction(
@@ -900,32 +1254,76 @@ function validateWorkflowOutput(
     return
   }
 
-  if (output.recommendation !== null || output.qualityChange === null) {
-    throw new VerificationAnalystError(
-      'invalid_model_output',
-      'Quality-change output requires a quality-change object and no next-action recommendation',
-    )
+  if (input.requestKind === 'quality_change') {
+    if (
+      output.recommendation !== null ||
+      output.qualityChange === null ||
+      output.campaignAnalysis !== null
+    ) {
+      throw new VerificationAnalystError(
+        'invalid_model_output',
+        'Quality-change output requires only a quality-change object',
+      )
+    }
+    const beforeSnapshotSha256 = input.beforeSnapshotSha256
+    if (
+      beforeSnapshotSha256 === undefined ||
+      output.qualityChange.beforeSnapshotSha256 !== beforeSnapshotSha256 ||
+      output.qualityChange.afterSnapshotSha256 !== input.snapshotSha256
+    ) {
+      throw new VerificationAnalystError(
+        'invalid_model_output',
+        'Model output changed the exact ordered quality snapshot identities',
+      )
+    }
+    const change = requiredToolResult(toolResults, 'explain_quality_change')
+    const changedFactIds = change.records.map(({ id }) => id)
+    if (
+      output.qualityChange.status !== change.status ||
+      !sameOrderedValues(output.qualityChange.changedFactIds, changedFactIds)
+    ) {
+      throw new VerificationAnalystError(
+        'invalid_model_output',
+        'Model output replaced the deterministic quality-change status or changed-field identities',
+      )
+    }
+    return
   }
-  const beforeSnapshotSha256 = input.beforeSnapshotSha256
+
   if (
-    beforeSnapshotSha256 === undefined ||
-    output.qualityChange.beforeSnapshotSha256 !== beforeSnapshotSha256 ||
-    output.qualityChange.afterSnapshotSha256 !== input.snapshotSha256
+    output.recommendation !== null ||
+    output.qualityChange !== null ||
+    output.campaignAnalysis === null
   ) {
     throw new VerificationAnalystError(
       'invalid_model_output',
-      'Model output changed the exact ordered quality snapshot identities',
+      'Campaign-analysis output requires only a campaign-analysis object',
     )
   }
-  const change = requiredToolResult(toolResults, 'explain_quality_change')
-  const changedFactIds = change.records.map(({ id }) => id)
+  const deterministic = deriveVerificationCampaignAnalysis(
+    toolResults,
+    evidence,
+  )
   if (
-    output.qualityChange.status !== change.status ||
-    !sameOrderedValues(output.qualityChange.changedFactIds, changedFactIds)
+    output.campaignAnalysis.status !== deterministic.status ||
+    JSON.stringify(output.campaignAnalysis.strata) !==
+      JSON.stringify(deterministic.strata) ||
+    !sameOrderedValues(
+      output.campaignAnalysis.blockerIds,
+      deterministic.blockerIds,
+    ) ||
+    !sameOrderedValues(
+      output.campaignAnalysis.priorityItemIds,
+      deterministic.priorityItemIds,
+    ) ||
+    !sameOrderedValues(
+      output.campaignAnalysis.conflictItemIds,
+      deterministic.conflictItemIds,
+    )
   ) {
     throw new VerificationAnalystError(
       'invalid_model_output',
-      'Model output replaced the deterministic quality-change status or changed-field identities',
+      'Model output replaced deterministic campaign joins, blockers, conflicts, or review priorities',
     )
   }
 }
@@ -934,6 +1332,7 @@ function rejectUnsupportedClaims(output: VerificationAnalystOutput): void {
   const text = [
     output.recommendation?.why ?? '',
     output.qualityChange?.explanation ?? '',
+    output.campaignAnalysis?.summary ?? '',
     output.answer,
     ...output.evidenceBackedClaims.map(({ claim }) => claim),
     ...output.unavailableEvidence.map(({ reason }) => reason),
@@ -991,6 +1390,18 @@ function validateCitations(
     throw new VerificationAnalystError(
       'invalid_model_output',
       'The quality-change explanation must cite the complete returned evidence chain',
+    )
+  }
+  if (
+    output.campaignAnalysis !== null &&
+    !sameOrderedValues(
+      uniqueSorted(output.campaignAnalysis.artifactIds),
+      returnedIds,
+    )
+  ) {
+    throw new VerificationAnalystError(
+      'invalid_model_output',
+      'The campaign analysis must cite the complete returned evidence chain',
     )
   }
   const nested = [
@@ -1083,21 +1494,33 @@ function isRequiredQualityChangeTool(
   return (REQUIRED_QUALITY_CHANGE_TOOLS as readonly string[]).includes(value)
 }
 
+function isRequiredCampaignAnalysisTool(
+  value: string,
+): value is (typeof REQUIRED_CAMPAIGN_ANALYSIS_TOOLS)[number] {
+  return (REQUIRED_CAMPAIGN_ANALYSIS_TOOLS as readonly string[]).includes(value)
+}
+
 function isAllowedTool(
   requestKind: VerificationAnalystInput['requestKind'],
   value: string,
 ): value is VerificationToolName {
-  return requestKind === 'next_review_action'
-    ? isRequiredNextActionTool(value)
-    : isRequiredQualityChangeTool(value)
+  if (requestKind === 'next_review_action') {
+    return isRequiredNextActionTool(value)
+  }
+  return requestKind === 'quality_change'
+    ? isRequiredQualityChangeTool(value)
+    : isRequiredCampaignAnalysisTool(value)
 }
 
 function requiredTools(
   requestKind: VerificationAnalystInput['requestKind'],
 ): readonly VerificationToolName[] {
-  return requestKind === 'next_review_action'
-    ? REQUIRED_NEXT_ACTION_TOOLS
-    : REQUIRED_QUALITY_CHANGE_TOOLS
+  if (requestKind === 'next_review_action') {
+    return REQUIRED_NEXT_ACTION_TOOLS
+  }
+  return requestKind === 'quality_change'
+    ? REQUIRED_QUALITY_CHANGE_TOOLS
+    : REQUIRED_CAMPAIGN_ANALYSIS_TOOLS
 }
 
 function exceedsAllowedToolMultiplicity(
@@ -1116,8 +1539,10 @@ function requestInstructions(
   requestKind: VerificationAnalystInput['requestKind'],
 ): string {
   return requestKind === 'next_review_action'
-    ? 'Call campaign, conflict, sampling, reference-readiness, and bounded-batch tools exactly once. Return a recommendation and set qualityChange to null.'
-    : 'Call campaign and sampling tools once, inspect the exact before and after snapshots once each, then call explain_quality_change once with the exact ordered digests. Return a qualityChange object and set recommendation to null.'
+    ? 'Call campaign, conflict, sampling, reference-readiness, and bounded-batch tools exactly once. Return a recommendation and set qualityChange and campaignAnalysis to null.'
+    : requestKind === 'quality_change'
+      ? 'Call campaign and sampling tools once, inspect the exact before and after snapshots once each, then call explain_quality_change once with the exact ordered digests. Return a qualityChange object and set recommendation and campaignAnalysis to null.'
+      : 'Use Programmatic Tool Calling to call campaign, coverage, conflict, sampling, quality, reference-readiness, and bounded-batch tools. Return campaignAnalysis and set recommendation and qualityChange to null.'
 }
 
 function mutableJsonObject(value: unknown): Record<string, unknown> {
@@ -1165,6 +1590,20 @@ function boundedArtifactIds(values: readonly string[]): boolean {
     new Set(values).size === values.length &&
     values.every((value) => boundedText(value, 160))
   )
+}
+
+function boundedUniqueIds(
+  values: readonly string[],
+  maximumLength: number,
+): boolean {
+  return (
+    new Set(values).size === values.length &&
+    values.every((value) => boundedText(value, maximumLength))
+  )
+}
+
+function boundedCount(value: number): boolean {
+  return Number.isInteger(value) && value >= 0 && value <= 1_000_000_000
 }
 
 function boundedText(value: string, maximum: number): boolean {
