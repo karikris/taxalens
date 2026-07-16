@@ -525,6 +525,18 @@ export function exportHumanReviewReceipt(
   session: HumanReviewSession,
   packet: HumanReviewPacket = HUMAN_REVIEW_PACKET,
 ): void {
+  const bytes = humanReviewReceiptBytes(session, packet)
+  downloadEvidenceFile({
+    filename: `${packet.packetId}.review-receipt.json`,
+    mediaType: 'application/json',
+    bytes,
+  })
+}
+
+export function humanReviewReceiptBytes(
+  session: HumanReviewSession,
+  packet: HumanReviewPacket = HUMAN_REVIEW_PACKET,
+): Uint8Array<ArrayBuffer> {
   const currentDecisions = currentHumanReviewDecisions(session)
   const decisions = packet.items
     .map((item) => currentDecisions[item.itemId])
@@ -547,15 +559,20 @@ export function exportHumanReviewReceipt(
             ? 'deferred'
             : null,
     }))
-  const bytes = canonicalExportJsonBytes({
-    schemaVersion: 'taxalens-human-review-receipt:v1.0.0',
+  return canonicalExportJsonBytes({
+    schemaVersion: 'taxalens-human-review-receipt:v2.0.0',
     packet: {
       schemaVersion: packet.schemaVersion,
       packetId: packet.packetId,
+      campaignSchemaVersion: packet.campaign.schemaVersion,
+      campaignKind: packet.campaign.kind,
+      campaignManifestSha256: packet.manifestSha256,
+      questionSha256: packet.campaign.questionFingerprint,
       target: packet.target,
       itemCount: packet.items.length,
     },
-    reviewerId: session.reviewerId.trim() || null,
+    currentReviewerId: session.reviewerId.trim() || null,
+    events: session.events,
     decisions,
     counts: {
       recorded: decisions.length,
@@ -567,15 +584,12 @@ export function exportHumanReviewReceipt(
     },
     semantics: {
       localBrowserReview: true,
+      appendOnlyEventLedger: true,
+      supersededEventsRetained: true,
       separateFromFrozenBioMinerReferenceBank: true,
       independentExpertTaxonomicVerificationClaimed: false,
       scientificClaimAllowed: false,
     },
-  })
-  downloadEvidenceFile({
-    filename: `${packet.packetId}.review-receipt.json`,
-    mediaType: 'application/json',
-    bytes,
   })
 }
 

@@ -10,7 +10,9 @@ import {
 import {
   browserReviewMediaCache,
   canRecordHumanReviewOutcome,
+  currentHumanReviewDecisions,
   emptyHumanReviewSession,
+  humanReviewReceiptBytes,
   loadHumanReviewSession,
   loadHumanReviewSessionResult,
   ReviewPersistenceError,
@@ -18,6 +20,7 @@ import {
   type HumanReviewSession,
   withDecision,
   withImageInspection,
+  withReviewerId,
 } from './reviewStore'
 
 describe('human review local session', () => {
@@ -90,6 +93,132 @@ describe('human review local session', () => {
         code: 'serialization_failed',
       }),
     )
+  })
+})
+
+describe('append-only human review history', () => {
+  it('retains first and replacement decisions with explicit supersession', () => {
+    const item = HUMAN_REVIEW_PACKET.items[0]
+    expect(item).toBeDefined()
+    let session = withReviewerId(emptyHumanReviewSession(), ' reviewer-a ')
+    session = withDecision(session, {
+      itemId: item!.itemId,
+      outcome: 'yes',
+      comment: 'Initial judgment.',
+      reviewedAt: '2026-07-16T15:10:00.000Z',
+      reviewDurationMs: 1_000,
+    })
+    const firstEvent = session.events[0]
+    expect(firstEvent).toMatchObject({
+      reviewerId: 'reviewer-a',
+      reviewRound: 1,
+      outcome: 'yes',
+      supersedesEventId: null,
+    })
+
+    session = withDecision(session, {
+      itemId: item!.itemId,
+      outcome: 'no',
+      comment: 'Corrected after closer inspection.',
+      reviewedAt: '2026-07-16T15:11:00.000Z',
+      reviewDurationMs: 2_000,
+    })
+
+    expect(session.events).toHaveLength(2)
+    expect(session.events[0]).toBe(firstEvent)
+    expect(session.events[1]).toMatchObject({
+      reviewerId: 'reviewer-a',
+      reviewRound: 2,
+      outcome: 'no',
+      supersedesEventId: firstEvent!.eventId,
+    })
+    expect(currentHumanReviewDecisions(session)[item!.itemId]).toMatchObject({
+      eventId: session.events[1]!.eventId,
+      outcome: 'no',
+      reviewerId: 'reviewer-a',
+    })
+  })
+
+  it('does not rewrite earlier attribution when the active reviewer changes', () => {
+    const item = HUMAN_REVIEW_PACKET.items[0]
+    expect(item).toBeDefined()
+    let session = withReviewerId(emptyHumanReviewSession(), 'reviewer-a')
+    session = withDecision(session, {
+      itemId: item!.itemId,
+      outcome: 'cant_tell',
+      comment: null,
+      reviewedAt: '2026-07-16T15:12:00.000Z',
+      reviewDurationMs: null,
+    })
+    const firstEvent = session.events[0]
+
+    session = withReviewerId(session, 'reviewer-b')
+    expect(session.events[0]).toBe(firstEvent)
+    expect(session.events[0]!.reviewerId).toBe('reviewer-a')
+    session = withDecision(session, {
+      itemId: item!.itemId,
+      outcome: 'yes',
+      comment: null,
+      reviewedAt: '2026-07-16T15:13:00.000Z',
+      reviewDurationMs: 500,
+    })
+
+    expect(session.events.map(({ reviewerId }) => reviewerId)).toEqual([
+      'reviewer-a',
+      'reviewer-b',
+    ])
+    expect(session.events[1]).toMatchObject({
+      reviewRound: 1,
+      supersedesEventId: firstEvent!.eventId,
+    })
+  })
+
+  it('exports the full ledger and deterministic current projection', () => {
+    const item = HUMAN_REVIEW_PACKET.items[0]
+    expect(item).toBeDefined()
+    let session = withReviewerId(emptyHumanReviewSession(), 'reviewer-a')
+    session = withDecision(session, {
+      itemId: item!.itemId,
+      outcome: 'yes',
+      comment: 'First.',
+      reviewedAt: '2026-07-16T15:14:00.000Z',
+      reviewDurationMs: 100,
+    })
+    session = withDecision(session, {
+      itemId: item!.itemId,
+      outcome: 'no',
+      comment: 'Replacement.',
+      reviewedAt: '2026-07-16T15:15:00.000Z',
+      reviewDurationMs: 200,
+    })
+
+    const first = humanReviewReceiptBytes(session)
+    const second = humanReviewReceiptBytes(session)
+    expect(first).toEqual(second)
+    const receipt = JSON.parse(new TextDecoder().decode(first)) as {
+      readonly schemaVersion: string
+      readonly events: readonly {
+        readonly eventId: string
+        readonly supersedesEventId: string | null
+      }[]
+      readonly decisions: readonly {
+        readonly eventId: string
+        readonly outcome: string
+      }[]
+    }
+    expect(receipt.schemaVersion).toBe(
+      'taxalens-human-review-receipt:v2.0.0',
+    )
+    expect(receipt.events).toHaveLength(2)
+    expect(receipt.events[1]!.supersedesEventId).toBe(
+      receipt.events[0]!.eventId,
+    )
+    expect(receipt.decisions).toEqual([
+      expect.objectContaining({
+        eventId: receipt.events[1]!.eventId,
+        outcome: 'no',
+      }),
+    ])
   })
 })
 
