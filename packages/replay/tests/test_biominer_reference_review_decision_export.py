@@ -1,13 +1,19 @@
 from __future__ import annotations
 
+import hashlib
 from pathlib import Path
 from typing import Any
 
 import polars as pl
+import pytest
 from packages.replay.src.biominer_reference_review_decision_export import (
+    REFERENCE_REVIEW_DECISION_IMPORT_FILE,
     REFERENCE_REVIEW_DECISION_IMPORT_SCHEMA_VERSION,
+    ReferenceReviewDecisionExportError,
     build_reference_review_decision_import,
     reference_review_decision_import_schema,
+    validate_reference_review_decision_import,
+    write_reference_review_decision_import,
 )
 from packages.replay.src.biominer_reference_review_packet_adapter import (
     adapt_reference_review_packet,
@@ -188,3 +194,160 @@ def test_empty_scientific_event_set_keeps_exact_physical_schema(
     assert frame.is_empty()
     assert frame.schema == reference_review_decision_import_schema()
     assert frame.schema["review_round"] == pl.UInt16
+
+
+def test_round_trip_rejects_stale_queue_binding(tmp_path: Path) -> None:
+    packet = _packet(tmp_path)
+    event = _event(
+        packet,
+        event_id="event-stale",
+        outcome="yes",
+        reviewed_at="2026-07-16T17:00:00.000Z",
+    )
+    event["campaignManifestSha256"] = "0" * 64
+
+    with pytest.raises(
+        ReferenceReviewDecisionExportError,
+        match="campaignManifestSha256 has a stale source binding",
+    ):
+        build_reference_review_decision_import(
+            adapted_packet=packet,
+            events=[event],
+        )
+
+
+def test_round_trip_rejects_invalid_reviewer(tmp_path: Path) -> None:
+    packet = _packet(tmp_path)
+
+    with pytest.raises(
+        ReferenceReviewDecisionExportError,
+        match="canonical lowercase ASCII reviewer identifier",
+    ):
+        build_reference_review_decision_import(
+            adapted_packet=packet,
+            events=[
+                _event(
+                    packet,
+                    event_id="event-reviewer",
+                    outcome="yes",
+                    reviewer="Reviewer Ä",
+                    reviewed_at="2026-07-16T17:00:00.000Z",
+                )
+            ],
+        )
+
+
+def test_round_trip_rejects_altered_source_fingerprint(tmp_path: Path) -> None:
+    packet = _packet(tmp_path)
+    packet["sourceManifest"]["sha256"] = "0" * 64
+
+    with pytest.raises(
+        ReferenceReviewDecisionExportError,
+        match="reference campaign source binding is stale",
+    ):
+        build_reference_review_decision_import(
+            adapted_packet=packet,
+            events=[],
+        )
+
+
+def test_round_trip_rejects_incomplete_decisive_outcome(tmp_path: Path) -> None:
+    packet = _packet(tmp_path)
+    event = _event(
+        packet,
+        event_id="event-incomplete",
+        outcome="no",
+        reviewed_at="2026-07-16T17:00:00.000Z",
+    )
+    event["alternativeTaxon"] = {
+        "acceptedTaxonKey": "gbif:123",
+        "scientificName": "",
+    }
+
+    with pytest.raises(
+        ReferenceReviewDecisionExportError,
+        match="incomplete decisive outcome",
+    ):
+        build_reference_review_decision_import(
+            adapted_packet=packet,
+            events=[event],
+        )
+
+
+def test_round_trip_rejects_unsupported_event_and_parquet_fields(
+    tmp_path: Path,
+) -> None:
+    packet = _packet(tmp_path)
+    event = _event(
+        packet,
+        event_id="event-unknown",
+        outcome="yes",
+        reviewed_at="2026-07-16T17:00:00.000Z",
+    )
+    event["unexpected"] = "field"
+    with pytest.raises(
+        ReferenceReviewDecisionExportError,
+        match=r"unknown=\['unexpected'\]",
+    ):
+        build_reference_review_decision_import(
+            adapted_packet=packet,
+            events=[event],
+        )
+
+    valid = build_reference_review_decision_import(
+        adapted_packet=packet,
+        events=[
+            _event(
+                packet,
+                event_id="event-valid",
+                outcome="yes",
+                reviewed_at="2026-07-16T17:00:00.000Z",
+            )
+        ],
+    )
+    with pytest.raises(
+        ReferenceReviewDecisionExportError,
+        match=r"unknown=\['unexpected'\]",
+    ):
+        validate_reference_review_decision_import(
+            frame=valid.with_columns(pl.lit("x").alias("unexpected")),
+            adapted_packet=packet,
+        )
+
+
+def test_parquet_export_is_byte_deterministic_and_round_trip_valid(
+    tmp_path: Path,
+) -> None:
+    packet = _packet(tmp_path)
+    events = [
+        _event(
+            packet,
+            event_id="event-deterministic",
+            outcome="yes",
+            reviewed_at="2026-07-16T17:00:00.000Z",
+        )
+    ]
+    first_path = tmp_path / "first" / REFERENCE_REVIEW_DECISION_IMPORT_FILE
+    second_path = tmp_path / "second" / REFERENCE_REVIEW_DECISION_IMPORT_FILE
+    write_reference_review_decision_import(
+        adapted_packet=packet,
+        events=events,
+        output_path=first_path,
+    )
+    write_reference_review_decision_import(
+        adapted_packet=packet,
+        events=events,
+        output_path=second_path,
+    )
+
+    first_bytes = first_path.read_bytes()
+    second_bytes = second_path.read_bytes()
+    assert first_bytes == second_bytes
+    assert hashlib.sha256(first_bytes).hexdigest() == hashlib.sha256(
+        second_bytes
+    ).hexdigest()
+    round_trip = pl.read_parquet(first_path)
+    validate_reference_review_decision_import(
+        frame=round_trip,
+        adapted_packet=packet,
+    )

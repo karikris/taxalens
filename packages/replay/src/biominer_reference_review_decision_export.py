@@ -44,6 +44,7 @@ _VIEWS = frozenset(
     {"dorsal", "ventral", "lateral", "frontal", "oblique", "unknown"}
 )
 _CONFIDENCE = frozenset({"high", "medium", "low", "unknown"})
+_MEDIA_QUALITY = frozenset({"high", "medium", "low", "unusable", "unknown"})
 _SCIENTIFIC_OUTCOMES = frozenset({"yes", "no", "cant_tell"})
 _NON_SCIENTIFIC_OUTCOMES = frozenset({"cant_view", "skipped"})
 _EVENT_FIELDS = frozenset(
@@ -133,9 +134,7 @@ def build_reference_review_decision_import(
             )
         seen_event_ids.add(event_id)
         outcome = _required_text(event["outcome"], "outcome")
-        if outcome in _NON_SCIENTIFIC_OUTCOMES:
-            continue
-        if outcome not in _SCIENTIFIC_OUTCOMES:
+        if outcome not in _SCIENTIFIC_OUTCOMES | _NON_SCIENTIFIC_OUTCOMES:
             raise ReferenceReviewDecisionExportError(
                 f"unsupported verification outcome: {outcome}"
             )
@@ -147,12 +146,123 @@ def build_reference_review_decision_import(
             raise ReferenceReviewDecisionExportError(
                 "verification event has a stale campaign or item binding"
             )
-        rows.append(_event_row(event, campaign, item))
-    return pl.DataFrame(
+        _validate_event_completeness(event)
+        _validate_event_source_binding(event, campaign, item)
+        if outcome in _NON_SCIENTIFIC_OUTCOMES:
+            continue
+        rows.append(_event_row(event, item))
+    frame = pl.DataFrame(
         rows,
         schema=reference_review_decision_import_schema(),
         orient="row",
     ).sort(_SORT_FIELDS)
+    validate_reference_review_decision_import(
+        frame=frame,
+        adapted_packet=adapted_packet,
+    )
+    return frame
+
+
+def validate_reference_review_decision_import(
+    *,
+    frame: pl.DataFrame,
+    adapted_packet: Mapping[str, Any],
+) -> None:
+    """Validate a handoff with the committed BioMiner import semantics."""
+    expected_schema = reference_review_decision_import_schema()
+    if frame.schema != expected_schema:
+        missing = [field for field in expected_schema if field not in frame.schema]
+        unknown = [field for field in frame.schema if field not in expected_schema]
+        raise ReferenceReviewDecisionExportError(
+            "review decision import physical schema differs: "
+            f"missing={missing}; unknown={unknown}"
+        )
+    _, items = _validate_packet(adapted_packet)
+    reviewer_rounds: set[tuple[str, str, int]] = set()
+    for row in frame.iter_rows(named=True):
+        if (
+            row["import_schema_version"]
+            != REFERENCE_REVIEW_DECISION_IMPORT_SCHEMA_VERSION
+        ):
+            raise ReferenceReviewDecisionExportError(
+                "review decision import schema version is unsupported"
+            )
+        request_id = _required_text(row["review_request_id"], "review_request_id")
+        media_id = _required_text(row["reference_media_id"], "reference_media_id")
+        item = items.get(request_id)
+        if item is None:
+            raise ReferenceReviewDecisionExportError(
+                "review decision import has an unknown review request"
+            )
+        if media_id != item["sourceMediaId"]:
+            raise ReferenceReviewDecisionExportError(
+                "review decision import media does not match its queue request"
+            )
+        reviewer = _required_text(row["verified_by"], "verified_by")
+        if _REVIEWER_ID.fullmatch(reviewer) is None:
+            raise ReferenceReviewDecisionExportError(
+                "verified_by must be a canonical lowercase ASCII reviewer identifier"
+            )
+        review_round = row["review_round"]
+        key = (request_id, reviewer, review_round)
+        if key in reviewer_rounds:
+            raise ReferenceReviewDecisionExportError(
+                "review decision import repeats a reviewer round"
+            )
+        reviewer_rounds.add(key)
+        if (
+            isinstance(review_round, bool)
+            or not isinstance(review_round, int)
+            or review_round < 1
+            or review_round > 65_535
+        ):
+            raise ReferenceReviewDecisionExportError(
+                "review_round must fit a positive UInt16"
+            )
+        reviewed_at = row["reviewed_at"]
+        if (
+            not isinstance(reviewed_at, datetime)
+            or reviewed_at.tzinfo is None
+            or reviewed_at.utcoffset() != UTC.utcoffset(reviewed_at)
+        ):
+            raise ReferenceReviewDecisionExportError(
+                "reviewed_at must be a UTC datetime"
+            )
+        _choice(row["life_stage"], _LIFE_STAGES, "life_stage")
+        _choice(row["visual_domain"], _VISUAL_DOMAINS, "visual_domain")
+        _choice(row["view"], _VIEWS, "view")
+        _choice(row["review_confidence"], _CONFIDENCE, "review_confidence")
+        notes = _optional_text(row["review_notes"], "review_notes")
+        exclusion = _optional_text(row["exclusion_reason"], "exclusion_reason")
+        conflict_id = _optional_text(
+            row["conflicts_with_decision_id"],
+            "conflicts_with_decision_id",
+        )
+        if conflict_id is not None and _DECISION_ID.fullmatch(conflict_id) is None:
+            raise ReferenceReviewDecisionExportError(
+                "conflicts_with_decision_id is not a BioMiner review decision ID"
+            )
+        status = row["verification_status"]
+        identity = row["target_identity_verified"]
+        if status == "verified":
+            complete = identity is True and exclusion is None
+        elif status == "excluded":
+            complete = identity is False and exclusion is not None
+        elif status == "uncertain":
+            complete = identity is None and notes is not None and exclusion is None
+        else:
+            raise ReferenceReviewDecisionExportError(
+                f"verification_status is unsupported: {status}"
+            )
+        if not complete:
+            raise ReferenceReviewDecisionExportError(
+                "review decision import contains an incomplete decisive outcome"
+            )
+    sorted_frame = frame.sort(_SORT_FIELDS)
+    if frame.to_dicts() != sorted_frame.to_dicts():
+        raise ReferenceReviewDecisionExportError(
+            "review decision import rows are not deterministically sorted"
+        )
 
 
 def write_reference_review_decision_import(
@@ -253,7 +363,6 @@ def _validate_packet(
 
 def _event_row(
     event: Mapping[str, Any],
-    campaign: Mapping[str, Any],
     item: Mapping[str, Any],
 ) -> dict[str, Any]:
     if event["schemaVersion"] != TAXALENS_VERIFICATION_EVENT_SCHEMA_VERSION:
@@ -276,17 +385,6 @@ def _event_row(
             "reviewRound must fit a positive UInt16"
         )
     reviewed_at = _utc_datetime(event["reviewedAt"])
-    for event_field, expected in (
-        ("imageSha256", item["imageSha256"]),
-        ("questionSha256", item["questionFingerprint"]),
-        ("campaignManifestSha256", campaign["manifestSha256"]),
-        ("taxalensSha", campaign["taxalensSha"]),
-        ("biominerSha", campaign["biominerSha"]),
-    ):
-        if event[event_field] != expected:
-            raise ReferenceReviewDecisionExportError(
-                f"verification event {event_field} has a stale source binding"
-            )
     outcome = str(event["outcome"])
     comment = _optional_text(event["comment"], "comment")
     exclusion = _optional_text(event["exclusionReason"], "exclusionReason")
@@ -350,6 +448,68 @@ def _event_row(
         "exclusion_reason": exclusion,
         "conflicts_with_decision_id": conflict_id,
     }
+
+
+def _validate_event_source_binding(
+    event: Mapping[str, Any],
+    campaign: Mapping[str, Any],
+    item: Mapping[str, Any],
+) -> None:
+    for event_field, expected in (
+        ("imageSha256", item["imageSha256"]),
+        ("questionSha256", item["questionFingerprint"]),
+        ("campaignManifestSha256", campaign["manifestSha256"]),
+        ("taxalensSha", campaign["taxalensSha"]),
+        ("biominerSha", campaign["biominerSha"]),
+    ):
+        if event[event_field] != expected:
+            raise ReferenceReviewDecisionExportError(
+                f"verification event {event_field} has a stale source binding"
+            )
+
+
+def _validate_event_completeness(event: Mapping[str, Any]) -> None:
+    alternative = event["alternativeTaxon"]
+    if alternative is not None:
+        if not isinstance(alternative, Mapping):
+            raise ReferenceReviewDecisionExportError(
+                "alternativeTaxon must be an object or null"
+            )
+        accepted_key = alternative.get("acceptedTaxonKey")
+        scientific_name = alternative.get("scientificName")
+        if (
+            not isinstance(accepted_key, str)
+            or accepted_key.strip() == ""
+            or not isinstance(scientific_name, str)
+            or scientific_name.strip() == ""
+        ):
+            raise ReferenceReviewDecisionExportError(
+                "verification event has an incomplete decisive outcome"
+            )
+    if event["outcome"] == "yes" and (
+        alternative is not None or event["exclusionReason"] is not None
+    ):
+        raise ReferenceReviewDecisionExportError(
+            "verification event has an incomplete decisive outcome"
+        )
+    _choice(event["mediaQuality"], _MEDIA_QUALITY, "mediaQuality")
+    if not isinstance(event["duplicateConcern"], bool) or not isinstance(
+        event["captiveOrCultivatedConcern"], bool
+    ):
+        raise ReferenceReviewDecisionExportError(
+            "verification event reference concerns must be Boolean"
+        )
+    duration = event["durationMs"]
+    if duration is not None and (
+        isinstance(duration, bool) or not isinstance(duration, int) or duration < 0
+    ):
+        raise ReferenceReviewDecisionExportError(
+            "verification event durationMs must be non-negative or null"
+        )
+    if event["supersedesEventId"] == event["eventId"]:
+        raise ReferenceReviewDecisionExportError(
+            "verification event cannot supersede itself"
+        )
 
 
 def _proposal(
