@@ -82,6 +82,13 @@
   margin: 0;
 }
 
+.review-cache__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--tl-space-2);
+}
+
 .review-cache p:last-child,
 .review-summary p:last-child {
   margin-bottom: 0;
@@ -363,5 +370,10 @@
 
   .review-summary__actions {
     display: grid;
+  }
+
+  .review-cache__actions {
+    display: grid;
+    justify-content: stretch;
   }
 }

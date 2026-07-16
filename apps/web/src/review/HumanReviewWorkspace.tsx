@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import type { ReplayEvidence } from '../data/evidenceFacade'
 import { EvidenceState } from '../design-system'
@@ -53,6 +53,11 @@ export function HumanReviewWorkspace({
   const [cacheError, setCacheError] = useState<string | null>(null)
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [displayedItemId, setDisplayedItemId] = useState<string | null>(null)
+  const preparationRef = useRef<{
+    readonly controller: AbortController
+    readonly requestId: number
+  } | null>(null)
+  const preparationRequestIdRef = useRef(0)
   const item = itemAt(index)
   const decision = session.decisions[item.itemId]
   const inspection = session.inspections[item.itemId]
@@ -80,6 +85,15 @@ export function HumanReviewWorkspace({
       active = false
     }
   }, [cache])
+
+  useEffect(
+    () => () => {
+      preparationRequestIdRef.current += 1
+      preparationRef.current?.controller.abort()
+      preparationRef.current = null
+    },
+    [cache],
+  )
 
   useEffect(() => {
     setComment(decision?.comment ?? '')
@@ -137,20 +151,59 @@ export function HumanReviewWorkspace({
   const counts = useMemo(() => outcomeCounts(session), [session])
 
   function prepareCache() {
+    preparationRef.current?.controller.abort()
     const controller = new AbortController()
+    const requestId = preparationRequestIdRef.current + 1
+    preparationRequestIdRef.current = requestId
+    preparationRef.current = { controller, requestId }
     setCacheState('preparing')
     setCacheError(null)
     void cache
-      .prepare(HUMAN_REVIEW_PACKET, controller.signal, setCacheStatus)
+      .prepare(HUMAN_REVIEW_PACKET, controller.signal, (status) => {
+        if (preparationIsCurrent(requestId, controller)) {
+          setCacheStatus(status)
+        }
+      })
       .then((status) => {
+        if (!preparationIsCurrent(requestId, controller)) return
         setCacheStatus(status)
-        setCacheState('ready')
+        setCacheState(status.ready ? 'ready' : 'idle')
       })
       .catch((reason: unknown) => {
-        if (controller.signal.aborted) return
+        if (!preparationIsCurrent(requestId, controller)) return
+        if (controller.signal.aborted) {
+          setCacheState('idle')
+          return
+        }
         setCacheState('error')
         setCacheError(errorMessage(reason))
       })
+      .finally(() => {
+        if (preparationIsCurrent(requestId, controller)) {
+          preparationRef.current = null
+        }
+      })
+  }
+
+  function cancelPreparation() {
+    const active = preparationRef.current
+    if (active === null) return
+    preparationRequestIdRef.current += 1
+    preparationRef.current = null
+    active.controller.abort()
+    setCacheState('idle')
+    setCacheError(null)
+  }
+
+  function preparationIsCurrent(
+    requestId: number,
+    controller: AbortController,
+  ): boolean {
+    return (
+      !controller.signal.aborted &&
+      preparationRequestIdRef.current === requestId &&
+      preparationRef.current?.controller === controller
+    )
   }
 
   function updateReviewerId(reviewerId: string) {
@@ -284,17 +337,28 @@ export function HumanReviewWorkspace({
               : 'temporary in-memory fallback'}
           </p>
         </div>
-        <button
-          type="button"
-          disabled={cacheState === 'preparing' || cacheStatus.ready}
-          onClick={prepareCache}
-        >
-          {cacheState === 'preparing'
-            ? `Downloading ${cacheStatus.cachedCount} / ${cacheStatus.totalCount}…`
-            : cacheStatus.ready
-              ? 'Cache ready'
-              : 'Prepare review cache'}
-        </button>
+        <div className="review-cache__actions">
+          <button
+            type="button"
+            disabled={cacheState === 'preparing' || cacheStatus.ready}
+            onClick={prepareCache}
+          >
+            {cacheState === 'preparing'
+              ? `Downloading ${cacheStatus.cachedCount} / ${cacheStatus.totalCount}…`
+              : cacheStatus.ready
+                ? 'Cache ready'
+                : 'Prepare review cache'}
+          </button>
+          {cacheState === 'preparing' && (
+            <button
+              type="button"
+              className="review-button--quiet"
+              onClick={cancelPreparation}
+            >
+              Cancel media preparation
+            </button>
+          )}
+        </div>
       </section>
 
       {Object.keys(cacheStatus.itemFailures).length > 0 && (
