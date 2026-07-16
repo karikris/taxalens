@@ -14,6 +14,10 @@ export type {
   VerificationOutcome,
 } from './verificationEvents'
 export type {
+  ReviewCurrentDecisions,
+  ReviewRepository,
+} from './reviewRepository'
+export type {
   HumanReviewDecision,
   HumanReviewOutcome,
   HumanReviewSession,
