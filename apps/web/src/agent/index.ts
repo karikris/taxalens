@@ -71,3 +71,28 @@ export {
   type VerificationToolName,
   type VerificationToolResult,
 } from './verificationTools'
+export {
+  buildVerificationResponsesRequest,
+  deriveNextVerificationAction,
+  runVerificationAnalyst,
+  VerificationAnalystError,
+  type VerificationAnalystResponsesTransport,
+  type VerificationAnalystToolExecutor,
+  type VerificationAnalystTransportResponse,
+} from './verificationAnalyst'
+export {
+  VERIFICATION_ANALYST_MODEL,
+  VERIFICATION_ANALYST_OUTPUT_SCHEMA,
+  VERIFICATION_ANALYST_OUTPUT_VERSION,
+  VERIFICATION_ANALYST_RUN_VERSION,
+  type VerificationActionBasis,
+  type VerificationActionKind,
+  type VerificationActionRecommendation,
+  type VerificationAnalystBudgetLimits,
+  type VerificationAnalystInput,
+  type VerificationAnalystOutput,
+  type VerificationAnalystReasoningEffort,
+  type VerificationAnalystRequestKind,
+  type VerificationAnalystRun,
+  type VerificationAnalystToolReceipt,
+} from './verificationAnalystContract'
