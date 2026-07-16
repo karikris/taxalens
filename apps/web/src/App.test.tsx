@@ -76,6 +76,14 @@ describe('TaxaLens scaffold', () => {
       'aria-current',
       'page',
     )
+    expect(
+      screen.getByRole('tab', { name: 'Flickr Results' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('tab', { name: 'Reference Images' }),
+    ).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('tab', { name: 'Conflicts' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Quality' })).toBeInTheDocument()
     expect(window.location.hash).toBe('#verification')
   })
 

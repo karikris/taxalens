@@ -12,6 +12,7 @@ import {
   VerificationControls,
   VerificationItemViewer,
   VerificationProgress,
+  VerificationSections,
   VerificationSummary,
   VerificationWorkflowStatus,
 } from './ui'
@@ -68,34 +69,39 @@ export function VerificationWorkspace({
         onSelect={() => undefined}
       />
 
-      <EvidenceState
-        state="available"
-        title="BioMiner suitability confirmation acknowledged"
-      >
-        The pinned BioMiner update records 81 / 81 provider-supported items as
-        human-confirmed suitable for their assigned prototype roles. It still
-        records 0 independently taxonomically verified labels.
-      </EvidenceState>
+      <VerificationSections
+        referenceImages={
+          <>
+            <EvidenceState
+              state="available"
+              title="BioMiner suitability confirmation acknowledged"
+            >
+              The pinned BioMiner update records 81 / 81 provider-supported
+              items as human-confirmed suitable for their assigned prototype
+              roles. It still records 0 independently taxonomically verified
+              labels.
+            </EvidenceState>
 
-      <aside className="human-review__boundary">
-        <strong>Separate review campaign</strong>
-        <span>
-          These CC-licensed Commons images are not the frozen BioMiner reference
-          bank. Decisions remain in this browser’s append-only IndexedDB ledger
-          until you export a receipt; no result is sent to a server.
-        </span>
-      </aside>
+            <aside className="human-review__boundary">
+              <strong>Separate review campaign</strong>
+              <span>
+                These CC-licensed Commons images are not the frozen BioMiner
+                reference bank. Decisions remain in this browser’s append-only
+                IndexedDB ledger until you export a receipt; no result is sent
+                to a server.
+              </span>
+            </aside>
 
-      <VerificationWorkflowStatus state={controller.workflow} />
+            <VerificationWorkflowStatus state={controller.workflow} />
 
-      {controller.persistenceError !== null && (
-        <EvidenceState
-          state="failure"
-          title="Review repository persistence failed"
-        >
-          {controller.persistenceError}
-        </EvidenceState>
-      )}
+            {controller.persistenceError !== null && (
+              <EvidenceState
+                state="failure"
+                title="Review repository persistence failed"
+              >
+                {controller.persistenceError}
+              </EvidenceState>
+            )}
 
       {typeof window.indexedDB === 'undefined' && (
         <EvidenceState state="review" title="IndexedDB is unavailable">
@@ -247,11 +253,14 @@ export function VerificationWorkspace({
         items={HUMAN_REVIEW_PACKET.items}
         onOpenIndex={controller.openIndex}
       />
-      <VerificationSummary
-        clearState={controller.clearState}
-        counts={controller.counts}
-        onClear={() => void controller.clearReview()}
-        onExport={() => exportHumanReviewReceipt(controller.session)}
+            <VerificationSummary
+              clearState={controller.clearState}
+              counts={controller.counts}
+              onClear={() => void controller.clearReview()}
+              onExport={() => exportHumanReviewReceipt(controller.session)}
+            />
+          </>
+        }
       />
     </section>
   )
