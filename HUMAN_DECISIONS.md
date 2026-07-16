@@ -112,6 +112,49 @@ and explicit availability. They do not import BioMiner implementation modules
 or reimplement biological policy. Missing, incompatible, blocked, or unreviewed
 evidence stays visibly unavailable.
 
+### Verification is campaign-driven
+
+Human verification is configured through fingerprinted campaigns, items,
+questions, sampling plans, and disclosure policies. Flickr-result review,
+reference-image review, conflict adjudication, and quality control remain
+distinct campaign kinds even when they share product infrastructure.
+
+Yes, No, and Can’t tell require checksum-verified media to have been displayed.
+Can’t view records a media failure. Skip records deferred work. Neither Can’t
+view nor Skip is a positive or negative taxonomic decision, and Skip does not
+count as reviewed coverage.
+
+### TaxaLens is the review and collaboration interface
+
+TaxaLens owns campaign navigation, reviewer interaction, append-only review
+events, local and cloud repository adapters, current-state projections,
+conflict presentation, and compatible exports. BioMiner remains authoritative
+for reference resolution, support eligibility, reviewed-label validation,
+sampling validation, calibration, final evaluation, and scientific release.
+
+Review exports from the public replay are prepared for BioMiner import but are
+not imported upstream by the replay.
+
+### Prototype-role suitability is not taxonomic verification
+
+A human confirmation that a provider-supported image is suitable for an
+assigned prototype role does not establish that the depicted organism has been
+independently taxonomically verified. Product copy, evidence contracts, exports,
+and quality panels must keep those claims separate.
+
+### Statistical quality requires representative independent evidence
+
+Review count and coverage are not population-quality estimates. Statistical
+quality may be estimated only from a declared probability sample with valid
+inclusion probabilities or weights, sufficient independent review evidence,
+configured duplicate and observation grouping, leakage-safe use, and a named
+interval method with its assumptions.
+
+Failure-discovery campaigns may prioritize likely errors, but their unweighted
+outcomes must not be reported as population accuracy or precision. More reviews
+may tighten uncertainty only when the additional evidence remains
+representative, sufficiently independent, and correctly weighted.
+
 ### Phase 14 metadata remains candidate evidence
 
 Geographic workload, search hits, source-media candidates, competitor plans,

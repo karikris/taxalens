@@ -3,6 +3,8 @@
 ## Frozen product boundary
 
 - Current reviewed BioMiner handoff SHA: `74a7d648a562efa744e6502ef504a23b63b4e02f` on `main`.
+- Current observed BioMiner `main` SHA: `94fa1f634ee3c63917c05d78181dd3cf9ceff940`.
+- BioMiner `main` includes `a5bf11d74fb6a5a7eec7dc567197fabe18e8b171`, which removes the local five-image limit from the combined YOLOE + BioCLIP prototype smoke command. Historical five-image smoke manifests remain immutable records of the earlier bounded run and are not rewritten.
 - Boundary version: `artifact-first-product-boundary-v1.0.0`.
 - Broad BioMiner module copying is frozen. Existing copied modules remain as provenance-bound compatibility contracts; they are not precedent for more copies.
 - New integration order is: committed artifact, versioned schema, thin adapter, stable BioMiner command, small shared package, and copied source only after an explicit documented finding that every earlier option is unsuitable.
@@ -13,6 +15,16 @@
 The pin identifies the latest reviewed upstream handoff boundary. Each historical
 migration below retains its own exact source commit; updating the boundary pin
 does not rewrite component provenance.
+
+## Verification workflow boundary
+
+- Human review is campaign-driven. Flickr audit, Flickr failure discovery, reference identity, reference route, conflict adjudication, and quality control retain distinct purposes and disclosure rules.
+- TaxaLens is the review and collaboration interface. It owns reviewer UX, checksum-gated media display, append-only event capture, local and cloud repository adapters, current projections, conflict presentation, and deterministic handoff exports.
+- BioMiner remains authoritative for reference queue construction, source and taxon resolution, reference support eligibility, reviewed-label validation, evaluation sampling and grouping, calibration, final evaluation, and scientific release.
+- TaxaLens will adapt committed queue, provenance, decision-import, outcome, conflict, reviewed-label-v2, sampling, grouping, and rights contracts through thin anti-corruption adapters. It will not copy BioMiner's reference-review or evaluation engine.
+- Provider verification and the 81 / 81 user-confirmed prototype-role suitability receipt are not independent taxonomic identity verification. The current independently human-taxonomically-verified support count remains zero.
+- Statistical quality requires representative, sufficiently independent, correctly weighted, leakage-safe review evidence. Targeted failure-discovery queues are not valid unweighted population-quality samples.
+- The credential-free public replay may prepare BioMiner-compatible exports, but must label them: “Prepared for BioMiner import; not imported in the public replay.”
 
 ## Phase 13, Phase 14, and Phase 15 availability
 
@@ -128,6 +140,8 @@ TaxaLens treats `karikris/BioMiner` as the upstream research engine and treats t
 
 - `biominer_repository`: `karikris/BioMiner`
 - `pinned_sha`: `74a7d648a562efa744e6502ef504a23b63b4e02f`
+- `observed_main_sha`: `94fa1f634ee3c63917c05d78181dd3cf9ceff940`
+- `five_image_cap_removal_commit`: `a5bf11d74fb6a5a7eec7dc567197fabe18e8b171`
 - `branch`: `main`
 
 ## Contracts consumed (current phase)
