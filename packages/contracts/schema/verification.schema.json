@@ -1,0 +1,2081 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://taxalens.local/contracts/verification.schema.json",
+  "title": "TaxaLens Verification Contracts",
+  "description": "Authoritative structural contracts for TaxaLens human-verification evidence and judge-bundle verification sections.",
+  "oneOf": [
+    {"$ref": "#/$defs/verificationCampaign"},
+    {"$ref": "#/$defs/verificationItem"},
+    {"$ref": "#/$defs/verificationEvent"},
+    {"$ref": "#/$defs/verificationConsensus"},
+    {"$ref": "#/$defs/verificationQualitySnapshot"},
+    {"$ref": "#/$defs/judgeBundleVerificationSections"}
+  ],
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "nullableString": {
+      "anyOf": [
+        {"type": "string"},
+        {"type": "null"}
+      ]
+    },
+    "nullableNonEmptyString": {
+      "anyOf": [
+        {"$ref": "#/$defs/nonEmptyString"},
+        {"type": "null"}
+      ]
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "gitSha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "nullableGitSha": {
+      "anyOf": [
+        {"$ref": "#/$defs/gitSha"},
+        {"type": "null"}
+      ]
+    },
+    "nonNegativeInteger": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "positiveInteger": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "probability": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "positiveProbability": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1
+    },
+    "nullableNumber": {
+      "anyOf": [
+        {"type": "number"},
+        {"type": "null"}
+      ]
+    },
+    "nullableProbability": {
+      "anyOf": [
+        {"$ref": "#/$defs/probability"},
+        {"type": "null"}
+      ]
+    },
+    "nullablePositiveProbability": {
+      "anyOf": [
+        {"$ref": "#/$defs/positiveProbability"},
+        {"type": "null"}
+      ]
+    },
+    "nullableNonNegativeInteger": {
+      "anyOf": [
+        {"$ref": "#/$defs/nonNegativeInteger"},
+        {"type": "null"}
+      ]
+    },
+    "nullablePositiveInteger": {
+      "anyOf": [
+        {"$ref": "#/$defs/positiveInteger"},
+        {"type": "null"}
+      ]
+    },
+    "utcInstant": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "nullableUtcInstant": {
+      "anyOf": [
+        {"$ref": "#/$defs/utcInstant"},
+        {"type": "null"}
+      ]
+    },
+    "stringArray": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/nonEmptyString"}
+    },
+    "taxonIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "acceptedTaxonKey",
+        "scientificName",
+        "commonName",
+        "rank",
+        "authority"
+      ],
+      "properties": {
+        "acceptedTaxonKey": {"$ref": "#/$defs/nonEmptyString"},
+        "scientificName": {"$ref": "#/$defs/nonEmptyString"},
+        "commonName": {"$ref": "#/$defs/nullableString"},
+        "rank": {
+          "enum": ["species", "genus", "family", "other"]
+        },
+        "authority": {"$ref": "#/$defs/nullableString"}
+      }
+    },
+    "reviewRequirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requiredIndependentReviewers",
+        "secondReviewPolicy",
+        "adjudicationRequiredOnConflict",
+        "decisiveOutcomes",
+        "mediaRequiredOutcomes",
+        "nonScientificOutcomes"
+      ],
+      "properties": {
+        "requiredIndependentReviewers": {"$ref": "#/$defs/positiveInteger"},
+        "secondReviewPolicy": {
+          "enum": [
+            "never",
+            "always",
+            "on_conflict",
+            "on_uncertain",
+            "on_conflict_or_uncertain"
+          ]
+        },
+        "adjudicationRequiredOnConflict": {"type": "boolean"},
+        "decisiveOutcomes": {
+          "type": "array",
+          "prefixItems": [
+            {"const": "yes"},
+            {"const": "no"}
+          ],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "mediaRequiredOutcomes": {
+          "type": "array",
+          "prefixItems": [
+            {"const": "yes"},
+            {"const": "no"},
+            {"const": "cant_tell"}
+          ],
+          "items": false,
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "nonScientificOutcomes": {
+          "type": "array",
+          "prefixItems": [
+            {"const": "cant_view"},
+            {"const": "skipped"}
+          ],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
+        }
+      }
+    },
+    "samplingStratum": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stratumId",
+        "label",
+        "populationCount",
+        "targetSampleCount",
+        "populationWeight",
+        "selectionNotes"
+      ],
+      "properties": {
+        "stratumId": {"$ref": "#/$defs/nonEmptyString"},
+        "label": {"$ref": "#/$defs/nonEmptyString"},
+        "populationCount": {"$ref": "#/$defs/nullablePositiveInteger"},
+        "targetSampleCount": {"$ref": "#/$defs/nullablePositiveInteger"},
+        "populationWeight": {"$ref": "#/$defs/nullablePositiveProbability"},
+        "selectionNotes": {"$ref": "#/$defs/nullableString"}
+      }
+    },
+    "samplingPlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "planId",
+        "purpose",
+        "design",
+        "representative",
+        "blindReview",
+        "selectionSeed",
+        "targetSampleSize",
+        "inclusionProbabilityRequired",
+        "independentUnit",
+        "groupingKeys",
+        "leakagePolicy",
+        "strata",
+        "qualityEstimationAllowed",
+        "qualityEstimationBlockedReason"
+      ],
+      "properties": {
+        "planId": {"$ref": "#/$defs/nonEmptyString"},
+        "purpose": {
+          "enum": [
+            "credential_free_fixture",
+            "quality_estimation",
+            "failure_discovery",
+            "reference_readiness",
+            "adjudication",
+            "reviewer_quality_control"
+          ]
+        },
+        "design": {
+          "enum": [
+            "fixed_fixture",
+            "census",
+            "simple_random",
+            "stratified_random",
+            "clustered_random",
+            "targeted_priority",
+            "control_items"
+          ]
+        },
+        "representative": {"type": "boolean"},
+        "blindReview": {"type": "boolean"},
+        "selectionSeed": {"$ref": "#/$defs/nullableString"},
+        "targetSampleSize": {"$ref": "#/$defs/nullablePositiveInteger"},
+        "inclusionProbabilityRequired": {"type": "boolean"},
+        "independentUnit": {
+          "enum": [
+            "media",
+            "observation_group",
+            "duplicate_group",
+            "owner_group",
+            "configured_cluster"
+          ]
+        },
+        "groupingKeys": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "duplicate_group",
+              "observation_group",
+              "owner_group",
+              "geographic_cluster"
+            ]
+          }
+        },
+        "leakagePolicy": {
+          "enum": [
+            "not_applicable",
+            "support_only",
+            "model_selection_only",
+            "calibration_only",
+            "final_test_only",
+            "leakage_safe_partitioned"
+          ]
+        },
+        "strata": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/samplingStratum"}
+        },
+        "qualityEstimationAllowed": {"type": "boolean"},
+        "qualityEstimationBlockedReason": {
+          "$ref": "#/$defs/nullableNonEmptyString"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "qualityEstimationAllowed": {"const": false}
+            },
+            "required": ["qualityEstimationAllowed"]
+          },
+          "then": {
+            "properties": {
+              "qualityEstimationBlockedReason": {
+                "$ref": "#/$defs/nonEmptyString"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "verificationCampaign": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "campaignId",
+        "title",
+        "description",
+        "kind",
+        "status",
+        "targetTaxon",
+        "sourceProviders",
+        "reviewRequirement",
+        "samplingPlan",
+        "disclosurePolicy",
+        "questionFingerprint",
+        "manifestSha256",
+        "taxalensSha",
+        "biominerSha",
+        "publicReplay",
+        "scientificClaimAllowed"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": "taxalens-verification-campaign:v1.0.0"
+        },
+        "campaignId": {"$ref": "#/$defs/nonEmptyString"},
+        "title": {"$ref": "#/$defs/nonEmptyString"},
+        "description": {"$ref": "#/$defs/nonEmptyString"},
+        "kind": {
+          "enum": [
+            "flickr_target_verification",
+            "reference_identity_verification",
+            "reference_route_verification",
+            "adjudication",
+            "quality_control"
+          ]
+        },
+        "status": {
+          "enum": ["draft", "ready", "active", "paused", "complete", "archived"]
+        },
+        "targetTaxon": {
+          "anyOf": [
+            {"$ref": "#/$defs/taxonIdentity"},
+            {"type": "null"}
+          ]
+        },
+        "sourceProviders": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "flickr",
+              "gbif",
+              "inaturalist",
+              "wikimedia_commons",
+              "taxalens_fixture"
+            ]
+          }
+        },
+        "reviewRequirement": {"$ref": "#/$defs/reviewRequirement"},
+        "samplingPlan": {"$ref": "#/$defs/samplingPlan"},
+        "disclosurePolicy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode", "revealAfterDecision", "hiddenBeforeDecision"],
+          "properties": {
+            "mode": {"enum": ["blind", "unblinded"]},
+            "revealAfterDecision": {"type": "boolean"},
+            "hiddenBeforeDecision": {"$ref": "#/$defs/stringArray"}
+          }
+        },
+        "questionFingerprint": {"$ref": "#/$defs/sha256"},
+        "manifestSha256": {"$ref": "#/$defs/sha256"},
+        "taxalensSha": {"$ref": "#/$defs/gitSha"},
+        "biominerSha": {"$ref": "#/$defs/nullableGitSha"},
+        "publicReplay": {"type": "boolean"},
+        "scientificClaimAllowed": {"type": "boolean"}
+      }
+    },
+    "providerSuppliedIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "providerTaxonKey",
+        "scientificName",
+        "commonName",
+        "rawLabel",
+        "verificationStatus"
+      ],
+      "properties": {
+        "providerTaxonKey": {"$ref": "#/$defs/nullableString"},
+        "scientificName": {"$ref": "#/$defs/nullableString"},
+        "commonName": {"$ref": "#/$defs/nullableString"},
+        "rawLabel": {"$ref": "#/$defs/nullableString"},
+        "verificationStatus": {"$ref": "#/$defs/nullableString"}
+      }
+    },
+    "verificationItemRights": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "creator",
+        "rightsHolder",
+        "licenseName",
+        "licenseUri",
+        "policyStatus",
+        "attribution",
+        "sourceUri"
+      ],
+      "properties": {
+        "creator": {"$ref": "#/$defs/nullableString"},
+        "rightsHolder": {"$ref": "#/$defs/nullableString"},
+        "licenseName": {"$ref": "#/$defs/nonEmptyString"},
+        "licenseUri": {"type": "string", "format": "uri"},
+        "policyStatus": {
+          "enum": ["allowed", "restricted", "pending", "unknown"]
+        },
+        "attribution": {"type": "string"},
+        "sourceUri": {"type": "string", "format": "uri"}
+      }
+    },
+    "verificationPrivateMedia": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "provider", "bucketAlias", "objectKey", "accessScope"],
+      "properties": {
+        "schemaVersion": {
+          "const": "taxalens-verification-private-media:v1.0.0"
+        },
+        "provider": {"const": "backblaze_b2"},
+        "bucketAlias": {
+          "type": "string",
+          "pattern": "^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$"
+        },
+        "objectKey": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "accessScope": {"const": "assigned_reviewer"}
+      }
+    },
+    "referenceSourceProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "providerLabel",
+        "originalProvider",
+        "referenceObservationId",
+        "sourceObservationId",
+        "providerMediaId",
+        "occurrenceLicense",
+        "mediaLicense",
+        "observerId",
+        "observedAt",
+        "fallbackLevel",
+        "geography",
+        "providerVerificationStatus"
+      ],
+      "properties": {
+        "provider": {"enum": ["gbif", "inaturalist"]},
+        "providerLabel": {"enum": ["GBIF", "iNaturalist"]},
+        "originalProvider": {"$ref": "#/$defs/nullableString"},
+        "referenceObservationId": {"$ref": "#/$defs/nonEmptyString"},
+        "sourceObservationId": {"$ref": "#/$defs/nonEmptyString"},
+        "providerMediaId": {"$ref": "#/$defs/nonEmptyString"},
+        "occurrenceLicense": {"$ref": "#/$defs/nullableString"},
+        "mediaLicense": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "uri", "policyStatus"],
+          "properties": {
+            "name": {"$ref": "#/$defs/nonEmptyString"},
+            "uri": {"type": "string", "format": "uri"},
+            "policyStatus": {
+              "enum": ["allowed", "restricted", "pending", "unknown"]
+            }
+          }
+        },
+        "observerId": {"$ref": "#/$defs/nullableString"},
+        "observedAt": {"$ref": "#/$defs/nullableNonEmptyString"},
+        "fallbackLevel": {"$ref": "#/$defs/nonNegativeInteger"},
+        "geography": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "locality",
+            "country",
+            "countryCode",
+            "latitude",
+            "longitude",
+            "coordinateUncertaintyMeters",
+            "coordinatesObscured",
+            "geographicClusterId"
+          ],
+          "properties": {
+            "locality": {"$ref": "#/$defs/nullableString"},
+            "country": {"$ref": "#/$defs/nullableString"},
+            "countryCode": {"$ref": "#/$defs/nullableString"},
+            "latitude": {
+              "anyOf": [
+                {"type": "number", "minimum": -90, "maximum": 90},
+                {"type": "null"}
+              ]
+            },
+            "longitude": {
+              "anyOf": [
+                {"type": "number", "minimum": -180, "maximum": 180},
+                {"type": "null"}
+              ]
+            },
+            "coordinateUncertaintyMeters": {
+              "anyOf": [
+                {"type": "number", "minimum": 0},
+                {"type": "null"}
+              ]
+            },
+            "coordinatesObscured": {"type": "boolean"},
+            "geographicClusterId": {"$ref": "#/$defs/nullableString"}
+          }
+        },
+        "providerVerificationStatus": {"$ref": "#/$defs/nullableString"}
+      }
+    },
+    "flickrScoreBand": {
+      "enum": ["not_scored", "low", "middle", "high", "unavailable"]
+    },
+    "flickrPrioritySignals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lowMargin",
+        "visualInputDisagreement",
+        "geographicAnomaly",
+        "commentConflict",
+        "smallSubject",
+        "referenceShortfall",
+        "unusualCompetitor"
+      ],
+      "properties": {
+        "lowMargin": {"anyOf": [{"type": "boolean"}, {"type": "null"}]},
+        "visualInputDisagreement": {
+          "anyOf": [{"type": "boolean"}, {"type": "null"}]
+        },
+        "geographicAnomaly": {
+          "anyOf": [{"type": "boolean"}, {"type": "null"}]
+        },
+        "commentConflict": {
+          "anyOf": [{"type": "boolean"}, {"type": "null"}]
+        },
+        "smallSubject": {
+          "anyOf": [{"type": "boolean"}, {"type": "null"}]
+        },
+        "referenceShortfall": {
+          "anyOf": [{"type": "boolean"}, {"type": "null"}]
+        },
+        "unusualCompetitor": {
+          "anyOf": [{"type": "boolean"}, {"type": "null"}]
+        }
+      }
+    },
+    "flickrPostDecisionEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "strongestCompetitors",
+        "references",
+        "comments",
+        "decisionReason",
+        "evidenceFingerprint"
+      ],
+      "properties": {
+        "strongestCompetitors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "acceptedTaxonKey",
+              "scientificName",
+              "scoreBand",
+              "evidenceFingerprint"
+            ],
+            "properties": {
+              "acceptedTaxonKey": {"$ref": "#/$defs/nonEmptyString"},
+              "scientificName": {"$ref": "#/$defs/nonEmptyString"},
+              "scoreBand": {"$ref": "#/$defs/flickrScoreBand"},
+              "evidenceFingerprint": {"$ref": "#/$defs/sha256"}
+            }
+          }
+        },
+        "references": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "referenceId",
+              "acceptedTaxonKey",
+              "scientificName",
+              "role",
+              "provider",
+              "reviewState"
+            ],
+            "properties": {
+              "referenceId": {"$ref": "#/$defs/nonEmptyString"},
+              "acceptedTaxonKey": {"$ref": "#/$defs/nonEmptyString"},
+              "scientificName": {"$ref": "#/$defs/nonEmptyString"},
+              "role": {"enum": ["target", "competitor"]},
+              "provider": {"enum": ["gbif", "inaturalist"]},
+              "reviewState": {
+                "enum": [
+                  "human_verified",
+                  "provider_supported",
+                  "candidate",
+                  "excluded"
+                ]
+              }
+            }
+          }
+        },
+        "comments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["commentId", "text"],
+            "properties": {
+              "commentId": {"$ref": "#/$defs/nonEmptyString"},
+              "text": {"$ref": "#/$defs/nonEmptyString"}
+            }
+          }
+        },
+        "decisionReason": {"$ref": "#/$defs/nullableString"},
+        "evidenceFingerprint": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "flickrVerificationSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "flickrRecordId",
+        "flickrPhotoId",
+        "fullFrameMedia",
+        "duplicateGroupId",
+        "ownerGroupId",
+        "observationGroupId",
+        "geographicClusterId",
+        "coordinate",
+        "query",
+        "route",
+        "targetScoreBand",
+        "decisionState",
+        "competitorMarginBand",
+        "samplingStratumId",
+        "inclusionProbability",
+        "datasetPartition",
+        "prioritySignals",
+        "postDecisionEvidence",
+        "sourceArtifactFingerprint",
+        "biominerSha"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": "taxalens-flickr-verification-source:v1.1.0"
+        },
+        "flickrRecordId": {"$ref": "#/$defs/nonEmptyString"},
+        "flickrPhotoId": {"$ref": "#/$defs/nonEmptyString"},
+        "fullFrameMedia": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mediaId",
+            "previewUri",
+            "mediaType",
+            "sha256",
+            "byteCount",
+            "checksumVerified",
+            "rights"
+          ],
+          "properties": {
+            "mediaId": {"$ref": "#/$defs/nonEmptyString"},
+            "previewUri": {"$ref": "#/$defs/nonEmptyString"},
+            "mediaType": {"type": "string", "pattern": "^image/.+$"},
+            "sha256": {"$ref": "#/$defs/sha256"},
+            "byteCount": {"$ref": "#/$defs/positiveInteger"},
+            "checksumVerified": {"const": true},
+            "rights": {"$ref": "#/$defs/verificationItemRights"}
+          }
+        },
+        "duplicateGroupId": {"$ref": "#/$defs/nonEmptyString"},
+        "ownerGroupId": {"$ref": "#/$defs/nonEmptyString"},
+        "observationGroupId": {"$ref": "#/$defs/nonEmptyString"},
+        "geographicClusterId": {"$ref": "#/$defs/nullableString"},
+        "coordinate": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["latitude", "longitude", "outlier"],
+          "properties": {
+            "latitude": {
+              "anyOf": [
+                {"type": "number", "minimum": -90, "maximum": 90},
+                {"type": "null"}
+              ]
+            },
+            "longitude": {
+              "anyOf": [
+                {"type": "number", "minimum": -180, "maximum": 180},
+                {"type": "null"}
+              ]
+            },
+            "outlier": {
+              "anyOf": [{"type": "boolean"}, {"type": "null"}]
+            }
+          }
+        },
+        "query": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["tier", "rank", "trustTier", "searchField", "term"],
+          "properties": {
+            "tier": {"$ref": "#/$defs/nonEmptyString"},
+            "rank": {"$ref": "#/$defs/nonEmptyString"},
+            "trustTier": {"$ref": "#/$defs/nonEmptyString"},
+            "searchField": {"$ref": "#/$defs/nonEmptyString"},
+            "term": {"$ref": "#/$defs/nonEmptyString"}
+          }
+        },
+        "route": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "routeLabel",
+            "lifeStage",
+            "visualDomain",
+            "view",
+            "subjectAreaRatio",
+            "fingerprint"
+          ],
+          "properties": {
+            "routeLabel": {"$ref": "#/$defs/nonEmptyString"},
+            "lifeStage": {"$ref": "#/$defs/verificationLifeStage"},
+            "visualDomain": {"$ref": "#/$defs/verificationVisualDomain"},
+            "view": {"$ref": "#/$defs/verificationView"},
+            "subjectAreaRatio": {"$ref": "#/$defs/nullableProbability"},
+            "fingerprint": {"$ref": "#/$defs/sha256"}
+          }
+        },
+        "targetScoreBand": {"$ref": "#/$defs/flickrScoreBand"},
+        "decisionState": {
+          "enum": [
+            "target",
+            "non_target",
+            "abstain",
+            "awaiting_human_review",
+            "unavailable"
+          ]
+        },
+        "competitorMarginBand": {
+          "enum": [
+            "negative",
+            "near_tie",
+            "small_positive",
+            "clear_positive",
+            "unavailable"
+          ]
+        },
+        "samplingStratumId": {"$ref": "#/$defs/nonEmptyString"},
+        "inclusionProbability": {
+          "$ref": "#/$defs/nullablePositiveProbability"
+        },
+        "datasetPartition": {
+          "enum": ["support", "model_selection", "calibration", "final_test"]
+        },
+        "prioritySignals": {"$ref": "#/$defs/flickrPrioritySignals"},
+        "postDecisionEvidence": {
+          "$ref": "#/$defs/flickrPostDecisionEvidence"
+        },
+        "sourceArtifactFingerprint": {"$ref": "#/$defs/sha256"},
+        "biominerSha": {"$ref": "#/$defs/gitSha"}
+      }
+    },
+    "verificationLifeStage": {
+      "enum": ["adult", "larva", "pupa", "egg", "unknown"]
+    },
+    "verificationVisualDomain": {
+      "enum": [
+        "live_field",
+        "pinned_specimen",
+        "artwork",
+        "logo",
+        "tattoo",
+        "partial_wing",
+        "dead_or_damaged_specimen",
+        "ambiguous",
+        "unsuitable"
+      ]
+    },
+    "verificationView": {
+      "enum": ["dorsal", "ventral", "lateral", "frontal", "oblique", "unknown"]
+    },
+    "verificationItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "itemId",
+        "campaignId",
+        "source",
+        "sourceObservationId",
+        "sourceMediaId",
+        "imageSha256",
+        "imageByteCount",
+        "mediaType",
+        "previewUri",
+        "targetTaxon",
+        "providerSuppliedIdentity",
+        "expectedLifeStage",
+        "expectedVisualDomain",
+        "expectedView",
+        "duplicateGroupId",
+        "observationGroupId",
+        "ownerPhotographerGroupId",
+        "samplingStratumId",
+        "inclusionProbability",
+        "rights",
+        "questionFingerprint"
+      ],
+      "properties": {
+        "itemId": {"$ref": "#/$defs/nonEmptyString"},
+        "campaignId": {"$ref": "#/$defs/nonEmptyString"},
+        "source": {
+          "enum": [
+            "flickr",
+            "gbif",
+            "inaturalist",
+            "wikimedia_commons",
+            "taxalens_fixture"
+          ]
+        },
+        "sourceObservationId": {"$ref": "#/$defs/nonEmptyString"},
+        "sourceMediaId": {"$ref": "#/$defs/nonEmptyString"},
+        "imageSha256": {"$ref": "#/$defs/sha256"},
+        "imageByteCount": {"$ref": "#/$defs/positiveInteger"},
+        "mediaType": {"type": "string", "pattern": "^image/.+$"},
+        "previewUri": {"$ref": "#/$defs/nonEmptyString"},
+        "privateMedia": {"$ref": "#/$defs/verificationPrivateMedia"},
+        "targetTaxon": {"$ref": "#/$defs/taxonIdentity"},
+        "providerSuppliedIdentity": {
+          "$ref": "#/$defs/providerSuppliedIdentity"
+        },
+        "expectedLifeStage": {
+          "anyOf": [
+            {"$ref": "#/$defs/verificationLifeStage"},
+            {"type": "null"}
+          ]
+        },
+        "expectedVisualDomain": {
+          "anyOf": [
+            {"$ref": "#/$defs/verificationVisualDomain"},
+            {"type": "null"}
+          ]
+        },
+        "expectedView": {
+          "anyOf": [
+            {"$ref": "#/$defs/verificationView"},
+            {"type": "null"}
+          ]
+        },
+        "duplicateGroupId": {"$ref": "#/$defs/nonEmptyString"},
+        "observationGroupId": {"$ref": "#/$defs/nonEmptyString"},
+        "ownerPhotographerGroupId": {"$ref": "#/$defs/nonEmptyString"},
+        "samplingStratumId": {"$ref": "#/$defs/nonEmptyString"},
+        "inclusionProbability": {
+          "$ref": "#/$defs/nullablePositiveProbability"
+        },
+        "rights": {"$ref": "#/$defs/verificationItemRights"},
+        "sourceProvenance": {"$ref": "#/$defs/referenceSourceProvenance"},
+        "flickrSource": {"$ref": "#/$defs/flickrVerificationSource"},
+        "questionFingerprint": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "verificationAdjudicationLink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "sourceConflictEventIds",
+        "sourceConflictFields",
+        "sourceReviewerIds"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": "taxalens-verification-adjudication-link:v1.0.0"
+        },
+        "sourceConflictEventIds": {
+          "allOf": [
+            {"$ref": "#/$defs/stringArray"},
+            {"type": "array", "minItems": 1}
+          ]
+        },
+        "sourceConflictFields": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/verificationConflictField"}
+        },
+        "sourceReviewerIds": {
+          "allOf": [
+            {"$ref": "#/$defs/stringArray"},
+            {"type": "array", "minItems": 1}
+          ]
+        }
+      }
+    },
+    "verificationConflictField": {
+      "enum": [
+        "outcome",
+        "non_target_category",
+        "alternative_taxon",
+        "life_stage",
+        "visual_domain",
+        "view",
+        "explicit_conflict_pointer"
+      ]
+    },
+    "verificationEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "eventId",
+        "campaignId",
+        "itemId",
+        "reviewerId",
+        "reviewRound",
+        "outcome",
+        "comment",
+        "nonTargetCategory",
+        "alternativeTaxon",
+        "correctedLifeStage",
+        "correctedVisualDomain",
+        "correctedView",
+        "mediaQuality",
+        "duplicateConcern",
+        "captiveOrCultivatedConcern",
+        "exclusionReason",
+        "confidence",
+        "reviewedAt",
+        "durationMs",
+        "imageSha256",
+        "questionSha256",
+        "campaignManifestSha256",
+        "taxalensSha",
+        "biominerSha",
+        "supersedesEventId",
+        "conflictsWithDecisionId"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": "taxalens-verification-event:v1.3.0"
+        },
+        "eventId": {"$ref": "#/$defs/nonEmptyString"},
+        "campaignId": {"$ref": "#/$defs/nonEmptyString"},
+        "itemId": {"$ref": "#/$defs/nonEmptyString"},
+        "reviewerId": {"$ref": "#/$defs/nonEmptyString"},
+        "reviewRound": {"$ref": "#/$defs/positiveInteger"},
+        "outcome": {
+          "enum": ["yes", "no", "cant_tell", "cant_view", "skipped"]
+        },
+        "comment": {"$ref": "#/$defs/nullableString"},
+        "nonTargetCategory": {
+          "anyOf": [
+            {
+              "enum": [
+                "alternative_species",
+                "other_butterfly",
+                "other_insect",
+                "artifact",
+                "specimen",
+                "no_organism",
+                "insufficient_visual_detail"
+              ]
+            },
+            {"type": "null"}
+          ]
+        },
+        "alternativeTaxon": {
+          "anyOf": [
+            {"$ref": "#/$defs/taxonIdentity"},
+            {"type": "null"}
+          ]
+        },
+        "correctedLifeStage": {
+          "anyOf": [
+            {"$ref": "#/$defs/verificationLifeStage"},
+            {"type": "null"}
+          ]
+        },
+        "correctedVisualDomain": {
+          "anyOf": [
+            {"$ref": "#/$defs/verificationVisualDomain"},
+            {"type": "null"}
+          ]
+        },
+        "correctedView": {
+          "anyOf": [
+            {"$ref": "#/$defs/verificationView"},
+            {"type": "null"}
+          ]
+        },
+        "mediaQuality": {
+          "enum": ["high", "medium", "low", "unusable", "unknown"]
+        },
+        "duplicateConcern": {"type": "boolean"},
+        "captiveOrCultivatedConcern": {"type": "boolean"},
+        "exclusionReason": {"$ref": "#/$defs/nullableString"},
+        "confidence": {"enum": ["high", "medium", "low", "unknown"]},
+        "reviewedAt": {"$ref": "#/$defs/utcInstant"},
+        "durationMs": {"$ref": "#/$defs/nullableNonNegativeInteger"},
+        "imageSha256": {"$ref": "#/$defs/sha256"},
+        "questionSha256": {"$ref": "#/$defs/sha256"},
+        "campaignManifestSha256": {"$ref": "#/$defs/sha256"},
+        "taxalensSha": {"$ref": "#/$defs/gitSha"},
+        "biominerSha": {"$ref": "#/$defs/nullableGitSha"},
+        "supersedesEventId": {"$ref": "#/$defs/nullableNonEmptyString"},
+        "conflictsWithDecisionId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^reference-review-decision:[0-9a-f]{64}$"
+            },
+            {"type": "null"}
+          ]
+        },
+        "adjudication": {
+          "$ref": "#/$defs/verificationAdjudicationLink"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "enum": ["yes", "cant_tell", "cant_view", "skipped"]
+              }
+            },
+            "required": ["outcome"]
+          },
+          "then": {
+            "properties": {
+              "nonTargetCategory": {"type": "null"}
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {"outcome": {"const": "yes"}},
+            "required": ["outcome"]
+          },
+          "then": {
+            "properties": {
+              "alternativeTaxon": {"type": "null"}
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "adjudication": {}
+            },
+            "required": ["adjudication"]
+          },
+          "then": {
+            "properties": {
+              "outcome": {"enum": ["yes", "no"]}
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {"enum": ["cant_view", "skipped"]}
+            },
+            "required": ["outcome"]
+          },
+          "then": {
+            "properties": {
+              "nonTargetCategory": {"type": "null"},
+              "alternativeTaxon": {"type": "null"},
+              "correctedLifeStage": {"type": "null"},
+              "correctedVisualDomain": {"type": "null"},
+              "correctedView": {"type": "null"},
+              "mediaQuality": {"const": "unknown"},
+              "duplicateConcern": {"const": false},
+              "captiveOrCultivatedConcern": {"const": false},
+              "confidence": {"const": "unknown"}
+            },
+            "not": {
+              "properties": {
+                "adjudication": {}
+              },
+              "required": ["adjudication"]
+            }
+          }
+        }
+      ]
+    },
+    "verificationDecisionSignature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outcome",
+        "nonTargetCategory",
+        "alternativeAcceptedTaxonKey",
+        "lifeStage",
+        "visualDomain",
+        "view"
+      ],
+      "properties": {
+        "outcome": {"enum": ["yes", "no"]},
+        "nonTargetCategory": {
+          "anyOf": [
+            {
+              "enum": [
+                "alternative_species",
+                "other_butterfly",
+                "other_insect",
+                "artifact",
+                "specimen",
+                "no_organism",
+                "insufficient_visual_detail"
+              ]
+            },
+            {"type": "null"}
+          ]
+        },
+        "alternativeAcceptedTaxonKey": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "lifeStage": {"$ref": "#/$defs/verificationLifeStage"},
+        "visualDomain": {"$ref": "#/$defs/verificationVisualDomain"},
+        "view": {"$ref": "#/$defs/verificationView"}
+      }
+    },
+    "verificationConsensus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "campaignId",
+        "itemId",
+        "requiredReviewCount",
+        "effectiveReviewCount",
+        "decisiveReviewCount",
+        "effectiveReviewerIds",
+        "latestEvents",
+        "decisiveEvents",
+        "status",
+        "consensusOutcome",
+        "resolvedSignature",
+        "conflictingFields",
+        "conflictEventIds",
+        "secondReviewRequired",
+        "adjudicationRequired",
+        "supportEligibility",
+        "supportEligibilityBlockers",
+        "finalTestEligibility",
+        "finalTestEligibilityBlockers",
+        "resolvedAt"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": "taxalens-verification-consensus:v1.0.0"
+        },
+        "campaignId": {"$ref": "#/$defs/nonEmptyString"},
+        "itemId": {"$ref": "#/$defs/nonEmptyString"},
+        "requiredReviewCount": {"$ref": "#/$defs/positiveInteger"},
+        "effectiveReviewCount": {"$ref": "#/$defs/nonNegativeInteger"},
+        "decisiveReviewCount": {"$ref": "#/$defs/nonNegativeInteger"},
+        "effectiveReviewerIds": {"$ref": "#/$defs/stringArray"},
+        "latestEvents": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/verificationEvent"}
+        },
+        "decisiveEvents": {
+          "type": "array",
+          "items": {
+            "allOf": [
+              {"$ref": "#/$defs/verificationEvent"},
+              {
+                "type": "object",
+                "properties": {
+                  "outcome": {"enum": ["yes", "no"]}
+                }
+              }
+            ]
+          }
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "complete_agreement",
+            "unresolved_disagreement",
+            "uncertain_only",
+            "media_failure",
+            "deferred",
+            "adjudicated"
+          ]
+        },
+        "consensusOutcome": {
+          "anyOf": [
+            {"enum": ["yes", "no"]},
+            {"type": "null"}
+          ]
+        },
+        "resolvedSignature": {
+          "anyOf": [
+            {"$ref": "#/$defs/verificationDecisionSignature"},
+            {"type": "null"}
+          ]
+        },
+        "conflictingFields": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/verificationConflictField"}
+        },
+        "conflictEventIds": {"$ref": "#/$defs/stringArray"},
+        "secondReviewRequired": {"type": "boolean"},
+        "adjudicationRequired": {"type": "boolean"},
+        "supportEligibility": {
+          "enum": [
+            "not_applicable",
+            "blocked",
+            "prepared_for_biominer_resolution"
+          ]
+        },
+        "supportEligibilityBlockers": {"$ref": "#/$defs/stringArray"},
+        "finalTestEligibility": {
+          "enum": ["not_applicable", "blocked", "eligible"]
+        },
+        "finalTestEligibilityBlockers": {"$ref": "#/$defs/stringArray"},
+        "resolvedAt": {"$ref": "#/$defs/nullableUtcInstant"}
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {"enum": ["complete_agreement", "adjudicated"]}
+            },
+            "required": ["status"]
+          },
+          "then": {
+            "properties": {
+              "consensusOutcome": {"enum": ["yes", "no"]},
+              "resolvedSignature": {
+                "$ref": "#/$defs/verificationDecisionSignature"
+              },
+              "resolvedAt": {"$ref": "#/$defs/utcInstant"}
+            }
+          },
+          "else": {
+            "properties": {
+              "consensusOutcome": {"type": "null"},
+              "resolvedSignature": {"type": "null"},
+              "resolvedAt": {"type": "null"}
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {"const": "unresolved_disagreement"}
+            },
+            "required": ["status"]
+          },
+          "then": {
+            "properties": {
+              "conflictingFields": {"type": "array", "minItems": 1},
+              "conflictEventIds": {"type": "array", "minItems": 1}
+            }
+          },
+          "else": {
+            "properties": {
+              "conflictingFields": {"type": "array", "maxItems": 0},
+              "conflictEventIds": {"type": "array", "maxItems": 0}
+            }
+          }
+        }
+      ]
+    },
+    "verificationCoverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "eligibleItems",
+        "attemptedItems",
+        "unattemptedItems",
+        "decisivelyReviewedItems",
+        "resolvedYesItems",
+        "resolvedNoItems",
+        "uncertainItems",
+        "mediaFailureItems",
+        "deferredItems",
+        "pendingItems",
+        "effectiveReviewCount",
+        "decisiveReviewCount",
+        "yesReviewCount",
+        "noReviewCount",
+        "cantTellReviewCount",
+        "cantViewReviewCount",
+        "skippedReviewCount",
+        "inspectedItems",
+        "viewableItems",
+        "reviewCoverage",
+        "inspectionCoverage",
+        "viewabilityRate"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": "taxalens-verification-coverage:v1.0.0"
+        },
+        "eligibleItems": {"$ref": "#/$defs/nonNegativeInteger"},
+        "attemptedItems": {"$ref": "#/$defs/nonNegativeInteger"},
+        "unattemptedItems": {"$ref": "#/$defs/nonNegativeInteger"},
+        "decisivelyReviewedItems": {"$ref": "#/$defs/nonNegativeInteger"},
+        "resolvedYesItems": {"$ref": "#/$defs/nonNegativeInteger"},
+        "resolvedNoItems": {"$ref": "#/$defs/nonNegativeInteger"},
+        "uncertainItems": {"$ref": "#/$defs/nonNegativeInteger"},
+        "mediaFailureItems": {"$ref": "#/$defs/nonNegativeInteger"},
+        "deferredItems": {"$ref": "#/$defs/nonNegativeInteger"},
+        "pendingItems": {"$ref": "#/$defs/nonNegativeInteger"},
+        "effectiveReviewCount": {"$ref": "#/$defs/nonNegativeInteger"},
+        "decisiveReviewCount": {"$ref": "#/$defs/nonNegativeInteger"},
+        "yesReviewCount": {"$ref": "#/$defs/nonNegativeInteger"},
+        "noReviewCount": {"$ref": "#/$defs/nonNegativeInteger"},
+        "cantTellReviewCount": {"$ref": "#/$defs/nonNegativeInteger"},
+        "cantViewReviewCount": {"$ref": "#/$defs/nonNegativeInteger"},
+        "skippedReviewCount": {"$ref": "#/$defs/nonNegativeInteger"},
+        "inspectedItems": {"$ref": "#/$defs/nonNegativeInteger"},
+        "viewableItems": {"$ref": "#/$defs/nonNegativeInteger"},
+        "reviewCoverage": {"$ref": "#/$defs/nullableProbability"},
+        "inspectionCoverage": {"$ref": "#/$defs/nullableProbability"},
+        "viewabilityRate": {"$ref": "#/$defs/nullableProbability"}
+      }
+    },
+    "verificationQualityStratum": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stratumId",
+        "label",
+        "decisiveSampleCount",
+        "populationWeight",
+        "estimate"
+      ],
+      "properties": {
+        "stratumId": {"$ref": "#/$defs/nonEmptyString"},
+        "label": {"$ref": "#/$defs/nonEmptyString"},
+        "decisiveSampleCount": {"$ref": "#/$defs/nonNegativeInteger"},
+        "populationWeight": {"$ref": "#/$defs/nullableProbability"},
+        "estimate": {"$ref": "#/$defs/nullableProbability"}
+      }
+    },
+    "verificationQualityDistribution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["availability", "entries", "unavailableReason"],
+      "properties": {
+        "availability": {"enum": ["available", "unavailable"]},
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["key", "label", "count"],
+            "properties": {
+              "key": {"$ref": "#/$defs/nonEmptyString"},
+              "label": {"$ref": "#/$defs/nonEmptyString"},
+              "count": {"$ref": "#/$defs/nonNegativeInteger"}
+            }
+          }
+        },
+        "unavailableReason": {"$ref": "#/$defs/nullableNonEmptyString"}
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"availability": {"const": "available"}},
+            "required": ["availability"]
+          },
+          "then": {
+            "properties": {"unavailableReason": {"type": "null"}}
+          },
+          "else": {
+            "properties": {
+              "entries": {"type": "array", "maxItems": 0},
+              "unavailableReason": {"$ref": "#/$defs/nonEmptyString"}
+            }
+          }
+        }
+      ]
+    },
+    "verificationReferenceBankQuality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "prototypeRoleAttestations",
+        "taxonomicIdentityReviews",
+        "prototypeSupportCount",
+        "verifiedSupportCount",
+        "excludedSupportCount",
+        "conflicts",
+        "providerDistribution",
+        "routeDistribution",
+        "readiness",
+        "sourceSnapshotSha256"
+      ],
+      "properties": {
+        "prototypeRoleAttestations": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "providerSupportedRecordCount",
+            "attestedRecordCount",
+            "suitableRecordCount",
+            "independentHumanTaxonomicVerificationClaimed"
+          ],
+          "properties": {
+            "status": {
+              "enum": ["verified_complete", "incomplete", "unavailable"]
+            },
+            "providerSupportedRecordCount": {
+              "$ref": "#/$defs/nonNegativeInteger"
+            },
+            "attestedRecordCount": {"$ref": "#/$defs/nonNegativeInteger"},
+            "suitableRecordCount": {"$ref": "#/$defs/nonNegativeInteger"},
+            "independentHumanTaxonomicVerificationClaimed": {
+              "type": "boolean"
+            }
+          }
+        },
+        "taxonomicIdentityReviews": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "reviewedRecordCount",
+            "independentlyVerifiedRecordCount"
+          ],
+          "properties": {
+            "reviewedRecordCount": {"$ref": "#/$defs/nonNegativeInteger"},
+            "independentlyVerifiedRecordCount": {
+              "$ref": "#/$defs/nonNegativeInteger"
+            }
+          }
+        },
+        "prototypeSupportCount": {"$ref": "#/$defs/nonNegativeInteger"},
+        "verifiedSupportCount": {"$ref": "#/$defs/nonNegativeInteger"},
+        "excludedSupportCount": {"$ref": "#/$defs/nonNegativeInteger"},
+        "conflicts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["availability", "conflictCount", "unavailableReason"],
+          "properties": {
+            "availability": {"enum": ["available", "unavailable"]},
+            "conflictCount": {
+              "$ref": "#/$defs/nullableNonNegativeInteger"
+            },
+            "unavailableReason": {
+              "$ref": "#/$defs/nullableNonEmptyString"
+            }
+          }
+        },
+        "providerDistribution": {
+          "$ref": "#/$defs/verificationQualityDistribution"
+        },
+        "routeDistribution": {
+          "$ref": "#/$defs/verificationQualityDistribution"
+        },
+        "readiness": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "blockers"],
+          "properties": {
+            "status": {"enum": ["ready", "not_ready", "unavailable"]},
+            "blockers": {"$ref": "#/$defs/stringArray"}
+          }
+        },
+        "sourceSnapshotSha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "verificationReviewerControlQuality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "availability",
+        "blockers",
+        "controlSetId",
+        "groundTruthSha256",
+        "controlItemCount",
+        "attemptedControlItemCount",
+        "controlAttemptCount",
+        "controlAccuracy",
+        "falsePositiveRate",
+        "falseNegativeRate",
+        "mediaFailureHandlingRate",
+        "unexpectedMediaFailureRate"
+      ],
+      "properties": {
+        "availability": {"enum": ["available", "unavailable"]},
+        "blockers": {"$ref": "#/$defs/stringArray"},
+        "controlSetId": {"$ref": "#/$defs/nullableNonEmptyString"},
+        "groundTruthSha256": {
+          "anyOf": [
+            {"$ref": "#/$defs/sha256"},
+            {"type": "null"}
+          ]
+        },
+        "controlItemCount": {"$ref": "#/$defs/nonNegativeInteger"},
+        "attemptedControlItemCount": {
+          "$ref": "#/$defs/nonNegativeInteger"
+        },
+        "controlAttemptCount": {"$ref": "#/$defs/nonNegativeInteger"},
+        "controlAccuracy": {"$ref": "#/$defs/nullableProbability"},
+        "falsePositiveRate": {"$ref": "#/$defs/nullableProbability"},
+        "falseNegativeRate": {"$ref": "#/$defs/nullableProbability"},
+        "mediaFailureHandlingRate": {
+          "$ref": "#/$defs/nullableProbability"
+        },
+        "unexpectedMediaFailureRate": {
+          "$ref": "#/$defs/nullableProbability"
+        }
+      }
+    },
+    "verificationQualityCampaignSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "campaignId",
+        "title",
+        "kind",
+        "status",
+        "targetTaxon",
+        "sourceProviders",
+        "samplingPlanId",
+        "samplingPurpose",
+        "samplingDesign"
+      ],
+      "properties": {
+        "campaignId": {"$ref": "#/$defs/nonEmptyString"},
+        "title": {"$ref": "#/$defs/nonEmptyString"},
+        "kind": {
+          "enum": [
+            "flickr_target_verification",
+            "reference_identity_verification",
+            "reference_route_verification",
+            "adjudication",
+            "quality_control"
+          ]
+        },
+        "status": {
+          "enum": ["draft", "ready", "active", "paused", "complete", "archived"]
+        },
+        "targetTaxon": {
+          "anyOf": [
+            {"$ref": "#/$defs/taxonIdentity"},
+            {"type": "null"}
+          ]
+        },
+        "sourceProviders": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "flickr",
+              "gbif",
+              "inaturalist",
+              "wikimedia_commons",
+              "taxalens_fixture"
+            ]
+          }
+        },
+        "samplingPlanId": {"$ref": "#/$defs/nonEmptyString"},
+        "samplingPurpose": {
+          "enum": [
+            "credential_free_fixture",
+            "quality_estimation",
+            "failure_discovery",
+            "reference_readiness",
+            "adjudication",
+            "reviewer_quality_control"
+          ]
+        },
+        "samplingDesign": {
+          "enum": [
+            "fixed_fixture",
+            "census",
+            "simple_random",
+            "stratified_random",
+            "clustered_random",
+            "targeted_priority",
+            "control_items"
+          ]
+        }
+      }
+    },
+    "verificationQualityCounts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "eligibleItems",
+        "attemptedItems",
+        "decisivelyReviewedItems",
+        "decisiveQualitySampleItems",
+        "correctQualitySampleItems",
+        "errorQualitySampleItems",
+        "unresolvedConflictItems",
+        "adjudicatedItems",
+        "anonymousReviewerCount"
+      ],
+      "properties": {
+        "eligibleItems": {"$ref": "#/$defs/nonNegativeInteger"},
+        "attemptedItems": {"$ref": "#/$defs/nonNegativeInteger"},
+        "decisivelyReviewedItems": {"$ref": "#/$defs/nonNegativeInteger"},
+        "decisiveQualitySampleItems": {
+          "$ref": "#/$defs/nonNegativeInteger"
+        },
+        "correctQualitySampleItems": {
+          "$ref": "#/$defs/nonNegativeInteger"
+        },
+        "errorQualitySampleItems": {"$ref": "#/$defs/nonNegativeInteger"},
+        "unresolvedConflictItems": {"$ref": "#/$defs/nonNegativeInteger"},
+        "adjudicatedItems": {"$ref": "#/$defs/nonNegativeInteger"},
+        "anonymousReviewerCount": {"$ref": "#/$defs/nonNegativeInteger"}
+      }
+    },
+    "verificationQualityPrecision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method",
+        "availability",
+        "estimateBlockers",
+        "pointEstimate",
+        "intervalMethod",
+        "intervalAvailability",
+        "intervalBlockers",
+        "confidenceLevel",
+        "interval",
+        "effectiveSampleSize",
+        "decisiveSampleCount",
+        "representedStrata",
+        "strata"
+      ],
+      "properties": {
+        "method": {"enum": ["simple_random_wilson", "stratified_hajek"]},
+        "availability": {"enum": ["available", "unavailable"]},
+        "estimateBlockers": {"$ref": "#/$defs/stringArray"},
+        "pointEstimate": {"$ref": "#/$defs/nullableProbability"},
+        "intervalMethod": {
+          "enum": [
+            "simple_random_wilson",
+            "grouped_percentile_bootstrap"
+          ]
+        },
+        "intervalAvailability": {"enum": ["available", "unavailable"]},
+        "intervalBlockers": {"$ref": "#/$defs/stringArray"},
+        "confidenceLevel": {"$ref": "#/$defs/nullableProbability"},
+        "interval": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["lower", "upper"],
+              "properties": {
+                "lower": {"$ref": "#/$defs/probability"},
+                "upper": {"$ref": "#/$defs/probability"}
+              }
+            },
+            {"type": "null"}
+          ]
+        },
+        "effectiveSampleSize": {
+          "anyOf": [
+            {"type": "number", "exclusiveMinimum": 0},
+            {"type": "null"}
+          ]
+        },
+        "decisiveSampleCount": {"$ref": "#/$defs/nonNegativeInteger"},
+        "representedStrata": {"$ref": "#/$defs/stringArray"},
+        "strata": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/verificationQualityStratum"}
+        }
+      }
+    },
+    "verificationQualityAgreement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pairwise", "nominalAlpha"],
+      "properties": {
+        "pairwise": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "availability",
+            "blockers",
+            "overlappingItemCount",
+            "anonymousReviewerCount",
+            "pairCount",
+            "percentAgreement"
+          ],
+          "properties": {
+            "availability": {"enum": ["available", "unavailable"]},
+            "blockers": {"$ref": "#/$defs/stringArray"},
+            "overlappingItemCount": {
+              "$ref": "#/$defs/nonNegativeInteger"
+            },
+            "anonymousReviewerCount": {
+              "$ref": "#/$defs/nonNegativeInteger"
+            },
+            "pairCount": {"$ref": "#/$defs/nonNegativeInteger"},
+            "percentAgreement": {"$ref": "#/$defs/nullableProbability"}
+          }
+        },
+        "nominalAlpha": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "availability",
+            "blockers",
+            "overlappingItemCount",
+            "alpha"
+          ],
+          "properties": {
+            "availability": {"enum": ["available", "unavailable"]},
+            "blockers": {"$ref": "#/$defs/stringArray"},
+            "overlappingItemCount": {
+              "$ref": "#/$defs/nonNegativeInteger"
+            },
+            "alpha": {
+              "anyOf": [
+                {"type": "number", "minimum": -1, "maximum": 1},
+                {"type": "null"}
+              ]
+            }
+          }
+        }
+      }
+    },
+    "verificationQualityConflicts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "conflictedItems",
+        "unresolvedConflictItems",
+        "adjudicatedItems",
+        "denominatorAttemptedItems",
+        "conflictRate"
+      ],
+      "properties": {
+        "conflictedItems": {"$ref": "#/$defs/nonNegativeInteger"},
+        "unresolvedConflictItems": {"$ref": "#/$defs/nonNegativeInteger"},
+        "adjudicatedItems": {"$ref": "#/$defs/nonNegativeInteger"},
+        "denominatorAttemptedItems": {
+          "$ref": "#/$defs/nonNegativeInteger"
+        },
+        "conflictRate": {"$ref": "#/$defs/nullableProbability"}
+      }
+    },
+    "verificationQualityGate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "blockers"],
+      "properties": {
+        "status": {"enum": ["ready", "not_ready", "unavailable"]},
+        "blockers": {"$ref": "#/$defs/stringArray"}
+      }
+    },
+    "verificationReviewedLabelLeakageGate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "blockers"],
+      "properties": {
+        "status": {"enum": ["passed", "failed", "unavailable"]},
+        "blockers": {"$ref": "#/$defs/stringArray"}
+      }
+    },
+    "verificationMilestoneEvaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "milestonePlanId",
+        "decisiveSampleCount",
+        "status",
+        "releaseEvaluationAllowed",
+        "currentMilestone",
+        "nextMilestone",
+        "evaluatedMilestones",
+        "missedMilestones"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": "taxalens-verification-review-milestones:v1.0.0"
+        },
+        "milestonePlanId": {"$ref": "#/$defs/nonEmptyString"},
+        "decisiveSampleCount": {"$ref": "#/$defs/nonNegativeInteger"},
+        "status": {
+          "enum": [
+            "evaluation_due",
+            "not_due",
+            "already_evaluated",
+            "schedule_complete"
+          ]
+        },
+        "releaseEvaluationAllowed": {"type": "boolean"},
+        "currentMilestone": {"$ref": "#/$defs/nullablePositiveInteger"},
+        "nextMilestone": {"$ref": "#/$defs/nullablePositiveInteger"},
+        "evaluatedMilestones": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/positiveInteger"}
+        },
+        "missedMilestones": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/positiveInteger"}
+        }
+      }
+    },
+    "verificationQualityFingerprints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "campaignManifestSha256",
+        "questionSha256",
+        "samplingPlanSha256",
+        "decisionLedgerSha256",
+        "reviewedLabelsSha256",
+        "referenceReadinessSha256",
+        "reviewedLabelLeakageSha256",
+        "releasePolicySha256",
+        "milestonePlanSha256"
+      ],
+      "properties": {
+        "campaignManifestSha256": {"$ref": "#/$defs/sha256"},
+        "questionSha256": {"$ref": "#/$defs/sha256"},
+        "samplingPlanSha256": {"$ref": "#/$defs/sha256"},
+        "decisionLedgerSha256": {"$ref": "#/$defs/sha256"},
+        "reviewedLabelsSha256": {"$ref": "#/$defs/sha256"},
+        "referenceReadinessSha256": {"$ref": "#/$defs/sha256"},
+        "reviewedLabelLeakageSha256": {"$ref": "#/$defs/sha256"},
+        "releasePolicySha256": {"$ref": "#/$defs/sha256"},
+        "milestonePlanSha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "verificationQualityRelease": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "evaluatedAtMilestone",
+        "blockers",
+        "missingRequiredStrata"
+      ],
+      "properties": {
+        "status": {"enum": ["not_evaluated", "blocked", "release_ready"]},
+        "evaluatedAtMilestone": {
+          "$ref": "#/$defs/nullablePositiveInteger"
+        },
+        "blockers": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "conflict_rate_above_policy",
+              "conflict_rate_unavailable",
+              "minimum_decisive_sample_not_met",
+              "precision_estimate_unavailable",
+              "precision_interval_unavailable",
+              "precision_lower_bound_below_policy",
+              "reference_readiness_not_met",
+              "required_strata_missing",
+              "review_milestone_already_evaluated",
+              "review_milestone_not_due",
+              "review_milestone_schedule_complete",
+              "reviewed_label_leakage_gate_not_met",
+              "reviewer_agreement_below_policy",
+              "reviewer_agreement_unavailable"
+            ]
+          }
+        },
+        "missingRequiredStrata": {"$ref": "#/$defs/stringArray"}
+      }
+    },
+    "verificationQualitySnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "capturedAt",
+        "campaign",
+        "counts",
+        "coverage",
+        "precision",
+        "agreement",
+        "conflicts",
+        "referenceReadiness",
+        "reviewedLabelLeakage",
+        "referenceBank",
+        "reviewerControl",
+        "milestone",
+        "fingerprints",
+        "release",
+        "snapshotSha256"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": "taxalens-verification-quality-snapshot:v1.1.0"
+        },
+        "capturedAt": {"$ref": "#/$defs/utcInstant"},
+        "campaign": {
+          "$ref": "#/$defs/verificationQualityCampaignSnapshot"
+        },
+        "counts": {"$ref": "#/$defs/verificationQualityCounts"},
+        "coverage": {"$ref": "#/$defs/verificationCoverage"},
+        "precision": {"$ref": "#/$defs/verificationQualityPrecision"},
+        "agreement": {"$ref": "#/$defs/verificationQualityAgreement"},
+        "conflicts": {"$ref": "#/$defs/verificationQualityConflicts"},
+        "referenceReadiness": {
+          "$ref": "#/$defs/verificationQualityGate"
+        },
+        "reviewedLabelLeakage": {
+          "$ref": "#/$defs/verificationReviewedLabelLeakageGate"
+        },
+        "referenceBank": {
+          "anyOf": [
+            {"$ref": "#/$defs/verificationReferenceBankQuality"},
+            {"type": "null"}
+          ]
+        },
+        "reviewerControl": {
+          "anyOf": [
+            {"$ref": "#/$defs/verificationReviewerControlQuality"},
+            {"type": "null"}
+          ]
+        },
+        "milestone": {
+          "$ref": "#/$defs/verificationMilestoneEvaluation"
+        },
+        "fingerprints": {
+          "$ref": "#/$defs/verificationQualityFingerprints"
+        },
+        "release": {"$ref": "#/$defs/verificationQualityRelease"},
+        "snapshotSha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "judgeBundleVerificationSection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "artifact_ids",
+        "reason",
+        "candidate_semantics",
+        "verification_status",
+        "human_review_required",
+        "scientific_claim_allowed"
+      ],
+      "properties": {
+        "status": {"enum": ["available", "partial", "unavailable"]},
+        "artifact_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/nonEmptyString"}
+        },
+        "reason": {"$ref": "#/$defs/nullableNonEmptyString"},
+        "candidate_semantics": {
+          "enum": [
+            "not_applicable",
+            "hypothesis_not_occurrence",
+            "candidate_reference_not_verified_support",
+            "reviewed_evidence",
+            "diagnostic_only"
+          ]
+        },
+        "verification_status": {
+          "enum": [
+            "metadata_only",
+            "unreviewed",
+            "human_review_pending",
+            "human_verified",
+            "machine_verified_contract",
+            "unavailable"
+          ]
+        },
+        "human_review_required": {"type": "boolean"},
+        "scientific_claim_allowed": {"type": "boolean"}
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"status": {"const": "unavailable"}},
+            "required": ["status"]
+          },
+          "then": {
+            "properties": {
+              "artifact_ids": {"type": "array", "maxItems": 0},
+              "reason": {"$ref": "#/$defs/nonEmptyString"},
+              "verification_status": {"const": "unavailable"},
+              "human_review_required": {"const": true},
+              "scientific_claim_allowed": {"const": false}
+            }
+          },
+          "else": {
+            "properties": {
+              "artifact_ids": {"type": "array", "minItems": 1}
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "scientific_claim_allowed": {"const": true}
+            },
+            "required": ["scientific_claim_allowed"]
+          },
+          "then": {
+            "properties": {
+              "status": {"const": "available"},
+              "verification_status": {"const": "human_verified"},
+              "human_review_required": {"const": false}
+            }
+          }
+        }
+      ]
+    },
+    "judgeBundleVerificationSections": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "verification_campaigns",
+        "verification_items",
+        "verification_media",
+        "verification_decisions",
+        "verification_quality"
+      ],
+      "properties": {
+        "verification_campaigns": {
+          "$ref": "#/$defs/judgeBundleVerificationSection"
+        },
+        "verification_items": {
+          "$ref": "#/$defs/judgeBundleVerificationSection"
+        },
+        "verification_media": {
+          "$ref": "#/$defs/judgeBundleVerificationSection"
+        },
+        "verification_decisions": {
+          "$ref": "#/$defs/judgeBundleVerificationSection"
+        },
+        "verification_quality": {
+          "$ref": "#/$defs/judgeBundleVerificationSection"
+        }
+      }
+    }
+  }
+}

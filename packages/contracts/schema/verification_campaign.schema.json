@@ -1,0 +1,5 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://taxalens.local/contracts/verification-campaign-v1.0.0.schema.json",
+  "$ref": "verification.schema.json#/$defs/verificationCampaign"
+}
