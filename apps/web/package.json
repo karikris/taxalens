@@ -14,9 +14,13 @@
     "preview": "vite preview --host 127.0.0.1",
     "test": "vitest run",
     "test:agent": "vitest run src/agent/agentEvaluation.test.ts",
+    "test:deployment": "node --test scripts/static-deployment.test.mjs",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "verify:build": "npm run build && node scripts/verify-static-build.mjs"
+    "verify:build": "npm run build && node scripts/verify-static-build.mjs",
+    "prepare:deployment": "node scripts/static-deployment.mjs prepare",
+    "verify:deployment": "node scripts/static-deployment.mjs verify",
+    "build:deployment": "npm run verify:build && npm run prepare:deployment && npm run verify:deployment"
   },
   "dependencies": {
     "@duckdb/duckdb-wasm": "1.32.0",
