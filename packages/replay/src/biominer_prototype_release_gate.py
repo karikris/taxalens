@@ -6,8 +6,8 @@ from collections.abc import Mapping
 from typing import Any
 
 PROTOTYPE_RELEASE_GATE_SCHEMA_VERSION = "taxalens-prototype-release-gate:v1.0.0"
-PROTOTYPE_EVIDENCE_SCHEMA_VERSION = "taxalens-biominer-prototype-evidence:v1.0.0"
-PINNED_BIOMINER_SHA = "67c1c2a3a2c9b909b256b3094913af342f4ccbed"
+PROTOTYPE_EVIDENCE_SCHEMA_VERSION = "taxalens-biominer-prototype-evidence:v1.1.0"
+PINNED_BIOMINER_SHA = "74a7d648a562efa744e6502ef504a23b63b4e02f"
 EXPLICIT_PROTOTYPE_MODE = "explicit_prototype"
 GO_PROTOTYPE_ONLY = "GO_PROTOTYPE_ONLY"
 NO_GO = "NO_GO"
@@ -68,8 +68,8 @@ def evaluate_prototype_release_gate(
         _gate(
             "prototype_status_explicit",
             _path(prototype, "status") == "prototype_only_available_with_limitations"
-            and _path(prototype, "contract_count") == 9,
-            "The handoff is explicitly prototype-only and exposes all nine contracts.",
+            and _path(prototype, "contract_count") == 10,
+            "The handoff is explicitly prototype-only and exposes all ten contracts.",
             "Prototype status or normalized contract coverage is incomplete.",
             "status",
             "contract_count",

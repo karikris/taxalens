@@ -21,7 +21,7 @@ SOURCE_FIXTURE = Path("demo/fixture/papilio_pilot")
 def _build(web_root: Path) -> LocalReplayBuild:
     return LocalReplayBuild(
         web_root=web_root,
-        bundle_id="papilio-demoleus-prototype-67c1c2a3-v2",
+        bundle_id="papilio-demoleus-prototype-74a7d648-v3",
         current_taxalens_sha="a" * 40,
         fixture_taxalens_sha="b" * 40,
         biominer_sha="c" * 40,
@@ -52,10 +52,10 @@ def test_prepare_local_replay_verifies_source_build_and_provenance(
     prepared = prepare_local_replay(tmp_path, build_web=_copy_static_fixture)
 
     assert prepared.web_root == (tmp_path / "dist" / "web").resolve()
-    assert prepared.bundle_id == "papilio-demoleus-prototype-67c1c2a3-v2"
+    assert prepared.bundle_id == "papilio-demoleus-prototype-74a7d648-v3"
     assert prepared.current_taxalens_sha == "a" * 40
     assert prepared.fixture_taxalens_sha == "fab9d3f1605d28d4bbfc3a4d0074f40e5ffff023"
-    assert prepared.biominer_sha == "67c1c2a3a2c9b909b256b3094913af342f4ccbed"
+    assert prepared.biominer_sha == "74a7d648a562efa744e6502ef504a23b63b4e02f"
     assert prepared.artifact_count == 25
     assert prepared.section_count == 20
     assert prepared.unavailable_section_count == 6
@@ -133,7 +133,7 @@ def test_serve_local_replay_prints_receipt_opens_browser_and_closes(
     payload = json.loads(capsys.readouterr().out)
     assert payload["status"] == "serving"
     assert payload["url"] == "http://127.0.0.1:51234/"
-    assert payload["bundle_id"] == "papilio-demoleus-prototype-67c1c2a3-v2"
+    assert payload["bundle_id"] == "papilio-demoleus-prototype-74a7d648-v3"
     assert payload["taxalens_sha"] == "a" * 40
     assert payload["fixture_taxalens_sha"] == "b" * 40
     assert payload["biominer_sha"] == "c" * 40

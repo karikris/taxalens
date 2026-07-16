@@ -27,7 +27,7 @@ def test_committed_prototype_import_matches_exact_git_objects() -> None:
     imported = import_biominer_prototype_artifacts(check=True)
     manifest = json.loads(DEFAULT_MANIFEST.read_text(encoding="utf-8"))
 
-    assert len(imported) == 20
+    assert len(imported) == 21
     assert tuple(sorted(row["source_path"] for row in manifest["artifacts"])) == (
         EXPECTED_SOURCE_PATHS
     )

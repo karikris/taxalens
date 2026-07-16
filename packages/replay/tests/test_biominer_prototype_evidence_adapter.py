@@ -16,7 +16,7 @@ from packages.replay.src.biominer_prototype_evidence_adapter import (
     adapt_prototype_evidence,
 )
 
-BIOMINER_SHA = "67c1c2a3a2c9b909b256b3094913af342f4ccbed"
+BIOMINER_SHA = "74a7d648a562efa744e6502ef504a23b63b4e02f"
 
 
 def _copy_import(tmp_path: Path) -> Path:
@@ -104,6 +104,29 @@ def test_reference_runtime_and_policy_contracts_preserve_exact_semantics() -> No
     assert policy["final_test_used_for_selection"] is False
 
 
+def test_user_goal_verification_is_complete_without_becoming_taxonomic_truth() -> None:
+    goal = adapt_prototype_evidence()["contracts"][
+        "provider_support_goal_verification"
+    ]
+
+    assert goal["human_review_required"] is False
+    assert goal["verification_status"] == "user_goal_suitability_verified_complete"
+    assert goal["data"]["status"] == "verified_complete"
+    assert goal["data"]["assertion_source"] == "direct_user_confirmation"
+    assert goal["data"]["provider_supported_record_count"] == 81
+    assert goal["data"]["verified_record_count"] == 81
+    assert goal["data"]["records_meeting_goal_count"] == 81
+    assert goal["data"]["all_provider_supported_records_verified"] is True
+    assert goal["data"]["all_verified_records_meet_goal"] is True
+    assert (
+        goal["data"]["semantics"][
+            "independent_human_taxonomic_verification_claimed"
+        ]
+        is False
+    )
+    assert goal["scientific_claim_allowed"] is False
+
+
 def test_benchmark_and_staged_inference_are_not_accuracy_or_prevalence() -> None:
     contracts = adapt_prototype_evidence()["contracts"]
     benchmark = contracts["benchmark"]["data"]
@@ -160,6 +183,7 @@ def test_release_contract_is_prototype_go_only_and_backlog_remains_open() -> Non
     assert backlog["status"] == "deferred_does_not_block_prototype"
     assert len(backlog["items"]) == 10
     assert backlog["items"][0]["exact_count"]["reference_records_pending"] == 81
+    assert "goal-suitability review is already complete" in backlog["items"][0]["work"]
     assert backlog["items"][5]["exact_count"]["research_only_references"] == 79
     assert backlog["items"][6]["exact_count"]["human_verified_calibration_records"] == 0
 

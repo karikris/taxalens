@@ -12,7 +12,7 @@ from typing import Any, TypedDict
 
 from packages.replay.src.validation import is_full_git_sha
 
-PROTOTYPE_EVIDENCE_ADAPTER_SCHEMA_VERSION = "taxalens-biominer-prototype-evidence:v1.0.0"
+PROTOTYPE_EVIDENCE_ADAPTER_SCHEMA_VERSION = "taxalens-biominer-prototype-evidence:v1.1.0"
 PROTOTYPE_IMPORT_SCHEMA_VERSION = "taxalens-biominer-prototype-import:v1.0.0"
 DEFAULT_PROTOTYPE_IMPORT_MANIFEST = Path("demo/source/biominer_phase15/import_manifest.json")
 PROTOTYPE_SECTION_NAMES = (
@@ -23,6 +23,7 @@ PROTOTYPE_SECTION_NAMES = (
     "staged_inference",
     "evidence_semantics",
     "phase15_release",
+    "provider_support_goal_verification",
     "human_work_backlog",
     "handoff_fingerprints",
 )
@@ -83,6 +84,7 @@ def adapt_prototype_evidence(
     acceptance = payloads["phase15-release-acceptance"]
     final = payloads["phase15-final-verification"]
     backlog = payloads["phase15-backlog"]
+    goal_verification = payloads["provider-support-goal-verification"]
     _validate_cross_file_contracts(
         report=report,
         support=support,
@@ -94,6 +96,7 @@ def adapt_prototype_evidence(
         acceptance=acceptance,
         final=final,
         backlog=backlog,
+        goal_verification=goal_verification,
     )
 
     reference_bank = _mapping(report.get("reference_bank"), "report.reference_bank")
@@ -345,6 +348,47 @@ def adapt_prototype_evidence(
                 "public_reference_image_display_authorized": False,
             },
         ),
+        "provider_support_goal_verification": _contract(
+            candidate_semantics=(
+                "direct_user_confirmation_of_prototype_support_role_suitability"
+                "_not_independent_taxonomic_verification"
+            ),
+            verification_status="user_goal_suitability_verified_complete",
+            human_review_required=False,
+            sources=_sources(
+                sources,
+                "provider-support-goal-verification",
+                "phase15-release-acceptance",
+            ),
+            data={
+                "status": goal_verification["status"],
+                "assertion_source": goal_verification["assertion_source"],
+                "asserted_by": goal_verification["asserted_by"],
+                "verification_completed_on": goal_verification["verification_completed_on"],
+                "recorded_at": goal_verification["recorded_at"],
+                "reference_bank_version": goal_verification["reference_bank_version"],
+                "goal": goal_verification["goal"],
+                "provider_supported_record_count": goal_verification[
+                    "provider_supported_record_count"
+                ],
+                "verified_record_count": goal_verification["verified_record_count"],
+                "records_meeting_goal_count": goal_verification[
+                    "records_meeting_goal_count"
+                ],
+                "all_provider_supported_records_verified": goal_verification[
+                    "all_provider_supported_records_verified"
+                ],
+                "all_verified_records_meet_goal": goal_verification[
+                    "all_verified_records_meet_goal"
+                ],
+                "semantics": dict(
+                    _mapping(
+                        goal_verification.get("semantics"),
+                        "goal_verification.semantics",
+                    )
+                ),
+            },
+        ),
         "human_work_backlog": _contract(
             candidate_semantics="human_and_engineering_work_not_completed_evidence",
             verification_status="deferred_non_blocking_for_prototype",
@@ -400,6 +444,7 @@ def _validate_cross_file_contracts(
     acceptance: Mapping[str, Any],
     final: Mapping[str, Any],
     backlog: Mapping[str, Any],
+    goal_verification: Mapping[str, Any],
 ) -> None:
     if report.get("status") != "complete_prototype_only":
         raise PrototypeEvidenceAdapterError("Phase 14 report is not prototype-complete")
@@ -439,6 +484,33 @@ def _validate_cross_file_contracts(
     support_semantics = _mapping(support.get("semantics"), "support.semantics")
     if support_semantics.get("provider_supported_is_human_verified") is not False:
         raise PrototypeEvidenceAdapterError("provider support is promoted to human verification")
+    goal_semantics = _mapping(
+        goal_verification.get("semantics"),
+        "goal_verification.semantics",
+    )
+    if (
+        goal_verification.get("status") != "verified_complete"
+        or goal_verification.get("assertion_source") != "direct_user_confirmation"
+        or goal_verification.get("reference_bank_version")
+        != _mapping(support.get("execution"), "support.execution").get(
+            "reference_bank_version"
+        )
+        or goal_verification.get("provider_supported_record_count") != 81
+        or goal_verification.get("verified_record_count") != 81
+        or goal_verification.get("records_meeting_goal_count") != 81
+        or goal_verification.get("all_provider_supported_records_verified") is not True
+        or goal_verification.get("all_verified_records_meet_goal") is not True
+        or goal_semantics.get("verification_is_user_goal_suitability_confirmation")
+        is not True
+        or goal_semantics.get("independent_human_taxonomic_verification_claimed")
+        is not False
+        or goal_semantics.get("classification_accuracy_authorized") is not False
+        or goal_semantics.get("scientific_release_authorized") is not False
+        or goal_semantics.get("production_default_change_authorized") is not False
+    ):
+        raise PrototypeEvidenceAdapterError(
+            "provider-support goal verification boundary differs"
+        )
 
     embedding_counts = _mapping(embeddings.get("counts"), "embeddings.counts")
     embedding_validation = _mapping(embeddings.get("validation"), "embeddings.validation")
@@ -544,6 +616,8 @@ def _validate_cross_file_contracts(
         or authorization.get("production_default_change") is not False
         or authorization.get("public_reference_image_display") is not False
         or acceptance.get("status") != "accepted_prototype_only_with_limitations"
+        or acceptance_bank.get("user_goal_verified") != 81
+        or acceptance_bank.get("user_goal_suitable") != 81
         or acceptance_authorization.get("scientific_release") is not False
         or final.get("status") != "passed_prototype_only"
         or release.get("scientific_release") != "not_authorized"
@@ -626,8 +700,8 @@ def _load_inventory(
             "byte_count": expected_bytes,
             "checksum_verified": True,
         }
-    if len(payloads) != 20:
-        raise PrototypeEvidenceAdapterError("prototype import must contain 20 artifacts")
+    if len(payloads) != 21:
+        raise PrototypeEvidenceAdapterError("prototype import must contain 21 artifacts")
     return payloads, sources
 
 

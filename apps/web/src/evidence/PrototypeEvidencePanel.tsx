@@ -23,8 +23,18 @@ export function PrototypeEvidencePanel({
         scientific release.
       </EvidenceState>
 
+      <EvidenceState state="available" title="81 / 81 support-role suitability checks verified">
+        A direct human confirmation records every frozen provider-supported item as suitable for
+        its assigned Build Week prototype role. This is user-goal verification, not independent
+        expert taxonomic verification.
+      </EvidenceState>
+
       <dl className="prototype-evidence__facts">
-        <Fact label="Frozen support" value="81 provider-supported · 0 human-verified" />
+        <Fact
+          label="Human-confirmed scope"
+          value={`${prototype.userGoalVerification.recordsMeetingGoalCount} / ${prototype.userGoalVerification.providerSupportedRecordCount} prototype-role suitable`}
+        />
+        <Fact label="Taxonomic review" value="0 independently human-verified" />
         <Fact label="Licence policy" value="2 allowed · 79 research-only" />
         <Fact label="Reference routes" value="80 adult · 1 larval · 0 pinned specimen" />
         <Fact
@@ -36,6 +46,10 @@ export function PrototypeEvidencePanel({
           value={`1,024 dimensions · ${prototype.runtime.frozenSupportEmbeddings} embeddings`}
         />
         <Fact label="YOLOE authority" value="Gate and router only — not classification" />
+        <Fact
+          label="Local image limit"
+          value={`No fixed runner cap · historical smoke used ${prototype.runtime.smokeImageCount}`}
+        />
       </dl>
 
       <div className="prototype-evidence__comparison">
@@ -92,6 +106,11 @@ export function PrototypeEvidencePanel({
           <Fact
             label="Imported source artifacts"
             value={prototype.provenance.importedArtifactCount.toLocaleString('en-US')}
+          />
+          <Fact
+            label="Suitability asserted by"
+            value={prototype.userGoalVerification.assertedBy}
+            code
           />
         </dl>
       </details>

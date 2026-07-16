@@ -62,17 +62,17 @@ describe('AppShell', () => {
     expect(mission).toHaveAttribute('aria-current', 'page')
   })
 
-  it('provides a labelled five-step tour that can navigate to a view', () => {
+  it('provides a labelled six-step tour that can navigate to a view', () => {
     renderShell()
 
     fireEvent.click(screen.getByRole('button', { name: 'Start 90-second judge tour' }))
     expect(screen.getByRole('dialog', { name: 'Research Mission' })).toBeInTheDocument()
-    expect(screen.getByText('90-second judge tour · Step 1 of 5')).toBeInTheDocument()
-    expect(screen.getByText('Suggested time: 15 seconds · Total route: 90 seconds')).toBeInTheDocument()
+    expect(screen.getByText('90-second judge tour · Step 1 of 6')).toBeInTheDocument()
+    expect(screen.getByText('Suggested time: 10 seconds · Total route: 90 seconds')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Next: Observatory' }))
     expect(screen.getByRole('dialog', { name: 'Observatory' })).toBeInTheDocument()
-    expect(screen.getByText('90-second judge tour · Step 2 of 5')).toBeInTheDocument()
+    expect(screen.getByText('90-second judge tour · Step 2 of 6')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Visit Observatory' }))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
@@ -103,6 +103,7 @@ describe('AppShell', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Next: Observatory' }))
     fireEvent.click(screen.getByRole('button', { name: 'Next: Evidence Lens' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Next: Human Review' }))
     fireEvent.click(screen.getByRole('button', { name: 'Next: Dashboard' }))
     fireEvent.click(screen.getByRole('button', { name: 'Next: Export' }))
     expect(screen.getByRole('dialog', { name: 'Export' })).toBeInTheDocument()
@@ -133,6 +134,7 @@ describe('AppShell', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Start 90-second judge tour' }))
     fireEvent.click(screen.getByRole('button', { name: 'Next: Observatory' }))
     fireEvent.click(screen.getByRole('button', { name: 'Next: Evidence Lens' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Next: Human Review' }))
     fireEvent.click(screen.getByRole('button', { name: 'Next: Dashboard' }))
     fireEvent.click(screen.getByRole('button', { name: 'Next: Export' }))
     fireEvent.click(screen.getByRole('button', { name: 'Visit Export' }))

@@ -13,7 +13,7 @@ import {
 
 const sourceSha = 'a'.repeat(40)
 const fixtureTaxaLensSha = 'b'.repeat(40)
-const biominerSha = '67c1c2a3a2c9b909b256b3094913af342f4ccbed'
+const biominerSha = '74a7d648a562efa744e6502ef504a23b63b4e02f'
 const temporaryRoots = []
 
 afterEach(async () => {

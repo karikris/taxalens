@@ -654,8 +654,9 @@ export function MissionWorkspace({ onReplayLaunch, replay }: MissionWorkspacePro
               {evidence.stoppingConditions.requiredEvidence.length} required evidence gates.
             </li>
             <li>
-              Large YOLOE and BioCLIP runs require a different computer; local verification is capped
-              at {evidence.budgets.localBuildVerificationMaxImages} images.
+              The local YOLOE + BioCLIP runner has no fixed image-count cap. The imported historical
+              smoke used {evidence.budgets.historicalLocalBuildVerificationImages} images; explicit
+              batch sizes still control memory use.
             </li>
             <li>API work stops at the draft cap of {draft.maximumApiCalls.toLocaleString()} calls.</li>
           </ul>

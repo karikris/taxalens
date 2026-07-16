@@ -2,7 +2,7 @@
 
 ## Frozen product boundary
 
-- Current reviewed BioMiner handoff SHA: `67c1c2a3a2c9b909b256b3094913af342f4ccbed` on `main`.
+- Current reviewed BioMiner handoff SHA: `74a7d648a562efa744e6502ef504a23b63b4e02f` on `main`.
 - Boundary version: `artifact-first-product-boundary-v1.0.0`.
 - Broad BioMiner module copying is frozen. Existing copied modules remain as provenance-bound compatibility contracts; they are not precedent for more copies.
 - New integration order is: committed artifact, versioned schema, thin adapter, stable BioMiner command, small shared package, and copied source only after an explicit documented finding that every earlier option is unsuitable.
@@ -18,13 +18,13 @@ does not rewrite component provenance.
 
 - Phase 13 evaluation schemas and machinery are committed, but no real reviewed Papilio evaluation result bundle is committed for TaxaLens to display.
 - Phase 14 now includes a committed prototype-only Papilio few-shot report plus compact manifests for a frozen 81-record metadata-qualified support bank, reference embeddings, B0–B16 retrieval experiments, a selected raw-margin policy, and staged Flickr inference.
-- Phase 15 includes a committed 14-of-14 prototype-entry GO audit, prototype release acceptance, final verification, and a post-Build-Week backlog.
+- Phase 15 includes a committed 14-of-14 prototype-entry GO audit, prototype release acceptance, final verification, a post-Build-Week backlog, and a direct user confirmation of the frozen support bank's prototype-role suitability goal.
 - The GO decision authorizes explicit prototype integration only. It does not authorize a production-default change, scientific release, calibrated accuracy claim, or public display of the reference images.
-- All 81 support rows are provider-supported and independently hash-pinned, but zero are independently human taxonomically verified. Seventy-nine are research-only and two lack owner evidence.
+- All 81 support rows are provider-supported, independently hash-pinned, and user-confirmed as suitable for their assigned Build Week prototype roles. Zero are independently human taxonomically verified. Seventy-nine are research-only and two lack owner evidence.
 - The selected B13 policy always scores the target and uses a raw target-versus-competitor margin threshold of `0.10`. It is uncalibrated, emits no probabilities, and was not fitted from reviewed labels.
 - Staged inference classified 13,496 of 13,501 planned Flickr records, scored the target and 34 species candidates for every classified record, and recorded five retryable source failures. These distributions are retrieval diagnostics, not classification accuracy, biological occurrence, or prevalence.
 - The staged runner's `0.02` preselection abstention rule is distinct from the selected `0.10` integration policy and must not be conflated.
-- Human review, calibration from independently reviewed labels, final-test scientific evaluation, public-display rights review, focused/masked visual-input ablations, and independent YOLOE routing validation remain blocked or deferred.
+- Independent expert taxonomic review, calibration from independently reviewed labels, final-test scientific evaluation, public-display rights review, focused/masked visual-input ablations, and independent YOLOE routing validation remain blocked or deferred.
 - A present path, candidate count, source-provider verification, or taxon match does not make a scientific claim available.
 - Missing or blocked evidence must be returned as an explicit unavailable/review state through the product facade.
 
@@ -127,7 +127,7 @@ TaxaLens treats `karikris/BioMiner` as the upstream research engine and treats t
 ## Pinned SHA
 
 - `biominer_repository`: `karikris/BioMiner`
-- `pinned_sha`: `67c1c2a3a2c9b909b256b3094913af342f4ccbed`
+- `pinned_sha`: `74a7d648a562efa744e6502ef504a23b63b4e02f`
 - `branch`: `main`
 
 ## Contracts consumed (current phase)

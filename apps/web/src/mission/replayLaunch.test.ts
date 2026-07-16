@@ -31,7 +31,7 @@ describe('provenance-bound replay launch', () => {
 
     const fingerprint = await fingerprintEvidencePlan(plan)
     expect(fingerprint).toBe(
-      'sha256:f983de321a83c728f3a75dd08c9ff0d4504b96422aaa96e16d30d22e5b518133',
+      'sha256:a72a4ae569ebc0f1ef9c252d4f921dcc5f3ba5773395ad5790113f6b0c18447c',
     )
     expect(await fingerprintEvidencePlan(clone)).toBe(fingerprint)
     expect(await fingerprintEvidencePlan(changed)).not.toBe(fingerprint)
@@ -50,7 +50,7 @@ describe('provenance-bound replay launch', () => {
       mode: 'submitted_fixture_replay',
       planFingerprint: ready.planFingerprint,
       bundle: {
-        bundleId: 'papilio-demoleus-prototype-67c1c2a3-v2',
+        bundleId: 'papilio-demoleus-prototype-74a7d648-v3',
         verifiedArtifactCount: 25,
         artifactCount: 25,
       },
