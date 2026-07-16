@@ -79,8 +79,8 @@ were not modified or treated as evidence.
 | --- | --- |
 | 14.1 | Pin and audit the committed Phase 14/15 handoff. |
 | 14.2 | Import only compact manifests and reports with exact checksums; exclude media, models, databases, caches, and untracked paths. |
-| 14.3 | Add a thin TaxaLens prototype-evidence adapter and rebuild the truthful judge bundle without copying BioMiner engine code. |
-| 14.4 | Present prototype reference, scoring, routing, abstention, and limitation evidence through the TaxaLens facade and UI. |
+| 14.3 | Add a thin TaxaLens prototype-evidence adapter without copying BioMiner engine code. |
+| 14.4 | Rebuild the truthful judge bundle and present prototype reference, scoring, routing, abstention, and limitation evidence through the TaxaLens facade and UI. |
 | 15.1 | Add the fail-closed prototype GO/release gate and preserve production/scientific/public-display prohibitions. |
 | 15.2 | Extend agent tools, deterministic evaluations, and exports to explain the new prototype boundary with at least 30 cases. |
 | 15.3 | Complete Phase 14/15 reports, judge documentation, full acceptance, and deployment verification. |
@@ -122,3 +122,19 @@ forbids scientific claims and public reference-image display.
 GitHits remained unavailable; the focused attempted import-pattern query and
 adopted/rejected approaches are recorded at
 `provenance/githits.jsonl#14.2`.
+
+## Task 14.3 thin prototype adapter
+
+Task 14.3 adds one TaxaLens-owned anti-corruption layer over the fixed imported
+set. It verifies all 20 local artifacts again, then cross-checks repeated facts
+across the support-bank, embedding, benchmark, policy, staged-inference, GO,
+release-acceptance, final-verification, and backlog contracts.
+
+The adapter exposes nine normalized sections. Every section retains exact
+source fingerprints, forbids scientific claims, distinguishes provider support
+from human verification, keeps raw scores separate from probabilities, and
+keeps the staged `0.02` rule separate from the selected `0.10` policy. No
+BioMiner engine code is copied.
+
+GitHits remained unavailable; the focused attempted adapter-pattern query is
+recorded at `provenance/githits.jsonl#14.3`.

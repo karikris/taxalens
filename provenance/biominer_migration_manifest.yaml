@@ -19,6 +19,24 @@ scientific_claim_gate: "blocked-until-reviewed-references-leakage-safe-splits-ca
 handoff_contract: "storage-handoff-inventory-v1.0.0-with-explicit-uri-sha256-source-sha-and-receipt"
 recorded_at: "2026-07-16"
 components:
+  - component_id: biominer_phase14_phase15_prototype_evidence_adapter
+    source_repository: karikris/BioMiner
+    source_commit: 67c1c2a3a2c9b909b256b3094913af342f4ccbed
+    source_path: reports/phase14/papilio_demoleus_build_week_prototype_report.json
+    destination_path: packages/replay/src/biominer_prototype_evidence_adapter.py
+    migration_kind: adapted
+    reason: Normalize the fixed prototype report and manifest set into a TaxaLens-owned, fail-closed evidence boundary for the product facade.
+    build_week_scope: new
+    source_license: MIT
+    changes:
+      - Verifies every imported JSON byte, schema, size, and checksum before adaptation.
+      - Cross-checks repeated reference, runtime, benchmark, policy, staged inference, release, rights, and backlog facts across independent upstream artifacts.
+      - Preserves the separate staged 0.02 preselection and selected 0.10 raw-margin policy semantics.
+      - Exposes prototype integration authorization separately from blocked scientific release, production-default change, and public image display.
+      - Copies no BioMiner engine implementation.
+    tests:
+      - packages/replay/tests/test_biominer_prototype_evidence_adapter.py
+    status: migrated
   - component_id: biominer_phase14_phase15_prototype_artifacts
     source_repository: karikris/BioMiner
     source_commit: 67c1c2a3a2c9b909b256b3094913af342f4ccbed
