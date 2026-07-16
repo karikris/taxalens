@@ -1,5 +1,6 @@
 import { isVerificationAdjudicationEvent } from './verificationAdjudication'
 import type { VerificationConsensus } from './verificationConsensus'
+import type { VerificationCampaign } from './verificationContracts'
 import type { VerificationEvent } from './verificationEvents'
 
 export const REVIEWER_RELIABILITY_SCHEMA_VERSION =
@@ -7,6 +8,28 @@ export const REVIEWER_RELIABILITY_SCHEMA_VERSION =
 
 export type ReliabilityAvailability = 'available' | 'unavailable'
 export type ReliabilityLabel = 'yes' | 'no' | 'cant_tell'
+
+export const REVIEWER_CONTROL_SET_SCHEMA_VERSION =
+  'taxalens-reviewer-control-set:v1.0.0' as const
+
+export type ReviewerControlTruth =
+  | {
+      readonly itemId: string
+      readonly expectedMediaState: 'viewable'
+      readonly expectedOutcome: 'yes' | 'no'
+    }
+  | {
+      readonly itemId: string
+      readonly expectedMediaState: 'unviewable'
+      readonly expectedOutcome: null
+    }
+
+export interface ReviewerControlSet {
+  readonly schemaVersion: typeof REVIEWER_CONTROL_SET_SCHEMA_VERSION
+  readonly controlSetId: string
+  readonly groundTruthSha256: string
+  readonly controls: readonly ReviewerControlTruth[]
+}
 
 export interface ReviewerPercentAgreement {
   readonly schemaVersion: typeof REVIEWER_RELIABILITY_SCHEMA_VERSION
@@ -40,6 +63,35 @@ export interface ReviewerNominalKrippendorffAlpha {
   readonly observedDisagreement: number | null
   readonly expectedDisagreement: number | null
   readonly alpha: number | null
+}
+
+export interface ReviewerControlPerformance {
+  readonly schemaVersion: typeof REVIEWER_RELIABILITY_SCHEMA_VERSION
+  readonly method: 'pre_reviewed_control_performance'
+  readonly availability: ReliabilityAvailability
+  readonly blockers: readonly string[]
+  readonly controlSetId: string
+  readonly groundTruthSha256: string
+  readonly controlItemCount: number
+  readonly attemptedControlItemCount: number
+  readonly controlAttemptCount: number
+  readonly anonymousReviewerCount: number
+  readonly correctControlAttemptCount: number
+  readonly incorrectControlAttemptCount: number
+  readonly positiveControlAttemptCount: number
+  readonly negativeControlAttemptCount: number
+  readonly falsePositiveCount: number
+  readonly falseNegativeCount: number
+  readonly mediaFailureControlAttemptCount: number
+  readonly correctlyHandledMediaFailureCount: number
+  readonly unexpectedMediaFailureCount: number
+  readonly uncertainControlAttemptCount: number
+  readonly deferredControlAttemptCount: number
+  readonly controlAccuracy: number | null
+  readonly falsePositiveRate: number | null
+  readonly falseNegativeRate: number | null
+  readonly mediaFailureHandlingRate: number | null
+  readonly unexpectedMediaFailureRate: number | null
 }
 
 export function calculateReviewerPercentAgreement(
@@ -173,6 +225,171 @@ export function calculateReviewerNominalAlpha(
   })
 }
 
+export function evaluateReviewerControlPerformance(
+  campaign: VerificationCampaign,
+  consensus: readonly VerificationConsensus[],
+  controlSet: ReviewerControlSet,
+): ReviewerControlPerformance {
+  const blockers: string[] = []
+  if (
+    campaign.samplingPlan.purpose !== 'reviewer_quality_control' ||
+    campaign.samplingPlan.design !== 'control_items'
+  ) {
+    blockers.push('campaign_not_reviewer_quality_control')
+  }
+  if (
+    controlSet.schemaVersion !== REVIEWER_CONTROL_SET_SCHEMA_VERSION ||
+    controlSet.controlSetId.trim() === '' ||
+    !/^[a-f0-9]{64}$/.test(controlSet.groundTruthSha256)
+  ) {
+    blockers.push('control_set_invalid')
+  }
+  const controlsById = new Map<string, ReviewerControlTruth>()
+  for (const control of controlSet.controls) {
+    if (
+      control.itemId.trim() === '' ||
+      controlsById.has(control.itemId) ||
+      (control.expectedMediaState === 'viewable' &&
+        control.expectedOutcome !== 'yes' &&
+        control.expectedOutcome !== 'no') ||
+      (control.expectedMediaState === 'unviewable' &&
+        control.expectedOutcome !== null)
+    ) {
+      blockers.push('control_set_invalid')
+    }
+    controlsById.set(control.itemId, control)
+  }
+  if (controlsById.size === 0) {
+    blockers.push('control_set_empty')
+  }
+  const consensusById = new Map<string, VerificationConsensus>()
+  for (const projection of consensus) {
+    if (
+      projection.campaignId !== campaign.campaignId ||
+      consensusById.has(projection.itemId)
+    ) {
+      blockers.push('control_consensus_invalid')
+    }
+    consensusById.set(projection.itemId, projection)
+  }
+  if (
+    [...controlsById.keys()].some(
+      (itemId) => !consensusById.has(itemId),
+    )
+  ) {
+    blockers.push('control_consensus_missing')
+  }
+  const attemptedItems = new Set<string>()
+  const reviewers = new Set<string>()
+  let controlAttemptCount = 0
+  let correctControlAttemptCount = 0
+  let positiveControlAttemptCount = 0
+  let negativeControlAttemptCount = 0
+  let falsePositiveCount = 0
+  let falseNegativeCount = 0
+  let mediaFailureControlAttemptCount = 0
+  let correctlyHandledMediaFailureCount = 0
+  let unexpectedMediaFailureCount = 0
+  let uncertainControlAttemptCount = 0
+  let deferredControlAttemptCount = 0
+  for (const [itemId, control] of controlsById) {
+    const projection = consensusById.get(itemId)
+    if (projection === undefined) {
+      continue
+    }
+    const events = projection.latestEvents.filter(
+      (event) => !isVerificationAdjudicationEvent(event),
+    )
+    if (events.length > 0) {
+      attemptedItems.add(itemId)
+    }
+    for (const event of events) {
+      controlAttemptCount += 1
+      reviewers.add(reviewerKey(event))
+      if (event.outcome === 'cant_tell') {
+        uncertainControlAttemptCount += 1
+      }
+      if (event.outcome === 'skipped') {
+        deferredControlAttemptCount += 1
+      }
+      if (control.expectedMediaState === 'unviewable') {
+        mediaFailureControlAttemptCount += 1
+        if (event.outcome === 'cant_view') {
+          correctlyHandledMediaFailureCount += 1
+          correctControlAttemptCount += 1
+        }
+        continue
+      }
+      if (event.outcome === 'cant_view') {
+        unexpectedMediaFailureCount += 1
+      }
+      if (control.expectedOutcome === 'yes') {
+        positiveControlAttemptCount += 1
+        if (event.outcome === 'no') {
+          falseNegativeCount += 1
+        }
+      } else {
+        negativeControlAttemptCount += 1
+        if (event.outcome === 'yes') {
+          falsePositiveCount += 1
+        }
+      }
+      if (event.outcome === control.expectedOutcome) {
+        correctControlAttemptCount += 1
+      }
+    }
+  }
+  if (controlAttemptCount === 0) {
+    blockers.push('control_attempts_empty')
+  }
+  const canonicalBlockers = [...new Set(blockers)].sort()
+  const available = canonicalBlockers.length === 0
+  const viewableControlAttemptCount =
+    positiveControlAttemptCount + negativeControlAttemptCount
+  return Object.freeze({
+    schemaVersion: REVIEWER_RELIABILITY_SCHEMA_VERSION,
+    method: 'pre_reviewed_control_performance',
+    availability: available ? 'available' : 'unavailable',
+    blockers: Object.freeze(canonicalBlockers),
+    controlSetId: controlSet.controlSetId,
+    groundTruthSha256: controlSet.groundTruthSha256,
+    controlItemCount: controlsById.size,
+    attemptedControlItemCount: attemptedItems.size,
+    controlAttemptCount,
+    anonymousReviewerCount: reviewers.size,
+    correctControlAttemptCount,
+    incorrectControlAttemptCount:
+      controlAttemptCount - correctControlAttemptCount,
+    positiveControlAttemptCount,
+    negativeControlAttemptCount,
+    falsePositiveCount,
+    falseNegativeCount,
+    mediaFailureControlAttemptCount,
+    correctlyHandledMediaFailureCount,
+    unexpectedMediaFailureCount,
+    uncertainControlAttemptCount,
+    deferredControlAttemptCount,
+    controlAccuracy: available
+      ? correctControlAttemptCount / controlAttemptCount
+      : null,
+    falsePositiveRate: available
+      ? ratio(falsePositiveCount, negativeControlAttemptCount)
+      : null,
+    falseNegativeRate: available
+      ? ratio(falseNegativeCount, positiveControlAttemptCount)
+      : null,
+    mediaFailureHandlingRate: available
+      ? ratio(
+          correctlyHandledMediaFailureCount,
+          mediaFailureControlAttemptCount,
+        )
+      : null,
+    unexpectedMediaFailureRate: available
+      ? ratio(unexpectedMediaFailureCount, viewableControlAttemptCount)
+      : null,
+  })
+}
+
 interface PreparedReliabilityRatings {
   readonly ratingsByItem: ReadonlyMap<string, readonly ReliabilityLabel[]>
   readonly reviewerKeys: ReadonlySet<string>
@@ -252,6 +469,10 @@ function countLabels(
 
 function reliabilityLabels(): readonly ReliabilityLabel[] {
   return ['yes', 'no', 'cant_tell']
+}
+
+function ratio(numerator: number, denominator: number): number | null {
+  return denominator === 0 ? null : numerator / denominator
 }
 
 function reviewerKey(event: VerificationEvent): string {
