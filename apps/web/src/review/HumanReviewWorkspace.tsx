@@ -87,8 +87,8 @@ export function HumanReviewWorkspace({
 
   useEffect(() => {
     setDisplayedItemId(null)
+    setImageUrl(null)
     if (!cacheStatus.ready) {
-      setImageUrl(null)
       return
     }
     let active = true
@@ -110,6 +110,21 @@ export function HumanReviewWorkspace({
         setCacheState('error')
         setCacheError(errorMessage(reason))
         recordImageFailure(item, errorMessage(reason))
+        setCacheStatus((current) =>
+          Object.freeze({
+            ...current,
+            ready: false,
+            cachedCount: Math.max(0, current.cachedCount - 1),
+            itemFailures: Object.freeze({
+              ...current.itemFailures,
+              [item.itemId]: errorMessage(reason),
+            }),
+          }),
+        )
+        void cache
+          .inspect(HUMAN_REVIEW_PACKET)
+          .then(setCacheStatus)
+          .catch(() => undefined)
       })
     return () => {
       active = false
@@ -321,6 +336,9 @@ export function HumanReviewWorkspace({
                 alt={item.verificationLabel}
                 onLoad={() => recordImageOpened(item)}
                 onError={() => {
+                  if (imageUrl.startsWith('blob:')) {
+                    URL.revokeObjectURL(imageUrl)
+                  }
                   setImageUrl(null)
                   recordImageFailure(item, 'The verified review image could not be displayed.')
                 }}
