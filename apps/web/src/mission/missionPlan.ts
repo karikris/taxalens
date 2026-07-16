@@ -85,7 +85,8 @@ export interface EvidencePlan {
     readonly maximumApiCalls: number
     readonly fixtureMaterializedApiCalls: number
     readonly candidateLimit: number
-    readonly localVerificationMaxImages: number
+    readonly historicalLocalVerificationImages: number
+    readonly localVerificationMaxImages: null
     readonly device: string | null
     readonly basis: 'validated_mission_bounds'
   }
@@ -343,7 +344,9 @@ export function generateEvidencePlan(draft: MissionDraft, replay: ReplayEvidence
       maximumApiCalls: draft.maximumApiCalls,
       fixtureMaterializedApiCalls: replay.mission.budgets.materializedRequestCount,
       candidateLimit: draft.candidateLimit,
-      localVerificationMaxImages: replay.mission.budgets.localBuildVerificationMaxImages,
+      historicalLocalVerificationImages:
+        replay.mission.budgets.historicalLocalBuildVerificationImages,
+      localVerificationMaxImages: null,
       device: draft.device.trim() || null,
       basis: 'validated_mission_bounds',
     },

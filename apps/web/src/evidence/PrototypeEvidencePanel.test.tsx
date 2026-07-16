@@ -23,7 +23,12 @@ describe('PrototypeEvidencePanel', () => {
     expect(
       screen.getByRole('heading', { name: 'Aggregate prototype evidence' }),
     ).toBeInTheDocument()
-    expect(screen.getByText('81 provider-supported · 0 human-verified')).toBeInTheDocument()
+    expect(
+      screen.getByText('81 / 81 support-role suitability checks verified'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('81 / 81 prototype-role suitable')).toBeInTheDocument()
+    expect(screen.getByText('0 independently human-verified')).toBeInTheDocument()
+    expect(screen.getByText('No fixed runner cap · historical smoke used 5')).toBeInTheDocument()
     expect(screen.getByText('2 allowed · 79 research-only')).toBeInTheDocument()
     expect(screen.getByText('B0 10% → B13 100%')).toBeInTheDocument()
     expect(screen.getByText('0.02 staged diagnostic · 0.10 selected policy')).toBeInTheDocument()

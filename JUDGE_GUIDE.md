@@ -109,7 +109,8 @@ client state.
 | Unavailable sections | 6 |
 | Section records | 29 |
 | Media items | 0 |
-| Guided-tour steps | 5 |
+| Guided-tour steps | 6 |
+| Separate licensed human-review packet images | 3 |
 | Observatory stages | 13 |
 | DuckDB-Wasm replay operations | 8 |
 | Regional candidate plans | 5 |
@@ -120,6 +121,7 @@ client state.
 | Committed reviewed scientific metrics | 0 |
 | Prototype-entry gates passed / required | 14 / 14 |
 | Prototype support rows / independently human-verified | 81 / 0 |
+| Prototype-role suitability user-confirmed | 81 / 81 |
 
 The main workload counts are 76,485 many-to-many Flickr query-hit associations, 13,501 canonical
 source-photo records, 838 eligible source-media candidates, and zero human-verified source media.
@@ -137,7 +139,7 @@ uv run --locked python scripts/verify_demo.py
 Expected terminal receipt:
 
 ```text
-Truthful demo verification passed: bundle=papilio-demoleus-prototype-67c1c2a3-v2, artifacts=25, records=29, media=0, hero=awaiting_human_review.
+Truthful demo verification passed: bundle=papilio-demoleus-prototype-74a7d648-v3, artifacts=25, records=29, media=0, hero=awaiting_human_review.
 ```
 
 The verifier rejects undeclared, missing, changed, stale, or semantically inconsistent fixture
@@ -149,8 +151,8 @@ Open [`demo/fixture/papilio_pilot/judge_bundle.json`](demo/fixture/papilio_pilot
 and verify:
 
 - schema `taxalens-judge-bundle:v1.0.0`;
-- inventory checksum `8dbbcd48c1bf7bf026708bb960ee46cae61df02f44f71e6039c9aac5714625f6`;
-- payload root `2adc186fc77fb8554c3bc0a8ce4b89541eb96e4da8ce6255cf29b0439cb523f7`;
+- inventory checksum `e0a77b2e6434647cc97be15f09d0dc1d13452c071638fc7c4624fadf6289c613`;
+- payload root `c74d590edc526683e4323cb00fade5ee0c034e459cab6ed78bf404633d4ce287`;
 - all 25 artifacts are rights-covered and attribution-complete;
 - media-rights verification is false because the fixture contains zero media, not because rights
   were assumed vacuously.
@@ -192,7 +194,14 @@ Open **Agent Trace** and confirm:
 The stored tool result is re-executed locally and must exactly equal the committed result before it
 is displayed.
 
-### 5. Run the coherent browser contract
+### 5. Exercise the local human-review packet
+
+Open **Human Review**, select **Prepare review cache**, and confirm three checksum-verified,
+CC BY-SA 4.0 images become available from the static origin. Record a choice using Yes, No,
+Can’t tell, Can’t view, or Skip, optionally add a comment, revisit an item to replace its choice,
+and export the local receipt. This packet is separate from the non-displayable BioMiner bank.
+
+### 6. Run the coherent browser contract
 
 ```bash
 cd apps/web
@@ -202,7 +211,7 @@ npx playwright test e2e/judge-replay.spec.ts
 The test actively aborts any HTTP request outside the static replay origin and covers the complete
 route through a parsed downloaded evaluation report.
 
-### 6. Verify the hosted artifact
+### 7. Verify the hosted artifact
 
 Open
 [`build-fingerprint.json`](https://karikris.github.io/taxalens/build-fingerprint.json) and confirm:
@@ -212,7 +221,7 @@ Open
 - public is true;
 - login, backend, and credentials required are false;
 - resettable is true;
-- `files` contains the current sorted regular-file receipts (50 in the Phase 15.3 acceptance build);
+- `files` contains the current sorted regular-file receipts; use its live length rather than a stale copied count;
 - `build_fingerprint_sha256` is present.
 
 The exact source and root fingerprint change on every `main` deployment. The manifest values, not a
@@ -224,9 +233,9 @@ copied screenshot or stale guide value, are authoritative.
 | --- | --- | --- |
 | TaxaLens hosted source | Live `build-fingerprint.json` `source_sha` | Current static product source |
 | Fixture TaxaLens source | `fab9d3f1605d28d4bbfc3a4d0074f40e5ffff023` | Commit that assembled the current prototype snapshot lineage |
-| BioMiner source | `67c1c2a3a2c9b909b256b3094913af342f4ccbed` | Current reviewed prototype handoff; no runtime launch |
+| BioMiner source | `74a7d648a562efa744e6502ef504a23b63b4e02f` | Current reviewed prototype handoff; includes the 81 / 81 user-goal suitability receipt |
 | Approved AGENTS.md | SHA-256 `39d8bf1df80402d0cfb135d1093618b120f288f525a516196c3ceb6f3eb04ccb` | Product and evidence policy baseline |
-| Judge bundle | `papilio-demoleus-prototype-67c1c2a3-v2` | Supported replay fixture |
+| Judge bundle | `papilio-demoleus-prototype-74a7d648-v3` | Supported replay fixture |
 | Source registry | `butterflies-v2-20260712` | Registry contract displayed in Mission |
 | Source snapshot | `gbif-reference-search-20260715` | Reference-search planning snapshot |
 | Research analyst | `gpt-5.6-sol` | Stored by default; server-only live contract |

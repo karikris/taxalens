@@ -138,6 +138,13 @@ def test_prototype_snapshot_is_aggregate_only_and_preserves_claim_boundaries() -
     contracts = snapshot["contracts"]
     assert contracts["reference_bank"]["data"]["counts"]["prototype_support"] == 81
     assert contracts["reference_bank"]["data"]["counts"]["human_verified"] == 0
+    goal = contracts["provider_support_goal_verification"]["data"]
+    assert goal["verified_record_count"] == 81
+    assert goal["records_meeting_goal_count"] == 81
+    assert (
+        goal["semantics"]["independent_human_taxonomic_verification_claimed"]
+        is False
+    )
     assert (
         contracts["benchmark"]["data"]["model_selection_comparison"]["B0"][
             "target_scoreability_rate"

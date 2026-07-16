@@ -184,14 +184,14 @@
     },
     {
       "artifact_id": "prototype-evidence-snapshot",
-      "bytes": 72139,
+      "bytes": 75819,
       "media_type": "application/json",
       "path": "source/prototype_evidence_snapshot.json",
       "record_count": 1,
       "required": true,
       "role": "other",
-      "schema_version": "taxalens-biominer-prototype-evidence:v1.0.0",
-      "sha256": "2413b0a41bedb22a0e7706375141d6443d87e21873de2b8b80fd009a88cd76a0",
+      "schema_version": "taxalens-biominer-prototype-evidence:v1.1.0",
+      "sha256": "4d82bd0c070d85ebc323d089b4767ef5dbfa7c800ff3841bb6d1adca60849c22",
       "source_commit": "fab9d3f1605d28d4bbfc3a4d0074f40e5ffff023",
       "source_repository": "karikris/TaxaLens"
     },
@@ -308,7 +308,7 @@
       "required": true,
       "role": "openai_replay_traces",
       "schema_version": "taxalens-research-analyst-run:v1.0.0",
-      "sha256": "cd57d79982d17383c57a7f2d2dc941c93f8f7c0d90d26290a90e96cdf736dc93",
+      "sha256": "ab7b2a80e52bfd7ba11e5d1e7253e7cd0e69bab2e66db567f5a76c0f0bfb9281",
       "source_commit": "fab9d3f1605d28d4bbfc3a4d0074f40e5ffff023",
       "source_repository": "karikris/TaxaLens"
     },
@@ -378,14 +378,14 @@
       }
     ]
   },
-  "bundle_id": "papilio-demoleus-prototype-67c1c2a3-v2",
+  "bundle_id": "papilio-demoleus-prototype-74a7d648-v3",
   "checksums": {
     "algorithm": "sha256",
     "canonicalization": "json-sorted-keys-utf8-v1",
-    "inventory_sha256": "8dbbcd48c1bf7bf026708bb960ee46cae61df02f44f71e6039c9aac5714625f6",
-    "payload_root_sha256": "2adc186fc77fb8554c3bc0a8ce4b89541eb96e4da8ce6255cf29b0439cb523f7"
+    "inventory_sha256": "e0a77b2e6434647cc97be15f09d0dc1d13452c071638fc7c4624fadf6289c613",
+    "payload_root_sha256": "c74d590edc526683e4323cb00fade5ee0c034e459cab6ed78bf404633d4ce287"
   },
-  "created_at": "2026-07-16T09:44:16Z",
+  "created_at": "2026-07-16T11:57:54Z",
   "expected_ui_counts": {
     "artifact_count": 25,
     "attribution_count": 2,
@@ -433,7 +433,7 @@
         "prompt_sha256": "2f157b29f5aed3b09580c329115836c1fc3af806e1c4332885974c257b4a9331",
         "request_artifact_id": "stored-analyst-request",
         "response_artifact_id": "stored-analyst-run",
-        "response_sha256": "cd57d79982d17383c57a7f2d2dc941c93f8f7c0d90d26290a90e96cdf736dc93",
+        "response_sha256": "ab7b2a80e52bfd7ba11e5d1e7253e7cd0e69bab2e66db567f5a76c0f0bfb9281",
         "sequence": 1,
         "stage_id": "agent-evidence-explanation",
         "stored_output_only": true,
@@ -715,7 +715,7 @@
     }
   },
   "source_revisions": {
-    "biominer_sha": "67c1c2a3a2c9b909b256b3094913af342f4ccbed",
+    "biominer_sha": "74a7d648a562efa744e6502ef504a23b63b4e02f",
     "taxalens_sha": "fab9d3f1605d28d4bbfc3a4d0074f40e5ffff023"
   },
   "target": {

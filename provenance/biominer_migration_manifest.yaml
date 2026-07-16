@@ -1,5 +1,5 @@
 upstream_repository: "karikris/BioMiner"
-pinned_biominer_sha: "67c1c2a3a2c9b909b256b3094913af342f4ccbed"
+pinned_biominer_sha: "74a7d648a562efa744e6502ef504a23b63b4e02f"
 product_boundary_version: "artifact-first-product-boundary-v1.0.0"
 migration_policy: "committed_artifact > versioned_schema > thin_adapter > stable_biominer_command > small_shared_package > copied_source"
 broad_module_copying: "frozen-no-new-broad-copies"
@@ -12,7 +12,7 @@ phase13_status: "evaluation-infrastructure-committed-real-reviewed-papilio-resul
 phase13_exclusion: "unmaterialized-or-unreviewed-results-excluded"
 phase14_status: "prototype-artifacts-committed-explicit-prototype-mode-only"
 phase14_candidate_semantics: "search-and-source-media-rows-are-candidates-not-occurrences-labels-or-support"
-phase14_prototype_status: "81-provider-supported-zero-human-verified-uncalibrated-raw-margin"
+phase14_prototype_status: "81-provider-supported-81-user-goal-suitable-zero-independent-taxonomic-verification-uncalibrated-raw-margin"
 phase15_status: "go-for-explicit-prototype-integration-only"
 phase15_authorization: "no-production-default-no-scientific-release-no-public-reference-images"
 scientific_claim_gate: "blocked-until-reviewed-references-leakage-safe-splits-calibration-and-final-evaluation"
@@ -21,7 +21,7 @@ recorded_at: "2026-07-16"
 components:
   - component_id: biominer_phase14_phase15_prototype_agent_boundary
     source_repository: karikris/BioMiner
-    source_commit: 67c1c2a3a2c9b909b256b3094913af342f4ccbed
+    source_commit: 74a7d648a562efa744e6502ef504a23b63b4e02f
     source_path: reports/phase14/papilio_demoleus_build_week_prototype_report.json
     destination_path: apps/web/src/agent/researchTools.ts
     migration_kind: adapted
@@ -43,7 +43,7 @@ components:
     status: migrated
   - component_id: biominer_phase15_prototype_release_gate
     source_repository: karikris/BioMiner
-    source_commit: 67c1c2a3a2c9b909b256b3094913af342f4ccbed
+    source_commit: 74a7d648a562efa744e6502ef504a23b63b4e02f
     source_path: reports/phase15/prototype_go_no_go.json
     destination_path: packages/replay/src/biominer_prototype_release_gate.py
     migration_kind: adapted
@@ -63,7 +63,7 @@ components:
     status: migrated
   - component_id: biominer_phase14_prototype_product_projection
     source_repository: karikris/BioMiner
-    source_commit: 67c1c2a3a2c9b909b256b3094913af342f4ccbed
+    source_commit: 74a7d648a562efa744e6502ef504a23b63b4e02f
     source_path: reports/phase14/papilio_demoleus_build_week_prototype_report.json
     destination_path: taxalens/product/truthful_demo.py
     migration_kind: adapted
@@ -85,7 +85,7 @@ components:
     status: migrated
   - component_id: biominer_phase14_phase15_prototype_evidence_adapter
     source_repository: karikris/BioMiner
-    source_commit: 67c1c2a3a2c9b909b256b3094913af342f4ccbed
+    source_commit: 74a7d648a562efa744e6502ef504a23b63b4e02f
     source_path: reports/phase14/papilio_demoleus_build_week_prototype_report.json
     destination_path: packages/replay/src/biominer_prototype_evidence_adapter.py
     migration_kind: adapted
@@ -103,7 +103,7 @@ components:
     status: migrated
   - component_id: biominer_phase14_phase15_prototype_artifacts
     source_repository: karikris/BioMiner
-    source_commit: 67c1c2a3a2c9b909b256b3094913af342f4ccbed
+    source_commit: 74a7d648a562efa744e6502ef504a23b63b4e02f
     source_path: reports/phase14/papilio_demoleus_build_week_prototype_report.json
     destination_path: demo/source/biominer_phase15
     migration_kind: imported
@@ -111,7 +111,7 @@ components:
     build_week_scope: modified_existing
     source_license: MIT
     changes:
-      - Added a fixed 20-path allowlist covering the prototype reports and compact manifests required by TaxaLens adapters.
+      - Added a fixed 21-path allowlist covering the prototype reports, compact manifests, and direct user-goal suitability verification required by TaxaLens adapters.
       - Read exact bytes from committed Git objects at the pinned BioMiner SHA instead of the ambient working tree.
       - Pinned every schema version, byte count, and SHA-256 digest in a deterministic TaxaLens import receipt.
       - Explicitly excluded reference images, model files, databases, caches, Markdown duplicates, untracked paths, public-image authorization, and scientific claims.

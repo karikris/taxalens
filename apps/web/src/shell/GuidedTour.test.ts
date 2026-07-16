@@ -7,11 +7,12 @@ import {
 } from './GuidedTour'
 
 describe('90-second judge tour contract', () => {
-  it('keeps the five required steps in order and budgets exactly 90 seconds', () => {
+  it('keeps the six required steps in order and budgets exactly 90 seconds', () => {
     expect(JUDGE_TOUR_STEPS.map(({ title }) => title)).toEqual([
       'Research Mission',
       'Observatory',
       'Evidence Lens',
+      'Human Review',
       'Dashboard',
       'Export',
     ])

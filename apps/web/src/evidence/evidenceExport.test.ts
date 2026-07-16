@@ -145,7 +145,7 @@ describe('prepareEvidenceExport', () => {
     expect(csv.split('\r\n')).toHaveLength(12)
     expect(csv).toContain('sequence,event_id,label,status,event_time')
     expect(csv).toContain('1,discovery,Discovery,metadata,')
-    expect(csv).toContain('10,export,Export,available,2026-07-16T09:44:16Z')
+    expect(csv).toContain('10,export,Export,available,2026-07-16T11:57:54Z')
     expect(csv).toContain('"838 eligible source candidates, 0 human-verified images')
   })
 

@@ -15,7 +15,7 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MANIFEST = REPOSITORY_ROOT / "demo/source/biominer_phase15/import_manifest.json"
 DEFAULT_BIOMINER_ROOT = REPOSITORY_ROOT.parent / "BioMiner"
 IMPORT_SCHEMA_VERSION = "taxalens-biominer-prototype-import:v1.0.0"
-BIOMINER_COMMIT = "67c1c2a3a2c9b909b256b3094913af342f4ccbed"
+BIOMINER_COMMIT = "74a7d648a562efa744e6502ef504a23b63b4e02f"
 _SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 _IMPORT_PREFIX = PurePosixPath("demo/source/biominer_phase15/artifacts")
 
@@ -34,6 +34,7 @@ EXPECTED_SOURCE_PATHS = (
     "examples/species/papilio_demoleus/pilot_prototype_selection_manifest.json",
     "examples/species/papilio_demoleus/pilot_prototype_support_bank_manifest.json",
     "examples/species/papilio_demoleus/pilot_prototype_vision_smoke_manifest.json",
+    "examples/species/papilio_demoleus/pilot_provider_support_goal_verification.json",
     "examples/species/papilio_demoleus/pilot_staged_flickr_manifest.json",
     "reports/phase14/papilio_demoleus_build_week_prototype_report.json",
     "reports/phase15/post_build_week_backlog.json",

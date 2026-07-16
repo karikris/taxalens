@@ -11,9 +11,9 @@ import {
   type JudgeBundleSectionName,
 } from '../../../../packages/contracts/src/judge_bundle_contract'
 
-const EXPECTED_BUNDLE_ID = 'papilio-demoleus-prototype-67c1c2a3-v2'
+const EXPECTED_BUNDLE_ID = 'papilio-demoleus-prototype-74a7d648-v3'
 const EXPECTED_TAXALENS_SHA = 'fab9d3f1605d28d4bbfc3a4d0074f40e5ffff023'
-const EXPECTED_BIOMINER_SHA = '67c1c2a3a2c9b909b256b3094913af342f4ccbed'
+const EXPECTED_BIOMINER_SHA = '74a7d648a562efa744e6502ef504a23b63b4e02f'
 const LEGACY_BIOMINER_SHA = '75461d9c065af0cd96b41cd1f845c2e920f7ae34'
 
 type JsonPrimitive = boolean | null | number | string
@@ -110,7 +110,8 @@ export interface MissionEvidence {
   }
   readonly budgets: {
     readonly materializedRequestCount: number
-    readonly localBuildVerificationMaxImages: number
+    readonly historicalLocalBuildVerificationImages: number
+    readonly localBuildVerificationMaxImages: null
   }
   readonly prerequisiteGates: readonly {
     readonly gateId: string
@@ -202,6 +203,19 @@ export interface PrototypeEvidenceBoundary {
     readonly finalTestCount: 12
     readonly totalShortfall: 553
   }
+  readonly userGoalVerification: {
+    readonly status: 'verified_complete'
+    readonly assertionSource: 'direct_user_confirmation'
+    readonly assertedBy: string
+    readonly verificationCompletedOn: string
+    readonly goal: string
+    readonly providerSupportedRecordCount: 81
+    readonly verifiedRecordCount: 81
+    readonly recordsMeetingGoalCount: 81
+    readonly allProviderSupportedRecordsVerified: true
+    readonly allVerifiedRecordsMeetGoal: true
+    readonly independentHumanTaxonomicVerificationClaimed: false
+  }
   readonly runtime: {
     readonly bioclipModelId: string
     readonly bioclipModelRevision: string
@@ -271,7 +285,7 @@ export interface PrototypeEvidenceBoundary {
     readonly producerSha: string
     readonly originCommit: string
     readonly importManifestSha256: string
-    readonly importedArtifactCount: 20
+    readonly importedArtifactCount: 21
   }
 }
 
@@ -1123,11 +1137,12 @@ function projectMissionEvidence(
         'request_count',
         'reference_readiness.data.materialization',
       ),
-      localBuildVerificationMaxImages: numberField(
+      historicalLocalBuildVerificationImages: numberField(
         executionConstraints,
         'local_build_verification_max_images',
         'reference_readiness.data.execution_constraints',
       ),
+      localBuildVerificationMaxImages: null,
     },
     prerequisiteGates,
     stoppingConditions: {
@@ -1635,7 +1650,7 @@ function projectPrototypeEvidence(
   )
   if (
     stringField(snapshot, 'schema_version', 'prototype_evidence_snapshot') !==
-      'taxalens-biominer-prototype-evidence:v1.0.0' ||
+      'taxalens-biominer-prototype-evidence:v1.1.0' ||
     stringField(snapshot, 'origin_repository', 'prototype_evidence_snapshot') !==
       'karikris/BioMiner' ||
     stringField(snapshot, 'origin_commit', 'prototype_evidence_snapshot') !==
@@ -1646,7 +1661,7 @@ function projectPrototypeEvidence(
     snapshot.scientific_release_authorized !== false ||
     snapshot.public_reference_image_display_authorized !== false ||
     snapshot.scientific_claim_allowed !== false ||
-    snapshot.contract_count !== 9
+    snapshot.contract_count !== 10
   ) {
     throw new EvidenceFacadeError('Prototype evidence exceeds the admitted prototype boundary')
   }
@@ -1733,6 +1748,11 @@ function projectPrototypeEvidence(
   const limitations = array(semantics.known_limitations, 'prototype.evidence_semantics.limitations')
   const phase15 = contractData('phase15_release')
   const authorization = object(phase15.authorization, 'prototype.phase15_release.authorization')
+  const userGoal = contractData('provider_support_goal_verification')
+  const userGoalSemantics = object(
+    userGoal.semantics,
+    'prototype.provider_support_goal_verification.semantics',
+  )
   const fingerprints = contractData('handoff_fingerprints')
 
   const exactNumbers: readonly [Record<string, JsonValue>, string, number, string][] = [
@@ -1770,7 +1790,25 @@ function projectPrototypeEvidence(
     [preselection, 'abstained', 12_296, 'prototype.staged_inference.preselection'],
     [preselection, 'abstention_rate', 0.911085, 'prototype.staged_inference.preselection'],
     [reasonCounts, 'uncalibrated_margin_below_0_02', 1602, 'prototype.staged.reason_counts'],
-    [fingerprints, 'imported_artifact_count', 20, 'prototype.handoff_fingerprints'],
+    [
+      userGoal,
+      'provider_supported_record_count',
+      81,
+      'prototype.provider_support_goal_verification',
+    ],
+    [
+      userGoal,
+      'verified_record_count',
+      81,
+      'prototype.provider_support_goal_verification',
+    ],
+    [
+      userGoal,
+      'records_meeting_goal_count',
+      81,
+      'prototype.provider_support_goal_verification',
+    ],
+    [fingerprints, 'imported_artifact_count', 21, 'prototype.handoff_fingerprints'],
   ]
   for (const [record, field, expected, location] of exactNumbers) {
     if (numberField(record, field, location) !== expected) {
@@ -1796,6 +1834,15 @@ function projectPrototypeEvidence(
     authorization.production_default_change !== false ||
     authorization.scientific_release !== false ||
     authorization.public_reference_image_display !== false ||
+    userGoal.status !== 'verified_complete' ||
+    userGoal.assertion_source !== 'direct_user_confirmation' ||
+    userGoal.all_provider_supported_records_verified !== true ||
+    userGoal.all_verified_records_meet_goal !== true ||
+    userGoalSemantics.verification_is_user_goal_suitability_confirmation !== true ||
+    userGoalSemantics.independent_human_taxonomic_verification_claimed !== false ||
+    userGoalSemantics.classification_accuracy_authorized !== false ||
+    userGoalSemantics.scientific_release_authorized !== false ||
+    userGoalSemantics.production_default_change_authorized !== false ||
     !stringField(preselection, 'policy_note', 'prototype.staged.preselection').includes('0.10') ||
     !limitations.some(
       (value) => typeof value === 'string' && value.toLowerCase().includes('prevalence'),
@@ -1825,6 +1872,31 @@ function projectPrototypeEvidence(
       calibrationCount: 13,
       finalTestCount: 12,
       totalShortfall: 553,
+    },
+    userGoalVerification: {
+      status: 'verified_complete',
+      assertionSource: 'direct_user_confirmation',
+      assertedBy: stringField(
+        userGoal,
+        'asserted_by',
+        'prototype.provider_support_goal_verification',
+      ),
+      verificationCompletedOn: stringField(
+        userGoal,
+        'verification_completed_on',
+        'prototype.provider_support_goal_verification',
+      ),
+      goal: stringField(
+        userGoal,
+        'goal',
+        'prototype.provider_support_goal_verification',
+      ),
+      providerSupportedRecordCount: 81,
+      verifiedRecordCount: 81,
+      recordsMeetingGoalCount: 81,
+      allProviderSupportedRecordsVerified: true,
+      allVerifiedRecordsMeetGoal: true,
+      independentHumanTaxonomicVerificationClaimed: false,
     },
     runtime: {
       bioclipModelId: stringField(bioclip, 'model_id', 'prototype.vision_runtime.bioclip'),
@@ -1911,7 +1983,7 @@ function projectPrototypeEvidence(
         'import_manifest_sha256',
         'prototype.handoff_fingerprints',
       ),
-      importedArtifactCount: 20,
+      importedArtifactCount: 21,
     },
   })
 }

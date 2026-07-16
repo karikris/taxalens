@@ -89,7 +89,7 @@ describe('loadEvidenceFacade', () => {
     const facade = await loadEvidenceFacade(new AbortController().signal, fetcher)
 
     expect(facade.replay.bundleId).toBe(replayEvidenceContract.bundleId)
-    expect(facade.replay.bundleCreatedAt).toBe('2026-07-16T09:44:16Z')
+    expect(facade.replay.bundleCreatedAt).toBe('2026-07-16T11:57:54Z')
     expect(facade.replay.target.scientificName).toBe('Papilio demoleus')
     expect(facade.replay.artifactCount).toBe(25)
     expect(facade.replay.verifiedArtifactCount).toBe(25)
@@ -152,7 +152,8 @@ describe('loadEvidenceFacade', () => {
       },
       budgets: {
         materializedRequestCount: 314,
-        localBuildVerificationMaxImages: 5,
+        historicalLocalBuildVerificationImages: 5,
+        localBuildVerificationMaxImages: null,
       },
     })
     expect(facade.replay.mission.regions).toHaveLength(8)
@@ -278,6 +279,14 @@ describe('loadEvidenceFacade', () => {
         allowedCount: 2,
         researchOnlyCount: 79,
       },
+      userGoalVerification: {
+        status: 'verified_complete',
+        assertionSource: 'direct_user_confirmation',
+        providerSupportedRecordCount: 81,
+        verifiedRecordCount: 81,
+        recordsMeetingGoalCount: 81,
+        independentHumanTaxonomicVerificationClaimed: false,
+      },
       runtime: {
         embeddingDimension: 1024,
         frozenSupportEmbeddings: 81,
@@ -322,7 +331,7 @@ describe('loadEvidenceFacade', () => {
         artifactId: 'prototype-evidence-snapshot',
         originCommit: replayEvidenceContract.biominerSha,
         producerSha: replayEvidenceContract.taxalensSha,
-        importedArtifactCount: 20,
+        importedArtifactCount: 21,
       },
     })
     expect(facade.replay.verification).toMatchObject({

@@ -15,28 +15,35 @@ export const JUDGE_TOUR_STEPS: readonly JudgeTourStep[] = Object.freeze([
   {
     view: 'mission',
     title: 'Research Mission',
-    suggestedSeconds: 15,
+    suggestedSeconds: 10,
     description:
       'Confirm the target, pinned source revisions, metadata-only pilot boundary, and replay-only launch policy before interpreting the workflow.',
   },
   {
     view: 'observatory',
     title: 'Observatory',
-    suggestedSeconds: 20,
+    suggestedSeconds: 15,
     description:
       'Follow all 13 evidence stages, then inspect the exact artifact inventory, rights state, and source lineage behind every displayed count.',
   },
   {
     view: 'evidence-lens',
     title: 'Evidence Lens',
-    suggestedSeconds: 25,
+    suggestedSeconds: 20,
     description:
       'Open the awaiting-review hero record, compare its evidence variants and regional hypotheses, and keep every unavailable score or decision explicit.',
   },
   {
+    view: 'human-review',
+    title: 'Human Review',
+    suggestedSeconds: 20,
+    description:
+      'Prepare the small local image cache, inspect each verification label, and record Yes, No, Can’t tell, Can’t view, or Skip with an optional comment.',
+  },
+  {
     view: 'dashboard',
     title: 'Dashboard',
-    suggestedSeconds: 20,
+    suggestedSeconds: 15,
     description:
       'Read the evidence funnel, candidate workload, review priority, query yield, efficiency, and evaluation state without promoting a scientific result.',
   },

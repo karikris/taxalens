@@ -44,7 +44,7 @@ test('navigates the evidence views and guided tour from the keyboard', async ({ 
   await tourTrigger.focus()
   await page.keyboard.press('Enter')
   await expect(page.getByRole('dialog', { name: 'Research Mission' })).toBeVisible()
-  await expect(page.getByText('90-second judge tour · Step 1 of 5')).toBeVisible()
+  await expect(page.getByText('90-second judge tour · Step 1 of 6')).toBeVisible()
 
   await page.keyboard.press('Escape')
   await expect(page.getByRole('dialog')).toBeHidden()
@@ -88,6 +88,39 @@ test('navigates the evidence views and guided tour from the keyboard', async ({ 
     'page',
   )
   await expect(page.getByRole('heading', { name: 'Papilio demoleus' })).toBeVisible()
+})
+
+test('downloads the human-review cache and records all non-binary controls locally', async ({
+  page,
+}) => {
+  await page.goto('./#human-review')
+
+  await expect(
+    page.getByRole('heading', { name: 'Review the label, one image at a time' }),
+  ).toBeVisible()
+  await expect(page.getByText(/81 \/ 81 provider-supported items/u)).toBeVisible()
+  await page.getByRole('button', { name: 'Prepare review cache' }).click()
+  await expect(page.getByRole('button', { name: 'Cache ready' })).toBeDisabled()
+  await expect(
+    page.getByRole('img', {
+      name: /Does this image show an adult Papilio demoleus/u,
+    }),
+  ).toBeVisible()
+
+  await page.getByLabel(/Comment/u).fill('Could not inspect the image at full clarity.')
+  await page.getByRole('button', { name: 'Can’t view' }).click()
+  await expect(page.getByText('Image 2 of 3')).toBeVisible()
+  await page.getByRole('button', { name: 'Skip' }).click()
+  await expect(page.getByText(/Can’t view 1 · Skipped 1/u)).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Export review receipt' })).toBeEnabled()
+
+  const stored = await page.evaluate(() =>
+    window.localStorage.getItem(
+      'taxalens-human-review:papilio-demoleus-commons-review-v1',
+    ),
+  )
+  expect(stored).toContain('"outcome":"cant_view"')
+  expect(stored).toContain('"outcome":"skipped"')
 })
 
 test('shows only checksum-verified evidence with explicit analytics and unavailable states', async ({
