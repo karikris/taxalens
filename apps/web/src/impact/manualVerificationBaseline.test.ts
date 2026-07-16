@@ -61,6 +61,7 @@ describe('manual verification baseline instrument', () => {
     expect(validateManualVerificationBaseline(session)).toEqual([])
     expect(summarizeManualVerificationBaseline(session)).toEqual({
       schemaVersion: 'taxalens-verification-impact-summary:v1.0.0',
+      protocolVersion: 'taxalens-manual-verification-baseline:v1.0.0',
       workflow: 'manual_baseline',
       studyId: 'verification-impact-pilot',
       sessionId: 'manual-session-001',
@@ -109,7 +110,7 @@ describe('manual verification baseline instrument', () => {
         actionId: 'should-not-record',
         recordedAt: '2026-07-16T10:00:06.000Z',
       }),
-    ).toThrow('manual baseline actions require active time')
+    ).toThrow('verification impact actions require active time')
     expect(() =>
       recordManualBaselineAction(createSession(), {
         actionKind: 'decision_recorded',
@@ -135,7 +136,7 @@ describe('manual verification baseline instrument', () => {
         createSession(),
         '2026-07-16T09:59:59.000Z',
       ),
-    ).toThrow('manual baseline events must be chronological')
+    ).toThrow('verification impact events must be chronological')
     const completed = completeManualVerificationBaseline(
       createSession(),
       '2026-07-16T10:01:00.000Z',
@@ -145,7 +146,7 @@ describe('manual verification baseline instrument', () => {
         completed,
         '2026-07-16T10:02:00.000Z',
       ),
-    ).toThrow('manual baseline session is already completed')
+    ).toThrow('verification impact session is already completed')
   })
 })
 

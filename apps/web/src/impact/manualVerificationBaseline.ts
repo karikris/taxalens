@@ -4,6 +4,13 @@ export const VERIFICATION_IMPACT_SESSION_SCHEMA_VERSION =
 export const MANUAL_BASELINE_PROTOCOL_VERSION =
   'taxalens-manual-verification-baseline:v1.0.0' as const
 
+export const TAXALENS_ASSISTED_PROTOCOL_VERSION =
+  'taxalens-assisted-verification-timing:v1.0.0' as const
+
+export type VerificationImpactWorkflow =
+  | 'manual_baseline'
+  | 'taxalens_assisted'
+
 export type ImpactDecisionOutcome =
   | 'yes'
   | 'no'
@@ -11,15 +18,17 @@ export type ImpactDecisionOutcome =
   | 'cant_view'
   | 'skipped'
 
-export type ManualBaselineActionKind =
+export type ImpactActionKind =
   | 'page_opened'
   | 'duplicate_inspected'
   | 'field_completed'
   | 'decision_recorded'
   | 'other'
 
+export type ManualBaselineActionKind = ImpactActionKind
+
 export interface ManualBaselineActionInput {
-  readonly actionKind: ManualBaselineActionKind
+  readonly actionKind: ImpactActionKind
   readonly actionId: string
   readonly recordedAt: string
   readonly pageId?: string
@@ -41,7 +50,7 @@ export interface ImpactActionEvent {
   readonly eventType: 'action'
   readonly sequence: number
   readonly recordedAt: string
-  readonly actionKind: ManualBaselineActionKind
+  readonly actionKind: ImpactActionKind
   readonly actionId: string
   readonly pageId: string | null
   readonly duplicateGroupId: string | null
@@ -62,10 +71,12 @@ export type VerificationImpactEvent =
   | ImpactActionEvent
   | ImpactCompletionEvent
 
-export interface ManualVerificationBaselineSession {
+interface VerificationImpactSessionBase {
   readonly schemaVersion: typeof VERIFICATION_IMPACT_SESSION_SCHEMA_VERSION
-  readonly protocolVersion: typeof MANUAL_BASELINE_PROTOCOL_VERSION
-  readonly workflow: 'manual_baseline'
+  readonly protocolVersion:
+    | typeof MANUAL_BASELINE_PROTOCOL_VERSION
+    | typeof TAXALENS_ASSISTED_PROTOCOL_VERSION
+  readonly workflow: VerificationImpactWorkflow
   readonly studyId: string
   readonly sessionId: string
   readonly participantIdHash: string
@@ -75,9 +86,30 @@ export interface ManualVerificationBaselineSession {
   readonly events: readonly VerificationImpactEvent[]
 }
 
+export interface ManualVerificationBaselineSession
+  extends VerificationImpactSessionBase {
+  readonly protocolVersion: typeof MANUAL_BASELINE_PROTOCOL_VERSION
+  readonly workflow: 'manual_baseline'
+}
+
+export interface TaxaLensAssistedTimingSession
+  extends VerificationImpactSessionBase {
+  readonly protocolVersion: typeof TAXALENS_ASSISTED_PROTOCOL_VERSION
+  readonly workflow: 'taxalens_assisted'
+  readonly taxalensSha: string
+  readonly campaignId: string
+}
+
+export type VerificationImpactSession =
+  | ManualVerificationBaselineSession
+  | TaxaLensAssistedTimingSession
+
 export interface VerificationImpactSummary {
   readonly schemaVersion: 'taxalens-verification-impact-summary:v1.0.0'
-  readonly workflow: 'manual_baseline'
+  readonly protocolVersion:
+    | typeof MANUAL_BASELINE_PROTOCOL_VERSION
+    | typeof TAXALENS_ASSISTED_PROTOCOL_VERSION
+  readonly workflow: VerificationImpactWorkflow
   readonly studyId: string
   readonly sessionId: string
   readonly taskSetId: string
@@ -134,10 +166,12 @@ export function createManualVerificationBaseline(input: {
   })
 }
 
-export function recordManualBaselineAction(
-  session: ManualVerificationBaselineSession,
+export function recordVerificationImpactAction<
+  T extends VerificationImpactSession,
+>(
+  session: T,
   input: ManualBaselineActionInput,
-): ManualVerificationBaselineSession {
+): T {
   validateSession(session)
   requireOpenActiveSession(session)
   validateAction(input)
@@ -156,10 +190,19 @@ export function recordManualBaselineAction(
   })
 }
 
-export function pauseManualVerificationBaseline(
+export function recordManualBaselineAction(
   session: ManualVerificationBaselineSession,
-  recordedAt: string,
+  input: ManualBaselineActionInput,
 ): ManualVerificationBaselineSession {
+  return recordVerificationImpactAction(session, input)
+}
+
+export function pauseVerificationImpactSession<
+  T extends VerificationImpactSession,
+>(
+  session: T,
+  recordedAt: string,
+): T {
   validateSession(session)
   requireOpenActiveSession(session)
   requireTimestampAfterSession(session, recordedAt)
@@ -172,14 +215,23 @@ export function pauseManualVerificationBaseline(
   })
 }
 
-export function resumeManualVerificationBaseline(
+export function pauseManualVerificationBaseline(
   session: ManualVerificationBaselineSession,
   recordedAt: string,
 ): ManualVerificationBaselineSession {
+  return pauseVerificationImpactSession(session, recordedAt)
+}
+
+export function resumeVerificationImpactSession<
+  T extends VerificationImpactSession,
+>(
+  session: T,
+  recordedAt: string,
+): T {
   validateSession(session)
   requireOpenSession(session)
   if (currentActivityState(session) !== 'paused') {
-    throw new Error('manual baseline session is already active')
+    throw new Error('verification impact session is already active')
   }
   requireTimestampAfterSession(session, recordedAt)
   return appendEvent(session, {
@@ -191,10 +243,19 @@ export function resumeManualVerificationBaseline(
   })
 }
 
-export function completeManualVerificationBaseline(
+export function resumeManualVerificationBaseline(
   session: ManualVerificationBaselineSession,
-  completedAt: string,
+  recordedAt: string,
 ): ManualVerificationBaselineSession {
+  return resumeVerificationImpactSession(session, recordedAt)
+}
+
+export function completeVerificationImpactSession<
+  T extends VerificationImpactSession,
+>(
+  session: T,
+  completedAt: string,
+): T {
   validateSession(session)
   requireOpenSession(session)
   requireTimestampAfterSession(session, completedAt)
@@ -223,8 +284,15 @@ export function completeManualVerificationBaseline(
   return freezeSession(completed)
 }
 
-export function summarizeManualVerificationBaseline(
+export function completeManualVerificationBaseline(
   session: ManualVerificationBaselineSession,
+  completedAt: string,
+): ManualVerificationBaselineSession {
+  return completeVerificationImpactSession(session, completedAt)
+}
+
+export function summarizeVerificationImpactSession(
+  session: VerificationImpactSession,
 ): VerificationImpactSummary {
   validateSession(session)
   const actions = session.events.filter(
@@ -262,7 +330,8 @@ export function summarizeManualVerificationBaseline(
       : Date.parse(session.completedAt) - Date.parse(session.startedAt)
   return Object.freeze({
     schemaVersion: 'taxalens-verification-impact-summary:v1.0.0',
-    workflow: 'manual_baseline',
+    protocolVersion: session.protocolVersion,
+    workflow: session.workflow,
     studyId: session.studyId,
     sessionId: session.sessionId,
     taskSetId: session.taskSetId,
@@ -285,26 +354,52 @@ export function summarizeManualVerificationBaseline(
   })
 }
 
-export function validateManualVerificationBaseline(
+export function summarizeManualVerificationBaseline(
   session: ManualVerificationBaselineSession,
+): VerificationImpactSummary {
+  return summarizeVerificationImpactSession(session)
+}
+
+export function validateVerificationImpactSession(
+  session: VerificationImpactSession,
 ): readonly string[] {
   try {
     validateSession(session)
     return Object.freeze([])
   } catch (error) {
     return Object.freeze([
-      error instanceof Error ? error.message : 'manual baseline is invalid',
+      error instanceof Error ? error.message : 'verification impact session is invalid',
     ])
   }
 }
 
-function validateSession(session: ManualVerificationBaselineSession): void {
+export function validateManualVerificationBaseline(
+  session: ManualVerificationBaselineSession,
+): readonly string[] {
+  return validateVerificationImpactSession(session)
+}
+
+function validateSession(session: VerificationImpactSession): void {
   if (
-    session.schemaVersion !== VERIFICATION_IMPACT_SESSION_SCHEMA_VERSION ||
-    session.protocolVersion !== MANUAL_BASELINE_PROTOCOL_VERSION ||
-    session.workflow !== 'manual_baseline'
+    session.schemaVersion !== VERIFICATION_IMPACT_SESSION_SCHEMA_VERSION
   ) {
-    throw new Error('manual baseline schema or protocol is unsupported')
+    throw new Error('verification impact session schema is unsupported')
+  }
+  const supportedProtocol =
+    (session.workflow === 'manual_baseline' &&
+      session.protocolVersion === MANUAL_BASELINE_PROTOCOL_VERSION) ||
+    (session.workflow === 'taxalens_assisted' &&
+      session.protocolVersion === TAXALENS_ASSISTED_PROTOCOL_VERSION)
+  if (!supportedProtocol) {
+    throw new Error(
+      'verification impact workflow and protocol do not match',
+    )
+  }
+  if (session.workflow === 'taxalens_assisted') {
+    if (!/^[a-f0-9]{40}$/u.test(session.taxalensSha)) {
+      throw new Error('assisted timing requires a TaxaLens Git SHA')
+    }
+    requireIdentifier(session.campaignId, 'campaignId')
   }
   requireIdentifier(session.studyId, 'studyId')
   requireIdentifier(session.sessionId, 'sessionId')
@@ -314,47 +409,47 @@ function validateSession(session: ManualVerificationBaselineSession): void {
   }
   requireTimestamp(session.startedAt, 'startedAt')
   if (session.events.length === 0) {
-    throw new Error('manual baseline requires an activity-start event')
+    throw new Error('verification impact session requires an activity-start event')
   }
   let activityState: 'active' | 'paused' | null = null
   let completionCount = 0
   let previousTime = Date.parse(session.startedAt)
   for (const [index, event] of session.events.entries()) {
     if (event.sequence !== index + 1) {
-      throw new Error('manual baseline event sequences must be contiguous')
+      throw new Error('verification impact event sequences must be contiguous')
     }
     requireTimestamp(event.recordedAt, 'event recordedAt')
     const eventTime = Date.parse(event.recordedAt)
     if (eventTime < previousTime) {
-      throw new Error('manual baseline events must be chronological')
+      throw new Error('verification impact events must be chronological')
     }
     previousTime = eventTime
     if (event.eventType === 'activity') {
       if (event.state === activityState) {
-        throw new Error('manual baseline activity states must alternate')
+        throw new Error('verification impact activity states must alternate')
       }
       if (
         index === 0 &&
         (event.state !== 'active' || event.reason !== 'session_started')
       ) {
-        throw new Error('manual baseline must begin active')
+        throw new Error('verification impact session must begin active')
       }
       activityState = event.state
     } else if (event.eventType === 'action') {
       if (activityState !== 'active') {
-        throw new Error('manual baseline actions require active time')
+        throw new Error('verification impact actions require active time')
       }
       validateAction(event)
     } else {
       completionCount += 1
       if (index !== session.events.length - 1) {
-        throw new Error('manual baseline completion must be the final event')
+        throw new Error('verification impact completion must be the final event')
       }
     }
   }
   if (session.completedAt === null) {
     if (completionCount !== 0) {
-      throw new Error('open manual baseline cannot contain completion')
+      throw new Error('open verification impact session cannot contain completion')
     }
   } else {
     requireTimestamp(session.completedAt, 'completedAt')
@@ -364,7 +459,9 @@ function validateSession(session: ManualVerificationBaselineSession): void {
       finalEvent?.eventType !== 'completion' ||
       finalEvent.recordedAt !== session.completedAt
     ) {
-      throw new Error('completed manual baseline requires one final completion')
+      throw new Error(
+        'completed verification impact session requires one final completion',
+      )
     }
   }
 }
@@ -397,7 +494,7 @@ function validateAction(
     other: [],
   }
   if (!Object.hasOwn(expectedByKind, input.actionKind)) {
-    throw new Error('manual baseline action kind is unsupported')
+    throw new Error('verification impact action kind is unsupported')
   }
   const expected = expectedByKind[input.actionKind]
   for (const [field, value] of Object.entries(fields)) {
@@ -412,7 +509,7 @@ function validateAction(
 }
 
 function calculateActiveMilliseconds(
-  session: ManualVerificationBaselineSession,
+  session: VerificationImpactSession,
 ): number {
   let activeStartedAt: number | null = null
   let activeMilliseconds = 0
@@ -442,10 +539,10 @@ function values(
   })
 }
 
-function appendEvent(
-  session: ManualVerificationBaselineSession,
+function appendEvent<T extends VerificationImpactSession>(
+  session: T,
   event: VerificationImpactEvent,
-): ManualVerificationBaselineSession {
+): T {
   const candidate = {
     ...session,
     events: [...session.events, event],
@@ -455,7 +552,7 @@ function appendEvent(
 }
 
 function currentActivityState(
-  session: ManualVerificationBaselineSession,
+  session: VerificationImpactSession,
 ): 'active' | 'paused' {
   const activity = [...session.events]
     .reverse()
@@ -463,34 +560,34 @@ function currentActivityState(
       (event): event is ImpactActivityEvent => event.eventType === 'activity',
     )
   if (activity === undefined) {
-    throw new Error('manual baseline activity state is unavailable')
+    throw new Error('verification impact activity state is unavailable')
   }
   return activity.state
 }
 
 function requireOpenActiveSession(
-  session: ManualVerificationBaselineSession,
+  session: VerificationImpactSession,
 ): void {
   requireOpenSession(session)
   if (currentActivityState(session) !== 'active') {
-    throw new Error('manual baseline actions require active time')
+    throw new Error('verification impact actions require active time')
   }
 }
 
-function requireOpenSession(session: ManualVerificationBaselineSession): void {
+function requireOpenSession(session: VerificationImpactSession): void {
   if (session.completedAt !== null) {
-    throw new Error('manual baseline session is already completed')
+    throw new Error('verification impact session is already completed')
   }
 }
 
 function requireTimestampAfterSession(
-  session: ManualVerificationBaselineSession,
+  session: VerificationImpactSession,
   timestamp: string,
 ): void {
   requireTimestamp(timestamp, 'event timestamp')
   const previous = session.events.at(-1)?.recordedAt ?? session.startedAt
   if (Date.parse(timestamp) < Date.parse(previous)) {
-    throw new Error('manual baseline events must be chronological')
+    throw new Error('verification impact events must be chronological')
   }
 }
 
@@ -506,13 +603,11 @@ function requireTimestamp(value: string, field: string): void {
   }
 }
 
-function freezeSession(
-  session: ManualVerificationBaselineSession,
-): ManualVerificationBaselineSession {
+function freezeSession<T extends VerificationImpactSession>(session: T): T {
   return Object.freeze({
     ...session,
     events: Object.freeze(
       session.events.map((event) => Object.freeze({ ...event })),
     ),
-  })
+  }) as unknown as T
 }
