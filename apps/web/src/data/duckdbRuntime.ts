@@ -16,6 +16,9 @@ export type DuckDbWasmModule = typeof import('@duckdb/duckdb-wasm')
  * The static shell and JSON bootstrap never start a worker or contact a CDN.
  */
 export async function loadDuckDbRuntime(): Promise<DuckDbWasmModule> {
+  if (typeof WebAssembly === 'undefined') {
+    throw new Error('WebAssembly is unavailable; DuckDB-Wasm inspection cannot start.')
+  }
   return import('@duckdb/duckdb-wasm')
 }
 

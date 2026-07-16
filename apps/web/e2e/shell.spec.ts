@@ -181,11 +181,14 @@ test('routes Evidence Lens through Verification and returns local review lineage
   await expect(
     humanEvidence.getByText('Current human outcomes').locator('..'),
   ).toContainText('1 of 3')
+  const humanSummary = humanEvidence.locator(
+    '.human-verification-evidence__summary > div',
+  )
   await expect(
-    humanEvidence.getByText('Reviewer count').first().locator('..'),
+    humanSummary.filter({ hasText: 'Reviewer count' }),
   ).toContainText('1 recorded reviewer identity')
   await expect(
-    humanEvidence.getByText('Conflict status').first().locator('..'),
+    humanSummary.filter({ hasText: 'Conflict status' }),
   ).toContainText('Not calculated')
   await expect(
     humanEvidence.getByRole('list', {
@@ -208,7 +211,7 @@ test('shows only checksum-verified evidence with explicit analytics and unavaila
 }) => {
   await page.goto('./#observatory')
 
-  await expect(page.getByText('25 / 25 verified')).toBeVisible()
+  await expect(page.getByText('30 / 30 verified')).toBeVisible()
   await expect(page.getByText('Inventory and payload verified')).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Evidence pipeline' })).toBeVisible()
   const pipeline = page.getByRole('list', { name: 'Evidence pipeline stages' })
@@ -242,7 +245,7 @@ test('shows only checksum-verified evidence with explicit analytics and unavaila
 
   await page.getByRole('link', { name: 'Evidence Lens' }).click()
   await expect(page.getByRole('heading', { name: 'Explicitly unavailable evidence' })).toBeVisible()
-  await expect(page.locator('.unavailable-evidence-list > li')).toHaveCount(11)
+  await expect(page.locator('.unavailable-evidence-list > li')).toHaveCount(8)
 
   await page.getByRole('link', { name: 'Dashboard' }).click()
   await expect(page.getByRole('heading', { name: 'Verified local data boundary' })).toBeVisible()
@@ -294,7 +297,7 @@ test('configures a bounded mission without enabling unsupported live work', asyn
     'page',
   )
   await expect(page.locator('.replay-launch-receipt').getByText(/^sha256:[0-9a-f]{64}$/u)).toBeVisible()
-  await expect(page.getByText('25 / 25 verified')).toBeVisible()
+  await expect(page.getByText('30 / 30 verified')).toBeVisible()
   await expect(page.getByText('Fixture replay only · no live actions · no remote requests')).toBeVisible()
   expect(requestUrls).toHaveLength(requestsBeforeLaunch)
 })
@@ -782,7 +785,7 @@ test('shows a truthful lifecycle ledger without fabricated event times or commen
   await expect(ledger.getByRole('time')).toHaveCount(1)
   await expect(
     ledger.getByRole('heading', { name: 'Export' }).locator('xpath=ancestor::article[1]'),
-  ).toContainText('25 / 25 checksum-verified artifacts')
+  ).toContainText('30 / 30 checksum-verified artifacts')
 
   const expectedOrigin = new URL(page.url()).origin
   expect(
@@ -1134,15 +1137,15 @@ test('reports only measured workflow efficiency without inferring avoided work',
   await expect(metric('Embedding reuse')).toContainText('No embedding artifact')
   await expect(metric('Restart efficiency')).toContainText('Complete checkpoints22 of 22')
   await expect(metric('Restart efficiency')).toContainText('Checkpoint pages314')
-  await expect(metric('Evidence completeness')).toContainText('25 of 25 artifacts verified')
-  await expect(metric('Evidence completeness')).toContainText('Available sections5')
+  await expect(metric('Evidence completeness')).toContainText('30 of 30 artifacts verified')
+  await expect(metric('Evidence completeness')).toContainText('Available sections8')
   await expect(metric('Evidence completeness')).toContainText('Partial sections9')
-  await expect(metric('Evidence completeness')).toContainText('Unavailable sections11')
+  await expect(metric('Evidence completeness')).toContainText('Unavailable sections8')
 
   const guardrail = report.getByRole('heading', { name: 'Integrity is not scientific completeness' })
     .locator('..')
     .locator('..')
-  await expect(guardrail).toContainText('5 are available, 9 partial, and 6 unavailable')
+  await expect(guardrail).toContainText('8 are available, 9 partial, and 8 unavailable')
   await expect(guardrail).toContainText('No accuracy, readiness, or performance percentage')
   await report.getByText('Read the complete efficiency ledger as a table').click()
   await expect(report.getByRole('table').locator('tbody tr')).toHaveCount(6)

@@ -37,7 +37,7 @@ test('completes the deterministic judge replay from tour to parsed export', asyn
   await page.getByRole('button', { name: 'Next: Observatory' }).click()
   await page.getByRole('button', { name: 'Visit Observatory' }).click()
 
-  await expect(page.getByText('25 / 25 verified')).toBeVisible()
+  await expect(page.getByText('30 / 30 verified')).toBeVisible()
   const pipeline = page.getByRole('list', { name: 'Evidence pipeline stages' })
   await expect(pipeline.locator(':scope > li')).toHaveCount(13)
   await expect(pipeline.getByRole('heading', { name: 'Final Evidence' })).toBeVisible()
@@ -86,6 +86,7 @@ test('completes the deterministic judge replay from tour to parsed export', asyn
   await expect(page.getByText('Calibrated output unavailable')).toBeVisible()
 
   await page.getByRole('button', { name: 'Resume 90-second judge tour' }).click()
+  await page.getByRole('button', { name: 'Next: Verification' }).click()
   await page.getByRole('button', { name: 'Next: Dashboard' }).click()
   await page.getByRole('button', { name: 'Visit Dashboard' }).click()
   await expect(page.getByRole('heading', { name: 'Verified local data boundary' })).toBeVisible()
