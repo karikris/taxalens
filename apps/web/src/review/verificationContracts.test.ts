@@ -193,4 +193,164 @@ describe('verification campaign contracts', () => {
       'inclusionProbability must be null or greater than zero and at most one',
     ])
   })
+
+  it('validates BioMiner provider, licence, observer, and geography provenance', () => {
+    const targetTaxon: TaxonIdentity = {
+      acceptedTaxonKey: 'gbif:1938069',
+      scientificName: 'Papilio demoleus',
+      commonName: null,
+      rank: 'other',
+      authority: null,
+    }
+    const campaign: VerificationCampaign = {
+      schemaVersion: VERIFICATION_CAMPAIGN_SCHEMA_VERSION,
+      campaignId: 'biominer-reference-fixture',
+      title: 'BioMiner reference fixture',
+      description: 'A provider-provenance contract fixture.',
+      kind: 'reference_identity_verification',
+      status: 'ready',
+      targetTaxon,
+      sourceProviders: ['gbif'],
+      reviewRequirement: {
+        requiredIndependentReviewers: 1,
+        secondReviewPolicy: 'on_conflict_or_uncertain',
+        adjudicationRequiredOnConflict: false,
+        decisiveOutcomes: ['yes', 'no'],
+        mediaRequiredOutcomes: ['yes', 'no', 'cant_tell'],
+        nonScientificOutcomes: ['cant_view', 'skipped'],
+      },
+      samplingPlan: {
+        planId: 'biominer-priority-fixture',
+        purpose: 'reference_readiness',
+        design: 'targeted_priority',
+        representative: false,
+        blindReview: false,
+        selectionSeed: null,
+        targetSampleSize: 1,
+        inclusionProbabilityRequired: false,
+        independentUnit: 'duplicate_group',
+        groupingKeys: ['duplicate_group', 'observation_group', 'owner_group'],
+        leakagePolicy: 'support_only',
+        strata: [
+          {
+            stratumId: 'provider-gbif',
+            label: 'GBIF reference queue',
+            populationCount: null,
+            targetSampleCount: 1,
+            populationWeight: null,
+            selectionNotes: 'Priority fixture; not a probability sample.',
+          },
+        ],
+        qualityEstimationAllowed: false,
+        qualityEstimationBlockedReason:
+          'A priority fixture cannot estimate population quality.',
+      },
+      disclosurePolicy: {
+        mode: 'unblinded',
+        revealAfterDecision: false,
+        hiddenBeforeDecision: [],
+      },
+      questionFingerprint: 'reference-question-v1',
+      manifestSha256:
+        '1bf4b4284cc98dba7699a0a56bab74509f61f1d3ebf9ae69e3a725611fcc5d27',
+      taxalensSha: '1fec3b9',
+      biominerSha: '94fa1f6',
+      publicReplay: false,
+      scientificClaimAllowed: false,
+    }
+    const item: VerificationItem = {
+      itemId: 'reference-review-request:fixture',
+      campaignId: campaign.campaignId,
+      source: 'gbif',
+      sourceObservationId: '300000001',
+      sourceMediaId: 'reference-media:fixture',
+      imageSha256:
+        '47248e36944cf91256c906e8454adcad99121da049260745d57f4cbffae65a78',
+      imageByteCount: 12_345,
+      mediaType: 'image/jpeg',
+      previewUri: 's3://biominer-references/fixture.jpg',
+      targetTaxon,
+      providerSuppliedIdentity: {
+        providerTaxonKey: '1938069',
+        scientificName: 'Papilio demoleus',
+        commonName: null,
+        rawLabel: 'Papilio demoleus',
+        verificationStatus: 'accepted',
+      },
+      expectedLifeStage: 'adult',
+      expectedVisualDomain: 'live_field',
+      expectedView: 'dorsal',
+      duplicateGroupId: 'reference-duplicate-group:fixture',
+      observationGroupId: 'reference-observation:fixture',
+      ownerPhotographerGroupId: 'biominer-owner:fixture',
+      samplingStratumId: 'provider-gbif',
+      inclusionProbability: null,
+      rights: {
+        creator: 'Example observer',
+        rightsHolder: 'Example observer',
+        licenseName: 'CC-BY-4.0',
+        licenseUri: 'https://creativecommons.org/licenses/by/4.0/',
+        policyStatus: 'allowed',
+        attribution: 'Example observer / CC BY 4.0',
+        sourceUri: 'https://example.test/occurrence/300000001',
+      },
+      sourceProvenance: {
+        provider: 'gbif',
+        providerLabel: 'GBIF',
+        originalProvider: 'Atlas of Living Australia',
+        referenceObservationId: 'reference-observation:fixture',
+        sourceObservationId: '300000001',
+        providerMediaId: 'provider-photo-1',
+        occurrenceLicense: 'CC0-1.0',
+        mediaLicense: {
+          name: 'CC-BY-4.0',
+          uri: 'https://creativecommons.org/licenses/by/4.0/',
+          policyStatus: 'allowed',
+        },
+        observerId: 'observer-1',
+        geography: {
+          locality: 'Sydney',
+          country: 'Australia',
+          countryCode: 'AU',
+          latitude: -33.87,
+          longitude: 151.21,
+          coordinateUncertaintyMeters: 10,
+          coordinatesObscured: false,
+          geographicClusterId: 'geo-cluster-1',
+        },
+        providerVerificationStatus: 'accepted',
+      },
+      questionFingerprint: campaign.questionFingerprint,
+    }
+
+    expect(validateVerificationItem(item, campaign)).toEqual([])
+    expect(
+      validateVerificationItem(
+        {
+          ...item,
+          sourceProvenance: {
+            ...item.sourceProvenance!,
+            provider: 'inaturalist',
+            sourceObservationId: 'changed-observation',
+            providerMediaId: '',
+            mediaLicense: {
+              ...item.sourceProvenance!.mediaLicense,
+              name: 'CC0-1.0',
+            },
+            geography: {
+              ...item.sourceProvenance!.geography,
+              longitude: null,
+            },
+          },
+        },
+        campaign,
+      ),
+    ).toEqual([
+      'source provenance provider does not match the item source',
+      'source provenance observation does not match the item source observation',
+      'source provenance requires a provider media ID',
+      'source provenance media licence does not match item rights',
+      'source provenance coordinates must be populated together',
+    ])
+  })
 })

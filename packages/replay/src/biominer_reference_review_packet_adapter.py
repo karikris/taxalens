@@ -863,6 +863,7 @@ def _build_campaigns_and_items(
         for row in rows:
             context = contexts[str(row["review_request_id"])]
             observation = context["observation"]
+            candidate = context["candidate"]
             media_object = context["media_object"]
             creator = str(row["creator"])
             owner_digest = hashlib.sha256(
@@ -903,6 +904,40 @@ def _build_campaigns_and_items(
                         "policyStatus": _rights_policy(row["licence_policy_status"]),
                         "attribution": row["attribution"],
                         "sourceUri": observation["source_record_url"],
+                    },
+                    "sourceProvenance": {
+                        "provider": _provider(row["source"]),
+                        "providerLabel": _provider_label(_provider(row["source"])),
+                        "originalProvider": candidate["original_provider"],
+                        "referenceObservationId": row["reference_observation_id"],
+                        "sourceObservationId": observation["source_observation_id"],
+                        "providerMediaId": row["provider_media_id"],
+                        "occurrenceLicense": candidate["occurrence_licence"],
+                        "mediaLicense": {
+                            "name": row["licence"],
+                            "uri": row["licence_uri"],
+                            "policyStatus": _rights_policy(
+                                row["licence_policy_status"]
+                            ),
+                        },
+                        "observerId": observation["observer_id"],
+                        "geography": {
+                            "locality": observation["locality"],
+                            "country": observation["country"],
+                            "countryCode": observation["country_code"],
+                            "latitude": observation["latitude"],
+                            "longitude": observation["longitude"],
+                            "coordinateUncertaintyMeters": observation[
+                                "coordinate_uncertainty"
+                            ],
+                            "coordinatesObscured": observation[
+                                "coordinates_obscured"
+                            ],
+                            "geographicClusterId": observation["geo_cluster_id"],
+                        },
+                        "providerVerificationStatus": row[
+                            "provider_verification_status"
+                        ],
                     },
                     "questionFingerprint": question_fingerprint,
                 }

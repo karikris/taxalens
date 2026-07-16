@@ -191,7 +191,11 @@ def write_packet_fixture(
                 "licence_uri": "https://creativecommons.org/licenses/by/4.0/",
                 "attribution": "Example observer / CC BY 4.0",
                 "occurrence_licence": "CC0-1.0",
-                "original_provider": "Atlas of Living Australia",
+                "original_provider": (
+                    "Atlas of Living Australia"
+                    if source == "gbif"
+                    else "iNaturalist"
+                ),
                 "media_position": 0,
                 "source_checksum": None,
                 "source_checksum_algorithm": None,

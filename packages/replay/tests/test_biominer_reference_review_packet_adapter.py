@@ -60,7 +60,57 @@ def test_adapt_reference_review_packet_into_verification_contracts(
     assert item["mediaType"] == "image/jpeg"
     assert item["targetTaxon"] == campaign["targetTaxon"]
     assert item["rights"]["policyStatus"] == "allowed"
+    assert item["sourceProvenance"] == {
+        "provider": "gbif",
+        "providerLabel": "GBIF",
+        "originalProvider": "Atlas of Living Australia",
+        "referenceObservationId": "reference-observation:" + "2" * 64,
+        "sourceObservationId": "300000001",
+        "providerMediaId": "provider-photo-1",
+        "occurrenceLicense": "CC0-1.0",
+        "mediaLicense": {
+            "name": "CC-BY-4.0",
+            "uri": "https://creativecommons.org/licenses/by/4.0/",
+            "policyStatus": "allowed",
+        },
+        "observerId": "observer-1",
+        "geography": {
+            "locality": "Sydney",
+            "country": "Australia",
+            "countryCode": "AU",
+            "latitude": -33.87,
+            "longitude": 151.21,
+            "coordinateUncertaintyMeters": 10.0,
+            "coordinatesObscured": False,
+            "geographicClusterId": "geo-cluster-1",
+        },
+        "providerVerificationStatus": "accepted",
+    }
     assert item["questionFingerprint"] == campaign["questionFingerprint"]
+
+
+def test_adapt_reference_review_packet_preserves_inaturalist_identity(
+    tmp_path: Path,
+) -> None:
+    manifest = write_packet_fixture(tmp_path, source="inaturalist")
+
+    result = adapt_reference_review_packet(
+        source_manifest_path=manifest,
+        biominer_commit=BIOMINER_SHA,
+        taxalens_commit=TAXALENS_SHA,
+    )
+
+    campaign = result["campaigns"][0]
+    item = result["items"][0]
+    assert campaign["sourceProviders"] == ["inaturalist"]
+    assert campaign["samplingPlan"]["strata"][0]["label"] == (
+        "iNaturalist reference queue"
+    )
+    assert item["source"] == "inaturalist"
+    assert item["sourceObservationId"] == "200000001"
+    assert item["sourceProvenance"]["providerLabel"] == "iNaturalist"
+    assert item["sourceProvenance"]["originalProvider"] == "iNaturalist"
+    assert item["sourceProvenance"]["providerMediaId"] == "provider-photo-1"
 
 
 def test_adapt_reference_review_packet_rejects_non_full_commits(

@@ -183,6 +183,33 @@ export interface VerificationItemRights {
   readonly sourceUri: string
 }
 
+export interface ReferenceSourceProvenance {
+  readonly provider: 'gbif' | 'inaturalist'
+  readonly providerLabel: 'GBIF' | 'iNaturalist'
+  readonly originalProvider: string | null
+  readonly referenceObservationId: string
+  readonly sourceObservationId: string
+  readonly providerMediaId: string
+  readonly occurrenceLicense: string | null
+  readonly mediaLicense: {
+    readonly name: string
+    readonly uri: string
+    readonly policyStatus: VerificationItemRights['policyStatus']
+  }
+  readonly observerId: string | null
+  readonly geography: {
+    readonly locality: string | null
+    readonly country: string | null
+    readonly countryCode: string | null
+    readonly latitude: number | null
+    readonly longitude: number | null
+    readonly coordinateUncertaintyMeters: number | null
+    readonly coordinatesObscured: boolean
+    readonly geographicClusterId: string | null
+  }
+  readonly providerVerificationStatus: string | null
+}
+
 export interface VerificationItem {
   readonly itemId: string
   readonly campaignId: string
@@ -204,6 +231,7 @@ export interface VerificationItem {
   readonly samplingStratumId: string
   readonly inclusionProbability: number | null
   readonly rights: VerificationItemRights
+  readonly sourceProvenance?: ReferenceSourceProvenance
   readonly questionFingerprint: string
 }
 
@@ -325,6 +353,40 @@ export function validateVerificationItem(
   }
   if (item.rights.policyStatus === 'allowed' && item.rights.attribution === '') {
     failures.push('allowed media requires attribution')
+  }
+  if (item.sourceProvenance !== undefined) {
+    const provenance = item.sourceProvenance
+    if (provenance.provider !== item.source) {
+      failures.push('source provenance provider does not match the item source')
+    }
+    if (provenance.sourceObservationId !== item.sourceObservationId) {
+      failures.push(
+        'source provenance observation does not match the item source observation',
+      )
+    }
+    if (provenance.providerMediaId.trim() === '') {
+      failures.push('source provenance requires a provider media ID')
+    }
+    if (
+      provenance.mediaLicense.name !== item.rights.licenseName ||
+      provenance.mediaLicense.uri !== item.rights.licenseUri ||
+      provenance.mediaLicense.policyStatus !== item.rights.policyStatus
+    ) {
+      failures.push('source provenance media licence does not match item rights')
+    }
+    const { latitude, longitude } = provenance.geography
+    if ((latitude === null) !== (longitude === null)) {
+      failures.push('source provenance coordinates must be populated together')
+    } else if (
+      latitude !== null &&
+      longitude !== null &&
+      (latitude < -90 ||
+        latitude > 90 ||
+        longitude < -180 ||
+        longitude > 180)
+    ) {
+      failures.push('source provenance coordinates are outside valid bounds')
+    }
   }
   return Object.freeze(failures)
 }
