@@ -241,6 +241,11 @@ continues to read every allowlisted path through
 SHA-256, schema, and imported-byte comparisons. Advancing BioMiner `main` no
 longer invalidates immutable artifacts from an earlier retained commit.
 
+Follow-up subtask `verification-0.1.4` applies the same rule to the BioMiner
+boundary verifier. A missing or differently resolved pin remains fatal.
+An available pin with a newer checkout `HEAD` is recorded as explicit
+provenance metadata and a warning, not misclassified as an integrity failure.
+
 ## Required direction
 
 The next implementation must:

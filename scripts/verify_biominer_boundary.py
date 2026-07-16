@@ -158,6 +158,25 @@ def pinned_sha_from_upstream_doc(path: Path) -> Optional[str]:
     return parse_pinned_sha(path.read_text(encoding="utf-8"))
 
 
+def inspect_pinned_revision(path: Path, pinned_sha: str, head: str) -> dict[str, object]:
+    try:
+        resolved = run(
+            ["git", "rev-parse", "--verify", f"{pinned_sha}^{{commit}}"],
+            path,
+        )
+    except subprocess.CalledProcessError:
+        return {
+            "available": False,
+            "resolved_sha": None,
+            "head_matches": False,
+        }
+    return {
+        "available": resolved == pinned_sha,
+        "resolved_sha": resolved,
+        "head_matches": resolved == head,
+    }
+
+
 def collect_git_status(path: Path) -> Dict[str, List[str]]:
     status = run(["git", "status", "--short", "--ignore-submodules=all"], path)
     staged: List[str] = []
@@ -273,12 +292,26 @@ def main() -> None:
     if not pinned_sha:
         failures.append("Pinned BioMiner SHA could not be found in UPSTREAM_BIOMINER.md or manifest metadata.")
 
-    if pinned_sha and pinned_sha == head:
-        warnings.append(f"BioMiner local HEAD matches pinned SHA {pinned_sha}.")
-    elif pinned_sha:
-        failures.append(
-            f"Pinned BioMiner SHA mismatch. Pinned={pinned_sha}, local HEAD={head}."
-        )
+    pinned_revision: dict[str, object] = {
+        "available": False,
+        "resolved_sha": None,
+        "head_matches": False,
+    }
+    if pinned_sha:
+        pinned_revision = inspect_pinned_revision(biominer_path, pinned_sha, head)
+        if not pinned_revision["available"]:
+            failures.append(
+                f"Pinned BioMiner commit is unavailable or resolves differently: {pinned_sha}."
+            )
+        elif pinned_revision["head_matches"]:
+            warnings.append(f"BioMiner local HEAD matches pinned SHA {pinned_sha}.")
+        else:
+            warnings.append(
+                "BioMiner local HEAD differs from the retained evidence pin; "
+                f"pinned={pinned_sha}, local HEAD={head}. "
+                "The pinned commit remains available and migrations must use "
+                "commit-qualified Git objects."
+            )
 
     if status["staged"]:
         warnings.append(
@@ -315,6 +348,7 @@ def main() -> None:
             "head": head,
             "status": status,
             "phase13_signal": has_phase13_signal(biominer_path),
+            "pinned_revision": pinned_revision,
         },
         "pinned_sha": pinned_sha,
         "phase13_excluded": bool(manifest_data and manifest_data.get("phase13_exclusion", True)),
