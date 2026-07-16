@@ -36,7 +36,7 @@ describe('HumanReviewWorkspace', () => {
   it('keeps scientific outcomes disabled until the verified image is displayed', async () => {
     const cache = fakeCache()
     const repository = reviewRepository()
-    render(
+    const { container } = render(
       <HumanReviewWorkspace
         cache={cache}
         now={() => new Date('2026-07-16T12:00:00Z')}
@@ -88,6 +88,10 @@ describe('HumanReviewWorkspace', () => {
       ).resolves.toEqual([
         expect.objectContaining({ outcome: 'cant_tell' }),
       ])
+      expect(container.firstElementChild).toHaveAttribute(
+        'data-workflow-phase',
+        'saved',
+      )
     })
     expect(
       window.localStorage.getItem(HUMAN_REVIEW_SESSION_STORAGE_KEY),
