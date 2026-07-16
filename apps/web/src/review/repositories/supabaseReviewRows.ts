@@ -151,6 +151,11 @@ export function verificationItemFromSupabaseRow(
       'source media ID',
     ),
     mismatch(
+      item.privateMedia?.objectKey ?? null,
+      nullableStringField(row, 'media_object_key'),
+      'private media object key',
+    ),
+    mismatch(
       item.imageSha256,
       sha256Field(row, 'image_sha256'),
       'image SHA-256',

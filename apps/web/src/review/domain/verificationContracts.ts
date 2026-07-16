@@ -183,6 +183,17 @@ export interface VerificationItemRights {
   readonly sourceUri: string
 }
 
+export const VERIFICATION_PRIVATE_MEDIA_SCHEMA_VERSION =
+  'taxalens-verification-private-media:v1.0.0' as const
+
+export interface VerificationPrivateMedia {
+  readonly schemaVersion: typeof VERIFICATION_PRIVATE_MEDIA_SCHEMA_VERSION
+  readonly provider: 'backblaze_b2'
+  readonly bucketAlias: string
+  readonly objectKey: string
+  readonly accessScope: 'assigned_reviewer'
+}
+
 export interface ReferenceSourceProvenance {
   readonly provider: 'gbif' | 'inaturalist'
   readonly providerLabel: 'GBIF' | 'iNaturalist'
@@ -340,6 +351,7 @@ export interface VerificationItem {
   readonly imageByteCount: number
   readonly mediaType: `image/${string}`
   readonly previewUri: string
+  readonly privateMedia?: VerificationPrivateMedia
   readonly targetTaxon: TaxonIdentity
   readonly providerSuppliedIdentity: ProviderSuppliedIdentity
   readonly expectedLifeStage: VerificationLifeStage | null
@@ -475,6 +487,29 @@ export function validateVerificationItem(
   if (item.rights.policyStatus === 'allowed' && item.rights.attribution === '') {
     failures.push('allowed media requires attribution')
   }
+  if (item.privateMedia !== undefined) {
+    const privateMedia = item.privateMedia
+    if (
+      privateMedia.schemaVersion !== VERIFICATION_PRIVATE_MEDIA_SCHEMA_VERSION
+    ) {
+      failures.push('private media schema version is unsupported')
+    }
+    if (privateMedia.provider !== 'backblaze_b2') {
+      failures.push('private media provider is unsupported')
+    }
+    if (!SAFE_PRIVATE_MEDIA_ALIAS.test(privateMedia.bucketAlias)) {
+      failures.push('private media bucket alias is unsafe')
+    }
+    if (!safePrivateMediaObjectKey(privateMedia.objectKey)) {
+      failures.push('private media object key is unsafe')
+    }
+    if (privateMedia.accessScope !== 'assigned_reviewer') {
+      failures.push('private media access scope is unsupported')
+    }
+    if (campaign.publicReplay) {
+      failures.push('public replay campaigns cannot reference private media')
+    }
+  }
   if (item.sourceProvenance !== undefined) {
     const provenance = item.sourceProvenance
     if (provenance.provider !== item.source) {
@@ -542,3 +577,24 @@ export function validateVerificationItem(
   }
   return Object.freeze(failures)
 }
+
+function safePrivateMediaObjectKey(value: string): boolean {
+  return (
+    value.length > 0 &&
+    value.length <= 1024 &&
+    !value.startsWith('/') &&
+    !value.endsWith('/') &&
+    !/[\u0000-\u001f\u007f\\?#]/u.test(value) &&
+    value
+      .split('/')
+      .every(
+        (segment) =>
+          segment !== '' &&
+          segment !== '.' &&
+          segment !== '..' &&
+          segment.trim() === segment,
+      )
+  )
+}
+
+const SAFE_PRIVATE_MEDIA_ALIAS = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/u
