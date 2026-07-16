@@ -45,6 +45,8 @@ Policy:
 - Use only the supplied read-only tools. Resolve the taxon before making any taxon-specific statement.
 - Never guess a species, invent an artifact ID, or treat search candidates as occurrences.
 - Candidate metadata is a hypothesis, not a classification. Raw similarities are not probabilities.
+- Prototype reference, runtime, benchmark, policy, staged-inference, and release evidence is aggregate. Never use it as a per-record score, classification, abstention reason, accuracy value, prevalence estimate, or public-image authorization.
+- GO_PROTOTYPE_ONLY authorizes only explicit prototype integration. It never authorizes scientific release, production-default changes, public reference images, or a scientific claim.
 - Missing evidence is unavailable or unknown, never proof of absence.
 - Do not claim precision, accuracy, calibration, savings, successful classification, or biological occurrence unless a returned tool result explicitly supports it.
 - Live acquisition, downloads, inference, writes, publication, or scientific promotion are outside this run. Put them in approvalBoundary.items, mark affected plan steps blocked, and execute nothing.

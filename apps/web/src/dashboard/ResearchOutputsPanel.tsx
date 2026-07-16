@@ -31,10 +31,16 @@ const OUTPUTS = Object.freeze([
     description: 'Verified bundle state, evidence funnel, section states, and workflow counts.',
   },
   {
+    role: 'prototype_boundary',
+    label: 'Prototype boundary',
+    format: 'JSON',
+    description: 'Aggregate Phase 14/15 evidence, policy thresholds, release gate, restrictions, and provenance.',
+  },
+  {
     role: 'manifest',
     label: 'Manifest',
     format: 'JSON + SHA-256',
-    description: 'Checksums and media types for the four payload outputs; signature unavailable.',
+    description: 'Checksums and media types for the five payload outputs; signature unavailable.',
   },
   {
     role: 'provenance',
@@ -91,7 +97,7 @@ export function ResearchOutputsPanel({
           <p className="eyebrow">Portable research handoff</p>
           <h3 id="research-outputs-title">Export research outputs</h3>
           <p>
-            Prepare five deterministic, lightweight reports from the checksum-verified replay.
+            Prepare six deterministic, lightweight reports from the checksum-verified replay.
             Generation stays in this browser and records no new evidence.
           </p>
         </div>
@@ -104,7 +110,7 @@ export function ResearchOutputsPanel({
             ? 'Preparing checksums…'
             : state.kind === 'ready'
               ? 'Prepare again'
-              : 'Prepare five research outputs'}
+              : 'Prepare six research outputs'}
         </button>
       </div>
 
@@ -114,7 +120,7 @@ export function ResearchOutputsPanel({
       </EvidenceState>
 
       {state.kind === 'preparing' ? (
-        <EvidenceState state="loading" title="Hashing five local reports">
+        <EvidenceState state="loading" title="Hashing six local reports">
           Canonical JSON and SHA-256 digests are being prepared without a network request.
         </EvidenceState>
       ) : state.kind === 'error' ? (
@@ -122,13 +128,13 @@ export function ResearchOutputsPanel({
           {state.message}
         </EvidenceState>
       ) : state.kind === 'ready' ? (
-        <EvidenceState state="available" title="Five research outputs prepared locally">
+        <EvidenceState state="available" title="Six research outputs prepared locally">
           Download each independently. Preparing the same replay again produces the same bytes and
           checksums.
         </EvidenceState>
       ) : (
         <p className="research-outputs__idle">
-          Nothing has been generated yet. Review the five output boundaries before preparing them.
+          Nothing has been generated yet. Review the six output boundaries before preparing them.
         </p>
       )}
 
@@ -172,7 +178,8 @@ export function ResearchOutputsPanel({
         </div>
         <p>
           The review file is an unranked worklist snapshot. The evaluation file contains no
-          precision or accuracy value. The manifest covers four payloads and excludes its own
+          precision or accuracy value. The prototype file contains aggregate evidence only. The
+          manifest covers five payloads and excludes its own
           digest; its downloaded file still receives a displayed SHA-256 checksum.
         </p>
       </aside>

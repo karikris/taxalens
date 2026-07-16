@@ -46,7 +46,7 @@ export const JUDGE_TOUR_STEPS: readonly JudgeTourStep[] = Object.freeze([
     title: 'Export',
     suggestedSeconds: 10,
     description:
-      'Prepare five deterministic local research outputs and inspect their checksums, unsigned manifest boundary, and blocked scientific claims.',
+      'Prepare six deterministic local research outputs and inspect their prototype boundary, checksums, unsigned manifest, and blocked scientific claims.',
   },
 ])
 

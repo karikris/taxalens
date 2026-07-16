@@ -19,6 +19,28 @@ scientific_claim_gate: "blocked-until-reviewed-references-leakage-safe-splits-ca
 handoff_contract: "storage-handoff-inventory-v1.0.0-with-explicit-uri-sha256-source-sha-and-receipt"
 recorded_at: "2026-07-16"
 components:
+  - component_id: biominer_phase14_phase15_prototype_agent_boundary
+    source_repository: karikris/BioMiner
+    source_commit: 67c1c2a3a2c9b909b256b3094913af342f4ccbed
+    source_path: reports/phase14/papilio_demoleus_build_week_prototype_report.json
+    destination_path: apps/web/src/agent/researchTools.ts
+    migration_kind: adapted
+    reason: Explain the normalized prototype evidence and release scope through strict read-only product tools, deterministic evaluations, and portable receipts.
+    build_week_scope: modified_existing
+    source_license: MIT
+    changes:
+      - Added closed-schema tools for aggregate reference/runtime evidence, prototype policy, and requested release mode.
+      - Added prototype boundary and release receipts to deterministic local research and evidence exports.
+      - Expanded the deterministic workflow evaluation to thirty tool cases plus the stored public replay.
+      - Preserved unavailable per-record evidence, accuracy, calibration, prevalence, scientific release, production-default, and public-image states.
+    tests:
+      - apps/web/src/agent/researchTools.test.ts
+      - apps/web/src/agent/agentEvaluation.test.ts
+      - apps/web/src/dashboard/researchOutputs.test.ts
+      - apps/web/src/dashboard/ResearchOutputsPanel.test.tsx
+      - apps/web/src/evidence/evidenceExport.test.ts
+      - apps/web/src/evidence/EvidenceExport.test.tsx
+    status: migrated
   - component_id: biominer_phase15_prototype_release_gate
     source_repository: karikris/BioMiner
     source_commit: 67c1c2a3a2c9b909b256b3094913af342f4ccbed

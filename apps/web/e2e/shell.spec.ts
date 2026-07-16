@@ -652,7 +652,7 @@ test('shows a truthful lifecycle ledger without fabricated event times or commen
   expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth)
 })
 
-test('downloads a deterministic five-file evidence audit boundary without remote requests', async ({
+test('downloads a deterministic six-file evidence audit boundary without remote requests', async ({
   page,
 }) => {
   const requestUrls: string[] = []
@@ -664,13 +664,14 @@ test('downloads a deterministic five-file evidence audit boundary without remote
   await expect(page.getByText('Unsigned manifest', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Prepare local audit bundle' }).click()
 
-  await expect(page.getByText('Five audit files prepared locally', { exact: true })).toBeVisible()
+  await expect(page.getByText('Six audit files prepared locally', { exact: true })).toBeVisible()
   const files = page.getByRole('list', { name: 'Prepared evidence export files' })
-  await expect(files.locator(':scope > li')).toHaveCount(5)
+  await expect(files.locator(':scope > li')).toHaveCount(6)
   for (const label of [
     'Download JSON evidence',
     'Download CSV summary',
     'Download Source Parquet',
+    'Download Prototype receipt',
     'Download Checksum manifest',
     'Download Provenance report',
   ]) {
@@ -1090,7 +1091,7 @@ test('shows the reviewed evaluation state without fabricating precision or accur
   expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth)
 })
 
-test('exports five deterministic research outputs without promoting blocked evidence', async ({
+test('exports six deterministic research outputs without promoting blocked evidence', async ({
   page,
 }) => {
   const requestUrls: string[] = []
@@ -1104,11 +1105,12 @@ test('exports five deterministic research outputs without promoting blocked evid
     panel.getByText('Deterministic local export · unsigned manifest', { exact: true }),
   ).toBeVisible()
   const files = panel.getByRole('list', { name: 'Research output files' })
-  await expect(files.locator(':scope > li')).toHaveCount(5)
-  await expect(files.locator('li[data-output-state="planned"]')).toHaveCount(5)
+  await expect(files.locator(':scope > li')).toHaveCount(6)
+  await expect(files.locator('li[data-output-state="planned"]')).toHaveCount(6)
   for (const label of [
     'Review queue',
     'Evidence summary',
+    'Prototype boundary',
     'Manifest',
     'Provenance',
     'Evaluation report',
@@ -1119,19 +1121,20 @@ test('exports five deterministic research outputs without promoting blocked evid
     panel.getByRole('heading', { name: 'Portable does not mean promoted' }).locator('..').locator('..'),
   ).toContainText('unranked worklist snapshot')
 
-  await panel.getByRole('button', { name: 'Prepare five research outputs' }).click()
-  await expect(panel.getByText('Five research outputs prepared locally', { exact: true })).toBeVisible()
-  await expect(files.locator('li[data-output-state="ready"]')).toHaveCount(5)
+  await panel.getByRole('button', { name: 'Prepare six research outputs' }).click()
+  await expect(panel.getByText('Six research outputs prepared locally', { exact: true })).toBeVisible()
+  await expect(files.locator('li[data-output-state="ready"]')).toHaveCount(6)
   for (const label of [
     'Review queue',
     'Evidence summary',
+    'Prototype boundary',
     'Manifest',
     'Provenance',
     'Evaluation report',
   ]) {
     await expect(files.getByRole('button', { name: `Download ${label}` })).toBeVisible()
   }
-  await expect(files.locator('.research-outputs__receipt > small')).toHaveCount(5)
+  await expect(files.locator('.research-outputs__receipt > small')).toHaveCount(6)
 
   const downloadPromise = page.waitForEvent('download')
   await files.getByRole('button', { name: 'Download Evaluation report' }).click()

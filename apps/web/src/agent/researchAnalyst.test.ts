@@ -65,7 +65,7 @@ describe('GPT-5.6 research analyst', () => {
     expect(request.instructions).toContain('Never guess a species')
     expect(request.instructions).toContain('Maximum tool calls: 6')
     expect(request.instructions).toContain('not private reasoning')
-    expect(request.tools).toHaveLength(9)
+    expect(request.tools).toHaveLength(12)
     expect(request.tools?.every((tool) => tool.type === 'function')).toBe(true)
     expect(request.tools?.some((tool) => tool.type === 'programmatic_tool_calling')).toBe(false)
 

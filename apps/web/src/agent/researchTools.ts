@@ -18,6 +18,9 @@ export const RESEARCH_TOOL_NAMES = Object.freeze([
   'compare_candidates',
   'explain_decision',
   'inspect_reference_status',
+  'inspect_prototype_evidence',
+  'inspect_prototype_policy',
+  'inspect_prototype_release',
   'export_evidence',
 ] as const)
 
@@ -104,6 +107,16 @@ const TAXON_ARGUMENT = Object.freeze({
 const RECORD_ARGUMENT = Object.freeze({
   type: 'string',
   description: 'An exact committed evidence-record ID; at most 160 characters.',
+})
+const PROTOTYPE_RELEASE_MODE_ARGUMENT = Object.freeze({
+  type: 'string',
+  enum: [
+    'explicit_prototype',
+    'production_default',
+    'scientific_release',
+    'public_reference_image_display',
+  ],
+  description: 'The exact release mode to test against the fail-closed prototype gate.',
 })
 const STATUS_VALUES = Object.freeze(['available', 'partial', 'unavailable', 'blocked'])
 const FACT_STATUS_VALUES = Object.freeze(['verified', 'metadata', 'unavailable', 'blocked'])
@@ -272,6 +285,21 @@ export const RESEARCH_TOOL_DEFINITIONS: readonly ResearchToolDefinition[] = Obje
     parameters({ accepted_taxon_key: TAXON_ARGUMENT }, ['accepted_taxon_key']),
   ),
   definition(
+    'inspect_prototype_evidence',
+    'Inspect aggregate prototype reference, runtime, staged-inference, and rights evidence without returning per-record conclusions.',
+    parameters({ accepted_taxon_key: TAXON_ARGUMENT }, ['accepted_taxon_key']),
+  ),
+  definition(
+    'inspect_prototype_policy',
+    'Explain B0/B13 scoreability, selected and diagnostic raw-margin thresholds, and unavailable scientific metrics.',
+    parameters({ accepted_taxon_key: TAXON_ARGUMENT }, ['accepted_taxon_key']),
+  ),
+  definition(
+    'inspect_prototype_release',
+    'Evaluate one requested release mode against the fail-closed prototype-only authorization boundary.',
+    parameters({ requested_mode: PROTOTYPE_RELEASE_MODE_ARGUMENT }, ['requested_mode']),
+  ),
+  definition(
     'export_evidence',
     'Prepare deterministic local research-output receipts without downloading, signing, or changing evidence.',
     parameters({ record_id: RECORD_ARGUMENT }, ['record_id']),
@@ -328,6 +356,15 @@ export async function executeResearchTool(
       break
     case 'inspect_reference_status':
       result = inspectReferenceStatus(readString(args, 'accepted_taxon_key'), replay)
+      break
+    case 'inspect_prototype_evidence':
+      result = inspectPrototypeEvidence(readString(args, 'accepted_taxon_key'), replay)
+      break
+    case 'inspect_prototype_policy':
+      result = inspectPrototypePolicy(readString(args, 'accepted_taxon_key'), replay)
+      break
+    case 'inspect_prototype_release':
+      result = inspectPrototypeRelease(readString(args, 'requested_mode'), replay)
       break
     case 'export_evidence':
       result = await exportEvidence(readString(args, 'record_id'), replay)
@@ -711,6 +748,199 @@ function inspectReferenceStatus(
   })
 }
 
+function inspectPrototypeEvidence(
+  acceptedTaxonKey: string,
+  replay: ReplayEvidence,
+): ResearchToolResult {
+  if (!sameTaxonKey(acceptedTaxonKey, replay)) {
+    return unknownTaxonResult('inspect_prototype_evidence', acceptedTaxonKey, replay)
+  }
+  const prototype = replay.prototype
+  return result({
+    tool: 'inspect_prototype_evidence',
+    status: 'partial',
+    replay,
+    summary:
+      'Aggregate prototype evidence is available with limitations; no per-record classification or scientific result is available.',
+    facts: [
+      fact('prototype_status', 'Prototype status', prototype.status, 'metadata'),
+      fact('support_count', 'Frozen prototype support', prototype.referenceBank.supportCount, 'metadata'),
+      fact('provider_supported_count', 'Provider-supported references', prototype.referenceBank.providerSupportedCount, 'metadata'),
+      fact('human_verified_count', 'Human-verified references', prototype.referenceBank.humanVerifiedCount, 'blocked'),
+      fact('allowed_reference_count', 'References allowed for current policy', prototype.referenceBank.allowedCount, 'metadata'),
+      fact('research_only_reference_count', 'Research-only references', prototype.referenceBank.researchOnlyCount, 'blocked'),
+      fact('adult_route_count', 'Adult-field references', prototype.referenceBank.adultRouteCount, 'metadata'),
+      fact('larval_route_count', 'Larval references', prototype.referenceBank.larvalRouteCount, 'metadata'),
+      fact('pinned_specimen_route_count', 'Pinned-specimen references', prototype.referenceBank.pinnedSpecimenRouteCount, 'blocked'),
+      fact('embedding_dimension', 'BioCLIP embedding dimensions', prototype.runtime.embeddingDimension, 'metadata'),
+      fact('frozen_support_embeddings', 'Frozen support embeddings', prototype.runtime.frozenSupportEmbeddings, 'metadata'),
+      fact('bioclip_model_revision', 'BioCLIP model revision', prototype.runtime.bioclipModelRevision, 'metadata'),
+      fact('smoke_image_count', 'Runtime smoke images', prototype.runtime.smokeImageCount, 'metadata'),
+      fact('resumed_embedding_count', 'Embeddings reused on resume', prototype.runtime.resumedEmbeddingCount, 'metadata'),
+      fact('yoloe_role', 'YOLOE authority', prototype.runtime.yoloeRole, 'metadata'),
+      fact('planned_record_count', 'Staged records planned', prototype.staged.plannedCount, 'metadata'),
+      fact('classified_record_count', 'Staged records classified', prototype.staged.classifiedCount, 'metadata'),
+      fact('retryable_failure_count', 'Retryable staged failures', prototype.staged.retryableFailureCount, 'metadata'),
+      fact('candidate_score_row_count', 'Aggregate candidate-score rows', prototype.staged.candidateScoreRowCount, 'metadata'),
+      fact('public_reference_images_authorized', 'Public reference-image display authorized', prototype.publicReferenceImageDisplayAuthorized, 'blocked'),
+    ],
+    records: [
+      record(
+        'prototype-reference-bank',
+        'Prototype reference bank',
+        'metadata',
+        `${prototype.referenceBank.supportCount} provider-supported rows; ${prototype.referenceBank.humanVerifiedCount} independently human-verified; ${prototype.referenceBank.researchOnlyCount} research-only. Routes: ${prototype.referenceBank.adultRouteCount} adult, ${prototype.referenceBank.larvalRouteCount} larval, ${prototype.referenceBank.pinnedSpecimenRouteCount} pinned specimen.`,
+        ['prototype-evidence-snapshot'],
+      ),
+      record(
+        'prototype-runtime',
+        'Prototype runtime',
+        'metadata',
+        `BioCLIP ${prototype.runtime.bioclipModelRevision} produced ${prototype.runtime.frozenSupportEmbeddings} frozen embeddings; YOLOE is gate and router only.`,
+        ['prototype-evidence-snapshot'],
+      ),
+      record(
+        'prototype-staged-inference',
+        'Staged prototype inference',
+        'metadata',
+        `${prototype.staged.classifiedCount} of ${prototype.staged.plannedCount} records classified with ${prototype.staged.retryableFailureCount} retryable failures; distribution is not accuracy or prevalence.`,
+        ['prototype-evidence-snapshot'],
+      ),
+    ],
+    artifactIds: ['prototype-evidence-snapshot'],
+    limitations: [
+      'This tool exposes aggregate prototype metadata only; per-record scores, detections, images, and decisions remain unavailable.',
+      'Provider-supported references are not independently human-verified taxonomic support.',
+      'Research-only references are not authorized for public image display.',
+      'Staged distributions are not classification accuracy, prevalence, occurrence, or taxonomic validation.',
+    ],
+  })
+}
+
+function inspectPrototypePolicy(
+  acceptedTaxonKey: string,
+  replay: ReplayEvidence,
+): ResearchToolResult {
+  if (!sameTaxonKey(acceptedTaxonKey, replay)) {
+    return unknownTaxonResult('inspect_prototype_policy', acceptedTaxonKey, replay)
+  }
+  const prototype = replay.prototype
+  return result({
+    tool: 'inspect_prototype_policy',
+    status: 'partial',
+    replay,
+    summary:
+      'B13 improves target scoreability over B0 for provider-supported retrieval, but the selected raw margin is uncalibrated and is not classification accuracy.',
+    facts: [
+      fact('selected_experiment_id', 'Selected experiment', prototype.policy.experimentId, 'metadata'),
+      fact('benchmark_experiment_count', 'Benchmark experiments', prototype.benchmark.experimentCount, 'metadata'),
+      fact('b0_target_scoreability', 'B0 target scoreability', prototype.benchmark.b0TargetScoreability, 'metadata'),
+      fact('b13_target_scoreability', 'B13 target scoreability', prototype.benchmark.b13TargetScoreability, 'metadata'),
+      fact('selected_raw_margin_threshold', 'Selected raw-margin threshold', prototype.policy.rawMarginThreshold, 'metadata'),
+      fact('staged_diagnostic_threshold', 'Staged diagnostic threshold', prototype.staged.stagedDiagnosticThreshold, 'metadata'),
+      fact('selection_coverage', 'Model-selection coverage', prototype.policy.selectionCoverage, 'metadata'),
+      fact('selection_accepted_count', 'Model-selection accepted rows', prototype.policy.acceptedCount, 'metadata'),
+      fact('selection_abstained_count', 'Model-selection abstained rows', prototype.policy.abstainedCount, 'metadata'),
+      fact('staged_abstained_count', 'Staged diagnostic abstentions', prototype.staged.stagedAbstainedCount, 'metadata'),
+      fact('staged_abstention_rate', 'Staged diagnostic abstention rate', prototype.staged.stagedAbstentionRate, 'metadata'),
+      fact('scores_are_probabilities', 'Raw scores are probabilities', prototype.policy.scoresAreProbabilities, 'blocked'),
+      fact('classification_accuracy', 'Classification accuracy', prototype.semantics.classificationAccuracy, 'unavailable'),
+      fact('calibration_error', 'Calibration error', prototype.semantics.calibrationError, 'unavailable'),
+    ],
+    records: [
+      record(
+        'selected-prototype-policy',
+        'Selected B13 policy',
+        'metadata',
+        `B13 target scoreability is ${prototype.benchmark.b13TargetScoreability}; the selected raw-margin threshold is ${prototype.policy.rawMarginThreshold} and emits no probability.`,
+        ['prototype-evidence-snapshot'],
+      ),
+      record(
+        'staged-diagnostic-policy',
+        'Staged diagnostic rule',
+        'metadata',
+        `The separate staged diagnostic threshold is ${prototype.staged.stagedDiagnosticThreshold}; it produced an aggregate abstention distribution and is not the selected ${prototype.policy.rawMarginThreshold} policy.`,
+        ['prototype-evidence-snapshot'],
+      ),
+    ],
+    artifactIds: ['prototype-evidence-snapshot'],
+    limitations: [
+      'Target scoreability and provider-supported retrieval consistency are not classification accuracy.',
+      'The 0.02 staged diagnostic rule and 0.10 selected raw-margin policy are distinct.',
+      'Raw similarities and margins are not probabilities; no calibrator was fitted.',
+      'No per-record prototype score is exposed by this tool.',
+    ],
+  })
+}
+
+function inspectPrototypeRelease(
+  requestedMode: string,
+  replay: ReplayEvidence,
+): ResearchToolResult {
+  const gate = replay.prototype.releaseGate
+  const authorized = requestedMode === gate.requestedMode
+  const decision = authorized ? gate.decision : 'NO_GO'
+  return result({
+    tool: 'inspect_prototype_release',
+    status: authorized ? 'available' : 'blocked',
+    replay,
+    summary: authorized
+      ? 'GO_PROTOTYPE_ONLY: all 14 gates pass for explicit prototype integration; broader release modes remain blocked.'
+      : `NO_GO: ${requestedMode} exceeds the explicit prototype-only authorization boundary.`,
+    facts: [
+      fact('requested_mode', 'Requested release mode', requestedMode, authorized ? 'verified' : 'blocked'),
+      fact('decision', 'Release-gate decision', decision, authorized ? 'verified' : 'blocked'),
+      fact('required_gate_count', 'Required gates', gate.requiredGateCount),
+      fact('passed_gate_count', 'Passed gates', gate.passedGateCount),
+      fact('failed_gate_count', 'Failed upstream gates', gate.failedGateCount),
+      fact('requested_mode_authorized', 'Requested mode authorized', authorized, authorized ? 'verified' : 'blocked'),
+      fact('prototype_integration_authorized', 'Prototype integration authorized', authorized && gate.prototypeIntegrationAuthorized, authorized ? 'verified' : 'blocked'),
+      fact('scientific_release_authorized', 'Scientific release authorized', false, 'blocked'),
+      fact('production_default_change_authorized', 'Production-default change authorized', false, 'blocked'),
+      fact('public_reference_image_display_authorized', 'Public reference-image display authorized', false, 'blocked'),
+      fact('scientific_claim_allowed', 'Scientific claim allowed', false, 'blocked'),
+    ],
+    records: [
+      record(
+        'prototype-integration',
+        'Explicit prototype integration',
+        authorized ? 'available' : 'blocked',
+        authorized
+          ? 'Authorized only in explicit prototype mode with all fourteen gates passing.'
+          : 'Not authorized because the requested mode is outside explicit_prototype.',
+        ['prototype-evidence-snapshot'],
+      ),
+      record(
+        'scientific-release',
+        'Scientific release',
+        'blocked',
+        'Not authorized by the Phase 15 prototype decision.',
+        ['prototype-evidence-snapshot'],
+      ),
+      record(
+        'production-default',
+        'Production default',
+        'blocked',
+        'Must remain unchanged under the Phase 15 prototype decision.',
+        ['prototype-evidence-snapshot'],
+      ),
+      record(
+        'public-reference-images',
+        'Public reference images',
+        'blocked',
+        'Not authorized; seventy-nine of eighty-one references are research-only.',
+        ['prototype-evidence-snapshot'],
+      ),
+    ],
+    artifactIds: ['prototype-evidence-snapshot'],
+    limitations: [
+      'A passing aggregate release gate does not create a per-record classification or scientific result.',
+      'The requested mode cannot broaden upstream authorization.',
+      'Scientific release, production-default changes, public reference images, and scientific claims remain blocked in every outcome.',
+    ],
+  })
+}
+
 async function exportEvidence(recordId: string, replay: ReplayEvidence): Promise<ResearchToolResult> {
   if (!sameRecord(recordId, replay)) {
     return unknownRecordResult('export_evidence', recordId, replay)
@@ -897,6 +1127,9 @@ function researchToolName(value: string): ResearchToolName {
     case 'compare_candidates':
     case 'explain_decision':
     case 'inspect_reference_status':
+    case 'inspect_prototype_evidence':
+    case 'inspect_prototype_policy':
+    case 'inspect_prototype_release':
     case 'export_evidence':
       return value
   }

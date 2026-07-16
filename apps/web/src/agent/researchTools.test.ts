@@ -22,6 +22,9 @@ const VALID_CALLS: Readonly<Record<ResearchToolName, Readonly<Record<string, unk
   compare_candidates: { record_id: 'papilio-demoleus-pilot-awaiting-review' },
   explain_decision: { record_id: 'papilio-demoleus-pilot-awaiting-review' },
   inspect_reference_status: { accepted_taxon_key: 'gbif:1938069' },
+  inspect_prototype_evidence: { accepted_taxon_key: 'gbif:1938069' },
+  inspect_prototype_policy: { accepted_taxon_key: 'gbif:1938069' },
+  inspect_prototype_release: { requested_mode: 'explicit_prototype' },
   export_evidence: { record_id: 'papilio-demoleus-pilot-awaiting-review' },
 }
 
@@ -35,9 +38,9 @@ beforeAll(async () => {
 })
 
 describe('research evidence tool registry', () => {
-  it('publishes nine strict definitions with closed input and output schemas', () => {
+  it('publishes twelve strict definitions with closed input and output schemas', () => {
     expect(RESEARCH_TOOL_DEFINITIONS.map(({ name }) => name)).toEqual(RESEARCH_TOOL_NAMES)
-    expect(RESEARCH_TOOL_DEFINITIONS).toHaveLength(9)
+    expect(RESEARCH_TOOL_DEFINITIONS).toHaveLength(12)
 
     for (const definition of RESEARCH_TOOL_DEFINITIONS) {
       expect(definition).toMatchObject({
@@ -76,6 +79,9 @@ describe('research evidence tool registry', () => {
       'partial',
       'blocked',
       'blocked',
+      'partial',
+      'partial',
+      'available',
       'available',
     ])
     for (const result of results) {
@@ -126,6 +132,21 @@ describe('research evidence tool registry', () => {
       { stage_id: 'full-frame-transformation' },
       replay,
     )
+    const prototype = await executeResearchTool(
+      'inspect_prototype_evidence',
+      VALID_CALLS.inspect_prototype_evidence,
+      replay,
+    )
+    const policy = await executeResearchTool(
+      'inspect_prototype_policy',
+      VALID_CALLS.inspect_prototype_policy,
+      replay,
+    )
+    const release = await executeResearchTool(
+      'inspect_prototype_release',
+      VALID_CALLS.inspect_prototype_release,
+      replay,
+    )
 
     expect(factValues(coverage)).toMatchObject({
       query_definition_count: 22,
@@ -157,6 +178,30 @@ describe('research evidence tool registry', () => {
     })
     expect(factValues(decision)).toMatchObject({ abstention_status: 'not_evaluated' })
     expect(factValues(fullFrame)).toMatchObject({ embedding_reuse_count: null })
+    expect(factValues(prototype)).toMatchObject({
+      support_count: 81,
+      human_verified_count: 0,
+      research_only_reference_count: 79,
+      frozen_support_embeddings: 81,
+      yoloe_role: 'gate_and_router_only',
+      classified_record_count: 13_496,
+    })
+    expect(factValues(policy)).toMatchObject({
+      selected_experiment_id: 'B13',
+      b0_target_scoreability: 0.1,
+      b13_target_scoreability: 1,
+      selected_raw_margin_threshold: 0.1,
+      staged_diagnostic_threshold: 0.02,
+      scores_are_probabilities: false,
+      classification_accuracy: null,
+    })
+    expect(factValues(release)).toMatchObject({
+      decision: 'GO_PROTOTYPE_ONLY',
+      required_gate_count: 14,
+      passed_gate_count: 14,
+      requested_mode_authorized: true,
+      scientific_release_authorized: false,
+    })
   })
 
   it('returns cited unavailable and blocked results for valid unsupported lookups', async () => {
@@ -172,6 +217,11 @@ describe('research evidence tool registry', () => {
       { accepted_taxon_key: replay.target.acceptedTaxonKey, candidate_limit: 4 },
       replay,
     )
+    const release = await executeResearchTool(
+      'inspect_prototype_release',
+      { requested_mode: 'scientific_release' },
+      replay,
+    )
 
     expect(
       [taxon, stage, record].every(
@@ -179,9 +229,15 @@ describe('research evidence tool registry', () => {
       ),
     ).toBe(true)
     expect(mission.status).toBe('blocked')
+    expect(release.status).toBe('blocked')
     expect(factValues(mission)).toMatchObject({
       requested_candidate_limit: 4,
       required_candidate_limit: 5,
+    })
+    expect(factValues(release)).toMatchObject({
+      decision: 'NO_GO',
+      requested_mode_authorized: false,
+      scientific_release_authorized: false,
     })
   })
 

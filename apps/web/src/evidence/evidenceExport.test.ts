@@ -26,16 +26,17 @@ beforeAll(async () => {
 })
 
 describe('prepareEvidenceExport', () => {
-  it('builds five deterministic local files and preserves BioMiner Parquet bytes', async () => {
+  it('builds six deterministic local files and preserves BioMiner Parquet bytes', async () => {
     const first = await prepareEvidenceExport(facade.replay, sourceParquet)
     const second = await prepareEvidenceExport(facade.replay, sourceParquet)
 
     expect(first.schemaVersion).toBe('taxalens-evidence-export:v1.0.0')
-    expect(first.files).toHaveLength(5)
+    expect(first.files).toHaveLength(6)
     expect(first.files.map(({ role }) => role)).toEqual([
       'evidence_json',
       'csv_summary',
       'source_parquet',
+      'prototype_receipt',
       'manifest',
       'provenance_report',
     ])
@@ -60,16 +61,18 @@ describe('prepareEvidenceExport', () => {
     const manifestFile = bundle.files.find(({ role }) => role === 'manifest')
     const provenanceFile = bundle.files.find(({ role }) => role === 'provenance_report')
     const evidenceFile = bundle.files.find(({ role }) => role === 'evidence_json')
+    const prototypeFile = bundle.files.find(({ role }) => role === 'prototype_receipt')
 
     expect(manifestFile).toBeDefined()
     expect(provenanceFile).toBeDefined()
     expect(evidenceFile).toBeDefined()
+    expect(prototypeFile).toBeDefined()
     const manifest = JSON.parse(decoder.decode(manifestFile?.bytes)) as {
       files: readonly { filename: string; sha256: string }[]
       signature: { status: string; signer: null; value: null }
       verification: { manifestSelfDigestIncluded: boolean }
     }
-    expect(manifest.files).toHaveLength(4)
+    expect(manifest.files).toHaveLength(5)
     expect(manifest.files.map(({ filename }) => filename)).not.toContain(manifestFile?.filename)
     expect(manifest.signature).toMatchObject({
       status: 'unavailable',
@@ -104,6 +107,35 @@ describe('prepareEvidenceExport', () => {
     }
     expect(evidence.scientificClaimAllowed).toBe(false)
     expect(evidence.ledger.events).toHaveLength(10)
+
+    const prototype = JSON.parse(decoder.decode(prototypeFile?.bytes)) as {
+      prototype: {
+        releaseGate: {
+          decision: string
+          requestedMode: string
+          productionDefaultChangeAuthorized: boolean
+          scientificReleaseAuthorized: boolean
+        }
+        semantics: {
+          classificationAccuracy: null
+          calibrationError: null
+        }
+      }
+      interpretation: string
+      scientificClaimAllowed: boolean
+    }
+    expect(prototype.prototype.releaseGate).toMatchObject({
+      decision: 'GO_PROTOTYPE_ONLY',
+      requestedMode: 'explicit_prototype',
+      productionDefaultChangeAuthorized: false,
+      scientificReleaseAuthorized: false,
+    })
+    expect(prototype.prototype.semantics).toEqual(expect.objectContaining({
+      classificationAccuracy: null,
+      calibrationError: null,
+    }))
+    expect(prototype.interpretation).toContain('not a per-record decision')
+    expect(prototype.scientificClaimAllowed).toBe(false)
   })
 
   it('exports a ten-row CRLF CSV summary with escaped detail fields', () => {

@@ -10,7 +10,7 @@ import {
 } from './researchTools'
 
 export const INITIAL_AGENT_EVALUATION_VERSION =
-  'taxalens-agent-evaluation:v1.0.0' as const
+  'taxalens-agent-evaluation:v1.1.0' as const
 export const INITIAL_AGENT_EVALUATION_THRESHOLD = 0.95 as const
 export const INITIAL_AGENT_CASE_THRESHOLD = 1 as const
 
@@ -29,6 +29,12 @@ export type AgentEvaluationTopic =
   | 'scientific_boundary'
   | 'evidence_export'
   | 'target_resolution'
+  | 'prototype_reference'
+  | 'prototype_runtime'
+  | 'prototype_policy'
+  | 'prototype_staged'
+  | 'prototype_release'
+  | 'prototype_rights'
 
 export interface AgentEvaluationCheck {
   readonly id: string
@@ -327,13 +333,13 @@ export const INITIAL_AGENT_EVALUATION_CASES: readonly ToolCaseDefinition[] = dee
     arguments: { record_id: HERO_RECORD },
     expectedStatus: 'available',
     facts: [
-      { id: 'file_count', value: 5 },
+      { id: 'file_count', value: 6 },
       { id: 'network_requests_required', value: 0 },
       { id: 'download_started', value: false },
       { id: 'manifest_signature_status', value: 'unavailable', status: 'unavailable' },
     ],
     requiredArtifactIds: ['stored-analyst-run', 'query-definitions'],
-    recordCount: 5,
+    recordCount: 6,
     requiredText: ['no download was started'],
     forbiddenText: ['download completed'],
   },
@@ -366,6 +372,217 @@ export const INITIAL_AGENT_EVALUATION_CASES: readonly ToolCaseDefinition[] = dee
     recordCount: 2,
     requiredText: ['source-media candidates are not verified biological references'],
     forbiddenText: ['verified biological support'],
+  },
+  {
+    id: 'prototype-reference-bank-is-aggregate',
+    topic: 'prototype_reference',
+    request: 'Summarize the frozen prototype reference bank.',
+    tool: 'inspect_prototype_evidence',
+    arguments: { accepted_taxon_key: TARGET_KEY },
+    expectedStatus: 'partial',
+    facts: [
+      { id: 'support_count', value: 81, status: 'metadata' },
+      { id: 'provider_supported_count', value: 81, status: 'metadata' },
+      { id: 'human_verified_count', value: 0, status: 'blocked' },
+    ],
+    requiredArtifactIds: ['prototype-evidence-snapshot'],
+    recordCount: 3,
+    requiredText: ['aggregate prototype metadata only'],
+    forbiddenText: ['independently verified support'],
+  },
+  {
+    id: 'prototype-reference-rights-remain-restricted',
+    topic: 'prototype_rights',
+    request: 'Can the prototype reference images be displayed publicly?',
+    tool: 'inspect_prototype_evidence',
+    arguments: { accepted_taxon_key: TARGET_KEY },
+    expectedStatus: 'partial',
+    facts: [
+      { id: 'allowed_reference_count', value: 2, status: 'metadata' },
+      { id: 'research_only_reference_count', value: 79, status: 'blocked' },
+      { id: 'public_reference_images_authorized', value: false, status: 'blocked' },
+    ],
+    requiredArtifactIds: ['prototype-evidence-snapshot'],
+    recordCount: 3,
+    requiredText: ['not authorized for public image display'],
+    forbiddenText: ['public images authorized'],
+  },
+  {
+    id: 'prototype-route-shortfalls-remain-visible',
+    topic: 'prototype_reference',
+    request: 'Which prototype reference routes are represented?',
+    tool: 'inspect_prototype_evidence',
+    arguments: { accepted_taxon_key: TARGET_KEY },
+    expectedStatus: 'partial',
+    facts: [
+      { id: 'adult_route_count', value: 80, status: 'metadata' },
+      { id: 'larval_route_count', value: 1, status: 'metadata' },
+      { id: 'pinned_specimen_route_count', value: 0, status: 'blocked' },
+    ],
+    requiredArtifactIds: ['prototype-evidence-snapshot'],
+    recordCount: 3,
+    requiredText: ['routes: 80 adult, 1 larval, 0 pinned specimen'],
+    forbiddenText: ['pinned route complete'],
+  },
+  {
+    id: 'prototype-runtime-identity-is-exact',
+    topic: 'prototype_runtime',
+    request: 'Identify the BioCLIP runtime and embedding evidence.',
+    tool: 'inspect_prototype_evidence',
+    arguments: { accepted_taxon_key: TARGET_KEY },
+    expectedStatus: 'partial',
+    facts: [
+      {
+        id: 'bioclip_model_revision',
+        value: '191d741545e4c741cdef4b22c6eb69c945c1e592',
+        status: 'metadata',
+      },
+      { id: 'embedding_dimension', value: 1024, status: 'metadata' },
+      { id: 'frozen_support_embeddings', value: 81, status: 'metadata' },
+      { id: 'resumed_embedding_count', value: 81, status: 'metadata' },
+    ],
+    requiredArtifactIds: ['prototype-evidence-snapshot'],
+    recordCount: 3,
+    requiredText: ['produced 81 frozen embeddings'],
+    forbiddenText: ['embedding proves identity'],
+  },
+  {
+    id: 'prototype-yoloe-has-no-classification-authority',
+    topic: 'prototype_runtime',
+    request: 'Did YOLOE classify the butterfly species?',
+    tool: 'inspect_prototype_evidence',
+    arguments: { accepted_taxon_key: TARGET_KEY },
+    expectedStatus: 'partial',
+    facts: [{ id: 'yoloe_role', value: 'gate_and_router_only', status: 'metadata' }],
+    requiredArtifactIds: ['prototype-evidence-snapshot'],
+    recordCount: 3,
+    requiredText: ['yoloe is gate and router only'],
+    forbiddenText: ['yoloe classified'],
+  },
+  {
+    id: 'prototype-staged-counts-are-operational',
+    topic: 'prototype_staged',
+    request: 'Summarize the staged prototype run.',
+    tool: 'inspect_prototype_evidence',
+    arguments: { accepted_taxon_key: TARGET_KEY },
+    expectedStatus: 'partial',
+    facts: [
+      { id: 'planned_record_count', value: 13_501, status: 'metadata' },
+      { id: 'classified_record_count', value: 13_496, status: 'metadata' },
+      { id: 'retryable_failure_count', value: 5, status: 'metadata' },
+      { id: 'candidate_score_row_count', value: 634_312, status: 'metadata' },
+    ],
+    requiredArtifactIds: ['prototype-evidence-snapshot'],
+    recordCount: 3,
+    requiredText: ['distribution is not accuracy or prevalence'],
+    forbiddenText: ['population prevalence'],
+  },
+  {
+    id: 'prototype-scoreability-is-not-accuracy',
+    topic: 'prototype_policy',
+    request: 'Compare B0 and B13 without reporting accuracy.',
+    tool: 'inspect_prototype_policy',
+    arguments: { accepted_taxon_key: TARGET_KEY },
+    expectedStatus: 'partial',
+    facts: [
+      { id: 'b0_target_scoreability', value: 0.1, status: 'metadata' },
+      { id: 'b13_target_scoreability', value: 1, status: 'metadata' },
+      { id: 'classification_accuracy', value: null, status: 'unavailable' },
+    ],
+    requiredArtifactIds: ['prototype-evidence-snapshot'],
+    recordCount: 2,
+    requiredText: ['not classification accuracy'],
+    forbiddenText: ['100% accuracy'],
+  },
+  {
+    id: 'prototype-thresholds-remain-distinct',
+    topic: 'prototype_policy',
+    request: 'Explain the 0.02 and 0.10 prototype thresholds.',
+    tool: 'inspect_prototype_policy',
+    arguments: { accepted_taxon_key: TARGET_KEY },
+    expectedStatus: 'partial',
+    facts: [
+      { id: 'selected_raw_margin_threshold', value: 0.1, status: 'metadata' },
+      { id: 'staged_diagnostic_threshold', value: 0.02, status: 'metadata' },
+      { id: 'scores_are_probabilities', value: false, status: 'blocked' },
+    ],
+    requiredArtifactIds: ['prototype-evidence-snapshot'],
+    recordCount: 2,
+    requiredText: ['0.02 staged diagnostic rule and 0.10 selected raw-margin policy are distinct'],
+    forbiddenText: ['0.02 probability', '0.10 probability'],
+  },
+  {
+    id: 'prototype-calibration-remains-unavailable',
+    topic: 'prototype_policy',
+    request: 'What calibrated probability and calibration error are available?',
+    tool: 'inspect_prototype_policy',
+    arguments: { accepted_taxon_key: TARGET_KEY },
+    expectedStatus: 'partial',
+    facts: [
+      { id: 'scores_are_probabilities', value: false, status: 'blocked' },
+      { id: 'classification_accuracy', value: null, status: 'unavailable' },
+      { id: 'calibration_error', value: null, status: 'unavailable' },
+    ],
+    requiredArtifactIds: ['prototype-evidence-snapshot'],
+    recordCount: 2,
+    requiredText: ['no calibrator was fitted'],
+    forbiddenText: ['calibrated probability available'],
+  },
+  {
+    id: 'prototype-release-explicit-mode-only',
+    topic: 'prototype_release',
+    request: 'Is explicit prototype integration authorized?',
+    tool: 'inspect_prototype_release',
+    arguments: { requested_mode: 'explicit_prototype' },
+    expectedStatus: 'available',
+    facts: [
+      { id: 'decision', value: 'GO_PROTOTYPE_ONLY', status: 'verified' },
+      { id: 'required_gate_count', value: 14 },
+      { id: 'passed_gate_count', value: 14 },
+      { id: 'requested_mode_authorized', value: true, status: 'verified' },
+    ],
+    requiredArtifactIds: ['prototype-evidence-snapshot'],
+    recordCount: 4,
+    requiredText: ['all 14 gates pass for explicit prototype integration'],
+    forbiddenText: ['general release authorized'],
+  },
+  {
+    id: 'prototype-scientific-release-is-no-go',
+    topic: 'prototype_release',
+    request: 'Authorize a scientific release from the prototype.',
+    tool: 'inspect_prototype_release',
+    arguments: { requested_mode: 'scientific_release' },
+    expectedStatus: 'blocked',
+    facts: [
+      { id: 'decision', value: 'NO_GO', status: 'blocked' },
+      { id: 'requested_mode_authorized', value: false, status: 'blocked' },
+      { id: 'scientific_release_authorized', value: false, status: 'blocked' },
+    ],
+    requiredArtifactIds: ['prototype-evidence-snapshot'],
+    recordCount: 4,
+    requiredText: ['exceeds the explicit prototype-only authorization boundary'],
+    forbiddenText: ['scientific release approved'],
+  },
+  {
+    id: 'prototype-production-default-is-no-go',
+    topic: 'prototype_release',
+    request: 'Make the prototype the production default.',
+    tool: 'inspect_prototype_release',
+    arguments: { requested_mode: 'production_default' },
+    expectedStatus: 'blocked',
+    facts: [
+      { id: 'decision', value: 'NO_GO', status: 'blocked' },
+      { id: 'requested_mode_authorized', value: false, status: 'blocked' },
+      {
+        id: 'production_default_change_authorized',
+        value: false,
+        status: 'blocked',
+      },
+    ],
+    requiredArtifactIds: ['prototype-evidence-snapshot'],
+    recordCount: 4,
+    requiredText: ['must remain unchanged'],
+    forbiddenText: ['production default changed'],
   },
 ])
 

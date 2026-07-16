@@ -16,13 +16,14 @@ beforeAll(async () => {
 })
 
 describe('prepareResearchOutputs', () => {
-  it('prepares five deterministic local research outputs in a stable order', async () => {
+  it('prepares six deterministic local research outputs in a stable order', async () => {
     const first = await prepareResearchOutputs(replay)
     const second = await prepareResearchOutputs(replay)
 
     expect(first.files.map(({ role }) => role)).toEqual([
       'review_queue',
       'evidence_summary',
+      'prototype_boundary',
       'manifest',
       'provenance',
       'evaluation_report',
@@ -35,7 +36,7 @@ describe('prepareResearchOutputs', () => {
     expect(first.files.every(({ sha256 }) => /^[0-9a-f]{64}$/u.test(sha256))).toBe(true)
   })
 
-  it('exports an explicitly unranked review snapshot and blocked evaluation report', async () => {
+  it('exports an explicitly unranked review snapshot, prototype boundary, and blocked evaluation report', async () => {
     const files = await decodedOutputs(replay)
     const review = files.review_queue as {
       queueMaterialized: boolean
@@ -47,6 +48,21 @@ describe('prepareResearchOutputs', () => {
       committedReviewedMetricCount: number
       phase14: { status: string; humanVerifiedShortfall: number }
       metrics: readonly { status: string; value: string }[]
+      scientificClaimAllowed: boolean
+    }
+    const prototype = files.prototype_boundary as {
+      prototype: {
+        releaseGate: {
+          decision: string
+          requestedMode: string
+          scientificReleaseAuthorized: boolean
+        }
+        semantics: {
+          classificationAccuracy: null
+          calibrationError: null
+        }
+      }
+      interpretation: string
       scientificClaimAllowed: boolean
     }
 
@@ -61,9 +77,20 @@ describe('prepareResearchOutputs', () => {
     expect(evaluation.metrics).toHaveLength(7)
     expect(evaluation.metrics.every(({ status, value }) => status === 'unavailable' && value === 'Unavailable')).toBe(true)
     expect(evaluation.scientificClaimAllowed).toBe(false)
+    expect(prototype.prototype.releaseGate).toMatchObject({
+      decision: 'GO_PROTOTYPE_ONLY',
+      requestedMode: 'explicit_prototype',
+      scientificReleaseAuthorized: false,
+    })
+    expect(prototype.prototype.semantics).toEqual(expect.objectContaining({
+      classificationAccuracy: null,
+      calibrationError: null,
+    }))
+    expect(prototype.interpretation).toContain('not a per-record classification')
+    expect(prototype.scientificClaimAllowed).toBe(false)
   })
 
-  it('manifests four payloads and exports all verified artifact provenance without a timestamp', async () => {
+  it('manifests five payloads and exports all verified artifact provenance without a timestamp', async () => {
     const files = await decodedOutputs(replay)
     const manifest = files.manifest as {
       files: readonly { role: string; sha256: string }[]
@@ -81,7 +108,7 @@ describe('prepareResearchOutputs', () => {
       scientificClaimAllowed: boolean
     }
 
-    expect(manifest.files).toHaveLength(4)
+    expect(manifest.files).toHaveLength(5)
     expect(manifest.files.map(({ role }) => role)).not.toContain('manifest')
     expect(manifest.signature).toEqual({
       status: 'unavailable',
@@ -92,7 +119,7 @@ describe('prepareResearchOutputs', () => {
     })
     expect(manifest.verification).toMatchObject({
       manifestSelfDigestIncluded: false,
-      payloadFileCount: 4,
+      payloadFileCount: 5,
     })
     expect(provenance.exportTimestamp).toBeNull()
     expect(provenance.artifacts).toHaveLength(25)

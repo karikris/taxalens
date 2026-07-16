@@ -18,10 +18,10 @@ beforeAll(async () => {
 })
 
 describe('initial research workflow evaluation', () => {
-  it('passes the explicit threshold across at least 15 deterministic cases', async () => {
+  it('passes the explicit threshold across at least 30 deterministic tool cases', async () => {
     const report = await runInitialAgentEvaluation(facade)
 
-    expect(INITIAL_AGENT_EVALUATION_CASES).toHaveLength(18)
+    expect(INITIAL_AGENT_EVALUATION_CASES).toHaveLength(30)
     expect(
       report.cases
         .filter(({ passed }) => !passed)
@@ -31,12 +31,12 @@ describe('initial research workflow evaluation', () => {
         })),
     ).toEqual([])
     expect(report).toMatchObject({
-      schemaVersion: 'taxalens-agent-evaluation:v1.0.0',
+      schemaVersion: 'taxalens-agent-evaluation:v1.1.0',
       scope: 'deterministic_research_workflow',
       threshold: INITIAL_AGENT_EVALUATION_THRESHOLD,
       caseThreshold: 1,
-      caseCount: 19,
-      passedCaseCount: 19,
+      caseCount: 31,
+      passedCaseCount: 31,
       passRate: 1,
       score: 1,
       passed: true,
@@ -47,7 +47,7 @@ describe('initial research workflow evaluation', () => {
     })
     expect(report.cases.every(({ passed }) => passed)).toBe(true)
     expect(report.cases.every(({ checks }) => checks.every(({ passed }) => passed))).toBe(true)
-    expect(report.cases.flatMap(({ checks }) => checks)).toHaveLength(151)
+    expect(report.cases.flatMap(({ checks }) => checks)).toHaveLength(247)
     expect(Object.isFrozen(report)).toBe(true)
     expect(Object.isFrozen(report.cases)).toBe(true)
   })
@@ -72,6 +72,12 @@ describe('initial research workflow evaluation', () => {
         'scientific_boundary',
         'evidence_export',
         'target_resolution',
+        'prototype_reference',
+        'prototype_runtime',
+        'prototype_policy',
+        'prototype_staged',
+        'prototype_release',
+        'prototype_rights',
       ]),
     )
     expect(report.limitations.join(' ')).toContain('not live GPT-5.6 response quality')
@@ -82,6 +88,12 @@ describe('initial research workflow evaluation', () => {
     expect(
       report.cases.find(({ id }) => id === 'strongest-competitor-unavailable'),
     ).toMatchObject({ observedStatus: 'partial', passed: true })
+    expect(
+      report.cases.find(({ id }) => id === 'prototype-release-explicit-mode-only'),
+    ).toMatchObject({ observedStatus: 'available', passed: true })
+    expect(
+      report.cases.find(({ id }) => id === 'prototype-scientific-release-is-no-go'),
+    ).toMatchObject({ observedStatus: 'blocked', passed: true })
   })
 
   it('is repeatable and makes no network, clock, random, or live-model call', async () => {

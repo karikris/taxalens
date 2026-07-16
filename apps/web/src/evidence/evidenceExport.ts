@@ -10,14 +10,16 @@ const FILE_ORDER: Readonly<Record<EvidenceExportRole, number>> = Object.freeze({
   evidence_json: 1,
   csv_summary: 2,
   source_parquet: 3,
-  manifest: 4,
-  provenance_report: 5,
+  prototype_receipt: 4,
+  manifest: 5,
+  provenance_report: 6,
 })
 
 export type EvidenceExportRole =
   | 'evidence_json'
   | 'csv_summary'
   | 'source_parquet'
+  | 'prototype_receipt'
   | 'manifest'
   | 'provenance_report'
 
@@ -64,6 +66,15 @@ export async function prepareEvidenceExport(
   })
   const csvBytes = new TextEncoder().encode(evidenceLedgerCsv(replay))
   const parquetBytes = sourceParquet.bytes.slice()
+  const prototypeBytes = canonicalExportJsonBytes({
+    schemaVersion: 'taxalens-prototype-release-receipt:v1.0.0',
+    bundleId: replay.bundleId,
+    target: replay.target,
+    prototype: replay.prototype,
+    interpretation:
+      'Aggregate prototype evidence and GO_PROTOTYPE_ONLY scope; not a per-record decision, accuracy result, prevalence estimate, or scientific release.',
+    scientificClaimAllowed: false,
+  })
   const provenanceBytes = canonicalExportJsonBytes({
     schemaVersion: PROVENANCE_SCHEMA_VERSION,
     bundleId: replay.bundleId,
@@ -98,6 +109,12 @@ export async function prepareEvidenceExport(
     payloadFile('evidence_json', `${prefix}.evidence.json`, 'application/json', evidenceBytes),
     payloadFile('csv_summary', `${prefix}.summary.csv`, 'text/csv;charset=utf-8', csvBytes),
     payloadFile('source_parquet', `${prefix}.source-query-hits.parquet`, PARQUET_MEDIA_TYPE, parquetBytes),
+    payloadFile(
+      'prototype_receipt',
+      `${prefix}.prototype-receipt.json`,
+      'application/json',
+      prototypeBytes,
+    ),
     payloadFile(
       'provenance_report',
       `${prefix}.provenance.json`,

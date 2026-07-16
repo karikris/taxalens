@@ -187,3 +187,30 @@ otherwise internally consistent.
 GitHits remained unavailable; the focused release-gate query and
 adopted/rejected approaches are recorded at
 `provenance/githits.jsonl#15.1`.
+
+## Task 15.2 agent, evaluation, and export boundary
+
+Task 15.2 adds three strict read-only tools for the normalized aggregate
+prototype evidence: reference/runtime inspection, policy inspection, and
+requested release-mode inspection. The release tool returns
+`GO_PROTOTYPE_ONLY` only for `explicit_prototype`; production-default,
+scientific-release, and public-reference-image requests remain deterministic
+`NO_GO` outcomes. Every tool cites the checksum-verified
+`prototype-evidence-snapshot` and reports no per-record classification,
+probability, accuracy, calibration, prevalence, or scientific claim.
+
+The deterministic agent evaluation now contains thirty tool cases plus the
+stored credential-free public replay. Prototype cases explicitly test the
+81-row aggregate reference bank, rights restrictions, route shortfalls,
+BioCLIP revision and embedding evidence, YOLOE routing-only authority, staged
+operational counts, distinct `0.02` and `0.10` thresholds, unavailable
+accuracy/calibration, and fail-closed release modes.
+
+Both local export surfaces now prepare six deterministic files. Research
+outputs include a prototype-boundary payload, and Evidence Lens audit exports
+include a prototype-release receipt. Their manifests cover five payloads,
+remain unsigned, perform no network request, and add no scientific claim.
+
+GitHits remained unavailable; the focused agent/export query and
+adopted/rejected approaches are recorded at
+`provenance/githits.jsonl#15.2`.

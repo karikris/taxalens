@@ -97,9 +97,9 @@ test('completes the deterministic judge replay from tour to parsed export', asyn
   const exportPanel = page.locator('#research-outputs')
   await expect(exportPanel).toBeFocused()
   await expect(exportPanel.getByRole('heading', { name: 'Export research outputs' })).toBeVisible()
-  await exportPanel.getByRole('button', { name: 'Prepare five research outputs' }).click()
+  await exportPanel.getByRole('button', { name: 'Prepare six research outputs' }).click()
   await expect(
-    exportPanel.getByText('Five research outputs prepared locally', { exact: true }),
+    exportPanel.getByText('Six research outputs prepared locally', { exact: true }),
   ).toBeVisible()
 
   const downloadPromise = page.waitForEvent('download')

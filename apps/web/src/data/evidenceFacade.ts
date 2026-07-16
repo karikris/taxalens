@@ -252,6 +252,19 @@ export interface PrototypeEvidenceBoundary {
     readonly stagedDistributionIsAccuracy: false
     readonly stagedDistributionIsPrevalence: false
   }
+  readonly releaseGate: {
+    readonly decision: 'GO_PROTOTYPE_ONLY'
+    readonly requestedMode: 'explicit_prototype'
+    readonly requiredGateCount: 14
+    readonly passedGateCount: 14
+    readonly failedGateCount: 0
+    readonly prototypeIntegrationAuthorized: true
+    readonly explicitPrototypeModeOnly: true
+    readonly productionDefaultChangeAuthorized: false
+    readonly scientificReleaseAuthorized: false
+    readonly publicReferenceImageDisplayAuthorized: false
+    readonly scientificClaimAllowed: false
+  }
   readonly provenance: {
     readonly artifactId: 'prototype-evidence-snapshot'
     readonly snapshotSha256: string
@@ -1874,6 +1887,19 @@ function projectPrototypeEvidence(
       modelOutputIsTaxonomicValidation: false,
       stagedDistributionIsAccuracy: false,
       stagedDistributionIsPrevalence: false,
+    },
+    releaseGate: {
+      decision: 'GO_PROTOTYPE_ONLY',
+      requestedMode: 'explicit_prototype',
+      requiredGateCount: 14,
+      passedGateCount: 14,
+      failedGateCount: 0,
+      prototypeIntegrationAuthorized: true,
+      explicitPrototypeModeOnly: true,
+      productionDefaultChangeAuthorized: false,
+      scientificReleaseAuthorized: false,
+      publicReferenceImageDisplayAuthorized: false,
+      scientificClaimAllowed: false,
     },
     provenance: {
       artifactId: 'prototype-evidence-snapshot',

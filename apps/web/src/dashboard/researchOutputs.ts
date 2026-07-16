@@ -12,14 +12,16 @@ const MANIFEST_SCHEMA_VERSION = 'taxalens-research-output-manifest:v1.0.0'
 const FILE_ORDER: Readonly<Record<ResearchOutputRole, number>> = Object.freeze({
   review_queue: 1,
   evidence_summary: 2,
-  manifest: 3,
-  provenance: 4,
-  evaluation_report: 5,
+  prototype_boundary: 3,
+  manifest: 4,
+  provenance: 5,
+  evaluation_report: 6,
 })
 
 export type ResearchOutputRole =
   | 'review_queue'
   | 'evidence_summary'
+  | 'prototype_boundary'
   | 'manifest'
   | 'provenance'
   | 'evaluation_report'
@@ -97,6 +99,15 @@ export async function prepareResearchOutputs(
           artifactIds: stage.artifacts.map(({ artifactId }) => artifactId),
         })),
       },
+      scientificClaimAllowed: false,
+    }),
+    outputFile('prototype_boundary', `${prefix}.prototype-boundary.json`, {
+      schemaVersion: 'taxalens-prototype-boundary-export:v1.0.0',
+      bundleId: replay.bundleId,
+      target: replay.target,
+      prototype: replay.prototype,
+      interpretation:
+        'Aggregate prototype evidence and GO_PROTOTYPE_ONLY scope; not a per-record classification, accuracy result, prevalence estimate, or scientific release.',
       scientificClaimAllowed: false,
     }),
     outputFile('provenance', `${prefix}.provenance.json`, {

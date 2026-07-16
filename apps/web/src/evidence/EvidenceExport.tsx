@@ -56,7 +56,8 @@ export function EvidenceExport({
           <h3 id="evidence-export-title">Export evidence</h3>
           <p>
             Prepare canonical JSON, a CSV ledger summary, one preserved BioMiner Parquet source,
-            a checksum manifest, and a provenance report entirely in this browser.
+            a prototype release receipt, a checksum manifest, and a provenance report entirely in
+            this browser.
           </p>
         </div>
         <button
@@ -92,7 +93,7 @@ export function EvidenceExport({
         </EvidenceState>
       ) : (
         <div className="evidence-export__ready" aria-live="polite">
-          <EvidenceState state="available" title="Five audit files prepared locally">
+          <EvidenceState state="available" title="Six audit files prepared locally">
             Select each file to download it. Preparation is deterministic and adds no scientific
             claim.
           </EvidenceState>
@@ -130,6 +131,8 @@ function fileLabel(role: EvidenceExportBundle['files'][number]['role']): string 
       return 'CSV summary'
     case 'source_parquet':
       return 'Source Parquet'
+    case 'prototype_receipt':
+      return 'Prototype receipt'
     case 'manifest':
       return 'Checksum manifest'
     case 'provenance_report':
