@@ -198,7 +198,7 @@ export function VerificationWorkspace({
             />
           )
         }
-        quality={<QualityPanel coverage={controller.coverage} />}
+        quality={<QualityPanel />}
         referenceImages={
           <>
             <CampaignSelector
