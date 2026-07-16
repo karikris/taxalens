@@ -25,6 +25,23 @@ export interface ReviewerPercentAgreement {
   readonly percentAgreement: number | null
 }
 
+export interface ReviewerNominalKrippendorffAlpha {
+  readonly schemaVersion: typeof REVIEWER_RELIABILITY_SCHEMA_VERSION
+  readonly method: 'krippendorff_alpha_nominal'
+  readonly availability: ReliabilityAvailability
+  readonly blockers: readonly string[]
+  readonly itemCount: number
+  readonly overlappingItemCount: number
+  readonly anonymousReviewerCount: number
+  readonly scientificRatingCount: number
+  readonly coincidenceRatingCount: number
+  readonly excludedNonScientificEventCount: number
+  readonly labelCounts: Readonly<Record<ReliabilityLabel, number>>
+  readonly observedDisagreement: number | null
+  readonly expectedDisagreement: number | null
+  readonly alpha: number | null
+}
+
 export function calculateReviewerPercentAgreement(
   consensus: readonly VerificationConsensus[],
 ): ReviewerPercentAgreement {
@@ -70,6 +87,88 @@ export function calculateReviewerPercentAgreement(
     percentAgreement:
       canonicalBlockers.length === 0
         ? agreementPairCount / pairCount
+        : null,
+  })
+}
+
+export function calculateReviewerNominalAlpha(
+  consensus: readonly VerificationConsensus[],
+): ReviewerNominalKrippendorffAlpha {
+  const prepared = prepareReliabilityRatings(consensus)
+  const blockers = [...prepared.blockers]
+  const overlapRatings = [...prepared.ratingsByItem.values()].filter(
+    (ratings) => ratings.length >= 2,
+  )
+  if (overlapRatings.length < 2) {
+    blockers.push('reviewer_overlap_insufficient')
+  }
+  const marginals: Record<ReliabilityLabel, number> = {
+    yes: 0,
+    no: 0,
+    cant_tell: 0,
+  }
+  let observedDisagreementNumerator = 0
+  let coincidenceRatingCount = 0
+  for (const ratings of overlapRatings) {
+    const counts = countLabels(ratings)
+    const ratingCount = ratings.length
+    coincidenceRatingCount += ratingCount
+    for (const label of reliabilityLabels()) {
+      marginals[label] += counts[label]
+    }
+    const orderedDisagreements =
+      ratingCount * ratingCount -
+      reliabilityLabels().reduce(
+        (total, label) => total + counts[label] * counts[label],
+        0,
+      )
+    observedDisagreementNumerator +=
+      orderedDisagreements / (ratingCount - 1)
+  }
+  const observedDisagreement =
+    coincidenceRatingCount === 0
+      ? null
+      : observedDisagreementNumerator / coincidenceRatingCount
+  const expectedDisagreement =
+    coincidenceRatingCount < 2
+      ? null
+      : (coincidenceRatingCount * coincidenceRatingCount -
+          reliabilityLabels().reduce(
+            (total, label) =>
+              total + marginals[label] * marginals[label],
+            0,
+          )) /
+        (coincidenceRatingCount * (coincidenceRatingCount - 1))
+  if (
+    expectedDisagreement === null ||
+    expectedDisagreement <= Number.EPSILON
+  ) {
+    blockers.push('label_variation_absent')
+  }
+  const canonicalBlockers = [...new Set(blockers)].sort()
+  return Object.freeze({
+    schemaVersion: REVIEWER_RELIABILITY_SCHEMA_VERSION,
+    method: 'krippendorff_alpha_nominal',
+    availability:
+      canonicalBlockers.length === 0 ? 'available' : 'unavailable',
+    blockers: Object.freeze(canonicalBlockers),
+    itemCount: consensus.length,
+    overlappingItemCount: overlapRatings.length,
+    anonymousReviewerCount: prepared.reviewerKeys.size,
+    scientificRatingCount: prepared.scientificRatingCount,
+    coincidenceRatingCount,
+    excludedNonScientificEventCount:
+      prepared.excludedNonScientificEventCount,
+    labelCounts: Object.freeze({ ...prepared.labelCounts }),
+    observedDisagreement:
+      canonicalBlockers.length === 0 ? observedDisagreement : null,
+    expectedDisagreement:
+      canonicalBlockers.length === 0 ? expectedDisagreement : null,
+    alpha:
+      canonicalBlockers.length === 0 &&
+      observedDisagreement !== null &&
+      expectedDisagreement !== null
+        ? 1 - observedDisagreement / expectedDisagreement
         : null,
   })
 }
@@ -135,6 +234,24 @@ function isReliabilityLabel(
   outcome: VerificationEvent['outcome'],
 ): outcome is ReliabilityLabel {
   return outcome === 'yes' || outcome === 'no' || outcome === 'cant_tell'
+}
+
+function countLabels(
+  ratings: readonly ReliabilityLabel[],
+): Record<ReliabilityLabel, number> {
+  const counts: Record<ReliabilityLabel, number> = {
+    yes: 0,
+    no: 0,
+    cant_tell: 0,
+  }
+  for (const rating of ratings) {
+    counts[rating] += 1
+  }
+  return counts
+}
+
+function reliabilityLabels(): readonly ReliabilityLabel[] {
+  return ['yes', 'no', 'cant_tell']
 }
 
 function reviewerKey(event: VerificationEvent): string {
