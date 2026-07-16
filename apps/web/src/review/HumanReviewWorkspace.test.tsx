@@ -1,11 +1,11 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { loadEvidenceFacade, type ReplayEvidence } from '../data/evidenceFacade'
 import { createCommittedFixtureFetcher } from '../test/fixtures'
 import { HumanReviewWorkspace } from './HumanReviewWorkspace'
 import { HUMAN_REVIEW_PACKET } from './reviewPacket'
-import type { ReviewMediaCache } from './reviewStore'
+import type { ReviewCacheStatus, ReviewMediaCache } from './reviewStore'
 
 let replay: ReplayEvidence
 
@@ -17,6 +17,10 @@ beforeEach(async () => {
       createCommittedFixtureFetcher(),
     )
   ).replay
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
 })
 
 describe('HumanReviewWorkspace', () => {
@@ -141,6 +145,133 @@ describe('HumanReviewWorkspace', () => {
       'true',
     )
   })
+
+  it('cancels preparation, aborts on unmount, and ignores stale completion', async () => {
+    const pending = deferred<ReviewCacheStatus>()
+    let activeSignal: AbortSignal | undefined
+    const cache: ReviewMediaCache = {
+      ...fakeCache(),
+      prepare: vi.fn().mockImplementation(
+        async (
+          _packet,
+          signal: AbortSignal,
+          onProgress: (value: ReviewCacheStatus) => void,
+        ) => {
+          activeSignal = signal
+          onProgress({
+            ready: false,
+            cachedCount: 1,
+            totalCount: 3,
+            persistentBrowserCache: true,
+            itemFailures: {},
+          })
+          return pending.promise
+        },
+      ),
+    }
+    const rendered = render(
+      <HumanReviewWorkspace cache={cache} replay={replay} />,
+    )
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Prepare review cache' }),
+    )
+    expect(
+      screen.getByRole('button', { name: 'Cancel media preparation' }),
+    ).toBeEnabled()
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Cancel media preparation' }),
+    )
+    expect(activeSignal?.aborted).toBe(true)
+    expect(
+      screen.getByRole('button', { name: 'Prepare review cache' }),
+    ).toBeEnabled()
+
+    await act(async () => {
+      pending.resolve({
+        ready: true,
+        cachedCount: 3,
+        totalCount: 3,
+        persistentBrowserCache: true,
+        itemFailures: {},
+      })
+      await pending.promise
+    })
+    expect(
+      screen.getByRole('button', { name: 'Prepare review cache' }),
+    ).toBeEnabled()
+
+    const secondPending = deferred<ReviewCacheStatus>()
+    const secondCache: ReviewMediaCache = {
+      ...fakeCache(),
+      prepare: vi.fn().mockImplementation(
+        async (_packet, signal: AbortSignal) => {
+          activeSignal = signal
+          return secondPending.promise
+        },
+      ),
+    }
+    rendered.rerender(
+      <HumanReviewWorkspace cache={secondCache} replay={replay} />,
+    )
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Prepare review cache' }),
+    )
+    rendered.unmount()
+    expect(activeSignal?.aborted).toBe(true)
+  })
+
+  it('preserves the review and reports a cache-clear failure', async () => {
+    const cache = {
+      ...fakeCache(),
+      clear: vi.fn().mockRejectedValue(new Error('Cache deletion denied')),
+    }
+    render(<HumanReviewWorkspace cache={cache} replay={replay} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Can’t view' }))
+    expect(screen.getByText('1 / 3')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Clear cache and review' }))
+
+    expect(
+      await screen.findByText('Local review state could not be cleared'),
+    ).toBeInTheDocument()
+    expect(screen.getByText(/Cache deletion denied/u)).toBeInTheDocument()
+    expect(screen.getByText('1 / 3')).toBeInTheDocument()
+  })
+
+  it('keeps work in memory and reports localStorage quota failure', async () => {
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new DOMException('quota exceeded', 'QuotaExceededError')
+    })
+    render(<HumanReviewWorkspace cache={fakeCache()} replay={replay} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Can’t view' }))
+
+    expect(
+      await screen.findByText('Local review persistence failed'),
+    ).toBeInTheDocument()
+    expect(screen.getByText(/storage quota was exceeded/u)).toBeInTheDocument()
+    expect(screen.getByText('1 / 3')).toBeInTheDocument()
+  })
+
+  it('reports temporary media and ledger fallbacks when browser storage is unavailable', async () => {
+    const cache = fakeCache()
+    cache.inspect = vi.fn().mockResolvedValue({
+      ready: false,
+      cachedCount: 0,
+      totalCount: 3,
+      persistentBrowserCache: false,
+      itemFailures: {},
+    })
+    render(<HumanReviewWorkspace cache={cache} replay={replay} />)
+
+    expect(
+      await screen.findByText('Persistent media cache is unavailable'),
+    ).toBeInTheDocument()
+    if (typeof window.indexedDB === 'undefined') {
+      expect(screen.getByText('IndexedDB is unavailable')).toBeInTheDocument()
+    }
+  })
 })
 
 function fakeCache(initiallyReady = false): ReviewMediaCache & {
@@ -174,4 +305,17 @@ function fakeCache(initiallyReady = false): ReviewMediaCache & {
     open: vi.fn().mockResolvedValue('data:image/jpeg;base64,AA=='),
     clear: vi.fn().mockResolvedValue(undefined),
   }
+}
+
+interface Deferred<T> {
+  readonly promise: Promise<T>
+  resolve(value: T): void
+}
+
+function deferred<T>(): Deferred<T> {
+  let resolve!: (value: T) => void
+  const promise = new Promise<T>((promiseResolve) => {
+    resolve = promiseResolve
+  })
+  return { promise, resolve }
 }

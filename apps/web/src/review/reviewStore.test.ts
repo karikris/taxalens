@@ -12,7 +12,10 @@ import {
   canRecordHumanReviewOutcome,
   emptyHumanReviewSession,
   loadHumanReviewSession,
+  loadHumanReviewSessionResult,
+  ReviewPersistenceError,
   saveHumanReviewSession,
+  type HumanReviewSession,
   withDecision,
   withImageInspection,
 } from './reviewStore'
@@ -60,6 +63,32 @@ describe('human review local session', () => {
     expect(canRecordHumanReviewOutcome(inspected, item!.itemId, 'no')).toBe(true)
     expect(canRecordHumanReviewOutcome(inspected, item!.itemId, 'cant_tell')).toBe(
       true,
+    )
+  })
+
+  it('classifies blocked storage and serialization failures', () => {
+    const blocked = loadHumanReviewSessionResult({
+      getItem: () => {
+        throw new DOMException('storage denied', 'SecurityError')
+      },
+    })
+    expect(blocked.session).toEqual(emptyHumanReviewSession())
+    expect(blocked.error).toMatchObject({ code: 'unavailable' })
+
+    const circular = {
+      ...emptyHumanReviewSession(),
+    } as HumanReviewSession & {
+      self?: unknown
+    }
+    circular.self = circular
+    expect(() =>
+      saveHumanReviewSession(circular, {
+        setItem: vi.fn(),
+      }),
+    ).toThrowError(
+      expect.objectContaining<Partial<ReviewPersistenceError>>({
+        code: 'serialization_failed',
+      }),
     )
   })
 })
