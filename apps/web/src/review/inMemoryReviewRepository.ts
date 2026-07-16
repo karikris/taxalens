@@ -14,9 +14,9 @@ import type {
   ReviewCurrentDecisions,
   ReviewRepository,
 } from './reviewRepository'
-
-export const REVIEW_REPOSITORY_RECEIPT_SCHEMA_VERSION =
-  'taxalens-review-repository-receipt:v1.0.0' as const
+import {
+  reviewRepositoryReceiptBytes,
+} from './reviewRepository'
 
 export interface ReviewCampaignSeed {
   readonly campaign: VerificationCampaign
@@ -101,25 +101,13 @@ export class InMemoryReviewRepository<TConsensus = unknown>
     if (campaign === undefined) {
       throw new Error(`Review campaign is unavailable: ${campaignId}`)
     }
-    const items = [...(this.#items.get(campaignId) ?? [])].sort((left, right) =>
-      left.itemId.localeCompare(right.itemId),
-    )
+    const items = this.#items.get(campaignId) ?? []
     const events = this.#events.get(campaignId) ?? []
-    const currentDecisions = Object.values(
-      projectCurrentVerificationEvents(events),
-    ).sort((left, right) => left.itemId.localeCompare(right.itemId))
-    return canonicalExportJsonBytes({
-      schemaVersion: REVIEW_REPOSITORY_RECEIPT_SCHEMA_VERSION,
+    return reviewRepositoryReceiptBytes({
       campaign,
       items,
       events,
-      currentDecisions,
       consensus: [],
-      semantics: {
-        appendOnlyEvents: true,
-        supersededEventsRetained: true,
-        currentStateIsProjection: true,
-      },
     })
   }
 

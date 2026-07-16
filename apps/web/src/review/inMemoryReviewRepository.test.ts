@@ -11,8 +11,8 @@ import {
 } from './reviewStore'
 import {
   InMemoryReviewRepository,
-  REVIEW_REPOSITORY_RECEIPT_SCHEMA_VERSION,
 } from './inMemoryReviewRepository'
+import { REVIEW_REPOSITORY_RECEIPT_SCHEMA_VERSION } from './reviewRepository'
 
 describe('in-memory review repository', () => {
   it('loads a seeded campaign and projects appended events idempotently', async () => {

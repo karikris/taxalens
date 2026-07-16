@@ -7,8 +7,13 @@ export {
 } from './reviewPacket'
 export {
   InMemoryReviewRepository,
-  REVIEW_REPOSITORY_RECEIPT_SCHEMA_VERSION,
 } from './inMemoryReviewRepository'
+export {
+  INDEXED_DB_REVIEW_DATABASE_NAME,
+  IndexedDbReviewRepository,
+} from './indexedDbReviewRepository'
+export type { ReviewSyncStatus } from './indexedDbReviewRepository'
+export { REVIEW_REPOSITORY_RECEIPT_SCHEMA_VERSION } from './reviewRepository'
 export type {
   VerificationCampaign,
   VerificationItem,
