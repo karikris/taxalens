@@ -1,3 +1,4 @@
+export * from './evidenceAvailability'
 export * from './flickrCampaignSource'
 export * from './flickrAuditCampaign'
 export * from './flickrFailureDiscoveryCampaign'
