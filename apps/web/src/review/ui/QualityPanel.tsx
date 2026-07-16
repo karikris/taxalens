@@ -124,7 +124,149 @@ function FlickrQualitySnapshot({
 
       <StrataTable snapshot={snapshot} />
       <ReleaseState release={snapshot.release} />
+      <ReferenceBankQuality snapshot={snapshot} />
     </section>
+  )
+}
+
+function ReferenceBankQuality({
+  snapshot,
+}: {
+  readonly snapshot: VerificationQualitySnapshot
+}) {
+  const reference = snapshot.referenceBank
+  return (
+    <section
+      className="verification-quality__subsection"
+      aria-labelledby="reference-bank-quality-title"
+    >
+      <h4 id="reference-bank-quality-title">Reference-bank quality</h4>
+      {reference === null ? (
+        <EvidenceState
+          state="blocked"
+          title="Reference-bank quality snapshot is unavailable"
+        >
+          No fingerprinted reference-bank aggregate is attached to this
+          QualitySnapshot.
+        </EvidenceState>
+      ) : (
+        <>
+          <p>
+            Prototype-role attestations answer whether records suit their
+            assigned prototype role. They are not independent taxonomic
+            identity reviews or verified scientific support.
+          </p>
+          <div className="verification-quality__metrics">
+            <QualityMetric
+              label="Prototype-role attestations"
+              value={`${reference.prototypeRoleAttestations.suitableRecordCount} / ${reference.prototypeRoleAttestations.providerSupportedRecordCount}`}
+              detail={humanizeIdentifier(
+                reference.prototypeRoleAttestations.status,
+              )}
+            />
+            <QualityMetric
+              label="Taxonomic identity reviews"
+              value={String(
+                reference.taxonomicIdentityReviews.reviewedRecordCount,
+              )}
+              detail={`${reference.taxonomicIdentityReviews.independentlyVerifiedRecordCount} independently verified`}
+            />
+            <QualityMetric
+              label="Verified support"
+              value={String(reference.verifiedSupportCount)}
+              detail={`${reference.prototypeSupportCount} prototype-support records`}
+            />
+            <QualityMetric
+              label="Excluded support"
+              value={String(reference.excludedSupportCount)}
+              detail="Excluded before the prototype support bank"
+            />
+            <QualityMetric
+              label="Reference conflicts"
+              value={
+                reference.conflicts.availability === 'available'
+                  ? String(reference.conflicts.conflictCount)
+                  : 'Not available'
+              }
+              detail={
+                reference.conflicts.unavailableReason ??
+                'Independent review-ledger conflicts'
+              }
+            />
+            <QualityMetric
+              label="Reference snapshot"
+              value={shortFingerprint(reference.sourceSnapshotSha256)}
+              detail="Committed aggregate evidence"
+            />
+          </div>
+          <QualityDistribution
+            title="Provider distribution"
+            distribution={reference.providerDistribution}
+          />
+          <QualityDistribution
+            title="Route distribution"
+            distribution={reference.routeDistribution}
+          />
+          <EvidenceState
+            state={
+              reference.readiness.status === 'ready'
+                ? 'available'
+                : reference.readiness.status === 'unavailable'
+                  ? 'review'
+                  : 'blocked'
+            }
+            title={`Reference readiness: ${humanizeIdentifier(
+              reference.readiness.status,
+            )}`}
+          >
+            {reference.readiness.blockers.length === 0
+              ? 'No reference-readiness blockers are recorded.'
+              : `${reference.readiness.blockers
+                  .map(humanizeIdentifier)
+                  .join('; ')}.`}
+          </EvidenceState>
+        </>
+      )}
+    </section>
+  )
+}
+
+function QualityDistribution({
+  distribution,
+  title,
+}: {
+  readonly distribution: NonNullable<
+    VerificationQualitySnapshot['referenceBank']
+  >['providerDistribution']
+  readonly title: string
+}) {
+  if (distribution.availability === 'unavailable') {
+    return (
+      <EvidenceState state="review" title={`${title} unavailable`}>
+        {distribution.unavailableReason}
+      </EvidenceState>
+    )
+  }
+  return (
+    <div className="verification-quality__table-wrap">
+      <table className="verification-quality__table">
+        <caption>{title}</caption>
+        <thead>
+          <tr>
+            <th scope="col">Group</th>
+            <th scope="col">Records</th>
+          </tr>
+        </thead>
+        <tbody>
+          {distribution.entries.map((entry) => (
+            <tr key={entry.key}>
+              <th scope="row">{entry.label}</th>
+              <td>{entry.count}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   )
 }
 

@@ -544,6 +544,18 @@
   gap: var(--tl-space-3);
 }
 
+.verification-quality__subsection {
+  display: grid;
+  gap: var(--tl-space-3);
+  padding-top: var(--tl-space-4);
+  border-top: 1px solid var(--tl-line);
+}
+
+.verification-quality__subsection > h4,
+.verification-quality__subsection > p {
+  margin: 0;
+}
+
 .verification-quality__metrics,
 .verification-quality__states {
   display: grid;

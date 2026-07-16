@@ -202,6 +202,60 @@ describe('verification quality snapshots', () => {
       await verifyVerificationQualitySnapshotFingerprint(tampered),
     ).toBe(false)
   })
+
+  it('binds reference-bank quality to the snapshot fingerprint', async () => {
+    const base = input()
+    const first = await createVerificationQualitySnapshot({
+      ...base,
+      referenceBank: referenceBankQuality(),
+    })
+    const changed = await createVerificationQualitySnapshot({
+      ...base,
+      referenceBank: {
+        ...referenceBankQuality(),
+        excludedSupportCount: 13,
+      },
+    })
+
+    expect(first.referenceBank).toMatchObject({
+      prototypeRoleAttestations: {
+        providerSupportedRecordCount: 81,
+        attestedRecordCount: 81,
+        suitableRecordCount: 81,
+        independentHumanTaxonomicVerificationClaimed: false,
+      },
+      taxonomicIdentityReviews: {
+        reviewedRecordCount: 0,
+        independentlyVerifiedRecordCount: 0,
+      },
+      prototypeSupportCount: 81,
+      verifiedSupportCount: 0,
+      excludedSupportCount: 12,
+      providerDistribution: {
+        availability: 'unavailable',
+        entries: [],
+      },
+      routeDistribution: {
+        availability: 'available',
+        entries: [
+          { key: 'adult_field', label: 'Adult field', count: 80 },
+          { key: 'larval', label: 'Larval', count: 1 },
+          {
+            key: 'pinned_specimen',
+            label: 'Pinned specimen',
+            count: 0,
+          },
+        ],
+      },
+      readiness: {
+        status: 'not_ready',
+      },
+    })
+    expect(first.snapshotSha256).not.toBe(changed.snapshotSha256)
+    expect(
+      await verifyVerificationQualitySnapshotFingerprint(first),
+    ).toBe(true)
+  })
 })
 
 function input(
@@ -409,5 +463,57 @@ function reviewerAlpha(
     observedDisagreement: 0.1,
     expectedDisagreement: 0.4,
     alpha: 0.75,
+  }
+}
+
+function referenceBankQuality() {
+  return {
+    prototypeRoleAttestations: {
+      status: 'verified_complete' as const,
+      providerSupportedRecordCount: 81,
+      attestedRecordCount: 81,
+      suitableRecordCount: 81,
+      independentHumanTaxonomicVerificationClaimed: false,
+    },
+    taxonomicIdentityReviews: {
+      reviewedRecordCount: 0,
+      independentlyVerifiedRecordCount: 0,
+    },
+    prototypeSupportCount: 81,
+    verifiedSupportCount: 0,
+    excludedSupportCount: 12,
+    conflicts: {
+      availability: 'unavailable' as const,
+      conflictCount: null,
+      unavailableReason:
+        'No independently reviewed reference decision ledger is attached.',
+    },
+    providerDistribution: {
+      availability: 'unavailable' as const,
+      entries: [],
+      unavailableReason:
+        'The aggregate prototype evidence does not publish provider counts.',
+    },
+    routeDistribution: {
+      availability: 'available' as const,
+      entries: [
+        { key: 'adult_field', label: 'Adult field', count: 80 },
+        { key: 'larval', label: 'Larval', count: 1 },
+        {
+          key: 'pinned_specimen',
+          label: 'Pinned specimen',
+          count: 0,
+        },
+      ],
+      unavailableReason: null,
+    },
+    readiness: {
+      status: 'not_ready' as const,
+      blockers: [
+        'independent_taxonomic_verification_missing',
+        'reference_support_shortfall',
+      ],
+    },
+    sourceSnapshotSha256: 'f'.repeat(64),
   }
 }

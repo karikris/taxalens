@@ -41,6 +41,45 @@ describe('Flickr verification quality panel', () => {
     expect(screen.getByText('aaaaaaaaaaaa…aaaaaaaa')).toBeVisible()
   })
 
+  it('shows reference-bank semantics and preserves unavailable distributions', () => {
+    render(<QualityPanel snapshot={qualitySnapshotFixture()} />)
+
+    expect(
+      screen.getByRole('heading', { name: 'Reference-bank quality' }),
+    ).toBeVisible()
+    expect(
+      screen.getByText(/not independent taxonomic identity reviews/u),
+    ).toBeVisible()
+    expect(metric('Prototype-role attestations')).toHaveTextContent(
+      '81 / 81Verified complete',
+    )
+    expect(metric('Taxonomic identity reviews')).toHaveTextContent(
+      '00 independently verified',
+    )
+    expect(metric('Verified support')).toHaveTextContent(
+      '081 prototype-support records',
+    )
+    expect(metric('Excluded support')).toHaveTextContent('12')
+    expect(metric('Reference conflicts')).toHaveTextContent(
+      'Not available',
+    )
+    expect(screen.getByText('Provider distribution unavailable')).toBeVisible()
+    expect(
+      screen.getByText(
+        /aggregate prototype evidence does not publish provider counts/u,
+      ),
+    ).toBeVisible()
+
+    const routes = screen.getByRole('table', {
+      name: 'Route distribution',
+    })
+    expect(within(routes).getByText('Adult field')).toBeVisible()
+    expect(within(routes).getByText('80')).toBeVisible()
+    expect(within(routes).getByText('Larval')).toBeVisible()
+    expect(within(routes).getByText('1')).toBeVisible()
+    expect(screen.getByText('Reference readiness: Not ready')).toBeVisible()
+  })
+
   it('shows unavailable states without leaking unsupported numbers', () => {
     const snapshot = qualitySnapshotFixture()
     render(

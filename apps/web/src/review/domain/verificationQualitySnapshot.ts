@@ -1,6 +1,7 @@
 import {
   REVIEWER_RELIABILITY_SCHEMA_VERSION,
   type ReviewerNominalKrippendorffAlpha,
+  type ReviewerControlPerformance,
   type ReviewerPercentAgreement,
 } from './reviewerReliability'
 import {
@@ -31,7 +32,7 @@ import {
 } from './verificationReviewMilestones'
 
 export const VERIFICATION_QUALITY_SNAPSHOT_SCHEMA_VERSION =
-  'taxalens-verification-quality-snapshot:v1.0.0' as const
+  'taxalens-verification-quality-snapshot:v1.1.0' as const
 
 export type VerificationQualityGateStatus =
   | 'ready'
@@ -59,6 +60,62 @@ export interface VerificationQualityStratum {
   readonly estimate: number | null
 }
 
+export interface VerificationQualityDistributionEntry {
+  readonly key: string
+  readonly label: string
+  readonly count: number
+}
+
+export interface VerificationQualityDistribution {
+  readonly availability: 'available' | 'unavailable'
+  readonly entries: readonly VerificationQualityDistributionEntry[]
+  readonly unavailableReason: string | null
+}
+
+export interface VerificationReferenceBankQuality {
+  readonly prototypeRoleAttestations: {
+    readonly status: 'verified_complete' | 'incomplete' | 'unavailable'
+    readonly providerSupportedRecordCount: number
+    readonly attestedRecordCount: number
+    readonly suitableRecordCount: number
+    readonly independentHumanTaxonomicVerificationClaimed: boolean
+  }
+  readonly taxonomicIdentityReviews: {
+    readonly reviewedRecordCount: number
+    readonly independentlyVerifiedRecordCount: number
+  }
+  readonly prototypeSupportCount: number
+  readonly verifiedSupportCount: number
+  readonly excludedSupportCount: number
+  readonly conflicts: {
+    readonly availability: 'available' | 'unavailable'
+    readonly conflictCount: number | null
+    readonly unavailableReason: string | null
+  }
+  readonly providerDistribution: VerificationQualityDistribution
+  readonly routeDistribution: VerificationQualityDistribution
+  readonly readiness: {
+    readonly status: VerificationQualityGateStatus
+    readonly blockers: readonly string[]
+  }
+  readonly sourceSnapshotSha256: string
+}
+
+export interface VerificationReviewerControlQuality {
+  readonly availability: 'available' | 'unavailable'
+  readonly blockers: readonly string[]
+  readonly controlSetId: string | null
+  readonly groundTruthSha256: string | null
+  readonly controlItemCount: number
+  readonly attemptedControlItemCount: number
+  readonly controlAttemptCount: number
+  readonly controlAccuracy: number | null
+  readonly falsePositiveRate: number | null
+  readonly falseNegativeRate: number | null
+  readonly mediaFailureHandlingRate: number | null
+  readonly unexpectedMediaFailureRate: number | null
+}
+
 export interface VerificationQualitySnapshotInput {
   readonly capturedAt: string
   readonly campaign: VerificationCampaign
@@ -76,6 +133,8 @@ export interface VerificationQualitySnapshotInput {
   readonly adjudicatedItems: number
   readonly referenceReadiness: VerificationQualityGateEvidence<VerificationQualityGateStatus>
   readonly reviewedLabelLeakage: VerificationQualityGateEvidence<ReviewedLabelLeakageGateStatus>
+  readonly referenceBank?: VerificationReferenceBankQuality | null
+  readonly reviewerControlPerformance?: ReviewerControlPerformance | null
   readonly releasePolicy: VerificationReleasePolicy
   readonly milestonePlan: VerificationReviewMilestonePlan
   readonly evaluatedMilestones: readonly number[]
@@ -208,6 +267,8 @@ export interface VerificationQualitySnapshot {
     readonly status: ReviewedLabelLeakageGateStatus
     readonly blockers: readonly string[]
   }
+  readonly referenceBank: VerificationReferenceBankQuality | null
+  readonly reviewerControl: VerificationReviewerControlQuality | null
   readonly milestone: VerificationMilestoneEvaluation
   readonly fingerprints: VerificationQualityFingerprints
   readonly release: VerificationQualityRelease
@@ -298,6 +359,10 @@ export async function createVerificationQualitySnapshot(
         status: input.reviewedLabelLeakage.status,
         blockers: canonicalStrings(input.reviewedLabelLeakage.blockers),
       }),
+      referenceBank: referenceBankSnapshot(input.referenceBank ?? null),
+      reviewerControl: reviewerControlSnapshot(
+        input.reviewerControlPerformance ?? null,
+      ),
       milestone,
       fingerprints: Object.freeze({
         campaignManifestSha256: input.campaign.manifestSha256,
@@ -359,6 +424,18 @@ export function validateVerificationQualitySnapshot(
     )
   ) {
     failures.push('quality snapshot gate status is unsupported')
+  }
+  if (
+    snapshot.referenceBank !== null &&
+    validateReferenceBankQuality(snapshot.referenceBank).length > 0
+  ) {
+    failures.push('quality snapshot reference-bank state is invalid')
+  }
+  if (
+    snapshot.reviewerControl !== null &&
+    validateReviewerControlQuality(snapshot.reviewerControl).length > 0
+  ) {
+    failures.push('quality snapshot reviewer-control state is invalid')
   }
   const coverageFailures = validateVerificationCoverage(snapshot.coverage)
   if (coverageFailures.length > 0) {
@@ -477,6 +554,19 @@ function validateSnapshotInput(
   }
   failures.push(...validateGateEvidence(input.referenceReadiness))
   failures.push(...validateGateEvidence(input.reviewedLabelLeakage))
+  if (input.referenceBank !== undefined && input.referenceBank !== null) {
+    failures.push(...validateReferenceBankQuality(input.referenceBank))
+  }
+  if (
+    input.reviewerControlPerformance !== undefined &&
+    input.reviewerControlPerformance !== null
+  ) {
+    failures.push(
+      ...validateReviewerControlPerformance(
+        input.reviewerControlPerformance,
+      ),
+    )
+  }
   failures.push(...validatePrecisionInput(input))
   failures.push(...validateAgreementInput(input))
   if (
@@ -656,6 +746,136 @@ function validateGateEvidence(
   return Object.freeze([])
 }
 
+function validateReferenceBankQuality(
+  quality: VerificationReferenceBankQuality,
+): readonly string[] {
+  const failures: string[] = []
+  const role = quality.prototypeRoleAttestations
+  const identity = quality.taxonomicIdentityReviews
+  const counts = [
+    role.providerSupportedRecordCount,
+    role.attestedRecordCount,
+    role.suitableRecordCount,
+    identity.reviewedRecordCount,
+    identity.independentlyVerifiedRecordCount,
+    quality.prototypeSupportCount,
+    quality.verifiedSupportCount,
+    quality.excludedSupportCount,
+  ]
+  if (
+    counts.some((count) => !nonNegativeInteger(count)) ||
+    role.attestedRecordCount > role.providerSupportedRecordCount ||
+    role.suitableRecordCount > role.attestedRecordCount ||
+    identity.independentlyVerifiedRecordCount >
+      identity.reviewedRecordCount ||
+    quality.verifiedSupportCount > identity.independentlyVerifiedRecordCount
+  ) {
+    failures.push('reference-bank counts are inconsistent')
+  }
+  if (
+    !['verified_complete', 'incomplete', 'unavailable'].includes(
+      role.status,
+    ) ||
+    !['ready', 'not_ready', 'unavailable'].includes(
+      quality.readiness.status,
+    ) ||
+    !validSha256(quality.sourceSnapshotSha256)
+  ) {
+    failures.push('reference-bank status or fingerprint is invalid')
+  }
+  if (
+    !sortedUnique(quality.readiness.blockers) ||
+    quality.readiness.blockers.some((blocker) => blocker.trim() === '')
+  ) {
+    failures.push('reference-bank readiness blockers are invalid')
+  }
+  failures.push(
+    ...validateQualityDistribution(
+      quality.providerDistribution,
+      'provider',
+    ),
+    ...validateQualityDistribution(
+      quality.routeDistribution,
+      'route',
+    ),
+  )
+  if (
+    (quality.conflicts.availability === 'available') !==
+      (quality.conflicts.conflictCount !== null) ||
+    (quality.conflicts.conflictCount !== null &&
+      !nonNegativeInteger(quality.conflicts.conflictCount)) ||
+    (quality.conflicts.availability === 'unavailable') !==
+      (quality.conflicts.unavailableReason !== null)
+  ) {
+    failures.push('reference-bank conflict evidence is inconsistent')
+  }
+  return Object.freeze(failures)
+}
+
+function validateQualityDistribution(
+  distribution: VerificationQualityDistribution,
+  label: string,
+): readonly string[] {
+  if (
+    (distribution.availability === 'available') !==
+      (distribution.unavailableReason === null) ||
+    (distribution.availability === 'unavailable' &&
+      distribution.entries.length > 0) ||
+    !sortedUnique(distribution.entries.map(({ key }) => key)) ||
+    distribution.entries.some(
+      ({ key, label: entryLabel, count }) =>
+        key.trim() === '' ||
+        entryLabel.trim() === '' ||
+        !nonNegativeInteger(count),
+    )
+  ) {
+    return Object.freeze([
+      `reference-bank ${label} distribution is inconsistent`,
+    ])
+  }
+  return Object.freeze([])
+}
+
+function validateReviewerControlPerformance(
+  control: ReviewerControlPerformance,
+): readonly string[] {
+  if (
+    control.schemaVersion !== REVIEWER_RELIABILITY_SCHEMA_VERSION ||
+    control.method !== 'pre_reviewed_control_performance' ||
+    (control.availability === 'available') !==
+      (control.controlAccuracy !== null)
+  ) {
+    return Object.freeze(['reviewer control performance is inconsistent'])
+  }
+  return Object.freeze([])
+}
+
+function validateReviewerControlQuality(
+  control: VerificationReviewerControlQuality,
+): readonly string[] {
+  if (
+    (control.availability === 'available') !==
+      (control.controlAccuracy !== null) ||
+    control.controlItemCount < control.attemptedControlItemCount ||
+    ![
+      control.controlItemCount,
+      control.attemptedControlItemCount,
+      control.controlAttemptCount,
+    ].every(nonNegativeInteger) ||
+    !sortedUnique(control.blockers) ||
+    [
+      control.controlAccuracy,
+      control.falsePositiveRate,
+      control.falseNegativeRate,
+      control.mediaFailureHandlingRate,
+      control.unexpectedMediaFailureRate,
+    ].some((rate) => rate !== null && !isProportion(rate))
+  ) {
+    return Object.freeze(['reviewer control snapshot is inconsistent'])
+  }
+  return Object.freeze([])
+}
+
 function precisionSnapshot(
   estimate:
     | SimpleRandomTargetPrecisionEstimate
@@ -716,6 +936,75 @@ function precisionSnapshot(
     decisiveSampleCount: estimate.decisiveSampleCount,
     representedStrata,
     strata,
+  })
+}
+
+function referenceBankSnapshot(
+  referenceBank: VerificationReferenceBankQuality | null,
+): VerificationReferenceBankQuality | null {
+  if (referenceBank === null) {
+    return null
+  }
+  return Object.freeze({
+    prototypeRoleAttestations: Object.freeze({
+      ...referenceBank.prototypeRoleAttestations,
+    }),
+    taxonomicIdentityReviews: Object.freeze({
+      ...referenceBank.taxonomicIdentityReviews,
+    }),
+    prototypeSupportCount: referenceBank.prototypeSupportCount,
+    verifiedSupportCount: referenceBank.verifiedSupportCount,
+    excludedSupportCount: referenceBank.excludedSupportCount,
+    conflicts: Object.freeze({ ...referenceBank.conflicts }),
+    providerDistribution: freezeDistribution(
+      referenceBank.providerDistribution,
+    ),
+    routeDistribution: freezeDistribution(
+      referenceBank.routeDistribution,
+    ),
+    readiness: Object.freeze({
+      status: referenceBank.readiness.status,
+      blockers: canonicalStrings(referenceBank.readiness.blockers),
+    }),
+    sourceSnapshotSha256: referenceBank.sourceSnapshotSha256,
+  })
+}
+
+function reviewerControlSnapshot(
+  control: ReviewerControlPerformance | null,
+): VerificationReviewerControlQuality | null {
+  if (control === null) {
+    return null
+  }
+  return Object.freeze({
+    availability: control.availability,
+    blockers: canonicalStrings(control.blockers),
+    controlSetId:
+      control.controlSetId.trim() === '' ? null : control.controlSetId,
+    groundTruthSha256:
+      validSha256(control.groundTruthSha256)
+        ? control.groundTruthSha256
+        : null,
+    controlItemCount: control.controlItemCount,
+    attemptedControlItemCount: control.attemptedControlItemCount,
+    controlAttemptCount: control.controlAttemptCount,
+    controlAccuracy: control.controlAccuracy,
+    falsePositiveRate: control.falsePositiveRate,
+    falseNegativeRate: control.falseNegativeRate,
+    mediaFailureHandlingRate: control.mediaFailureHandlingRate,
+    unexpectedMediaFailureRate: control.unexpectedMediaFailureRate,
+  })
+}
+
+function freezeDistribution(
+  distribution: VerificationQualityDistribution,
+): VerificationQualityDistribution {
+  return Object.freeze({
+    availability: distribution.availability,
+    entries: Object.freeze(
+      distribution.entries.map((entry) => Object.freeze({ ...entry })),
+    ),
+    unavailableReason: distribution.unavailableReason,
   })
 }
 

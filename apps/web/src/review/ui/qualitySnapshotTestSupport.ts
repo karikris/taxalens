@@ -2,7 +2,7 @@ import type { VerificationQualitySnapshot } from '../domain'
 
 export function qualitySnapshotFixture(): VerificationQualitySnapshot {
   return {
-    schemaVersion: 'taxalens-verification-quality-snapshot:v1.0.0',
+    schemaVersion: 'taxalens-verification-quality-snapshot:v1.1.0',
     capturedAt: '2026-07-16T19:00:00.000Z',
     campaign: {
       campaignId: 'flickr-quality-campaign',
@@ -121,6 +121,56 @@ export function qualitySnapshotFixture(): VerificationQualitySnapshot {
       status: 'passed',
       blockers: [],
     },
+    referenceBank: {
+      prototypeRoleAttestations: {
+        status: 'verified_complete',
+        providerSupportedRecordCount: 81,
+        attestedRecordCount: 81,
+        suitableRecordCount: 81,
+        independentHumanTaxonomicVerificationClaimed: false,
+      },
+      taxonomicIdentityReviews: {
+        reviewedRecordCount: 0,
+        independentlyVerifiedRecordCount: 0,
+      },
+      prototypeSupportCount: 81,
+      verifiedSupportCount: 0,
+      excludedSupportCount: 12,
+      conflicts: {
+        availability: 'unavailable',
+        conflictCount: null,
+        unavailableReason:
+          'No independently reviewed reference decision ledger is attached.',
+      },
+      providerDistribution: {
+        availability: 'unavailable',
+        entries: [],
+        unavailableReason:
+          'The aggregate prototype evidence does not publish provider counts.',
+      },
+      routeDistribution: {
+        availability: 'available',
+        entries: [
+          { key: 'adult_field', label: 'Adult field', count: 80 },
+          { key: 'larval', label: 'Larval', count: 1 },
+          {
+            key: 'pinned_specimen',
+            label: 'Pinned specimen',
+            count: 0,
+          },
+        ],
+        unavailableReason: null,
+      },
+      readiness: {
+        status: 'not_ready',
+        blockers: [
+          'independent_taxonomic_verification_missing',
+          'reference_support_shortfall',
+        ],
+      },
+      sourceSnapshotSha256: 'b'.repeat(64),
+    },
+    reviewerControl: null,
     milestone: {
       schemaVersion: 'taxalens-verification-review-milestones:v1.0.0',
       milestonePlanId: 'flickr-quality-milestones',
