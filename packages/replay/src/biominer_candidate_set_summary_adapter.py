@@ -85,12 +85,7 @@ def _extract_rows(payload: Any) -> list[dict[str, Any]]:
     if isinstance(payload, list):
         raw_rows = payload
     elif isinstance(payload, dict):
-        raw_rows = (
-            payload.get("rows")
-            or payload.get("candidates")
-            or payload.get("data")
-            or []
-        )
+        raw_rows = payload.get("rows") or payload.get("candidates") or payload.get("data") or []
         if not isinstance(raw_rows, list):
             return []
     else:
@@ -98,9 +93,7 @@ def _extract_rows(payload: Any) -> list[dict[str, Any]]:
     return [row for row in raw_rows if isinstance(row, dict)]
 
 
-def _collect_candidate_keys_and_names(
-    rows: list[dict[str, Any]]
-) -> list[tuple[str, int, str]]:
+def _collect_candidate_keys_and_names(rows: list[dict[str, Any]]) -> list[tuple[str, int, str]]:
     keyed = {}
     for row in rows:
         candidate_key = _first_str(row.get("accepted_taxon_key"))
@@ -108,9 +101,7 @@ def _collect_candidate_keys_and_names(
             continue
         if candidate_key in keyed:
             continue
-        name = _first_str(row.get("scientific_name")) or _first_str(
-            row.get("candidate_name")
-        )
+        name = _first_str(row.get("scientific_name")) or _first_str(row.get("candidate_name"))
         name = name or candidate_key
         priority = _to_int(row.get("candidate_priority")) or 0
         keyed[candidate_key] = (priority, name)
@@ -120,7 +111,9 @@ def _collect_candidate_keys_and_names(
     )
 
 
-def _find_target_identity(rows: list[dict[str, Any]], manifest_payload: dict[str, Any]) -> tuple[str | None, str | None]:
+def _find_target_identity(
+    rows: list[dict[str, Any]], manifest_payload: dict[str, Any]
+) -> tuple[str | None, str | None]:
     for row in rows:
         if row.get("target_candidate") is True:
             key = _first_str(row.get("accepted_taxon_key"))

@@ -3,11 +3,10 @@ from __future__ import annotations
 from dataclasses import replace
 
 import pytest
-
 from packages.replay.src.biominer_detection_policy import (
+    MAC_M5PRO_64GB_SETTINGS,
     DetectionPolicy,
     DetectionRunPolicy,
-    MAC_M5PRO_64GB_SETTINGS,
     VisionRuntimeSettings,
     detection_is_bioclip_eligible,
     runtime_profile,
@@ -74,9 +73,15 @@ def test_vision_runtime_settings_bridge_existing_detection_policies() -> None:
         debug_crop_limit=12,
     )
 
-    detection = settings.to_detection_policy(DetectionPolicy(backend="fake", min_box_area_ratio=0.01))
-    runtime = settings.to_detection_run_policy(DetectionRunPolicy(download_workers=2, max_inflight_images=5))
-    target_runtime = settings.to_detection_run_policy(DetectionRunPolicy(create_crop_metadata=False))
+    detection = settings.to_detection_policy(
+        DetectionPolicy(backend="fake", min_box_area_ratio=0.01)
+    )
+    runtime = settings.to_detection_run_policy(
+        DetectionRunPolicy(download_workers=2, max_inflight_images=5)
+    )
+    target_runtime = settings.to_detection_run_policy(
+        DetectionRunPolicy(create_crop_metadata=False)
+    )
 
     assert detection.backend == "fake"
     assert detection.box_score_threshold == 0.25
@@ -169,13 +174,16 @@ def test_detection_policy_and_runtime_settings_carry_routing_policy() -> None:
 
 
 def test_runtime_settings_require_detector_floor_at_or_below_enabled_route_thresholds() -> None:
-    assert validate_vision_runtime_settings(
-        VisionRuntimeSettings(
-            yolo_conf=0.35,
-            possible_adult_route_threshold=0.35,
-            ambiguous_insect_review_threshold=0.35,
-        )
-    ).yolo_conf == 0.35
+    assert (
+        validate_vision_runtime_settings(
+            VisionRuntimeSettings(
+                yolo_conf=0.35,
+                possible_adult_route_threshold=0.35,
+                ambiguous_insect_review_threshold=0.35,
+            )
+        ).yolo_conf
+        == 0.35
+    )
 
     with pytest.raises(ValueError, match="possible_adult_route_threshold"):
         validate_vision_runtime_settings(
@@ -190,15 +198,18 @@ def test_runtime_settings_require_detector_floor_at_or_below_enabled_route_thres
             )
         )
 
-    assert validate_vision_runtime_settings(
-        VisionRuntimeSettings(
-            yolo_conf=0.8,
-            possible_adult_route_enabled=False,
-            possible_adult_route_threshold=0.1,
-            ambiguous_insect_review_enabled=False,
-            ambiguous_insect_review_threshold=0.1,
-        )
-    ).yolo_conf == 0.8
+    assert (
+        validate_vision_runtime_settings(
+            VisionRuntimeSettings(
+                yolo_conf=0.8,
+                possible_adult_route_enabled=False,
+                possible_adult_route_threshold=0.1,
+                ambiguous_insect_review_enabled=False,
+                ambiguous_insect_review_threshold=0.1,
+            )
+        ).yolo_conf
+        == 0.8
+    )
 
 
 @pytest.mark.parametrize(
@@ -233,11 +244,28 @@ def test_detection_eligibility_uses_route_action_and_never_crosses_route_domains
 
 
 def test_detection_eligibility_honours_persisted_route_action() -> None:
-    assert detection_is_bioclip_eligible({"detection_status": "detected", "routing_action": "score"}) is True
-    assert detection_is_bioclip_eligible({"detection_status": "detected", "routing_action": "review"}) is True
-    assert detection_is_bioclip_eligible({"detection_status": "detected", "routing_action": "exclude"}) is False
-    assert detection_is_bioclip_eligible({"detection_status": "detected", "routing_action": "unknown"}) is False
-    assert detection_is_bioclip_eligible({"detection_status": "no_detection", "routing_action": "score"}) is False
+    assert (
+        detection_is_bioclip_eligible({"detection_status": "detected", "routing_action": "score"})
+        is True
+    )
+    assert (
+        detection_is_bioclip_eligible({"detection_status": "detected", "routing_action": "review"})
+        is True
+    )
+    assert (
+        detection_is_bioclip_eligible({"detection_status": "detected", "routing_action": "exclude"})
+        is False
+    )
+    assert (
+        detection_is_bioclip_eligible({"detection_status": "detected", "routing_action": "unknown"})
+        is False
+    )
+    assert (
+        detection_is_bioclip_eligible(
+            {"detection_status": "no_detection", "routing_action": "score"}
+        )
+        is False
+    )
 
 
 def test_mac_m5pro_profile_preserves_single_accelerator_worker_defaults() -> None:

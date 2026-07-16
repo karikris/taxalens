@@ -165,9 +165,10 @@ def test_missing_or_contradictory_evidence_fails_closed(
 
     assert result["decision"] == NO_GO
     assert result["failed_gate_count"] >= 1
-    assert next(
-        gate["status"] for gate in result["gate_results"] if gate["gate_id"] == gate_id
-    ) == "failed"
+    assert (
+        next(gate["status"] for gate in result["gate_results"] if gate["gate_id"] == gate_id)
+        == "failed"
+    )
     _assert_no_broadened_authorization(result)
 
 
@@ -182,11 +183,14 @@ def test_non_prototype_requested_modes_are_no_go(requested_mode: str) -> None:
     )
 
     assert result["decision"] == NO_GO
-    assert next(
-        gate["status"]
-        for gate in result["gate_results"]
-        if gate["gate_id"] == "explicit_prototype_mode_requested"
-    ) == "failed"
+    assert (
+        next(
+            gate["status"]
+            for gate in result["gate_results"]
+            if gate["gate_id"] == "explicit_prototype_mode_requested"
+        )
+        == "failed"
+    )
     _assert_no_broadened_authorization(result)
 
 

@@ -44,9 +44,7 @@ def write_packet_fixture(
         "canonical_reference_media_id": canonical_media_id,
         "accepted_taxon_key": accepted_taxon_key,
         "scientific_name": scientific_name,
-        "durable_preview_uri": (
-            "s3://biominer-references/sha256/55/" + "5" * 64 + ".jpg"
-        ),
+        "durable_preview_uri": ("s3://biominer-references/sha256/55/" + "5" * 64 + ".jpg"),
         "media_object_fingerprint": object_fingerprint,
         "duplicate_group_id": duplicate_group_id,
         "source": source,
@@ -192,9 +190,7 @@ def write_packet_fixture(
                 "attribution": "Example observer / CC BY 4.0",
                 "occurrence_licence": "CC0-1.0",
                 "original_provider": (
-                    "Atlas of Living Australia"
-                    if source == "gbif"
-                    else "iNaturalist"
+                    "Atlas of Living Australia" if source == "gbif" else "iNaturalist"
                 ),
                 "media_position": 0,
                 "source_checksum": None,
@@ -257,9 +253,7 @@ def write_packet_fixture(
             {
                 "review_request_id": queue_row["review_request_id"],
                 "input_fingerprint": input_fingerprint,
-                "source_binding_fingerprint": provenance_row[
-                    "source_binding_fingerprint"
-                ],
+                "source_binding_fingerprint": provenance_row["source_binding_fingerprint"],
             }
         ]
     )
@@ -269,10 +263,7 @@ def write_packet_fixture(
             "root_queue_fingerprint": immutable_fingerprint,
         }
     ).removeprefix("sha256:")
-    artifacts = {
-        key: _artifact_record(path)
-        for key, path in sorted(packet_paths.items())
-    }
+    artifacts = {key: _artifact_record(path) for key, path in sorted(packet_paths.items())}
     report = {
         "schema_version": adapter._EXPORT_REPORT_VERSION,
         "command": "references.export_review_queue",
@@ -289,8 +280,7 @@ def write_packet_fixture(
             "queue_provenance_fingerprint": adapter._frame_fingerprint(provenance),
             "decision_template_fingerprint": adapter._frame_fingerprint(template),
             "artifact_uris": {
-                key: str(path.resolve())
-                for key, path in sorted(packet_paths.items())
+                key: str(path.resolve()) for key, path in sorted(packet_paths.items())
             },
         },
         "history": {

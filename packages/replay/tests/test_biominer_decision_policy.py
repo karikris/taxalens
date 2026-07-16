@@ -3,35 +3,27 @@
 
 from __future__ import annotations
 
-import ast
 from dataclasses import replace
-from datetime import datetime, timezone
-import json
-from pathlib import Path
+from datetime import UTC, datetime
 
 import pytest
-
 from packages.replay.src.biominer_decision_policy import (
-    DECISION_POLICY_MANIFEST_SCHEMA_VERSION,
     DECISION_POLICY_OPTIMIZATION_METRIC,
     DecisionPolicyCalibrationSample,
     SelectiveDecisionPolicyConfig,
-    SelectiveDecisionPolicy,
     SelectivePredictionEvidence,
     apply_selective_decision_policy,
-    decision_policy_manifest_payload,
     fit_selective_decision_policy,
 )
 from packages.replay.src.biominer_nonmatch import score_nonmatch_evidence
 from packages.replay.tests.test_biominer_nonmatch import _request, _sha
-
 
 MODEL_FINGERPRINT = _sha("foundation-model")
 CLASSIFIER_FINGERPRINT = _sha("classifier:target")
 CALIBRATION_FINGERPRINT = _sha("calibrator:target")
 SPLIT_FINGERPRINT = _sha("decision-split")
 REGIONAL_KEY = "gbif:1939773"
-CREATED_AT = datetime(2026, 7, 14, 7, 8, 9, 101112, tzinfo=timezone.utc)
+CREATED_AT = datetime(2026, 7, 14, 7, 8, 9, 101112, tzinfo=UTC)
 GIT_SHA = "b" * 40
 
 
@@ -167,12 +159,8 @@ def test_target_confirmation_requires_every_configured_condition() -> None:
     assert decision.classification_decision == "target_confirmed"
     assert decision.abstained is False
     assert decision.abstention_reason is None
-    assert decision.model_decision_threshold == pytest.approx(
-        policy.target_probability_threshold
-    )
-    assert decision.competitor_margin_threshold == pytest.approx(
-        policy.competitor_margin_threshold
-    )
+    assert decision.model_decision_threshold == pytest.approx(policy.target_probability_threshold)
+    assert decision.competitor_margin_threshold == pytest.approx(policy.competitor_margin_threshold)
     assert decision.threshold_provenance == policy.decision_policy_fingerprint
 
 
@@ -288,4 +276,3 @@ def test_policy_fingerprint_mismatch_fails_closed() -> None:
             _policy(),
             _prediction_evidence(model_fingerprint=_sha("wrong-model")),
         )
-

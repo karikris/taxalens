@@ -51,9 +51,10 @@ def test_parquet_export_is_byte_deterministic_and_round_trip_valid(
 
     assert first.to_dicts() == second.to_dicts()
     assert first_path.read_bytes() == second_path.read_bytes()
-    assert hashlib.sha256(first_path.read_bytes()).hexdigest() == hashlib.sha256(
-        second_path.read_bytes()
-    ).hexdigest()
+    assert (
+        hashlib.sha256(first_path.read_bytes()).hexdigest()
+        == hashlib.sha256(second_path.read_bytes()).hexdigest()
+    )
     round_trip = pl.read_parquet(first_path)
     validate_flickr_reviewed_labels_v2(round_trip)
     assert dict(round_trip.schema) == flickr_reviewed_labels_v2_schema()
@@ -158,9 +159,7 @@ print(json.dumps({
 
     assert result["findings"] == []
     assert result["core_columns"] == list(flickr_reviewed_labels_v2_schema())[:33]
-    assert result["extra_columns"] == sorted(
-        list(flickr_reviewed_labels_v2_schema())[33:]
-    )
+    assert result["extra_columns"] == sorted(list(flickr_reviewed_labels_v2_schema())[33:])
     assert result["ledger"] == "d" * 64
 
 

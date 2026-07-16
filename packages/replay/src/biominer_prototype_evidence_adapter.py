@@ -372,9 +372,7 @@ def adapt_prototype_evidence(
                     "provider_supported_record_count"
                 ],
                 "verified_record_count": goal_verification["verified_record_count"],
-                "records_meeting_goal_count": goal_verification[
-                    "records_meeting_goal_count"
-                ],
+                "records_meeting_goal_count": goal_verification["records_meeting_goal_count"],
                 "all_provider_supported_records_verified": goal_verification[
                     "all_provider_supported_records_verified"
                 ],
@@ -492,25 +490,19 @@ def _validate_cross_file_contracts(
         goal_verification.get("status") != "verified_complete"
         or goal_verification.get("assertion_source") != "direct_user_confirmation"
         or goal_verification.get("reference_bank_version")
-        != _mapping(support.get("execution"), "support.execution").get(
-            "reference_bank_version"
-        )
+        != _mapping(support.get("execution"), "support.execution").get("reference_bank_version")
         or goal_verification.get("provider_supported_record_count") != 81
         or goal_verification.get("verified_record_count") != 81
         or goal_verification.get("records_meeting_goal_count") != 81
         or goal_verification.get("all_provider_supported_records_verified") is not True
         or goal_verification.get("all_verified_records_meet_goal") is not True
-        or goal_semantics.get("verification_is_user_goal_suitability_confirmation")
-        is not True
-        or goal_semantics.get("independent_human_taxonomic_verification_claimed")
-        is not False
+        or goal_semantics.get("verification_is_user_goal_suitability_confirmation") is not True
+        or goal_semantics.get("independent_human_taxonomic_verification_claimed") is not False
         or goal_semantics.get("classification_accuracy_authorized") is not False
         or goal_semantics.get("scientific_release_authorized") is not False
         or goal_semantics.get("production_default_change_authorized") is not False
     ):
-        raise PrototypeEvidenceAdapterError(
-            "provider-support goal verification boundary differs"
-        )
+        raise PrototypeEvidenceAdapterError("provider-support goal verification boundary differs")
 
     embedding_counts = _mapping(embeddings.get("counts"), "embeddings.counts")
     embedding_validation = _mapping(embeddings.get("validation"), "embeddings.validation")

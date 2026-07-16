@@ -138,12 +138,8 @@ def test_maps_append_only_reference_events_to_exact_biominer_schema(
 
     assert frame.schema == reference_review_decision_import_schema()
     assert frame.height == 3
-    assert set(frame["import_schema_version"]) == {
-        REFERENCE_REVIEW_DECISION_IMPORT_SCHEMA_VERSION
-    }
-    rows = {
-        str(row["verified_by"]): row for row in frame.iter_rows(named=True)
-    }
+    assert set(frame["import_schema_version"]) == {REFERENCE_REVIEW_DECISION_IMPORT_SCHEMA_VERSION}
+    rows = {str(row["verified_by"]): row for row in frame.iter_rows(named=True)}
     assert rows["reviewer-a"] == {
         "import_schema_version": REFERENCE_REVIEW_DECISION_IMPORT_SCHEMA_VERSION,
         "review_request_id": packet["items"][0]["itemId"],
@@ -170,10 +166,7 @@ def test_maps_append_only_reference_events_to_exact_biominer_schema(
     assert rows["reviewer-b"]["conflicts_with_decision_id"] == conflict_id
     assert rows["reviewer-c"]["target_identity_verified"] is None
     assert rows["reviewer-c"]["verification_status"] == "uncertain"
-    assert (
-        rows["reviewer-c"]["review_notes"]
-        == "Reviewer could not determine target identity."
-    )
+    assert rows["reviewer-c"]["review_notes"] == "Reviewer could not determine target identity."
 
 
 def test_empty_scientific_event_set_keeps_exact_physical_schema(
@@ -344,9 +337,7 @@ def test_parquet_export_is_byte_deterministic_and_round_trip_valid(
     first_bytes = first_path.read_bytes()
     second_bytes = second_path.read_bytes()
     assert first_bytes == second_bytes
-    assert hashlib.sha256(first_bytes).hexdigest() == hashlib.sha256(
-        second_bytes
-    ).hexdigest()
+    assert hashlib.sha256(first_bytes).hexdigest() == hashlib.sha256(second_bytes).hexdigest()
     round_trip = pl.read_parquet(first_path)
     validate_reference_review_decision_import(
         frame=round_trip,

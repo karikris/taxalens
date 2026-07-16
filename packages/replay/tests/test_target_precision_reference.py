@@ -33,9 +33,7 @@ def test_committed_target_precision_reference() -> None:
     estimate = sum(
         weight * outcome for weight, outcome in zip(weights, outcomes, strict=True)
     ) / sum(weights)
-    effective_sample_size = sum(weights) ** 2 / sum(
-        weight * weight for weight in weights
-    )
+    effective_sample_size = sum(weights) ** 2 / sum(weight * weight for weight in weights)
     assert estimate == pytest.approx(reference["weighted"]["estimate"], abs=1e-12)
     assert effective_sample_size == pytest.approx(
         reference["weighted"]["effectiveSampleSize"],
@@ -47,8 +45,11 @@ def _wilson(successes: int, sample_count: int, z: float) -> tuple[float, float]:
     proportion = successes / sample_count
     denominator = 1 + z * z / sample_count
     center = (proportion + z * z / (2 * sample_count)) / denominator
-    half_width = z / denominator * math.sqrt(
-        proportion * (1 - proportion) / sample_count
-        + z * z / (4 * sample_count * sample_count)
+    half_width = (
+        z
+        / denominator
+        * math.sqrt(
+            proportion * (1 - proportion) / sample_count + z * z / (4 * sample_count * sample_count)
+        )
     )
     return max(0.0, center - half_width), min(1.0, center + half_width)

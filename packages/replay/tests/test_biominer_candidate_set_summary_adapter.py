@@ -66,9 +66,9 @@ def test_adapt_candidate_set_summaries_treats_non_string_output_values_as_missin
     tmp_path: Path,
 ) -> None:
     manifest = json.loads(
-        Path("packages/replay/tests/fixtures/run_manifest_target_aware_candidate_scores.json").read_text(
-            encoding="utf-8"
-        )
+        Path(
+            "packages/replay/tests/fixtures/run_manifest_target_aware_candidate_scores.json"
+        ).read_text(encoding="utf-8")
     )
     manifest["outputs"] = {
         "target_aware_candidate_scores": 101,
@@ -139,9 +139,7 @@ def test_adapt_candidate_set_summaries_falls_back_to_candidate_scores_key(tmp_pa
             "packages/replay/tests/fixtures/run_manifest_target_aware_candidate_scores.json"
         ).read_text(encoding="utf-8")
     )
-    manifest["outputs"] = {
-        "candidate_scores": "candidate_scores_payload.json"
-    }
+    manifest["outputs"] = {"candidate_scores": "candidate_scores_payload.json"}
 
     manifest_path = tmp_path / "run_manifest_target_aware_candidate_scores.json"
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
@@ -161,8 +159,7 @@ def test_adapt_candidate_set_summaries_falls_back_to_candidate_scores_key(tmp_pa
                     "target_candidate": False,
                 },
             ],
-            )
-        ,
+        ),
         encoding="utf-8",
     )
 
@@ -218,15 +215,14 @@ def test_adapt_candidate_set_summaries_falls_back_to_candidate_scores_when_prima
     notes = result["compatibility"]["notes"]
     assert not any("candidate score artifact" in note for note in notes)
 
+
 def test_adapt_candidate_set_summaries_falls_back_to_target_scores_key(tmp_path: Path) -> None:
     manifest = json.loads(
         Path(
             "packages/replay/tests/fixtures/run_manifest_target_aware_candidate_scores.json"
         ).read_text(encoding="utf-8")
     )
-    manifest["outputs"] = {
-        "target_scores": "target_scores_payload.json"
-    }
+    manifest["outputs"] = {"target_scores": "target_scores_payload.json"}
 
     manifest_path = tmp_path / "run_manifest_target_aware_candidate_scores.json"
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
@@ -264,15 +260,15 @@ def test_adapt_candidate_set_summaries_falls_back_to_target_scores_key(tmp_path:
     assert summaries[0]["candidate_names"] == ["Candidate Two", "Candidate One"]
 
 
-def test_adapt_candidate_set_summaries_extracts_mapping_rows_only_and_falls_back_taxon_scope(tmp_path: Path) -> None:
+def test_adapt_candidate_set_summaries_extracts_mapping_rows_only_and_falls_back_taxon_scope(
+    tmp_path: Path,
+) -> None:
     manifest = json.loads(
         Path(
             "packages/replay/tests/fixtures/run_manifest_target_aware_candidate_scores.json"
         ).read_text(encoding="utf-8")
     )
-    manifest["outputs"] = {
-        "target_aware_candidate_scores": "mixed_candidate_scores.json"
-    }
+    manifest["outputs"] = {"target_aware_candidate_scores": "mixed_candidate_scores.json"}
     manifest["taxon_scope"] = {
         "accepted_taxon_key": "gbif:fallback",
         "accepted_scientific_name": "Fallback species",
@@ -284,7 +280,11 @@ def test_adapt_candidate_set_summaries_extracts_mapping_rows_only_and_falls_back
         json.dumps(
             {
                 "data": [
-                    {"flickr_photo_id": "photo-003", "accepted_taxon_key": "gbif:333", "scientific_name": "S1"},
+                    {
+                        "flickr_photo_id": "photo-003",
+                        "accepted_taxon_key": "gbif:333",
+                        "scientific_name": "S1",
+                    },
                     4,
                     {"media_id": "photo-004", "accepted_taxon_key": "gbif:444"},
                 ]
@@ -305,18 +305,22 @@ def test_adapt_candidate_set_summaries_extracts_mapping_rows_only_and_falls_back
     for summary in summaries:
         assert summary["target_taxon_key"] == "gbif:fallback"
         assert summary["target_taxon_name"] == "Fallback species"
-        assert summary["candidate_names"] == ["S1"] if summary["media_id"] == "photo-003" else ["gbif:444"]
+        assert (
+            summary["candidate_names"] == ["S1"]
+            if summary["media_id"] == "photo-003"
+            else ["gbif:444"]
+        )
 
 
-def test_adapt_candidate_set_summaries_reports_empty_notes_for_empty_payload(tmp_path: Path) -> None:
+def test_adapt_candidate_set_summaries_reports_empty_notes_for_empty_payload(
+    tmp_path: Path,
+) -> None:
     manifest = json.loads(
         Path(
             "packages/replay/tests/fixtures/run_manifest_target_aware_candidate_scores.json"
         ).read_text(encoding="utf-8")
     )
-    manifest["outputs"] = {
-        "target_aware_candidate_scores": "empty_candidate_scores.json"
-    }
+    manifest["outputs"] = {"target_aware_candidate_scores": "empty_candidate_scores.json"}
 
     manifest_path = tmp_path / "run_manifest_target_aware_candidate_scores.json"
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
@@ -328,7 +332,9 @@ def test_adapt_candidate_set_summaries_reports_empty_notes_for_empty_payload(tmp
     )
 
     assert result["candidate_set_summaries"] == []
-    assert any("candidate score artifact was empty" in note for note in result["compatibility"]["notes"])
+    assert any(
+        "candidate score artifact was empty" in note for note in result["compatibility"]["notes"]
+    )
     assert result["compatibility"]["summary_rows_read"] == 0
 
 

@@ -312,8 +312,7 @@ def adapt_reference_review_queue(
             max_review_priority = priority
         required_count = _to_int(raw_row.get("required_review_count"))
         if required_count is not None and (
-            max_required_review_count is None
-            or required_count > max_required_review_count
+            max_required_review_count is None or required_count > max_required_review_count
         ):
             max_required_review_count = required_count
 

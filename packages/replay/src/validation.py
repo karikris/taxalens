@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import re
 
-
 _FULL_GIT_SHA = re.compile(r"[0-9a-fA-F]{40}")
 
 

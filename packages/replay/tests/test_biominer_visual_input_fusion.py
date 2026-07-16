@@ -3,23 +3,12 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import replace
-from typing import Any, Sequence
+from typing import Any
 
 import pytest
-
 from packages.replay.src import biominer_visual_input_fusion as fusion_module
-from packages.replay.src.biominer_visual_input_fusion import (
-    LEARNED_LINEAR_VISUAL_INPUT_FUSION,
-    RAW_ONLY_VISUAL_INPUT_FUSION,
-    FullFrameCandidateScore,
-    build_full_frame_visual_input_score,
-    build_visual_input_fusion_policy,
-    embed_full_frame_visual_inputs,
-    fuse_full_frame_visual_evidence,
-    visual_input_fusion_result_payload,
-)
-from packages.replay.src.biominer_semantic_hash import canonical_semantic_fingerprint
 from packages.replay.src.biominer_detector_base import DecodedImage
 from packages.replay.src.biominer_full_frame_attention import (
     FOCUSED_FULL_FRAME_KIND,
@@ -31,12 +20,22 @@ from packages.replay.src.biominer_full_frame_attention import (
     AttentionRegion,
     generate_full_frame_attention_variants,
 )
+from packages.replay.src.biominer_semantic_hash import canonical_semantic_fingerprint
 from packages.replay.src.biominer_target_full_frame import (
     TARGET_FULL_FRAME_EMBEDDING_VERSION,
     RawFullFrameEmbedding,
     full_frame_embedding_id,
 )
-
+from packages.replay.src.biominer_visual_input_fusion import (
+    LEARNED_LINEAR_VISUAL_INPUT_FUSION,
+    RAW_ONLY_VISUAL_INPUT_FUSION,
+    FullFrameCandidateScore,
+    build_full_frame_visual_input_score,
+    build_visual_input_fusion_policy,
+    embed_full_frame_visual_inputs,
+    fuse_full_frame_visual_evidence,
+    visual_input_fusion_result_payload,
+)
 
 MODEL_FINGERPRINT = "sha256:" + "1" * 64
 PREPROCESSING_FINGERPRINT = "sha256:" + "2" * 64
@@ -90,9 +89,7 @@ def _attention_result(*, include_mask: bool = True, multiple: bool = False):
             route="adult_field",
             bbox_xyxyn=(0.0, 0.0, 0.5, 0.5),
             mask_polygon_xyn=(
-                ((0.0, 0.0), (0.5, 0.0), (0.5, 0.5), (0.0, 0.5))
-                if include_mask
-                else None
+                ((0.0, 0.0), (0.5, 0.0), (0.5, 0.5), (0.0, 0.5)) if include_mask else None
             ),
             detector_score=0.9,
         )
@@ -121,11 +118,7 @@ def _attention_result(*, include_mask: bool = True, multiple: bool = False):
 
 
 def _raw_embedding(result) -> RawFullFrameEmbedding:
-    raw = next(
-        item
-        for item in result.variants
-        if item.visual_input_kind == RAW_FULL_IMAGE_KIND
-    )
+    raw = next(item for item in result.variants if item.visual_input_kind == RAW_FULL_IMAGE_KIND)
     vector = (1.0, 0.0, 0.0)
     embedding_id = full_frame_embedding_id(
         visual_input_id=raw.visual_input_id,
@@ -275,13 +268,7 @@ def test_embedding_without_cached_raw_encodes_every_available_input_once() -> No
 
     assert len(encoder.batches) == 1
     assert len(encoder.batches[0]) == len(attention.variants)
-    assert (
-        sum(
-            item.visual_input_kind == RAW_FULL_IMAGE_KIND
-            for item in embedded.embeddings
-        )
-        == 1
-    )
+    assert sum(item.visual_input_kind == RAW_FULL_IMAGE_KIND for item in embedded.embeddings) == 1
 
 
 def test_unavailable_attention_variant_is_retained_but_not_embedded_or_scored() -> None:
@@ -291,9 +278,7 @@ def test_unavailable_attention_variant_is_retained_but_not_embedded_or_scored() 
         MASKED_FULL_FRAME_KIND
     }
     assert len(encoder.batches[0]) == len(attention.variants) - 1
-    assert MASKED_FULL_FRAME_KIND not in {
-        item.visual_input_kind for item in embedded.embeddings
-    }
+    assert MASKED_FULL_FRAME_KIND not in {item.visual_input_kind for item in embedded.embeddings}
 
     result = fuse_full_frame_visual_evidence(
         source="flickr",
@@ -305,16 +290,13 @@ def test_unavailable_attention_variant_is_retained_but_not_embedded_or_scored() 
     )
     assert result.unavailable_variants == embedded.unavailable_variants
     weights = {
-        item.visual_input_kind: item.aggregation_weight
-        for item in result.visual_input_evidence
+        item.visual_input_kind: item.aggregation_weight for item in result.visual_input_evidence
     }
     assert weights[RAW_FULL_IMAGE_KIND] == pytest.approx(0.625)
     assert weights[FOCUSED_FULL_FRAME_KIND] == pytest.approx(0.375)
 
 
-def test_learned_linear_fusion_preserves_inputs_weights_and_is_order_independent() -> (
-    None
-):
+def test_learned_linear_fusion_preserves_inputs_weights_and_is_order_independent() -> None:
     _attention, _encoder, embedded = _embedded(multiple=True)
     scores = _scores(embedded)
     policy = _policy(threshold=1.0)
@@ -390,9 +372,7 @@ def test_strong_margin_disagreement_routes_to_review_without_erasing_scores() ->
     assert result.routing_action == "review"
     assert result.review_reason == "strong_visual_input_disagreement"
     assert len(result.visual_input_evidence) == len(scores)
-    assert {
-        item.regional_competitor_margin for item in result.visual_input_evidence
-    } == {
+    assert {item.regional_competitor_margin for item in result.visual_input_evidence} == {
         -0.5,
         0.1,
         0.8,
@@ -470,9 +450,7 @@ def test_missing_contributing_reference_score_fails_closed_to_null() -> None:
         if item.visual_input_kind == FOCUSED_FULL_FRAME_KIND
     )
     focused_embedding = next(
-        item
-        for item in embedded.embeddings
-        if item.visual_input_kind == FOCUSED_FULL_FRAME_KIND
+        item for item in embedded.embeddings if item.visual_input_kind == FOCUSED_FULL_FRAME_KIND
     )
     scores[focused_index] = build_full_frame_visual_input_score(
         embedding=focused_embedding,
@@ -499,11 +477,7 @@ def test_missing_contributing_reference_score_fails_closed_to_null() -> None:
         policy=_policy(threshold=1.0),
     )
 
-    target = next(
-        item
-        for item in result.candidate_scores
-        if item.accepted_taxon_key == TARGET_KEY
-    )
+    target = next(item for item in result.candidate_scores if item.accepted_taxon_key == TARGET_KEY)
     assert target.reference_centroid_similarity is None
     assert result.target_reference_centroid_similarity is None
     assert result.reference_competitor_margin is None
@@ -639,6 +613,4 @@ def test_result_payload_detects_tampering() -> None:
     )
 
     with pytest.raises(ValueError, match="fingerprint is inconsistent"):
-        visual_input_fusion_result_payload(
-            replace(result, visual_input_disagreement=0.0)
-        )
+        visual_input_fusion_result_payload(replace(result, visual_input_disagreement=0.0))

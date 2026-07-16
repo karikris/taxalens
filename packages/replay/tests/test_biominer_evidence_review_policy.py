@@ -39,6 +39,4 @@ def test_in_review_records_require_an_actionable_reason() -> None:
 
 def test_non_queue_buckets_are_not_actionable() -> None:
     for bucket in ("gold", "silver", "bin", ""):
-        assert not comment_review_is_actionable(
-            bucket=bucket, reason="species_conflict"
-        )
+        assert not comment_review_is_actionable(bucket=bucket, reason="species_conflict")

@@ -4,7 +4,6 @@ from pathlib import Path
 
 import polars as pl
 import pytest
-
 from packages.replay.src import biominer_storage_parquet as parquet_module
 from packages.replay.src.biominer_storage_parquet import (
     BUCKET_VIEW_FILES,
@@ -122,13 +121,14 @@ def test_bucket_views_write_every_closed_bucket_without_fabricating_rows(
     outputs = write_bucket_views(frame, tmp_path / "views")
 
     assert outputs == {
-        bucket: str(tmp_path / "views" / filename)
-        for bucket, filename in BUCKET_VIEW_FILES.items()
+        bucket: str(tmp_path / "views" / filename) for bucket, filename in BUCKET_VIEW_FILES.items()
     }
-    assert {
-        bucket: pl.read_parquet(path)["id"].to_list()
-        for bucket, path in outputs.items()
-    } == {"gold": [1], "silver": [2], "bronze": [3], "bin": [4]}
+    assert {bucket: pl.read_parquet(path)["id"].to_list() for bucket, path in outputs.items()} == {
+        "gold": [1],
+        "silver": [2],
+        "bronze": [3],
+        "bin": [4],
+    }
 
 
 def test_bucket_views_without_bucket_column_write_empty_files(tmp_path: Path) -> None:

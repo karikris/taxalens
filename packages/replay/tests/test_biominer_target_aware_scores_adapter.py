@@ -2,7 +2,6 @@ import json
 from pathlib import Path
 
 import pytest
-
 from packages.replay.src.biominer_target_aware_scores_adapter import (
     TargetAwareScoresAdapterError,
     adapt_target_aware_candidate_scores,
@@ -83,7 +82,9 @@ def test_adapt_target_aware_candidate_scores_rejects_non_object_manifest(tmp_pat
         assert False
 
 
-def test_adapt_target_aware_candidate_scores_treats_non_dict_outputs_as_missing_artifact(tmp_path: Path) -> None:
+def test_adapt_target_aware_candidate_scores_treats_non_dict_outputs_as_missing_artifact(
+    tmp_path: Path,
+) -> None:
     manifest = json.loads(
         Path(
             "packages/replay/tests/fixtures/run_manifest_target_aware_candidate_scores.json"
@@ -153,7 +154,9 @@ def test_adapt_target_aware_candidate_scores_rejects_invalid_manifest_json(tmp_p
         assert False
 
 
-def test_adapt_target_aware_candidate_scores_rejects_unsupported_manifest_schema_version(tmp_path: Path) -> None:
+def test_adapt_target_aware_candidate_scores_rejects_unsupported_manifest_schema_version(
+    tmp_path: Path,
+) -> None:
     manifest = json.loads(
         Path(
             "packages/replay/tests/fixtures/run_manifest_target_aware_candidate_scores.json"
@@ -189,7 +192,9 @@ def test_adapt_target_aware_candidate_scores_without_artifact_returns_empty_resu
     )
 
 
-def test_adapt_target_aware_candidate_scores_returns_empty_for_non_parseable_artifact(tmp_path: Path) -> None:
+def test_adapt_target_aware_candidate_scores_returns_empty_for_non_parseable_artifact(
+    tmp_path: Path,
+) -> None:
     manifest = json.loads(
         Path(
             "packages/replay/tests/fixtures/run_manifest_target_aware_candidate_scores.json"
@@ -263,7 +268,9 @@ def test_adapt_target_aware_candidate_scores_reports_empty_payload_notes(tmp_pat
     assert "candidate score artifact was empty or had no rows" in result["compatibility"]["notes"]
 
 
-def test_adapt_target_aware_candidate_scores_handles_non_mapping_score_payload(tmp_path: Path) -> None:
+def test_adapt_target_aware_candidate_scores_handles_non_mapping_score_payload(
+    tmp_path: Path,
+) -> None:
     manifest = json.loads(
         Path(
             "packages/replay/tests/fixtures/run_manifest_target_aware_candidate_scores.json"
@@ -320,10 +327,15 @@ def test_adapt_target_aware_candidate_scores_skips_rows_without_identity(tmp_pat
 
     assert len(result["candidate_scores"]) == 1
     assert result["compatibility"]["skipped_rows"] == ["missing_candidate_identity_0"]
-    assert any("skipped 1 candidate-score rows while adapting" in note for note in result["compatibility"]["notes"])
+    assert any(
+        "skipped 1 candidate-score rows while adapting" in note
+        for note in result["compatibility"]["notes"]
+    )
 
 
-def test_adapt_target_aware_candidate_scores_extracts_rows_from_object_payload_keys(tmp_path: Path) -> None:
+def test_adapt_target_aware_candidate_scores_extracts_rows_from_object_payload_keys(
+    tmp_path: Path,
+) -> None:
     manifest = json.loads(
         Path(
             "packages/replay/tests/fixtures/run_manifest_target_aware_candidate_scores.json"
@@ -358,15 +370,15 @@ def test_adapt_target_aware_candidate_scores_extracts_rows_from_object_payload_k
     assert result["candidate_scores"][0]["candidate_set_id"] == "cs-001"
 
 
-def test_adapt_target_aware_candidate_scores_falls_back_to_candidate_scores_output_key(tmp_path: Path) -> None:
+def test_adapt_target_aware_candidate_scores_falls_back_to_candidate_scores_output_key(
+    tmp_path: Path,
+) -> None:
     manifest = json.loads(
         Path(
             "packages/replay/tests/fixtures/run_manifest_target_aware_candidate_scores.json"
         ).read_text(encoding="utf-8")
     )
-    manifest["outputs"] = {
-        "candidate_scores": str(tmp_path / "fallback_candidate_scores.json")
-    }
+    manifest["outputs"] = {"candidate_scores": str(tmp_path / "fallback_candidate_scores.json")}
 
     score_path = tmp_path / "fallback_candidate_scores.json"
     score_path.write_text(
@@ -395,7 +407,7 @@ def test_adapt_target_aware_candidate_scores_falls_back_to_candidate_scores_outp
     assert result["compatibility"]["artifact_path"].endswith("fallback_candidate_scores.json")
 
 
-def test_adapt_target_aware_candidate_scores_falls_back_to_candidate_scores_output_key_with_non_string_primary_key(
+def test_adapt_target_scores_falls_back_when_primary_key_is_not_string(
     tmp_path: Path,
 ) -> None:
     manifest = json.loads(
@@ -435,7 +447,9 @@ def test_adapt_target_aware_candidate_scores_falls_back_to_candidate_scores_outp
     assert result["compatibility"]["artifact_path"].endswith("fallback_candidate_scores.json")
 
 
-def test_adapt_target_aware_candidate_scores_extracts_rows_from_candidates_key(tmp_path: Path) -> None:
+def test_adapt_target_aware_candidate_scores_extracts_rows_from_candidates_key(
+    tmp_path: Path,
+) -> None:
     manifest = json.loads(
         Path(
             "packages/replay/tests/fixtures/run_manifest_target_aware_candidate_scores.json"
@@ -470,15 +484,15 @@ def test_adapt_target_aware_candidate_scores_extracts_rows_from_candidates_key(t
     assert result["candidate_scores"][0]["calibrated_label"] == "abstain"
 
 
-def test_adapt_target_aware_candidate_scores_falls_back_to_target_scores_output_key(tmp_path: Path) -> None:
+def test_adapt_target_aware_candidate_scores_falls_back_to_target_scores_output_key(
+    tmp_path: Path,
+) -> None:
     manifest = json.loads(
         Path(
             "packages/replay/tests/fixtures/run_manifest_target_aware_candidate_scores.json"
         ).read_text(encoding="utf-8")
     )
-    manifest["outputs"] = {
-        "target_scores": str(tmp_path / "legacy_target_scores.json")
-    }
+    manifest["outputs"] = {"target_scores": str(tmp_path / "legacy_target_scores.json")}
 
     score_path = tmp_path / "legacy_target_scores.json"
     score_path.write_text(
@@ -540,6 +554,8 @@ def test_adapt_target_aware_candidate_scores_extracts_rows_from_data_key(tmp_pat
     assert result["compatibility"]["rows_read"] == 1
     assert len(result["candidate_scores"]) == 1
     assert result["candidate_scores"][0]["calibrated_label"] == "target_confirmed"
+
+
 @pytest.mark.parametrize(
     ("decision", "expected_label"),
     [
@@ -667,9 +683,7 @@ def test_adapt_target_aware_candidate_scores_prefers_fallback_labels(tmp_path: P
     score_path = tmp_path / "target_aware_candidate_scores.json"
     manifest_path = tmp_path / "run_manifest_target_aware_candidate_scores.json"
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
-    score_path.write_text(
-        json.dumps([row_0, row_1, row_2]), encoding="utf-8"
-    )
+    score_path.write_text(json.dumps([row_0, row_1, row_2]), encoding="utf-8")
 
     result = adapt_target_aware_candidate_scores(
         manifest_path=manifest_path,
@@ -712,7 +726,9 @@ def test_adapt_target_aware_candidate_scores_uses_other_when_fallback_flags_are_
     assert result["candidate_scores"][0]["calibrated_label"] == "other"
 
 
-def test_adapt_target_aware_candidate_scores_prefers_decision_field_when_present(tmp_path: Path) -> None:
+def test_adapt_target_aware_candidate_scores_prefers_decision_field_when_present(
+    tmp_path: Path,
+) -> None:
     manifest = json.loads(
         Path(
             "packages/replay/tests/fixtures/run_manifest_target_aware_candidate_scores.json"
@@ -780,7 +796,9 @@ def test_adapt_target_aware_candidate_scores_uses_decision_code_when_decision_fi
     assert result["candidate_scores"][0]["calibrated_label"] == "competitor"
 
 
-def test_adapt_target_aware_candidate_scores_parses_string_booleans_for_fallback_fields(tmp_path: Path) -> None:
+def test_adapt_target_aware_candidate_scores_parses_string_booleans_for_fallback_fields(
+    tmp_path: Path,
+) -> None:
     manifest = json.loads(
         Path(
             "packages/replay/tests/fixtures/run_manifest_target_aware_candidate_scores.json"

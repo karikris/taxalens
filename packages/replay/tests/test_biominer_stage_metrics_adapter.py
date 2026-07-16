@@ -47,9 +47,7 @@ def test_adapt_stage_metrics_from_fixture() -> None:
     compatibility = result["compatibility"]
     assert compatibility["unknown_stages"] == ["mystery_custom_stage"]
     assert compatibility["source_path"] == str(fixture)
-    assert any(
-        "mystery_custom_stage" in str(note) for note in compatibility["notes"]
-    )
+    assert any("mystery_custom_stage" in str(note) for note in compatibility["notes"])
 
 
 def test_adapt_stage_metrics_rejects_invalid_biominer_sha() -> None:
@@ -91,7 +89,9 @@ def test_adapt_stage_metrics_normalizes_stage_status_aliases() -> None:
 
 
 def test_adapt_stage_metrics_normalizes_completed_status_alias() -> None:
-    fixture = Path("packages/replay/tests/fixtures/run_manifest_stage_metrics_status_completed.json")
+    fixture = Path(
+        "packages/replay/tests/fixtures/run_manifest_stage_metrics_status_completed.json"
+    )
     result = adapt_stage_metrics(
         manifest_path=fixture,
         biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
@@ -235,7 +235,11 @@ def test_adapt_stage_metrics_collects_missing_stage_records(tmp_path: Path) -> N
     payload["stages"] = [
         {"status": "complete", "metrics": {"rows_in": 1}},
         {"status": "complete"},
-        {"stage": "detect_objects", "status": "complete", "metrics": {"rows_in": 10, "rows_out": 9}},
+        {
+            "stage": "detect_objects",
+            "status": "complete",
+            "metrics": {"rows_in": 10, "rows_out": 9},
+        },
         "not-a-stage-record",
     ]
 
@@ -295,9 +299,7 @@ def test_adapt_stage_metrics_tolerates_non_object_metrics_and_outputs(tmp_path: 
     compatibility = result["compatibility"]
     assert compatibility["unknown_stages"] == []
     assert compatibility["missing_stage_records"] == []
-    assert any(
-        "best-effort metric aliases" in note for note in compatibility["notes"]
-    )
+    assert any("best-effort metric aliases" in note for note in compatibility["notes"])
 
 
 def test_adapt_stage_metrics_skips_non_string_output_value_and_falls_back(

@@ -14,9 +14,7 @@ from packages.replay.src.biominer_reference_review_packet_adapter import (
     REFERENCE_REVIEW_ADAPTER_VERSION,
 )
 
-REFERENCE_REVIEW_DECISION_IMPORT_SCHEMA_VERSION = (
-    "reference-review-decision-import-v1.0.0"
-)
+REFERENCE_REVIEW_DECISION_IMPORT_SCHEMA_VERSION = "reference-review-decision-import-v1.0.0"
 REFERENCE_REVIEW_DECISION_IMPORT_FILE = "reference_review_decision_import.parquet"
 TAXALENS_VERIFICATION_EVENT_SCHEMA_VERSION = "taxalens-verification-event:v1.3.0"
 
@@ -40,9 +38,7 @@ _VISUAL_DOMAINS = frozenset(
         "unsuitable",
     }
 )
-_VIEWS = frozenset(
-    {"dorsal", "ventral", "lateral", "frontal", "oblique", "unknown"}
-)
+_VIEWS = frozenset({"dorsal", "ventral", "lateral", "frontal", "oblique", "unknown"})
 _CONFIDENCE = frozenset({"high", "medium", "low", "unknown"})
 _MEDIA_QUALITY = frozenset({"high", "medium", "low", "unusable", "unknown"})
 _SCIENTIFIC_OUTCOMES = frozenset({"yes", "no", "cant_tell"})
@@ -136,9 +132,7 @@ def build_reference_review_decision_import(
         seen_event_ids.add(event_id)
         outcome = _required_text(event["outcome"], "outcome")
         if outcome not in _SCIENTIFIC_OUTCOMES | _NON_SCIENTIFIC_OUTCOMES:
-            raise ReferenceReviewDecisionExportError(
-                f"unsupported verification outcome: {outcome}"
-            )
+            raise ReferenceReviewDecisionExportError(f"unsupported verification outcome: {outcome}")
         campaign_id = _required_text(event["campaignId"], "campaignId")
         item_id = _required_text(event["itemId"], "itemId")
         campaign = campaigns.get(campaign_id)
@@ -175,16 +169,12 @@ def validate_reference_review_decision_import(
         missing = [field for field in expected_schema if field not in frame.schema]
         unknown = [field for field in frame.schema if field not in expected_schema]
         raise ReferenceReviewDecisionExportError(
-            "review decision import physical schema differs: "
-            f"missing={missing}; unknown={unknown}"
+            f"review decision import physical schema differs: missing={missing}; unknown={unknown}"
         )
     _, items = _validate_packet(adapted_packet)
     reviewer_rounds: set[tuple[str, str, int]] = set()
     for row in frame.iter_rows(named=True):
-        if (
-            row["import_schema_version"]
-            != REFERENCE_REVIEW_DECISION_IMPORT_SCHEMA_VERSION
-        ):
+        if row["import_schema_version"] != REFERENCE_REVIEW_DECISION_IMPORT_SCHEMA_VERSION:
             raise ReferenceReviewDecisionExportError(
                 "review decision import schema version is unsupported"
             )
@@ -217,18 +207,14 @@ def validate_reference_review_decision_import(
             or review_round < 1
             or review_round > 65_535
         ):
-            raise ReferenceReviewDecisionExportError(
-                "review_round must fit a positive UInt16"
-            )
+            raise ReferenceReviewDecisionExportError("review_round must fit a positive UInt16")
         reviewed_at = row["reviewed_at"]
         if (
             not isinstance(reviewed_at, datetime)
             or reviewed_at.tzinfo is None
             or reviewed_at.utcoffset() != UTC.utcoffset(reviewed_at)
         ):
-            raise ReferenceReviewDecisionExportError(
-                "reviewed_at must be a UTC datetime"
-            )
+            raise ReferenceReviewDecisionExportError("reviewed_at must be a UTC datetime")
         _choice(row["life_stage"], _LIFE_STAGES, "life_stage")
         _choice(row["visual_domain"], _VISUAL_DOMAINS, "visual_domain")
         _choice(row["view"], _VIEWS, "view")
@@ -307,21 +293,13 @@ def _validate_packet(
     manifest_sha = source_manifest.get("sha256")
     biominer_commit = source_manifest.get("biominerCommit")
     if not isinstance(manifest_sha, str) or _SHA256.fullmatch(manifest_sha) is None:
-        raise ReferenceReviewDecisionExportError(
-            "reference review source fingerprint is invalid"
-        )
-    if not isinstance(biominer_commit, str) or _GIT_SHA.fullmatch(
-        biominer_commit
-    ) is None:
-        raise ReferenceReviewDecisionExportError(
-            "reference review BioMiner commit is invalid"
-        )
+        raise ReferenceReviewDecisionExportError("reference review source fingerprint is invalid")
+    if not isinstance(biominer_commit, str) or _GIT_SHA.fullmatch(biominer_commit) is None:
+        raise ReferenceReviewDecisionExportError("reference review BioMiner commit is invalid")
     raw_campaigns = packet.get("campaigns")
     raw_items = packet.get("items")
     if not isinstance(raw_campaigns, list) or not isinstance(raw_items, list):
-        raise ReferenceReviewDecisionExportError(
-            "reference review campaigns or items are missing"
-        )
+        raise ReferenceReviewDecisionExportError("reference review campaigns or items are missing")
     campaigns: dict[str, Mapping[str, Any]] = {}
     for campaign in raw_campaigns:
         if not isinstance(campaign, Mapping):
@@ -336,9 +314,7 @@ def _validate_packet(
             or campaign.get("manifestSha256") != manifest_sha
             or campaign.get("biominerSha") != biominer_commit
         ):
-            raise ReferenceReviewDecisionExportError(
-                "reference campaign source binding is stale"
-            )
+            raise ReferenceReviewDecisionExportError("reference campaign source binding is stale")
         campaigns[campaign_id] = campaign
     items: dict[str, Mapping[str, Any]] = {}
     for item in raw_items:
@@ -351,13 +327,9 @@ def _validate_packet(
             or _MEDIA_ID.fullmatch(media_id) is None
             or item.get("campaignId") not in campaigns
         ):
-            raise ReferenceReviewDecisionExportError(
-                "reference item source identity is invalid"
-            )
+            raise ReferenceReviewDecisionExportError("reference item source identity is invalid")
         if item_id in items:
-            raise ReferenceReviewDecisionExportError(
-                f"reference item is repeated: {item_id}"
-            )
+            raise ReferenceReviewDecisionExportError(f"reference item is repeated: {item_id}")
         items[item_id] = item
     return campaigns, items
 
@@ -367,9 +339,7 @@ def _event_row(
     item: Mapping[str, Any],
 ) -> dict[str, Any]:
     if event["schemaVersion"] != TAXALENS_VERIFICATION_EVENT_SCHEMA_VERSION:
-        raise ReferenceReviewDecisionExportError(
-            "verification event schema is unsupported"
-        )
+        raise ReferenceReviewDecisionExportError("verification event schema is unsupported")
     reviewer = _required_text(event["reviewerId"], "reviewerId")
     if _REVIEWER_ID.fullmatch(reviewer) is None:
         raise ReferenceReviewDecisionExportError(
@@ -382,9 +352,7 @@ def _event_row(
         or review_round < 1
         or review_round > 65_535
     ):
-        raise ReferenceReviewDecisionExportError(
-            "reviewRound must fit a positive UInt16"
-        )
+        raise ReferenceReviewDecisionExportError("reviewRound must fit a positive UInt16")
     reviewed_at = _utc_datetime(event["reviewedAt"])
     outcome = str(event["outcome"])
     if event["nonTargetCategory"] is not None:
@@ -477,9 +445,7 @@ def _validate_event_completeness(event: Mapping[str, Any]) -> None:
     alternative = event["alternativeTaxon"]
     if alternative is not None:
         if not isinstance(alternative, Mapping):
-            raise ReferenceReviewDecisionExportError(
-                "alternativeTaxon must be an object or null"
-            )
+            raise ReferenceReviewDecisionExportError("alternativeTaxon must be an object or null")
         accepted_key = alternative.get("acceptedTaxonKey")
         scientific_name = alternative.get("scientificName")
         if (
@@ -512,9 +478,7 @@ def _validate_event_completeness(event: Mapping[str, Any]) -> None:
             "verification event durationMs must be non-negative or null"
         )
     if event["supersedesEventId"] == event["eventId"]:
-        raise ReferenceReviewDecisionExportError(
-            "verification event cannot supersede itself"
-        )
+        raise ReferenceReviewDecisionExportError("verification event cannot supersede itself")
 
 
 def _proposal(
@@ -539,9 +503,7 @@ def _choice(value: Any, allowed: frozenset[str], label: str) -> str:
 
 def _required_text(value: Any, label: str) -> str:
     if not isinstance(value, str) or value == "" or value != value.strip():
-        raise ReferenceReviewDecisionExportError(
-            f"{label} must be nonblank canonical text"
-        )
+        raise ReferenceReviewDecisionExportError(f"{label} must be nonblank canonical text")
     return value
 
 
@@ -553,9 +515,7 @@ def _optional_text(value: Any, label: str) -> str | None:
 
 def _utc_datetime(value: Any) -> datetime:
     if not isinstance(value, str):
-        raise ReferenceReviewDecisionExportError(
-            "reviewedAt must be a normalized UTC instant"
-        )
+        raise ReferenceReviewDecisionExportError("reviewedAt must be a normalized UTC instant")
     try:
         parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError as error:
@@ -563,9 +523,7 @@ def _utc_datetime(value: Any) -> datetime:
             "reviewedAt must be a normalized UTC instant"
         ) from error
     if parsed.tzinfo is None or parsed.utcoffset() is None:
-        raise ReferenceReviewDecisionExportError(
-            "reviewedAt must be a normalized UTC instant"
-        )
+        raise ReferenceReviewDecisionExportError("reviewedAt must be a normalized UTC instant")
     normalized = parsed.astimezone(UTC)
     if normalized.isoformat(timespec="milliseconds").replace("+00:00", "Z") != value:
         raise ReferenceReviewDecisionExportError(

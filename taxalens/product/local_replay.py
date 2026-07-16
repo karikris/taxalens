@@ -243,9 +243,7 @@ def _build_static_web(root: Path) -> Path:
     if npm is None:
         raise LocalReplayError("npm is required to build the static judge replay")
     app_root = root / "apps" / "web"
-    if not (app_root / "package.json").is_file() or not (
-        app_root / "package-lock.json"
-    ).is_file():
+    if not (app_root / "package.json").is_file() or not (app_root / "package-lock.json").is_file():
         raise LocalReplayError("the committed web package and lockfile are required")
     if not (app_root / "node_modules" / ".bin" / "vite").is_file():
         _run_web_command(

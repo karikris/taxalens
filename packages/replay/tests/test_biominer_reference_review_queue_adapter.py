@@ -8,9 +8,7 @@ from packages.replay.src.biominer_reference_review_queue_adapter import (
 
 
 def test_adapt_reference_review_queue_from_fixture() -> None:
-    manifest = Path(
-        "packages/replay/tests/fixtures/run_manifest_reference_review_queue.json"
-    )
+    manifest = Path("packages/replay/tests/fixtures/run_manifest_reference_review_queue.json")
     result = adapt_reference_review_queue(
         manifest_path=manifest,
         biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
@@ -49,9 +47,7 @@ def test_adapt_reference_review_queue_from_fixture() -> None:
 
 
 def test_adapt_reference_review_queue_rejects_invalid_biominer_sha() -> None:
-    manifest = Path(
-        "packages/replay/tests/fixtures/run_manifest_reference_review_queue.json"
-    )
+    manifest = Path("packages/replay/tests/fixtures/run_manifest_reference_review_queue.json")
     try:
         adapt_reference_review_queue(manifest_path=manifest, biominer_commit="short-sha")
     except ReferenceReviewQueueAdapterError as exc:
@@ -70,13 +66,12 @@ def test_adapt_reference_review_queue_without_artifact_returns_empty_result() ->
     assert result["reference_review_queue_summary"] is None
     assert result["reference_review_queue_records"] == []
     assert result["compatibility"]["artifact_missing"] is True
-    assert (
-        "run manifest did not declare reference review queue artifact path"
-        in str(result["compatibility"]["notes"][0])
+    assert "run manifest did not declare reference review queue artifact path" in str(
+        result["compatibility"]["notes"][0]
     )
 
 
-def test_adapt_reference_review_queue_falls_back_to_review_queue_on_non_string_reference_review_queue_path(
+def test_adapt_review_queue_falls_back_when_primary_path_is_not_string(
     tmp_path: Path,
 ) -> None:
     manifest = json.loads(
@@ -148,9 +143,7 @@ def test_adapt_reference_review_queue_normalizes_completed_status_alias() -> Non
 def test_adapt_reference_review_queue_normalizes_pass_and_done_review_status_aliases(
     tmp_path: Path,
 ) -> None:
-    manifest_path = Path(
-        "packages/replay/tests/fixtures/run_manifest_reference_review_queue.json"
-    )
+    manifest_path = Path("packages/replay/tests/fixtures/run_manifest_reference_review_queue.json")
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     artifact_path = json.loads(
         Path("packages/replay/tests/fixtures/reference_review_queue.json").read_text(
@@ -265,7 +258,9 @@ def test_adapt_reference_review_queue_rejects_non_object_manifest(tmp_path: Path
         assert False
 
 
-def test_adapt_reference_review_queue_treats_invalid_artifact_json_as_empty_result(tmp_path: Path) -> None:
+def test_adapt_reference_review_queue_treats_invalid_artifact_json_as_empty_result(
+    tmp_path: Path,
+) -> None:
     manifest = json.loads(
         Path("packages/replay/tests/fixtures/run_manifest_reference_review_queue.json").read_text(
             encoding="utf-8"
@@ -316,7 +311,9 @@ def test_adapt_reference_review_queue_treats_non_dict_outputs_as_missing(tmp_pat
     )
 
 
-def test_adapt_reference_review_queue_treats_parquet_artifact_as_not_adapted(tmp_path: Path) -> None:
+def test_adapt_reference_review_queue_treats_parquet_artifact_as_not_adapted(
+    tmp_path: Path,
+) -> None:
     manifest = json.loads(
         Path("packages/replay/tests/fixtures/run_manifest_reference_review_queue.json").read_text(
             encoding="utf-8"
@@ -358,9 +355,15 @@ def test_adapt_reference_review_queue_skips_non_mapping_rows(tmp_path: Path) -> 
             "reference_media_id": "media-001",
         },
         "invalid_row",
-        {"review_request_id": "request-good-002", "review_status": "pass", "accepted_taxon_key": "gbif:22222"},
+        {
+            "review_request_id": "request-good-002",
+            "review_status": "pass",
+            "accepted_taxon_key": "gbif:22222",
+        },
     ]
-    (tmp_path / "reference_review_queue_mixed.json").write_text(json.dumps(payload), encoding="utf-8")
+    (tmp_path / "reference_review_queue_mixed.json").write_text(
+        json.dumps(payload), encoding="utf-8"
+    )
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
 
     result = adapt_reference_review_queue(
@@ -374,10 +377,14 @@ def test_adapt_reference_review_queue_skips_non_mapping_rows(tmp_path: Path) -> 
     assert records[0]["review_status"] == "completed"
     assert records[1]["review_request_id"] == "request-good-002"
     assert records[1]["review_status"] == "completed"
-    assert any("non-mapping_review_queue_row_1" in note for note in result["compatibility"]["notes"])
+    assert any(
+        "non-mapping_review_queue_row_1" in note for note in result["compatibility"]["notes"]
+    )
 
 
-def test_adapt_reference_review_queue_treats_non_string_output_values_as_missing_artifact(tmp_path: Path) -> None:
+def test_adapt_reference_review_queue_treats_non_string_output_values_as_missing_artifact(
+    tmp_path: Path,
+) -> None:
     manifest = json.loads(
         Path("packages/replay/tests/fixtures/run_manifest_reference_review_queue.json").read_text(
             encoding="utf-8"

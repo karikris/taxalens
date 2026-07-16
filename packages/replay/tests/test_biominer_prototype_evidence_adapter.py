@@ -105,9 +105,7 @@ def test_reference_runtime_and_policy_contracts_preserve_exact_semantics() -> No
 
 
 def test_user_goal_verification_is_complete_without_becoming_taxonomic_truth() -> None:
-    goal = adapt_prototype_evidence()["contracts"][
-        "provider_support_goal_verification"
-    ]
+    goal = adapt_prototype_evidence()["contracts"]["provider_support_goal_verification"]
 
     assert goal["human_review_required"] is False
     assert goal["verification_status"] == "user_goal_suitability_verified_complete"
@@ -118,12 +116,7 @@ def test_user_goal_verification_is_complete_without_becoming_taxonomic_truth() -
     assert goal["data"]["records_meeting_goal_count"] == 81
     assert goal["data"]["all_provider_supported_records_verified"] is True
     assert goal["data"]["all_verified_records_meet_goal"] is True
-    assert (
-        goal["data"]["semantics"][
-            "independent_human_taxonomic_verification_claimed"
-        ]
-        is False
-    )
+    assert goal["data"]["semantics"]["independent_human_taxonomic_verification_claimed"] is False
     assert goal["scientific_claim_allowed"] is False
 
 

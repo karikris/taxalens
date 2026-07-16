@@ -226,7 +226,9 @@ def _artifact_meta(payload: Any) -> tuple[str | None, str | None]:
     return _to_str(payload.get("file")), _to_str(payload.get("sha256"))
 
 
-def _adapt_check(check: Any, index: int, notes: list[str]) -> ReferenceReadinessCheckContract | None:
+def _adapt_check(
+    check: Any, index: int, notes: list[str]
+) -> ReferenceReadinessCheckContract | None:
     if not isinstance(check, dict) or not check:
         notes.append(f"non_mapping_readiness_check_{index}")
         return None
@@ -399,9 +401,7 @@ def adapt_reference_readiness(
         "readiness_artifact_path": str(artifact_path),
         "status": _normalize_status(readiness_payload.get("status")),
         "permits_vision": _to_bool(readiness_payload.get("permits_vision")),
-        "target_accepted_taxon_key": _to_str(
-            readiness_payload.get("target_accepted_taxon_key")
-        ),
+        "target_accepted_taxon_key": _to_str(readiness_payload.get("target_accepted_taxon_key")),
         "registry_version": _to_str(readiness_payload.get("registry_version")),
         "reference_bank_version": _to_str(readiness_payload.get("reference_bank_version")),
         "policy_version": _to_str(readiness_payload.get("policy_version")),
@@ -420,16 +420,10 @@ def adapt_reference_readiness(
         "support_manifest_rows": _to_int(counts_payload.get("support_manifest_rows")),
         "eligible_support_rows": _to_int(counts_payload.get("eligible_support_rows")),
         "pending_review_count": _to_int(counts_payload.get("pending_review_count")),
-        "pending_target_review_count": _to_int(
-            counts_payload.get("pending_target_review_count")
-        ),
-        "unresolved_duplicate_count": _to_int(
-            counts_payload.get("unresolved_duplicate_count")
-        ),
+        "pending_target_review_count": _to_int(counts_payload.get("pending_target_review_count")),
+        "unresolved_duplicate_count": _to_int(counts_payload.get("unresolved_duplicate_count")),
         "licence_blocker_count": _to_int(counts_payload.get("licence_blocker_count")),
-        "attribution_blocker_count": _to_int(
-            counts_payload.get("attribution_blocker_count")
-        ),
+        "attribution_blocker_count": _to_int(counts_payload.get("attribution_blocker_count")),
         "unverified_support_count": _to_int(counts_payload.get("unverified_support_count")),
         "route_separation_conflict_count": _to_int(
             counts_payload.get("route_separation_conflict_count")

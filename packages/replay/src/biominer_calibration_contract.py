@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-
 CALIBRATED_PROBABILITY_KIND = "calibrated_probability"
 
 

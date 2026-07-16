@@ -37,9 +37,7 @@ VERIFICATION_SCHEMA_ENTRIES: Final[dict[VerificationSchemaContract, str]] = {
     "event": "verification_event.schema.json",
     "consensus": "verification_consensus.schema.json",
     "quality_snapshot": "verification_quality_snapshot.schema.json",
-    "judge_bundle_verification_sections": (
-        "judge_bundle_verification_sections.schema.json"
-    ),
+    "judge_bundle_verification_sections": ("judge_bundle_verification_sections.schema.json"),
 }
 
 
@@ -65,12 +63,9 @@ class VerificationSchemaError(ValueError):
 
     def __init__(self, validation: VerificationSchemaValidation) -> None:
         details = ", ".join(
-            f"{failure.instance_path or '/'}:{failure.keyword}"
-            for failure in validation.failures
+            f"{failure.instance_path or '/'}:{failure.keyword}" for failure in validation.failures
         )
-        super().__init__(
-            f"{validation.contract} failed verification schema validation: {details}"
-        )
+        super().__init__(f"{validation.contract} failed verification schema validation: {details}")
         self.validation = validation
 
 
@@ -116,10 +111,7 @@ def verification_schema_documents() -> dict[str, object]:
 
     schema_files = files(VERIFICATION_SCHEMA_PACKAGE)
     names = (VERIFICATION_SCHEMA_ROOT, *VERIFICATION_SCHEMA_ENTRIES.values())
-    return {
-        name: loads(schema_files.joinpath(name).read_text(encoding="utf-8"))
-        for name in names
-    }
+    return {name: loads(schema_files.joinpath(name).read_text(encoding="utf-8")) for name in names}
 
 
 _VALIDATORS: dict[VerificationSchemaContract, object] | None = None
@@ -136,9 +128,7 @@ def _validators() -> dict[VerificationSchemaContract, object]:
             VerificationSchemaValidation(
                 contract="campaign",
                 valid=False,
-                failures=(
-                    VerificationSchemaFailure("", "invalid_schema_root"),
-                ),
+                failures=(VerificationSchemaFailure("", "invalid_schema_root"),),
             )
         )
     registry = Registry().with_resource(
@@ -165,8 +155,7 @@ def _json_pointer(error: ValidationError) -> str:
     if not error.absolute_path:
         return ""
     return "/" + "/".join(
-        str(part).replace("~", "~0").replace("/", "~1")
-        for part in error.absolute_path
+        str(part).replace("~", "~0").replace("/", "~1") for part in error.absolute_path
     )
 
 

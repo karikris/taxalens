@@ -3,22 +3,20 @@
 
 from __future__ import annotations
 
-from dataclasses import replace
 import hashlib
+from dataclasses import replace
 
 import pytest
-
 from packages.replay.src.biominer_nonmatch import (
     CLASSIFICATION_OUTCOMES,
     HETEROGENEOUS_EVIDENCE_SCALE,
     NONMATCH_SCORING_VERSION,
-    CandidateNonMatchEvidence,
     CalibratedNonTargetEvidence,
+    CandidateNonMatchEvidence,
     DomainNegativeEvidence,
     NonMatchScoringRequest,
     score_nonmatch_evidence,
 )
-
 
 TARGET = "gbif:6432573"
 REGIONAL = "gbif:1939773"
@@ -183,15 +181,11 @@ def test_raw_and_calibrated_competitor_winners_keep_separate_taxon_identity() ->
     assert result.leading_nonmatch_accepted_taxon_key == NONREGIONAL
 
 
-def test_domain_negative_can_lead_calibrated_nonmatch_without_changing_raw_winner() -> (
-    None
-):
+def test_domain_negative_can_lead_calibrated_nonmatch_without_changing_raw_winner() -> None:
     request = _request()
     strong_domain = _domain(probability=0.91)
 
-    result = score_nonmatch_evidence(
-        replace(request, domain_negatives=(strong_domain,))
-    )
+    result = score_nonmatch_evidence(replace(request, domain_negatives=(strong_domain,)))
 
     assert result.best_non_target_score == pytest.approx(0.71)
     assert result.best_non_target_evidence_id == "regional"
@@ -274,13 +268,9 @@ def test_input_order_does_not_change_winners_or_fingerprint() -> None:
 
 def test_ties_use_stable_identity_order() -> None:
     request = _request()
-    tied = replace(
-        request.candidates[2], reference_score=0.71, calibrated_probability=0.62
-    )
+    tied = replace(request.candidates[2], reference_score=0.71, calibrated_probability=0.62)
 
-    result = score_nonmatch_evidence(
-        replace(request, candidates=(*request.candidates[:2], tied))
-    )
+    result = score_nonmatch_evidence(replace(request, candidates=(*request.candidates[:2], tied)))
 
     assert result.best_known_competitor_accepted_taxon_key == min(REGIONAL, NONREGIONAL)
 
@@ -293,9 +283,7 @@ def test_mismatched_raw_score_contracts_fail_closed() -> None:
     )
 
     with pytest.raises(ValueError, match="raw score contracts must match"):
-        score_nonmatch_evidence(
-            replace(request, candidates=(request.candidates[0], incompatible))
-        )
+        score_nonmatch_evidence(replace(request, candidates=(request.candidates[0], incompatible)))
 
 
 @pytest.mark.parametrize(

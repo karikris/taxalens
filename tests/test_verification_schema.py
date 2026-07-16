@@ -13,9 +13,7 @@ from taxalens.product.verification_schema import (
     verification_schema_documents,
 )
 
-CAMPAIGN_MANIFEST = Path(
-    "demo/source/verification/papilio-demoleus-commons.campaign.json"
-)
+CAMPAIGN_MANIFEST = Path("demo/source/verification/papilio-demoleus-commons.campaign.json")
 JUDGE_BUNDLE = Path("demo/fixture/papilio_pilot/judge_bundle.json")
 
 

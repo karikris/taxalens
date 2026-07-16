@@ -23,9 +23,7 @@ def test_phase13_signal_scan_prunes_git_metadata(tmp_path: Path) -> None:
 
 
 def test_pinned_revision_remains_valid_after_head_advances(tmp_path: Path) -> None:
-    inspect_pinned_revision = runpy.run_path(str(BOUNDARY_SCRIPT))[
-        "inspect_pinned_revision"
-    ]
+    inspect_pinned_revision = runpy.run_path(str(BOUNDARY_SCRIPT))["inspect_pinned_revision"]
     repository = tmp_path / "repository"
     repository.mkdir()
     _git(repository, "init", "-q")
@@ -51,9 +49,7 @@ def test_pinned_revision_remains_valid_after_head_advances(tmp_path: Path) -> No
 
 
 def test_missing_pinned_revision_fails_closed(tmp_path: Path) -> None:
-    inspect_pinned_revision = runpy.run_path(str(BOUNDARY_SCRIPT))[
-        "inspect_pinned_revision"
-    ]
+    inspect_pinned_revision = runpy.run_path(str(BOUNDARY_SCRIPT))["inspect_pinned_revision"]
     repository = tmp_path / "repository"
     repository.mkdir()
     _git(repository, "init", "-q")

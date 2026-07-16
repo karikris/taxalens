@@ -1351,8 +1351,7 @@ def _require_verification_schema(
     if validation.valid:
         return
     failures = ", ".join(
-        f"{failure.instance_path or '/'}:{failure.keyword}"
-        for failure in validation.failures
+        f"{failure.instance_path or '/'}:{failure.keyword}" for failure in validation.failures
     )
     _fail(
         TruthfulDemoFailure.CONTRACT_VIOLATION,

@@ -3,12 +3,11 @@
 
 from __future__ import annotations
 
-from dataclasses import replace
 import hashlib
 import json
+from dataclasses import replace
 
 import pytest
-
 from packages.replay.src.biominer_detection_routing import (
     BIOCLIP_ROUTES,
     DETECTION_ROUTES,
@@ -63,9 +62,12 @@ def test_routing_policy_fingerprint_is_canonical_and_covers_every_policy_field()
         "possible_adult_route_threshold": 0.35,
         "version": "detection-routing-policy-v1",
     }
-    expected = "sha256:" + hashlib.sha256(
-        json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
-    ).hexdigest()
+    expected = (
+        "sha256:"
+        + hashlib.sha256(
+            json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
+    )
 
     assert policy.fingerprint == expected
     for field_name, replacement in (
@@ -285,7 +287,9 @@ def test_definite_routes_do_not_require_a_score_when_reading_legacy_rows() -> No
 
 
 def test_no_detection_is_not_conflated_with_detector_failure() -> None:
-    no_detection = route_detection(_row(None, label="no_detection", score=0.0, status="no_detection"))
+    no_detection = route_detection(
+        _row(None, label="no_detection", score=0.0, status="no_detection")
+    )
     failed = route_detection(_row(None, label="", score=0.0, status="failed"))
 
     assert no_detection.detection_route == "no_relevant_organism"
@@ -369,7 +373,9 @@ def test_route_decision_exports_exact_persisted_fields_and_review_property() -> 
         },
     ],
 )
-def test_route_decision_rejects_unknown_or_cross_domain_combinations(kwargs: dict[str, object]) -> None:
+def test_route_decision_rejects_unknown_or_cross_domain_combinations(
+    kwargs: dict[str, object],
+) -> None:
     values: dict[str, object] = {
         "detection_route": "adult_butterfly_field",
         "routing_action": "score",
@@ -385,5 +391,3 @@ def test_route_decision_rejects_unknown_or_cross_domain_combinations(kwargs: dic
 
     with pytest.raises(ValueError):
         DetectionRouteDecision(**values)  # type: ignore[arg-type]
-
-

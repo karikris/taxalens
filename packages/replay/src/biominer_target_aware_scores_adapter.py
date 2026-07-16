@@ -35,9 +35,7 @@ def _load_manifest(path: Path) -> dict[str, Any]:
     except FileNotFoundError as exc:
         raise TargetAwareScoresAdapterError(f"Run manifest not found: {path}") from exc
     except json.JSONDecodeError as exc:
-        raise TargetAwareScoresAdapterError(
-            f"Run manifest is not valid JSON: {path}"
-        ) from exc
+        raise TargetAwareScoresAdapterError(f"Run manifest is not valid JSON: {path}") from exc
 
     if not isinstance(payload, dict):
         raise TargetAwareScoresAdapterError("Run manifest payload must be a JSON object")
@@ -131,10 +129,7 @@ def _extract_rows(payload: Any) -> list[dict[str, Any]]:
         candidate_rows = payload
     elif isinstance(payload, dict):
         candidate_rows = (
-            payload.get("rows")
-            or payload.get("candidates")
-            or payload.get("data")
-            or []
+            payload.get("rows") or payload.get("candidates") or payload.get("data") or []
         )
         if not isinstance(candidate_rows, list):
             return []
@@ -147,9 +142,7 @@ def _extract_rows(payload: Any) -> list[dict[str, Any]]:
 
 def _map_label(row: dict[str, Any]) -> str | None:
     decision = _first_str(
-        row.get("decision")
-        or row.get("classification_decision")
-        or row.get("decision_code")
+        row.get("decision") or row.get("classification_decision") or row.get("decision_code")
     )
     if decision:
         normalized = decision.strip().lower()
@@ -210,7 +203,9 @@ def adapt_target_aware_candidate_scores(
                 "artifact_missing": True,
                 "rows_read": 0,
                 "skipped_rows": skipped_rows,
-                "notes": ["run manifest did not declare target-aware candidate score artifact path"],
+                "notes": [
+                    "run manifest did not declare target-aware candidate score artifact path"
+                ],
             },
         }
 
@@ -223,7 +218,9 @@ def adapt_target_aware_candidate_scores(
                 "artifact_missing": True,
                 "rows_read": 0,
                 "skipped_rows": skipped_rows,
-                "notes": [f"target-aware candidate score artifact was not present at {score_artifact}"],
+                "notes": [
+                    f"target-aware candidate score artifact was not present at {score_artifact}"
+                ],
             },
         }
 
@@ -300,9 +297,7 @@ def adapt_target_aware_candidate_scores(
         )
 
     if skipped_rows:
-        notes.append(
-            f"skipped {len(skipped_rows)} candidate-score rows while adapting"
-        )
+        notes.append(f"skipped {len(skipped_rows)} candidate-score rows while adapting")
 
     return {
         "candidate_scores": candidate_scores,

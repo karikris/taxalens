@@ -292,9 +292,7 @@ def _first_non_empty(value: Any, *, fallback: str | None = None) -> str | None:
     return text or fallback
 
 
-def _to_output_uri(
-    outputs: dict[str, Any], *, preferred_keys: tuple[str, ...] = ()
-) -> str | None:
+def _to_output_uri(outputs: dict[str, Any], *, preferred_keys: tuple[str, ...] = ()) -> str | None:
     if not outputs:
         return None
     for key in ("artifact", "manifest", "path", "uri", "output"):
@@ -315,7 +313,14 @@ def _to_output_uri(
 
 
 def _to_input_artifact_id(outputs: dict[str, Any]) -> str | None:
-    for key in ("input", "source", "state_db", "source_records", "registry_dir", "query_definitions"):
+    for key in (
+        "input",
+        "source",
+        "state_db",
+        "source_records",
+        "registry_dir",
+        "query_definitions",
+    ):
         value = _first_non_empty(outputs.get(key))
         if value is not None:
             return value
@@ -465,11 +470,8 @@ def adapt_stage_metrics(
                 join_type=join_type,
                 input_keys=list(spec.input_keys) if spec is not None else sorted(outputs.keys()),
                 output_keys=list(spec.output_keys) if spec is not None else sorted(outputs.keys()),
-                input_artifact_id=_to_input_artifact_id(inputs)
-                or _to_input_artifact_id(outputs),
-                output_artifact_id=_to_output_uri(
-                    outputs, preferred_keys=preferred_output_keys
-                ),
+                input_artifact_id=_to_input_artifact_id(inputs) or _to_input_artifact_id(outputs),
+                output_artifact_id=_to_output_uri(outputs, preferred_keys=preferred_output_keys),
                 rows_in=stage_rows_in,
                 rows_out=stage_rows_out,
                 expected_rows=stage_expected_rows,
@@ -480,12 +482,9 @@ def adapt_stage_metrics(
                 cache_hits=stage_cache_hits,
                 cache_misses=stage_cache_misses,
                 retries=stage_retries,
-                artifact_uri=_to_output_uri(
-                    outputs, preferred_keys=preferred_output_keys
-                ),
+                artifact_uri=_to_output_uri(outputs, preferred_keys=preferred_output_keys),
                 produced_sha256=_to_str(
-                    metrics.get("produced_sha256")
-                    or metrics.get("output_sha256")
+                    metrics.get("produced_sha256") or metrics.get("output_sha256")
                 ),
                 schema_version_ref=_to_str(metrics.get("schema_version_ref"))
                 or _to_str(metrics.get("schema_version")),
@@ -493,19 +492,19 @@ def adapt_stage_metrics(
         )
 
     notes = [
-        "legacy and target-aware stage names mapped using stable operation/join profiles where known.",
+        "legacy and target-aware stage names mapped using stable operation/join "
+        "profiles where known.",
         "best-effort metric aliases were applied when canonical metric keys were unavailable.",
     ]
     if unknown_stages:
         notes.append(
             "unknown stage names were preserved as-is and mapped with "
-            "operation=stage_name and join_type=other: "
-            + ", ".join(unknown_stages)
-            + "."
+            "operation=stage_name and join_type=other: " + ", ".join(unknown_stages) + "."
         )
     if missing_stage_records:
         notes.append(
-            "some stage records were missing expected fields and were either skipped or partially adapted."
+            "some stage records were missing expected fields and were either skipped "
+            "or partially adapted."
         )
 
     return {

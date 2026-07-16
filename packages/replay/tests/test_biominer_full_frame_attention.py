@@ -6,12 +6,11 @@ from __future__ import annotations
 from dataclasses import replace
 
 import pytest
-
 from packages.replay.src.biominer_detector_base import DecodedImage
 from packages.replay.src.biominer_full_frame_attention import (
     FOCUSED_FULL_FRAME_KIND,
-    MASKED_FULL_FRAME_KIND,
     MASK_COVERAGE_BASIS_RASTERIZED_POLYGON,
+    MASKED_FULL_FRAME_KIND,
     MULTI_OBJECT_FULL_FRAME_KIND,
     RAW_FULL_IMAGE_KIND,
     TARGET_FULL_FRAME_PREPROCESSING,
@@ -125,8 +124,7 @@ def test_focused_variant_preserves_canvas_and_uses_exact_integer_attenuation() -
     focused = _variants(result, FOCUSED_FULL_FRAME_KIND)[0]
     focused_evidence = _evidence(result, FOCUSED_FULL_FRAME_KIND)[0]
     pixels = [
-        focused.image.data[offset : offset + 3]
-        for offset in range(0, len(focused.image.data), 3)
+        focused.image.data[offset : offset + 3] for offset in range(0, len(focused.image.data), 3)
     ]
 
     assert (focused.width, focused.height) == (image.width, image.height)
@@ -151,9 +149,7 @@ def test_bbox_projection_uses_floor_start_and_ceil_exclusive_end() -> None:
     focused = _variants(result, FOCUSED_FULL_FRAME_KIND)[0]
     original = bytes((80, 81, 82))
     retained = {
-        index
-        for index in range(16)
-        if focused.image.data[index * 3 : index * 3 + 3] == original
+        index for index in range(16) if focused.image.data[index * 3 : index * 3 + 3] == original
     }
 
     assert retained == {0, 1, 4, 5}
@@ -217,9 +213,7 @@ def test_polygon_identity_is_invariant_to_cyclic_start_and_reversal() -> None:
     reversed_polygon = tuple(reversed(polygon))
 
     variants = [
-        _variants(_generate(image, (_region(polygon=value),)), MASKED_FULL_FRAME_KIND)[
-            0
-        ]
+        _variants(_generate(image, (_region(polygon=value),)), MASKED_FULL_FRAME_KIND)[0]
         for value in (polygon, rotated, reversed_polygon)
     ]
 
@@ -330,17 +324,13 @@ def test_partial_mask_set_is_explicit_and_coverage_remains_unknown() -> None:
         item = _evidence(result, kind)[0]
         assert item.mask_coverage is None
         assert item.mask_coverage_basis is None
-        assert {"mask_missing", "partial_mask_set"}.issubset(
-            item.visual_input_quality_flags
-        )
+        assert {"mask_missing", "partial_mask_set"}.issubset(item.visual_input_quality_flags)
 
 
 def test_reference_and_flickr_use_identical_transform_pixels_and_ids() -> None:
     reference_image = _image(source_uri="reference://image")
     flickr_image = replace(reference_image, source_uri="flickr://image")
-    regions = (
-        _region(polygon=((0.25, 0.25), (0.75, 0.25), (0.75, 0.75), (0.25, 0.75))),
-    )
+    regions = (_region(polygon=((0.25, 0.25), (0.75, 0.25), (0.75, 0.75), (0.25, 0.75))),)
 
     reference = _generate(
         reference_image,
@@ -470,9 +460,7 @@ def test_evidence_keeps_complete_sorted_source_region_records() -> None:
     assert evidence.source_regions[1].detector_score == 0.6
 
 
-def test_equivalent_duplicate_geometry_coalesces_visual_content_but_keeps_evidence() -> (
-    None
-):
+def test_equivalent_duplicate_geometry_coalesces_visual_content_but_keeps_evidence() -> None:
     image = _image()
     regions = (
         _region("det-a", score=0.7),
@@ -510,10 +498,7 @@ def test_target_preprocessing_contract_is_explicit_and_fingerprinted() -> None:
         (0, 56, 0, 56),
     )
     assert contract.fingerprint.startswith("sha256:")
-    assert (
-        replace(contract, version="target-preprocess-v3").fingerprint
-        != contract.fingerprint
-    )
+    assert replace(contract, version="target-preprocess-v3").fingerprint != contract.fingerprint
 
 
 def test_preprocessing_fingerprint_preserves_float64_signed_zero() -> None:

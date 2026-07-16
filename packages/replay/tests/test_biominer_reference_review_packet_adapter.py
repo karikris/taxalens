@@ -92,9 +92,7 @@ def test_adapt_reference_review_packet_into_verification_contracts(
         taxalens_commit=TAXALENS_SHA,
     )
 
-    assert result["schemaVersion"] == (
-        "taxalens-biominer-reference-review-adapter:v1.0.0"
-    )
+    assert result["schemaVersion"] == ("taxalens-biominer-reference-review-adapter:v1.0.0")
     assert result["sourceManifest"]["fixtureOnly"] is True
     assert result["sourceManifest"]["biominerCommit"] == BIOMINER_SHA
     assert result["decisionTemplate"] == {
@@ -175,9 +173,7 @@ def test_adapt_reference_review_packet_preserves_inaturalist_identity(
     campaign = result["campaigns"][0]
     item = result["items"][0]
     assert campaign["sourceProviders"] == ["inaturalist"]
-    assert campaign["samplingPlan"]["strata"][0]["label"] == (
-        "iNaturalist reference queue"
-    )
+    assert campaign["samplingPlan"]["strata"][0]["label"] == ("iNaturalist reference queue")
     assert item["source"] == "inaturalist"
     assert item["sourceObservationId"] == "200000001"
     assert item["sourceProvenance"]["providerLabel"] == "iNaturalist"
@@ -222,9 +218,7 @@ def test_adapt_reference_review_packet_rejects_changed_media_fingerprint(
     tmp_path: Path,
 ) -> None:
     manifest = write_packet_fixture(tmp_path)
-    objects = pl.read_parquet(
-        tmp_path / "source/reference_media_objects.parquet"
-    ).with_columns(
+    objects = pl.read_parquet(tmp_path / "source/reference_media_objects.parquet").with_columns(
         pl.lit("sha256:" + "f" * 64).alias("object_fingerprint")
     )
     _rewrite_source_frame(manifest, "media_objects", objects)
@@ -249,9 +243,7 @@ def test_adapt_reference_review_packet_rejects_duplicate_group_conflict(
 ) -> None:
     write_packet_fixture(tmp_path)
     queue = pl.read_parquet(tmp_path / "packet/reference_review_queue.parquet")
-    provenance = pl.read_parquet(
-        tmp_path / "packet/reference_review_queue_provenance.parquet"
-    )
+    provenance = pl.read_parquet(tmp_path / "packet/reference_review_queue_provenance.parquet")
     queue_row = queue.row(0, named=True)
     second_queue_row = {
         **queue_row,
@@ -286,9 +278,9 @@ def test_adapt_reference_review_packet_rejects_missing_rights(
     tmp_path: Path,
 ) -> None:
     manifest = write_packet_fixture(tmp_path)
-    queue = pl.read_parquet(
-        tmp_path / "packet/reference_review_queue.parquet"
-    ).with_columns(pl.lit(None, dtype=pl.String).alias("attribution"))
+    queue = pl.read_parquet(tmp_path / "packet/reference_review_queue.parquet").with_columns(
+        pl.lit(None, dtype=pl.String).alias("attribution")
+    )
     _rewrite_packet_queue(manifest, queue)
 
     _assert_adapter_error(manifest, "attribution is missing or noncanonical")
@@ -298,9 +290,9 @@ def test_adapt_reference_review_packet_rejects_unsupported_source_schema(
     tmp_path: Path,
 ) -> None:
     manifest = write_packet_fixture(tmp_path)
-    observations = pl.read_parquet(
-        tmp_path / "source/reference_observations.parquet"
-    ).drop("observer_id")
+    observations = pl.read_parquet(tmp_path / "source/reference_observations.parquet").drop(
+        "observer_id"
+    )
     _rewrite_source_frame(manifest, "observations", observations)
 
     _assert_adapter_error(manifest, "reference observations has an unsupported schema")

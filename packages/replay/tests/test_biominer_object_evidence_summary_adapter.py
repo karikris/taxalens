@@ -117,15 +117,11 @@ def test_adapt_object_evidence_summary_prefers_joined_output_key(tmp_path: Path)
 
     manifest_path = tmp_path / "run_manifest_object_evidence_summary.json"
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
-    (
-        tmp_path / "object_evidence.json"
-    ).write_text(
+    (tmp_path / "object_evidence.json").write_text(
         Path("packages/replay/tests/fixtures/object_evidence.json").read_text(encoding="utf-8"),
         encoding="utf-8",
     )
-    (
-        tmp_path / "photo_summary.json"
-    ).write_text(
+    (tmp_path / "photo_summary.json").write_text(
         Path("packages/replay/tests/fixtures/photo_summary.json").read_text(encoding="utf-8"),
         encoding="utf-8",
     )
@@ -152,15 +148,11 @@ def test_adapt_object_evidence_summary_prefers_photo_evidence_summary_key(tmp_pa
 
     manifest_path = tmp_path / "run_manifest_object_evidence_summary.json"
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
-    (
-        tmp_path / "object_evidence.json"
-    ).write_text(
+    (tmp_path / "object_evidence.json").write_text(
         Path("packages/replay/tests/fixtures/object_evidence.json").read_text(encoding="utf-8"),
         encoding="utf-8",
     )
-    (
-        tmp_path / "photo_summary.json"
-    ).write_text(
+    (tmp_path / "photo_summary.json").write_text(
         Path("packages/replay/tests/fixtures/photo_summary.json").read_text(encoding="utf-8"),
         encoding="utf-8",
     )
@@ -228,9 +220,7 @@ def test_adapt_object_evidence_summary_falls_back_to_object_evidence_joined_on_n
 
     assert result["object_evidence_summary"]["object_evidence_rows"] == 3
     notes = result["compatibility"]["notes"]
-    assert not any(
-        "did not declare object_evidence artifact path" in note for note in notes
-    )
+    assert not any("did not declare object_evidence artifact path" in note for note in notes)
     assert not any("failed to parse object_evidence artifact" in note for note in notes)
 
 
@@ -263,11 +253,13 @@ def test_adapt_object_evidence_summary_collects_notes_for_parse_errors(tmp_path:
     assert any("failed to parse photo_summary artifact" in note for note in notes)
 
 
-def test_adapt_object_evidence_summary_collects_notes_for_object_parse_error(tmp_path: Path) -> None:
+def test_adapt_object_evidence_summary_collects_notes_for_object_parse_error(
+    tmp_path: Path,
+) -> None:
     manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_object_evidence_summary.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_object_evidence_summary.json").read_text(
+            encoding="utf-8"
+        )
     )
     manifest["outputs"]["object_evidence"] = "object_evidence_bad.json"
     manifest["outputs"]["photo_summary"] = "photo_summary.json"
@@ -291,7 +283,9 @@ def test_adapt_object_evidence_summary_collects_notes_for_object_parse_error(tmp
     assert summary["object_evidence_rows"] is None
     assert summary["photo_summary_rows"] == 3
     assert compatibility["artifact_missing"] is True
-    assert any("failed to parse object_evidence artifact" in note for note in compatibility["notes"])
+    assert any(
+        "failed to parse object_evidence artifact" in note for note in compatibility["notes"]
+    )
     assert compatibility["object_rows_read"] == 0
 
 
@@ -315,10 +309,7 @@ def test_adapt_object_evidence_summary_treats_non_dict_outputs_as_missing(tmp_pa
     assert compatibility["artifact_missing"] is True
     assert compatibility["object_evidence_path"] is None
     assert compatibility["photo_summary_path"] is None
-    assert (
-        "did not declare object_evidence artifact path"
-        in compatibility["notes"][0]
-    )
+    assert "did not declare object_evidence artifact path" in compatibility["notes"][0]
 
 
 def test_adapt_object_evidence_summary_extracts_only_mapping_rows(tmp_path: Path) -> None:
@@ -335,19 +326,23 @@ def test_adapt_object_evidence_summary_extracts_only_mapping_rows(tmp_path: Path
     manifest_path = tmp_path / "run_manifest_object_evidence_summary.json"
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
     (tmp_path / "object_evidence_mixed.json").write_text(
-        json.dumps([
-            {"occurrence_bin": "adult"},
-            123,
-            None,
-            {"occurrence_bin": "larva"},
-        ]),
+        json.dumps(
+            [
+                {"occurrence_bin": "adult"},
+                123,
+                None,
+                {"occurrence_bin": "larva"},
+            ]
+        ),
         encoding="utf-8",
     )
     (tmp_path / "photo_summary_mixed.json").write_text(
-        json.dumps([
-            {"photo_occurrence_bin": "single_image"},
-            "not_a_row",
-        ]),
+        json.dumps(
+            [
+                {"photo_occurrence_bin": "single_image"},
+                "not_a_row",
+            ]
+        ),
         encoding="utf-8",
     )
 

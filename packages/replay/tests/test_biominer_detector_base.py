@@ -3,7 +3,6 @@ from __future__ import annotations
 from dataclasses import FrozenInstanceError
 
 import pytest
-
 from packages.replay.src.biominer_detector_base import (
     COARSE_DETECTOR_LABELS,
     DecodedImage,
@@ -52,7 +51,10 @@ def test_detection_candidate_contract_normalizes_legacy_labels_and_rejects_taxa(
     assert normalize_detector_label("butterfly") == "butterfly_like"
     assert normalize_detector_label("life stage") == "caterpillar"
     assert normalize_detector_label("museum label") == "artifact"
-    assert DetectionCandidate(label="butterfly", score=0.9, bbox_xyxy=(0, 0, 1, 1)).label == "butterfly_like"
+    assert (
+        DetectionCandidate(label="butterfly", score=0.9, bbox_xyxy=(0, 0, 1, 1)).label
+        == "butterfly_like"
+    )
     with pytest.raises(ValueError, match="taxonomic"):
         DetectionCandidate(label="Papilio demoleus", score=0.9, bbox_xyxy=(0, 0, 1, 1))
 
@@ -81,7 +83,10 @@ def test_detector_prompt_must_be_non_empty() -> None:
 
 def test_detection_candidate_validates_prompt_set_fingerprint() -> None:
     fingerprint = "sha256:" + "a" * 64
-    assert _candidate(detector_prompt_set_fingerprint=fingerprint).detector_prompt_set_fingerprint == fingerprint
+    assert (
+        _candidate(detector_prompt_set_fingerprint=fingerprint).detector_prompt_set_fingerprint
+        == fingerprint
+    )
     with pytest.raises(ValueError, match="sha256 fingerprint"):
         _candidate(detector_prompt_set_fingerprint="sha256:short")
     with pytest.raises(ValueError, match="sha256 fingerprint"):

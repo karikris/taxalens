@@ -3,14 +3,20 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import fields, replace
-from typing import Any, Sequence
+from typing import Any
 
 import pytest
-
 from packages.replay.src import biominer_target_full_frame as target_full_frame
-from packages.replay.src.biominer_detector_base import DecodedImage
 from packages.replay.src.biominer_detection_policy import DetectionRunPolicy
+from packages.replay.src.biominer_detector_base import DecodedImage
+from packages.replay.src.biominer_full_frame_attention import (
+    FOCUSED_FULL_FRAME_KIND,
+    MASKED_FULL_FRAME_KIND,
+    TARGET_FULL_FRAME_IMAGE_RESIZE_MODE,
+    TARGET_FULL_FRAME_PREPROCESSING,
+)
 from packages.replay.src.biominer_target_full_frame import (
     RAW_FULL_IMAGE_KIND,
     TARGET_AWARE_VISUAL_MODE,
@@ -25,13 +31,6 @@ from packages.replay.src.biominer_target_full_frame import (
     generate_target_full_frame_attention_variants,
     target_full_frame_detection_run_policy,
 )
-from packages.replay.src.biominer_full_frame_attention import (
-    FOCUSED_FULL_FRAME_KIND,
-    MASKED_FULL_FRAME_KIND,
-    TARGET_FULL_FRAME_IMAGE_RESIZE_MODE,
-    TARGET_FULL_FRAME_PREPROCESSING,
-)
-
 
 _ROUTING_POLICY_FINGERPRINT = "sha256:" + "a" * 64
 _MODEL_FINGERPRINT = "sha256:" + "b" * 64
@@ -53,10 +52,7 @@ class RecordingEncoder:
     def encode_images(self, images: Sequence[DecodedImage]) -> list[list[float]]:
         batch = tuple(images)
         self.batches.append(batch)
-        return [
-            [float(image.data[0]), float(image.width), float(image.height)]
-            for image in batch
-        ]
+        return [[float(image.data[0]), float(image.width), float(image.height)] for image in batch]
 
 
 class FixedVectorEncoder(RecordingEncoder):
@@ -142,18 +138,14 @@ def test_full_frame_plan_encodes_adult_and_larval_routes_once() -> None:
     assert embedding.embedding_version == "target-full-frame-embedding-v3"
     assert embedding.image_resize_mode == TARGET_FULL_FRAME_IMAGE_RESIZE_MODE
     assert (
-        embedding.preprocessing_contract_fingerprint
-        == TARGET_FULL_FRAME_PREPROCESSING.fingerprint
+        embedding.preprocessing_contract_fingerprint == TARGET_FULL_FRAME_PREPROCESSING.fingerprint
     )
     assert len(embedded.scoring_unit_references) == 2
     assert {reference.route for reference in embedded.scoring_unit_references} == {
         "adult_field",
         "larval",
     }
-    assert (
-        len({reference.embedding_id for reference in embedded.scoring_unit_references})
-        == 1
-    )
+    assert len({reference.embedding_id for reference in embedded.scoring_unit_references}) == 1
 
 
 def test_embedding_identity_binds_target_preprocessing_contract(monkeypatch) -> None:
@@ -212,44 +204,24 @@ def test_embedding_fingerprint_preserves_vector_float64_signed_zero() -> None:
 def test_visual_identity_ignores_detection_metadata_and_input_order() -> None:
     image = _image(b"\x07" * 12, width=2, height=2)
     original = [
-        _detection_row(
-            "photo-1", "det-b", bbox=(1.0, 0.0, 2.0, 2.0), crop_hash="legacy-b"
-        ),
-        _detection_row(
-            "photo-1", "det-a", bbox=(0.0, 0.0, 1.0, 2.0), crop_hash="legacy-a"
-        ),
+        _detection_row("photo-1", "det-b", bbox=(1.0, 0.0, 2.0, 2.0), crop_hash="legacy-b"),
+        _detection_row("photo-1", "det-a", bbox=(0.0, 0.0, 1.0, 2.0), crop_hash="legacy-a"),
     ]
     reordered = list(reversed(original))
 
-    first = build_target_full_frame_plan(
-        detection_rows=original, image_loader=lambda _row: image
-    )
-    second = build_target_full_frame_plan(
-        detection_rows=reordered, image_loader=lambda _row: image
-    )
+    first = build_target_full_frame_plan(detection_rows=original, image_loader=lambda _row: image)
+    second = build_target_full_frame_plan(detection_rows=reordered, image_loader=lambda _row: image)
 
-    assert (
-        first.visual_inputs[0].visual_input_id
-        == second.visual_inputs[0].visual_input_id
-    )
-    assert (
-        first.scoring_units[0].scoring_unit_id
-        == second.scoring_units[0].scoring_unit_id
-    )
+    assert first.visual_inputs[0].visual_input_id == second.visual_inputs[0].visual_input_id
+    assert first.scoring_units[0].scoring_unit_id == second.scoring_units[0].scoring_unit_id
     assert first.scoring_units[0].detection_ids == ("det-a", "det-b")
 
     changed = build_target_full_frame_plan(
         detection_rows=[original[0], original[1] | {"bbox_xyxy": [0.0, 0.0, 2.0, 2.0]}],
         image_loader=lambda _row: image,
     )
-    assert (
-        first.visual_inputs[0].visual_input_id
-        == changed.visual_inputs[0].visual_input_id
-    )
-    assert (
-        first.scoring_units[0].scoring_unit_id
-        != changed.scoring_units[0].scoring_unit_id
-    )
+    assert first.visual_inputs[0].visual_input_id == changed.visual_inputs[0].visual_input_id
+    assert first.scoring_units[0].scoring_unit_id != changed.scoring_units[0].scoring_unit_id
 
 
 def test_content_and_embedding_identities_have_separate_invalidation() -> None:
@@ -275,9 +247,7 @@ def test_content_and_embedding_identities_have_separate_invalidation() -> None:
 
     assert len(plan.visual_inputs) == 3
     assert len(plan.scoring_units) == 4
-    visual_ids = {
-        unit.flickr_photo_id: unit.raw_visual_input_id for unit in plan.scoring_units
-    }
+    visual_ids = {unit.flickr_photo_id: unit.raw_visual_input_id for unit in plan.scoring_units}
     assert visual_ids["photo-a"] == visual_ids["photo-b"]
     assert visual_ids["photo-a"] != visual_ids["photo-c"]
     assert visual_ids["photo-a"] != visual_ids["photo-d"]
@@ -351,9 +321,7 @@ def test_target_full_frame_plan_never_materializes_spatial_crops(
         assert not any("path" in name for name in output_fields)
 
 
-def test_target_attention_adapter_preserves_raw_identity_and_detection_evidence() -> (
-    None
-):
+def test_target_attention_adapter_preserves_raw_identity_and_detection_evidence() -> None:
     image = _image(b"\x05" * (4 * 4 * 3), width=4, height=4)
     plan = build_target_full_frame_plan(
         detection_rows=[
@@ -380,9 +348,7 @@ def test_target_attention_adapter_preserves_raw_identity_and_detection_evidence(
     )
 
     raw = next(
-        variant
-        for variant in result.variants
-        if variant.visual_input_kind == RAW_FULL_IMAGE_KIND
+        variant for variant in result.variants if variant.visual_input_kind == RAW_FULL_IMAGE_KIND
     )
     assert raw.visual_input_id == unit.raw_visual_input_id
     assert {variant.visual_input_kind for variant in result.variants} == {
@@ -390,9 +356,7 @@ def test_target_attention_adapter_preserves_raw_identity_and_detection_evidence(
         FOCUSED_FULL_FRAME_KIND,
         MASKED_FULL_FRAME_KIND,
     }
-    assert {evidence.source_detection_ids for evidence in result.evidence} == {
-        ("det-a",)
-    }
+    assert {evidence.source_detection_ids for evidence in result.evidence} == {("det-a",)}
     assert all(evidence.route == "adult_field" for evidence in result.evidence)
 
 
@@ -481,8 +445,7 @@ def test_target_full_frame_plan_rejects_source_and_route_identity_conflicts() ->
     image = _image(b"\x06" * 12, width=2, height=2)
     source_conflict = [
         _detection_row("photo-1", "det-a"),
-        _detection_row("photo-1", "det-b")
-        | {"source_record_hash": "sha256:" + "1" * 64},
+        _detection_row("photo-1", "det-b") | {"source_record_hash": "sha256:" + "1" * 64},
     ]
     with pytest.raises(ValueError, match="conflicting per-photo source identity"):
         build_target_full_frame_plan(
@@ -513,8 +476,7 @@ def test_target_full_frame_plan_rejects_source_and_route_identity_conflicts() ->
 
     mixed_routing_policy = [
         _detection_row("photo-1", "det-a"),
-        _detection_row("photo-1", "det-b")
-        | {"routing_policy_fingerprint": "sha256:" + "2" * 64},
+        _detection_row("photo-1", "det-b") | {"routing_policy_fingerprint": "sha256:" + "2" * 64},
     ]
     with pytest.raises(ValueError, match="routing_policy_fingerprint"):
         build_target_full_frame_plan(
@@ -671,9 +633,7 @@ def test_full_frame_encoder_rejects_invalid_outputs(
         "photo-b": _image(b"\x02" * 12, width=2, height=2),
     }
     plan = build_target_full_frame_plan(
-        detection_rows=[
-            _detection_row(photo_id, f"det-{photo_id}") for photo_id in images
-        ],
+        detection_rows=[_detection_row(photo_id, f"det-{photo_id}") for photo_id in images],
         image_loader=lambda row: images[str(row["flickr_photo_id"])],
     )
 

@@ -5,9 +5,7 @@ from pathlib import Path
 
 from taxalens.product import validate_verification_schema
 
-SOURCE_MANIFEST = Path(
-    "demo/source/verification/papilio-demoleus-commons.campaign.json"
-)
+SOURCE_MANIFEST = Path("demo/source/verification/papilio-demoleus-commons.campaign.json")
 BUNDLED_ITEMS = Path("demo/fixture/papilio_pilot/verification/items.json")
 JUDGE_BUNDLE = Path("demo/fixture/papilio_pilot/judge_bundle.json")
 VERIFICATION_SECTION_NAMES = (
@@ -45,10 +43,7 @@ def test_normalized_campaign_and_item_exports_validate_and_match() -> None:
 
 def test_exported_sections_validate_and_absence_remains_explicit() -> None:
     bundle = _read_json(JUDGE_BUNDLE)
-    sections = {
-        name: bundle["sections"][name]
-        for name in VERIFICATION_SECTION_NAMES
-    }
+    sections = {name: bundle["sections"][name] for name in VERIFICATION_SECTION_NAMES}
 
     validation = validate_verification_schema(
         "judge_bundle_verification_sections",

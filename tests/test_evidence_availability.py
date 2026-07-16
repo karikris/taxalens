@@ -17,9 +17,7 @@ from taxalens.product.evidence_availability import (
     validate_evidence_availability,
 )
 
-MIGRATED_FIXTURE = Path(
-    "demo/source/verification/verification-evidence-availability.json"
-)
+MIGRATED_FIXTURE = Path("demo/source/verification/verification-evidence-availability.json")
 CATEGORIES = (
     "media",
     "decision",
@@ -109,9 +107,7 @@ def test_committed_verification_projection_has_python_contract_parity() -> None:
         "campaignId",
         *CATEGORIES,
     }
-    assert migrated["schemaVersion"] == (
-        "taxalens-verification-evidence-availability:v1.0.0"
-    )
+    assert migrated["schemaVersion"] == ("taxalens-verification-evidence-availability:v1.0.0")
     assert migrated["campaignId"] == "verification-agent-quality-campaign-v1"
     assert all(validate_evidence_availability(migrated[name]) == () for name in CATEGORIES)
     assert not _contains_none(migrated)

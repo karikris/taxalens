@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-
-REFERENCE_ROUTES = frozenset(
-    {"adult_field", "larval", "pupal", "egg", "pinned_specimen"}
-)
+REFERENCE_ROUTES = frozenset({"adult_field", "larval", "pupal", "egg", "pinned_specimen"})
 
 
 __all__ = ["REFERENCE_ROUTES"]

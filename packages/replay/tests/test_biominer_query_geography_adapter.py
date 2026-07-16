@@ -102,9 +102,7 @@ def test_adapt_query_geography_artifacts_falls_back_to_flickr_query_definitions_
     manifest_path.write_text(json.dumps(source_manifest), encoding="utf-8")
 
     (tmp_path / "query_definitions.json").write_text(
-        Path("packages/replay/tests/fixtures/query_definitions.json").read_text(
-            encoding="utf-8"
-        ),
+        Path("packages/replay/tests/fixtures/query_definitions.json").read_text(encoding="utf-8"),
         encoding="utf-8",
     )
     (tmp_path / "taxon_geographic_spread.json").write_text(
@@ -151,9 +149,7 @@ def test_adapt_query_geography_artifacts_falls_back_to_flickr_query_definitions_
 
     assert len(result["query_definitions"]) == 3
     notes = result["compatibility"]["notes"]
-    assert not any(
-        "did not declare query definition artifact path" in note for note in notes
-    )
+    assert not any("did not declare query definition artifact path" in note for note in notes)
     assert not any("failed to parse query definitions artifact" in note for note in notes)
 
 
@@ -172,9 +168,7 @@ def test_adapt_query_geography_artifacts_falls_back_to_geographic_spread_on_non_
     manifest_path.write_text(json.dumps(source_manifest), encoding="utf-8")
 
     (tmp_path / "query_definitions.json").write_text(
-        Path("packages/replay/tests/fixtures/query_definitions.json").read_text(
-            encoding="utf-8"
-        ),
+        Path("packages/replay/tests/fixtures/query_definitions.json").read_text(encoding="utf-8"),
         encoding="utf-8",
     )
     (tmp_path / "taxon_geographic_spread.json").write_text(
@@ -237,9 +231,7 @@ def test_adapt_query_geography_artifacts_marks_parquet_artifacts_as_unparsed(
     )
     manifest["outputs"]["query_definitions"] = "query_definitions.parquet"
     manifest["outputs"]["taxon_geographic_spread"] = "taxon_geographic_spread.parquet"
-    manifest["outputs"]["geographic_occurrence_evidence"] = (
-        "geographic_occurrence_evidence.parquet"
-    )
+    manifest["outputs"]["geographic_occurrence_evidence"] = "geographic_occurrence_evidence.parquet"
     manifest["outputs"]["taxon_geographic_summary"] = "taxon_geographic_summary.parquet"
     manifest["outputs"]["geographic_spread_manifest"] = "geographic_spread_manifest.parquet"
     manifest["outputs"]["geographic_summary_manifest"] = "geographic_summary_manifest.parquet"
@@ -264,21 +256,23 @@ def test_adapt_query_geography_artifacts_marks_parquet_artifacts_as_unparsed(
     assert result["compatibility"]["taxon_geographic_summary_rows_read"] == 0
     assert (
         "query definitions artifact is parquet and not parsed in deterministic replay fixtures: "
-        f"{manifest_path.parent / 'query_definitions.parquet'}"
-        in result["compatibility"]["notes"]
+        f"{manifest_path.parent / 'query_definitions.parquet'}" in result["compatibility"]["notes"]
     )
     assert (
-        "taxon_geographic_spread artifact is parquet and not parsed in deterministic replay fixtures: "
+        "taxon_geographic_spread artifact is parquet and not parsed in deterministic "
+        "replay fixtures: "
         f"{manifest_path.parent / 'taxon_geographic_spread.parquet'}"
         in result["compatibility"]["notes"]
     )
     assert (
-        "geographic_occurrence_evidence artifact is parquet and not parsed in deterministic replay fixtures: "
+        "geographic_occurrence_evidence artifact is parquet and not parsed in "
+        "deterministic replay fixtures: "
         f"{manifest_path.parent / 'geographic_occurrence_evidence.parquet'}"
         in result["compatibility"]["notes"]
     )
     assert (
-        "taxon_geographic_summary artifact is parquet and not parsed in deterministic replay fixtures: "
+        "taxon_geographic_summary artifact is parquet and not parsed in deterministic "
+        "replay fixtures: "
         f"{manifest_path.parent / 'taxon_geographic_summary.parquet'}"
         in result["compatibility"]["notes"]
     )
@@ -324,9 +318,7 @@ def test_adapt_query_geography_artifacts_normalizes_passed_statuses() -> None:
 
 
 def test_adapt_query_geography_artifacts_normalizes_qa_status_aliases() -> None:
-    manifest = Path(
-        "packages/replay/tests/fixtures/run_manifest_query_geography_status_alias.json"
-    )
+    manifest = Path("packages/replay/tests/fixtures/run_manifest_query_geography_status_alias.json")
     result = adapt_query_geography_artifacts(
         manifest_path=manifest,
         biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
@@ -351,9 +343,9 @@ def test_adapt_query_geography_artifacts_normalizes_completed_status_alias() -> 
 
 def test_adapt_query_geography_artifacts_normalizes_success_aliases(tmp_path: Path) -> None:
     manifest = json.loads(
-        Path("packages/replay/tests/fixtures/run_manifest_query_geography_status_passed.json").read_text(
-            encoding="utf-8"
-        )
+        Path(
+            "packages/replay/tests/fixtures/run_manifest_query_geography_status_passed.json"
+        ).read_text(encoding="utf-8")
     )
     spread_manifest = json.loads(
         Path("packages/replay/tests/fixtures/geographic_spread_manifest_passed.json").read_text(
@@ -386,22 +378,16 @@ def test_adapt_query_geography_artifacts_normalizes_success_aliases(tmp_path: Pa
         biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
     )
 
-    assert (
-        result["geographic_spread_manifest_summary"]["status"] == "complete"
-    )
-    assert (
-        result["geographic_summary_manifest_summary"]["status"] == "complete"
-    )
-    assert (
-        result["geographic_summary_manifest_summary"]["qa_status"] == "warning"
-    )
+    assert result["geographic_spread_manifest_summary"]["status"] == "complete"
+    assert result["geographic_summary_manifest_summary"]["status"] == "complete"
+    assert result["geographic_summary_manifest_summary"]["qa_status"] == "warning"
 
 
 def test_adapt_query_geography_artifacts_preserves_ok_status(tmp_path: Path) -> None:
     manifest = json.loads(
-        Path("packages/replay/tests/fixtures/run_manifest_query_geography_status_passed.json").read_text(
-            encoding="utf-8"
-        )
+        Path(
+            "packages/replay/tests/fixtures/run_manifest_query_geography_status_passed.json"
+        ).read_text(encoding="utf-8")
     )
     spread_manifest = json.loads(
         Path("packages/replay/tests/fixtures/geographic_spread_manifest_passed.json").read_text(
@@ -439,11 +425,13 @@ def test_adapt_query_geography_artifacts_preserves_ok_status(tmp_path: Path) -> 
     assert result["geographic_summary_manifest_summary"]["qa_status"] == "ok"
 
 
-def test_adapt_query_geography_artifacts_normalizes_succeeded_status_aliases(tmp_path: Path) -> None:
+def test_adapt_query_geography_artifacts_normalizes_succeeded_status_aliases(
+    tmp_path: Path,
+) -> None:
     manifest = json.loads(
-        Path("packages/replay/tests/fixtures/run_manifest_query_geography_status_passed.json").read_text(
-            encoding="utf-8"
-        )
+        Path(
+            "packages/replay/tests/fixtures/run_manifest_query_geography_status_passed.json"
+        ).read_text(encoding="utf-8")
     )
     spread_manifest = json.loads(
         Path("packages/replay/tests/fixtures/geographic_spread_manifest_passed.json").read_text(
@@ -461,7 +449,9 @@ def test_adapt_query_geography_artifacts_normalizes_succeeded_status_aliases(tmp
     summary_manifest["qa_status"] = "succeeded"
 
     manifest["outputs"]["geographic_spread_manifest"] = "geographic_spread_manifest_succeeded.json"
-    manifest["outputs"]["geographic_summary_manifest"] = "geographic_summary_manifest_succeeded.json"
+    manifest["outputs"]["geographic_summary_manifest"] = (
+        "geographic_summary_manifest_succeeded.json"
+    )
 
     manifest_path = tmp_path / "run_manifest_query_geography_succeeded.json"
     spread_path = tmp_path / "geographic_spread_manifest_succeeded.json"
@@ -483,9 +473,9 @@ def test_adapt_query_geography_artifacts_normalizes_succeeded_status_aliases(tmp
 
 def test_adapt_query_geography_artifacts_normalizes_pass_alias(tmp_path: Path) -> None:
     manifest = json.loads(
-        Path("packages/replay/tests/fixtures/run_manifest_query_geography_status_passed.json").read_text(
-            encoding="utf-8"
-        )
+        Path(
+            "packages/replay/tests/fixtures/run_manifest_query_geography_status_passed.json"
+        ).read_text(encoding="utf-8")
     )
     spread_manifest = json.loads(
         Path("packages/replay/tests/fixtures/geographic_spread_manifest_passed.json").read_text(
@@ -503,7 +493,9 @@ def test_adapt_query_geography_artifacts_normalizes_pass_alias(tmp_path: Path) -
     summary_manifest["qa_status"] = "PASS"
 
     manifest["outputs"]["geographic_spread_manifest"] = "geographic_spread_manifest_alias_pass.json"
-    manifest["outputs"]["geographic_summary_manifest"] = "geographic_summary_manifest_alias_pass.json"
+    manifest["outputs"]["geographic_summary_manifest"] = (
+        "geographic_summary_manifest_alias_pass.json"
+    )
 
     manifest_path = tmp_path / "run_manifest_query_geography_alias_pass.json"
     spread_path = tmp_path / "geographic_spread_manifest_alias_pass.json"
@@ -527,9 +519,9 @@ def test_adapt_query_geography_artifacts_preserves_partial_and_incomplete_status
     tmp_path: Path,
 ) -> None:
     manifest = json.loads(
-        Path("packages/replay/tests/fixtures/run_manifest_query_geography_status_passed.json").read_text(
-            encoding="utf-8"
-        )
+        Path(
+            "packages/replay/tests/fixtures/run_manifest_query_geography_status_passed.json"
+        ).read_text(encoding="utf-8")
     )
     spread_manifest = json.loads(
         Path("packages/replay/tests/fixtures/geographic_spread_manifest_passed.json").read_text(
@@ -547,7 +539,9 @@ def test_adapt_query_geography_artifacts_preserves_partial_and_incomplete_status
     summary_manifest["qa_status"] = "partial"
 
     manifest["outputs"]["geographic_spread_manifest"] = "geographic_spread_manifest_partial.json"
-    manifest["outputs"]["geographic_summary_manifest"] = "geographic_summary_manifest_incomplete.json"
+    manifest["outputs"]["geographic_summary_manifest"] = (
+        "geographic_summary_manifest_incomplete.json"
+    )
 
     manifest_path = tmp_path / "run_manifest_query_geography_partial.json"
     spread_path = tmp_path / "geographic_spread_manifest_partial.json"
@@ -567,11 +561,13 @@ def test_adapt_query_geography_artifacts_preserves_partial_and_incomplete_status
     assert result["geographic_summary_manifest_summary"]["qa_status"] == "partial"
 
 
-def test_adapt_query_geography_artifacts_normalizes_all_known_status_aliases(tmp_path: Path) -> None:
+def test_adapt_query_geography_artifacts_normalizes_all_known_status_aliases(
+    tmp_path: Path,
+) -> None:
     source_manifest = json.loads(
-        Path("packages/replay/tests/fixtures/run_manifest_query_geography_status_passed.json").read_text(
-            encoding="utf-8"
-        )
+        Path(
+            "packages/replay/tests/fixtures/run_manifest_query_geography_status_passed.json"
+        ).read_text(encoding="utf-8")
     )
     spread_template = json.loads(
         Path("packages/replay/tests/fixtures/geographic_spread_manifest_passed.json").read_text(
@@ -607,8 +603,12 @@ def test_adapt_query_geography_artifacts_normalizes_all_known_status_aliases(tmp
         spread_manifest = json.loads(json.dumps(spread_template))
         summary_manifest = json.loads(json.dumps(summary_template))
 
-        manifest["outputs"]["geographic_spread_manifest"] = f"geographic_spread_manifest_{status}.json"
-        manifest["outputs"]["geographic_summary_manifest"] = f"geographic_summary_manifest_{status}.json"
+        manifest["outputs"]["geographic_spread_manifest"] = (
+            f"geographic_spread_manifest_{status}.json"
+        )
+        manifest["outputs"]["geographic_summary_manifest"] = (
+            f"geographic_summary_manifest_{status}.json"
+        )
 
         spread_manifest["status"] = status
         summary_manifest["status"] = status
@@ -639,9 +639,7 @@ def test_adapt_query_geography_artifacts_rejects_invalid_manifest_json(tmp_path:
         "packages/replay/tests/fixtures/run_manifest_query_geography_status_passed.json"
     ).read_text(encoding="utf-8")
     invalid_manifest = tmp_path / "invalid_query_geography_manifest.json"
-    invalid_manifest.write_text(
-        manifest_text.rstrip().removesuffix("}"), encoding="utf-8"
-    )
+    invalid_manifest.write_text(manifest_text.rstrip().removesuffix("}"), encoding="utf-8")
 
     try:
         adapt_query_geography_artifacts(
@@ -658,9 +656,9 @@ def test_adapt_query_geography_artifacts_continues_when_one_artifact_is_malforme
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     spread_payload = json.loads(
         Path("packages/replay/tests/fixtures/taxon_geographic_spread.json").read_text(
@@ -690,7 +688,9 @@ def test_adapt_query_geography_artifacts_continues_when_one_artifact_is_malforme
 
     source_manifest["outputs"]["query_definitions"] = "bad_query_definitions.json"
     source_manifest["outputs"]["taxon_geographic_spread"] = "taxon_geographic_spread.json"
-    source_manifest["outputs"]["geographic_occurrence_evidence"] = "geographic_occurrence_evidence.json"
+    source_manifest["outputs"]["geographic_occurrence_evidence"] = (
+        "geographic_occurrence_evidence.json"
+    )
     source_manifest["outputs"]["taxon_geographic_summary"] = "taxon_geographic_summary.json"
     source_manifest["outputs"]["geographic_spread_manifest"] = "geographic_spread_manifest.json"
     source_manifest["outputs"]["geographic_summary_manifest"] = "geographic_summary_manifest.json"
@@ -731,9 +731,9 @@ def test_adapt_query_geography_artifacts_reports_non_object_manifest_payloads(
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["query_definitions"] = "query_definitions.json"
     source_manifest["outputs"]["taxon_geographic_spread"] = "taxon_geographic_spread.json"
@@ -785,12 +785,12 @@ def test_adapt_query_geography_artifacts_reports_non_object_manifest_payloads(
     assert result["geographic_summary_manifest_summary"]["status"] is None
     assert result["geographic_summary_manifest_summary"]["qa_status"] is None
     assert (
-        f"geographic_spread_manifest was not a JSON object at {manifest_path.parent / 'spread_manifest_bad.json'}"
-        in result["compatibility"]["notes"]
+        "geographic_spread_manifest was not a JSON object at "
+        f"{manifest_path.parent / 'spread_manifest_bad.json'}" in result["compatibility"]["notes"]
     )
     assert (
-        f"geographic_summary_manifest was not a JSON object at {manifest_path.parent / 'summary_manifest_bad.json'}"
-        in result["compatibility"]["notes"]
+        "geographic_summary_manifest was not a JSON object at "
+        f"{manifest_path.parent / 'summary_manifest_bad.json'}" in result["compatibility"]["notes"]
     )
 
 
@@ -798,9 +798,9 @@ def test_adapt_query_geography_artifacts_treats_null_spread_manifest_as_non_obje
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["query_definitions"] = "query_definitions.json"
     source_manifest["outputs"]["taxon_geographic_spread"] = "taxon_geographic_spread.json"
@@ -855,8 +855,8 @@ def test_adapt_query_geography_artifacts_treats_null_spread_manifest_as_non_obje
     assert result["geographic_summary_manifest_summary"]["status"] == "complete"
     assert result["geographic_summary_manifest_summary"]["qa_status"] == "complete"
     assert (
-        f"geographic_spread_manifest was not a JSON object at {manifest_path.parent / 'spread_manifest_null.json'}"
-        in result["compatibility"]["notes"]
+        "geographic_spread_manifest was not a JSON object at "
+        f"{manifest_path.parent / 'spread_manifest_null.json'}" in result["compatibility"]["notes"]
     )
 
 
@@ -864,9 +864,9 @@ def test_adapt_query_geography_artifacts_treats_null_summary_manifest_as_non_obj
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["query_definitions"] = "query_definitions.json"
     source_manifest["outputs"]["taxon_geographic_spread"] = "taxon_geographic_spread.json"
@@ -919,27 +919,29 @@ def test_adapt_query_geography_artifacts_treats_null_summary_manifest_as_non_obj
     assert result["geographic_summary_manifest_summary"]["qa_status"] is None
     assert result["geographic_spread_manifest_summary"]["status"] == "complete"
     assert (
-        f"geographic_summary_manifest was not a JSON object at {manifest_path.parent / 'summary_manifest_null.json'}"
-        in result["compatibility"]["notes"]
+        "geographic_summary_manifest was not a JSON object at "
+        f"{manifest_path.parent / 'summary_manifest_null.json'}" in result["compatibility"]["notes"]
     )
 
 
 def test_adapt_query_geography_artifacts_ignores_non_mapping_query_rows(tmp_path: Path) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["query_definitions"] = "query_definitions_mixed.json"
 
     manifest_path = tmp_path / "run_manifest_query_geography_mixed_queries.json"
     manifest_path.write_text(json.dumps(source_manifest), encoding="utf-8")
     (tmp_path / "query_definitions_mixed.json").write_text(
-        json.dumps([
-            {"query_definition_id": "qd-mixed-001", "query_eligible": True, "enabled": True},
-            "not-a-mapping",
-            5,
-        ]),
+        json.dumps(
+            [
+                {"query_definition_id": "qd-mixed-001", "query_eligible": True, "enabled": True},
+                "not-a-mapping",
+                5,
+            ]
+        ),
         encoding="utf-8",
     )
 
@@ -990,18 +992,26 @@ def test_adapt_query_geography_artifacts_uses_definitions_key_in_query_definitio
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["query_definitions"] = "query_definitions_keyed.json"
 
     manifest_path = tmp_path / "run_manifest_query_geography_query_definitions_keyed.json"
     manifest_path.write_text(json.dumps(source_manifest), encoding="utf-8")
     (tmp_path / "query_definitions_keyed.json").write_text(
-        json.dumps({"definitions": [
-            {"query_definition_id": "qd-keyed-001", "query_eligible": True, "enabled": True},
-        ]}),
+        json.dumps(
+            {
+                "definitions": [
+                    {
+                        "query_definition_id": "qd-keyed-001",
+                        "query_eligible": True,
+                        "enabled": True,
+                    },
+                ]
+            }
+        ),
         encoding="utf-8",
     )
 
@@ -1051,11 +1061,13 @@ def test_adapt_query_geography_artifacts_prefers_rows_key_even_when_empty(
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
-    source_manifest["outputs"]["query_definitions"] = "query_definitions_rows_empty_with_definitions.json"
+    source_manifest["outputs"]["query_definitions"] = (
+        "query_definitions_rows_empty_with_definitions.json"
+    )
 
     manifest_path = tmp_path / "run_manifest_query_geography_rows_empty_with_definitions.json"
     manifest_path.write_text(json.dumps(source_manifest), encoding="utf-8")
@@ -1128,11 +1140,13 @@ def test_adapt_query_geography_artifacts_prefers_empty_rows_key_over_candidates(
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
-    source_manifest["outputs"]["query_definitions"] = "query_definitions_rows_empty_with_candidates.json"
+    source_manifest["outputs"]["query_definitions"] = (
+        "query_definitions_rows_empty_with_candidates.json"
+    )
 
     manifest_path = tmp_path / "run_manifest_query_geography_rows_empty_with_candidates.json"
     manifest_path.write_text(json.dumps(source_manifest), encoding="utf-8")
@@ -1201,11 +1215,13 @@ def test_adapt_query_geography_artifacts_prefers_rows_key_when_non_list(
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
-    source_manifest["outputs"]["query_definitions"] = "query_definitions_rows_bad_with_definitions.json"
+    source_manifest["outputs"]["query_definitions"] = (
+        "query_definitions_rows_bad_with_definitions.json"
+    )
 
     manifest_path = tmp_path / "run_manifest_query_geography_rows_bad_with_definitions.json"
     manifest_path.write_text(json.dumps(source_manifest), encoding="utf-8")
@@ -1278,9 +1294,9 @@ def test_adapt_query_geography_artifacts_non_list_rows_as_null_blocks_query_defi
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["query_definitions"] = (
         "query_definitions_rows_null_with_query_definitions.json"
@@ -1356,15 +1372,17 @@ def test_adapt_query_geography_artifacts_treats_scalar_rows_as_no_rows_over_quer
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["query_definitions"] = (
         "query_definitions_scalar_rows_with_query_definitions.json"
     )
 
-    manifest_path = tmp_path / "run_manifest_query_geography_scalar_rows_with_query_definitions.json"
+    manifest_path = (
+        tmp_path / "run_manifest_query_geography_scalar_rows_with_query_definitions.json"
+    )
     manifest_path.write_text(json.dumps(source_manifest), encoding="utf-8")
     (tmp_path / "query_definitions_scalar_rows_with_query_definitions.json").write_text(
         json.dumps(
@@ -1432,9 +1450,9 @@ def test_adapt_query_geography_artifacts_ignores_empty_query_definitions_object(
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["query_definitions"] = "query_definitions_empty_object.json"
 
@@ -1498,13 +1516,11 @@ def test_adapt_query_geography_artifacts_prefers_empty_candidates_key_as_authori
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
-    source_manifest["outputs"]["query_definitions"] = (
-        "query_definitions_empty_candidates_key.json"
-    )
+    source_manifest["outputs"]["query_definitions"] = "query_definitions_empty_candidates_key.json"
 
     manifest_path = tmp_path / "run_manifest_query_geography_empty_candidates_key.json"
     manifest_path.write_text(json.dumps(source_manifest), encoding="utf-8")
@@ -1563,13 +1579,15 @@ def test_adapt_query_geography_artifacts_treats_query_definitions_key_empty_arra
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["query_definitions"] = "query_definitions_empty_object_key.json"
 
-    manifest_path = tmp_path / "run_manifest_query_geography_query_definitions_empty_object_key.json"
+    manifest_path = (
+        tmp_path / "run_manifest_query_geography_query_definitions_empty_object_key.json"
+    )
     manifest_path.write_text(json.dumps(source_manifest), encoding="utf-8")
     (tmp_path / "query_definitions_empty_object_key.json").write_text(
         json.dumps({"query_definitions": []}),
@@ -1629,9 +1647,9 @@ def test_adapt_query_geography_artifacts_prefers_empty_rows_key_over_query_defin
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["query_definitions"] = (
         "query_definitions_rows_empty_with_query_definitions.json"
@@ -1705,13 +1723,11 @@ def test_adapt_query_geography_artifacts_prefers_query_definitions_key_after_mis
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
-    source_manifest["outputs"]["query_definitions"] = (
-        "query_definitions_query_key.json"
-    )
+    source_manifest["outputs"]["query_definitions"] = "query_definitions_query_key.json"
 
     manifest_path = tmp_path / "run_manifest_query_geography_query_key.json"
     manifest_path.write_text(json.dumps(source_manifest), encoding="utf-8")
@@ -1783,9 +1799,9 @@ def test_adapt_query_geography_artifacts_prefers_query_definitions_key_after_mis
 
 def test_adapt_query_geography_artifacts_prefers_data_key_when_rows_missing(tmp_path: Path) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["query_definitions"] = "query_definitions_data_key_only.json"
 
@@ -1795,7 +1811,11 @@ def test_adapt_query_geography_artifacts_prefers_data_key_when_rows_missing(tmp_
         json.dumps(
             {
                 "data": [
-                    {"query_definition_id": "qd-data-key-001", "query_eligible": True, "enabled": True}
+                    {
+                        "query_definition_id": "qd-data-key-001",
+                        "query_eligible": True,
+                        "enabled": True,
+                    }
                 ],
                 "definitions": [
                     {
@@ -1855,9 +1875,9 @@ def test_adapt_query_geography_artifacts_prefers_rows_key_over_data_and_definiti
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["query_definitions"] = (
         "query_definitions_rows_and_data_and_definitions.json"
@@ -1941,13 +1961,11 @@ def test_adapt_query_geography_artifacts_treats_non_list_candidates_key_as_no_ro
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
-    source_manifest["outputs"]["query_definitions"] = (
-        "query_definitions_candidates_non_list.json"
-    )
+    source_manifest["outputs"]["query_definitions"] = "query_definitions_candidates_non_list.json"
 
     manifest_path = tmp_path / "run_manifest_query_geography_candidates_non_list.json"
     manifest_path.write_text(json.dumps(source_manifest), encoding="utf-8")
@@ -2013,9 +2031,9 @@ def test_adapt_query_geography_artifacts_non_list_rows_key_blocks_data_key(
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["query_definitions"] = (
         "query_definitions_rows_bad_with_data_key.json"
@@ -2089,13 +2107,11 @@ def test_adapt_query_geography_artifacts_treats_non_list_definitions_key_as_no_r
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
-    source_manifest["outputs"]["query_definitions"] = (
-        "query_definitions_definitions_non_list.json"
-    )
+    source_manifest["outputs"]["query_definitions"] = "query_definitions_definitions_non_list.json"
 
     manifest_path = tmp_path / "run_manifest_query_geography_definitions_non_list.json"
     manifest_path.write_text(json.dumps(source_manifest), encoding="utf-8")
@@ -2169,13 +2185,11 @@ def test_adapt_query_geography_artifacts_treats_non_list_data_key_as_no_rows(
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
-    source_manifest["outputs"]["query_definitions"] = (
-        "query_definitions_data_non_list.json"
-    )
+    source_manifest["outputs"]["query_definitions"] = "query_definitions_data_non_list.json"
 
     manifest_path = tmp_path / "run_manifest_query_geography_data_non_list.json"
     manifest_path.write_text(json.dumps(source_manifest), encoding="utf-8")
@@ -2249,9 +2263,9 @@ def test_adapt_query_geography_artifacts_treats_scalar_data_as_no_rows_over_quer
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["query_definitions"] = (
         "query_definitions_scalar_data_with_query_definitions.json"
@@ -2327,9 +2341,9 @@ def test_adapt_query_geography_artifacts_non_list_rows_blocks_candidates_key(
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["query_definitions"] = (
         "query_definitions_rows_non_list_with_candidates.json"
@@ -2407,9 +2421,9 @@ def test_adapt_query_geography_artifacts_treats_non_list_query_definitions_key_a
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["query_definitions"] = (
         "query_definitions_query_definitions_non_list.json"
@@ -2487,9 +2501,9 @@ def test_adapt_query_geography_artifacts_prefers_empty_data_key_over_candidates(
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["query_definitions"] = "query_definitions_empty_data_key.json"
 
@@ -2561,50 +2575,52 @@ def test_adapt_query_geography_artifacts_definitions_key_uses_summary_counts_for
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["query_definitions"] = "query_definitions_mixed_keyed.json"
 
     manifest_path = tmp_path / "run_manifest_query_geography_mixed_keyed.json"
     manifest_path.write_text(json.dumps(source_manifest), encoding="utf-8")
     (tmp_path / "query_definitions_mixed_keyed.json").write_text(
-        json.dumps({
-            "definitions": [
-                {
-                    "query_definition_id": "qd-mixed-keyed-001",
-                    "query_eligible": True,
-                    "enabled": True,
-                    "source": "registry",
-                    "accepted_rank": "species",
-                    "search_priority": 4,
-                    "query_curation_rules": [{"name": "name_contains_family"}],
-                },
-                "not-a-mapping",
-                5,
-                {
-                    "query_definition_id": "qd-mixed-keyed-002",
-                    "query_eligible": False,
-                    "enabled": False,
-                    "source": "api",
-                    "accepted_rank": "genus",
-                    "search_priority": 2,
-                    "query_curation_rules": [
-                        {"name": "high_trust_tier"},
-                        {"name": "has_species_rank"},
-                    ],
-                },
-                {
-                    "query_definition_id": "qd-mixed-keyed-003",
-                    "query_eligible": False,
-                    "enabled": False,
-                    "source": "registry",
-                    "accepted_rank": "family",
-                    "search_priority": 1,
-                },
-            ]
-        }),
+        json.dumps(
+            {
+                "definitions": [
+                    {
+                        "query_definition_id": "qd-mixed-keyed-001",
+                        "query_eligible": True,
+                        "enabled": True,
+                        "source": "registry",
+                        "accepted_rank": "species",
+                        "search_priority": 4,
+                        "query_curation_rules": [{"name": "name_contains_family"}],
+                    },
+                    "not-a-mapping",
+                    5,
+                    {
+                        "query_definition_id": "qd-mixed-keyed-002",
+                        "query_eligible": False,
+                        "enabled": False,
+                        "source": "api",
+                        "accepted_rank": "genus",
+                        "search_priority": 2,
+                        "query_curation_rules": [
+                            {"name": "high_trust_tier"},
+                            {"name": "has_species_rank"},
+                        ],
+                    },
+                    {
+                        "query_definition_id": "qd-mixed-keyed-003",
+                        "query_eligible": False,
+                        "enabled": False,
+                        "source": "registry",
+                        "accepted_rank": "family",
+                        "search_priority": 1,
+                    },
+                ]
+            }
+        ),
         encoding="utf-8",
     )
 
@@ -2667,9 +2683,9 @@ def test_adapt_query_geography_artifacts_prefers_rows_key_over_definitions_key(
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["query_definitions"] = "query_definitions_multi_key.json"
 
@@ -2771,9 +2787,9 @@ def test_adapt_query_geography_artifacts_prefers_rows_key_over_query_definitions
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["query_definitions"] = (
         "query_definitions_rows_over_query_definitions.json"
@@ -2852,37 +2868,39 @@ def test_adapt_query_geography_artifacts_prefers_data_key_after_rows(
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["query_definitions"] = "query_definitions_data_key.json"
 
     manifest_path = tmp_path / "run_manifest_query_geography_data_key.json"
     manifest_path.write_text(json.dumps(source_manifest), encoding="utf-8")
     (tmp_path / "query_definitions_data_key.json").write_text(
-        json.dumps({
-            "data": [
-                {
-                    "query_definition_id": "qd-data-001",
-                    "query_eligible": True,
-                    "enabled": True,
-                    "source": "registry",
-                    "accepted_rank": "species",
-                    "search_priority": 9,
-                    "query_curation_rules": [{"name": "data-priority"}],
-                },
-                42,
-                {
-                    "query_definition_id": "qd-data-002",
-                    "query_eligible": False,
-                    "enabled": False,
-                    "source": "api",
-                    "accepted_rank": "genus",
-                    "search_priority": 4,
-                },
-            ]
-        }),
+        json.dumps(
+            {
+                "data": [
+                    {
+                        "query_definition_id": "qd-data-001",
+                        "query_eligible": True,
+                        "enabled": True,
+                        "source": "registry",
+                        "accepted_rank": "species",
+                        "search_priority": 9,
+                        "query_curation_rules": [{"name": "data-priority"}],
+                    },
+                    42,
+                    {
+                        "query_definition_id": "qd-data-002",
+                        "query_eligible": False,
+                        "enabled": False,
+                        "source": "api",
+                        "accepted_rank": "genus",
+                        "search_priority": 4,
+                    },
+                ]
+            }
+        ),
         encoding="utf-8",
     )
 
@@ -2946,37 +2964,39 @@ def test_adapt_query_geography_artifacts_prefers_candidates_key_after_data(
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["query_definitions"] = "query_definitions_candidates_key.json"
 
     manifest_path = tmp_path / "run_manifest_query_geography_candidates_key.json"
     manifest_path.write_text(json.dumps(source_manifest), encoding="utf-8")
     (tmp_path / "query_definitions_candidates_key.json").write_text(
-        json.dumps({
-            "candidates": [
-                {
-                    "query_definition_id": "qd-candidate-001",
-                    "query_eligible": False,
-                    "enabled": True,
-                    "source": "registry",
-                    "accepted_rank": "species",
-                    "search_priority": 7,
-                    "query_curation_rules": [{"name": "candidate-priority"}],
-                },
-                None,
-                {
-                    "query_definition_id": "qd-candidate-002",
-                    "query_eligible": False,
-                    "enabled": False,
-                    "source": "api",
-                    "accepted_rank": "family",
-                    "search_priority": 6,
-                },
-            ]
-        }),
+        json.dumps(
+            {
+                "candidates": [
+                    {
+                        "query_definition_id": "qd-candidate-001",
+                        "query_eligible": False,
+                        "enabled": True,
+                        "source": "registry",
+                        "accepted_rank": "species",
+                        "search_priority": 7,
+                        "query_curation_rules": [{"name": "candidate-priority"}],
+                    },
+                    None,
+                    {
+                        "query_definition_id": "qd-candidate-002",
+                        "query_eligible": False,
+                        "enabled": False,
+                        "source": "api",
+                        "accepted_rank": "family",
+                        "search_priority": 6,
+                    },
+                ]
+            }
+        ),
         encoding="utf-8",
     )
 
@@ -3040,9 +3060,9 @@ def test_adapt_query_geography_artifacts_ignores_dict_payload_without_known_rows
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["query_definitions"] = "query_definitions_legacy_object.json"
 
@@ -3106,9 +3126,9 @@ def test_adapt_query_geography_artifacts_ignores_scalar_query_definitions_payloa
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["query_definitions"] = "query_definitions_scalar.json"
 
@@ -3172,9 +3192,9 @@ def test_adapt_query_geography_artifacts_ignores_null_query_definitions_payload(
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["query_definitions"] = "query_definitions_null.json"
 
@@ -3235,9 +3255,9 @@ def test_adapt_query_geography_artifacts_treats_null_spread_payload_as_no_rows(
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["taxon_geographic_spread"] = "taxon_geographic_spread_null.json"
 
@@ -3290,9 +3310,9 @@ def test_adapt_query_geography_artifacts_treats_null_occurrence_payload_as_no_ro
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["geographic_occurrence_evidence"] = (
         "geographic_occurrence_evidence_null.json"
@@ -3300,9 +3320,7 @@ def test_adapt_query_geography_artifacts_treats_null_occurrence_payload_as_no_ro
 
     manifest_path = tmp_path / "run_manifest_query_geography_null_occurrence.json"
     manifest_path.write_text(json.dumps(source_manifest), encoding="utf-8")
-    (tmp_path / "geographic_occurrence_evidence_null.json").write_text(
-        "null", encoding="utf-8"
-    )
+    (tmp_path / "geographic_occurrence_evidence_null.json").write_text("null", encoding="utf-8")
 
     # Keep other artifacts valid so this test isolates occurrence payload behavior.
     (tmp_path / "query_definitions.json").write_text(
@@ -3349,9 +3367,9 @@ def test_adapt_query_geography_artifacts_treats_null_summary_payload_as_no_rows(
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["taxon_geographic_summary"] = "taxon_geographic_summary_null.json"
 
@@ -3404,9 +3422,9 @@ def test_adapt_query_geography_artifacts_ignores_non_list_query_curation_rules(
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["query_definitions"] = "query_definitions_non_list_rules.json"
 
@@ -3498,9 +3516,9 @@ def test_adapt_query_geography_artifacts_counts_only_mapping_rows_for_compatibil
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["query_definitions"] = "query_definitions_mixed_rows_count.json"
 
@@ -3565,9 +3583,9 @@ def test_adapt_query_geography_artifacts_prefers_empty_query_definitions_list(
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["query_definitions"] = "query_definitions_empty.json"
 
@@ -3628,9 +3646,9 @@ def test_adapt_query_geography_artifacts_uses_flickr_query_definitions_output_ke
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"] = {
         **(source_manifest.get("outputs") or {}),
@@ -3641,13 +3659,15 @@ def test_adapt_query_geography_artifacts_uses_flickr_query_definitions_output_ke
     manifest_path = tmp_path / "run_manifest_query_geography_flickr_key.json"
     manifest_path.write_text(json.dumps(source_manifest), encoding="utf-8")
     (tmp_path / "flickr_query_definitions.json").write_text(
-        json.dumps([
-            {
-                "query_definition_id": "qd-flickr-001",
-                "query_eligible": True,
-                "enabled": True,
-            },
-        ]),
+        json.dumps(
+            [
+                {
+                    "query_definition_id": "qd-flickr-001",
+                    "query_eligible": True,
+                    "enabled": True,
+                },
+            ]
+        ),
         encoding="utf-8",
     )
 
@@ -3704,9 +3724,9 @@ def test_adapt_query_geography_artifacts_treats_blank_query_definitions_output_a
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["query_definitions"] = "   "
 
@@ -3764,9 +3784,9 @@ def test_adapt_query_geography_artifacts_normalizes_search_priority_types(
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["query_definitions"] = "query_definitions_search_priority.json"
 
@@ -3798,7 +3818,8 @@ def test_adapt_query_geography_artifacts_normalizes_search_priority_types(
         encoding="utf-8",
     )
 
-    # Keep remaining artifacts valid so this test focuses on query-definition priority normalization.
+    # Keep remaining artifacts valid so this test focuses on query-definition
+    # priority normalization.
     (tmp_path / "taxon_geographic_spread.json").write_text(
         Path("packages/replay/tests/fixtures/taxon_geographic_spread.json").read_text(
             encoding="utf-8"
@@ -3844,9 +3865,9 @@ def test_adapt_query_geography_artifacts_prefers_flickr_query_definitions_for_bl
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"] = {
         **(source_manifest.get("outputs") or {}),
@@ -3854,9 +3875,7 @@ def test_adapt_query_geography_artifacts_prefers_flickr_query_definitions_for_bl
         "flickr_query_definitions": "flickr_query_definitions_blank_fallback.json",
     }
 
-    manifest_path = (
-        tmp_path / "run_manifest_query_geography_flickr_fallback_on_blank_primary.json"
-    )
+    manifest_path = tmp_path / "run_manifest_query_geography_flickr_fallback_on_blank_primary.json"
     manifest_path.write_text(json.dumps(source_manifest), encoding="utf-8")
     (tmp_path / "flickr_query_definitions_blank_fallback.json").write_text(
         json.dumps(
@@ -3927,9 +3946,9 @@ def test_adapt_query_geography_artifacts_normalizes_bool_like_eligibility_fields
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["query_definitions"] = "query_definitions_bool_like.json"
 
@@ -4013,9 +4032,9 @@ def test_adapt_query_geography_artifacts_ignores_non_object_query_definitions_pa
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["query_definitions"] = "query_definitions_number_payload.json"
 
@@ -4076,9 +4095,9 @@ def test_adapt_query_geography_artifacts_coerces_non_string_bucket_fields(
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["query_definitions"] = "query_definitions_bucket_types.json"
 
@@ -4106,7 +4125,8 @@ def test_adapt_query_geography_artifacts_coerces_non_string_bucket_fields(
         encoding="utf-8",
     )
 
-    # Keep other artifacts valid so this test only checks bucket coercion in query-definition summary.
+    # Keep other artifacts valid so this test only checks bucket coercion in
+    # query-definition summary.
     (tmp_path / "taxon_geographic_spread.json").write_text(
         Path("packages/replay/tests/fixtures/taxon_geographic_spread.json").read_text(
             encoding="utf-8"
@@ -4152,9 +4172,9 @@ def test_adapt_query_geography_artifacts_ignores_blank_buckets(
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
-        Path(
-            "packages/replay/tests/fixtures/run_manifest_query_geography.json"
-        ).read_text(encoding="utf-8")
+        Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
+            encoding="utf-8"
+        )
     )
     source_manifest["outputs"]["query_definitions"] = "query_definitions_blank_buckets.json"
 
@@ -4231,7 +4251,7 @@ def test_adapt_query_geography_artifacts_ignores_blank_buckets(
     assert result["query_definition_summary"]["query_definitions_by_rank"] == {"species": 1}
 
 
-def test_adapt_query_geography_artifacts_treats_non_string_query_definition_output_values_as_missing_artifact(
+def test_adapt_query_geography_non_string_query_output_is_missing(
     tmp_path: Path,
 ) -> None:
     source_manifest = json.loads(
@@ -4294,7 +4314,9 @@ def test_adapt_query_geography_artifacts_treats_non_string_query_definition_outp
     assert any("did not declare query definition artifact path" in note for note in notes)
 
 
-def test_adapt_query_geography_artifacts_treats_all_output_values_as_non_string_paths(tmp_path: Path) -> None:
+def test_adapt_query_geography_artifacts_treats_all_output_values_as_non_string_paths(
+    tmp_path: Path,
+) -> None:
     source_manifest = json.loads(
         Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
             encoding="utf-8"
@@ -4304,15 +4326,21 @@ def test_adapt_query_geography_artifacts_treats_all_output_values_as_non_string_
     source_manifest["outputs"]["flickr_query_definitions"] = []
     source_manifest["outputs"]["taxon_geographic_spread"] = {"path": "taxon_geographic_spread.json"}
     source_manifest["outputs"]["geographic_spread"] = None
-    source_manifest["outputs"]["geographic_occurrence_evidence"] = {"path": "geographic_occurrence_evidence.json"}
+    source_manifest["outputs"]["geographic_occurrence_evidence"] = {
+        "path": "geographic_occurrence_evidence.json"
+    }
     source_manifest["outputs"]["occurrence_evidence"] = 0
     source_manifest["outputs"]["geographic_spread_manifest"] = []
-    source_manifest["outputs"]["taxon_geographic_summary"] = {"path": "taxon_geographic_summary.json"}
+    source_manifest["outputs"]["taxon_geographic_summary"] = {
+        "path": "taxon_geographic_summary.json"
+    }
     source_manifest["outputs"]["geographic_summary"] = {}
     source_manifest["outputs"]["geographic_summary_manifest"] = []
     source_manifest["outputs"]["geographic_summary_manifest_file"] = 1
     source_manifest["outputs"]["geographic_qa_findings"] = []
-    source_manifest["outputs"]["taxon_geographic_qa_findings"] = {"path": "geographic_qa_findings.json"}
+    source_manifest["outputs"]["taxon_geographic_qa_findings"] = {
+        "path": "geographic_qa_findings.json"
+    }
 
     manifest_path = tmp_path / "run_manifest_query_geography_all_outputs_non_string.json"
     manifest_path.write_text(json.dumps(source_manifest), encoding="utf-8")
@@ -4331,24 +4359,39 @@ def test_adapt_query_geography_artifacts_treats_all_output_values_as_non_string_
     assert result["compatibility"]["geographic_occurrence_evidence_rows_read"] == 0
     assert result["compatibility"]["taxon_geographic_summary_rows_read"] == 0
     assert result["query_definition_summary"]["query_definition_artifact_path"] is None
-    assert result["geographic_spread_manifest_summary"]["taxon_geographic_spread_artifact_path"] is None
-    assert result["geographic_spread_manifest_summary"]["geographic_occurrence_evidence_artifact_path"] is None
-    assert result["geographic_summary_manifest_summary"]["taxon_geographic_summary_artifact_path"] is None
-    assert result["geographic_summary_manifest_summary"]["geographic_qa_findings_artifact_path"] is None
+    assert (
+        result["geographic_spread_manifest_summary"]["taxon_geographic_spread_artifact_path"]
+        is None
+    )
+    assert (
+        result["geographic_spread_manifest_summary"]["geographic_occurrence_evidence_artifact_path"]
+        is None
+    )
+    assert (
+        result["geographic_summary_manifest_summary"]["taxon_geographic_summary_artifact_path"]
+        is None
+    )
+    assert (
+        result["geographic_summary_manifest_summary"]["geographic_qa_findings_artifact_path"]
+        is None
+    )
 
     notes = result["compatibility"]["notes"]
     assert any("did not declare query definition artifact path" in note for note in notes)
     assert any("did not declare taxon_geographic_spread artifact path" in note for note in notes)
     assert any(
-        "did not declare geographic_occurrence_evidence artifact path" in note
-        for note in notes
+        "did not declare geographic_occurrence_evidence artifact path" in note for note in notes
     )
     assert any("did not declare taxon_geographic_summary artifact path" in note for note in notes)
     assert any("did not declare geographic_spread_manifest artifact path" in note for note in notes)
-    assert any("did not declare geographic_summary_manifest artifact path" in note for note in notes)
+    assert any(
+        "did not declare geographic_summary_manifest artifact path" in note for note in notes
+    )
 
 
-def test_adapt_query_geography_artifacts_treats_all_output_values_as_blank_as_missing(tmp_path: Path) -> None:
+def test_adapt_query_geography_artifacts_treats_all_output_values_as_blank_as_missing(
+    tmp_path: Path,
+) -> None:
     source_manifest = json.loads(
         Path("packages/replay/tests/fixtures/run_manifest_query_geography.json").read_text(
             encoding="utf-8"
@@ -4393,4 +4436,6 @@ def test_adapt_query_geography_artifacts_treats_all_output_values_as_blank_as_mi
     )
     assert any("did not declare taxon_geographic_summary artifact path" in note for note in notes)
     assert any("did not declare geographic_spread_manifest artifact path" in note for note in notes)
-    assert any("did not declare geographic_summary_manifest artifact path" in note for note in notes)
+    assert any(
+        "did not declare geographic_summary_manifest artifact path" in note for note in notes
+    )

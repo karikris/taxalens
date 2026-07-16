@@ -343,9 +343,7 @@ def _load_review_packet(
     if report.get("git_sha") != biominer_commit:
         raise ReferenceReviewPacketAdapterError("review export report BioMiner commit is stale")
     artifacts = report.get("artifacts")
-    if not isinstance(artifacts, Mapping) or set(artifacts) != set(
-        _REQUIRED_REPORT_ARTIFACTS
-    ):
+    if not isinstance(artifacts, Mapping) or set(artifacts) != set(_REQUIRED_REPORT_ARTIFACTS):
         raise ReferenceReviewPacketAdapterError("review export artifact ledger is incomplete")
 
     contents: dict[str, bytes] = {}
@@ -455,9 +453,7 @@ def _validate_queue_integrity(queue: pl.DataFrame, provenance: pl.DataFrame) -> 
             raise ReferenceReviewPacketAdapterError("review queue state is incompatible")
         if _provider(row["source"]) not in {"gbif", "inaturalist"}:
             raise ReferenceReviewPacketAdapterError("unsupported reference source provider")
-        if not isinstance(row["required_review_count"], int) or row[
-            "required_review_count"
-        ] < 1:
+        if not isinstance(row["required_review_count"], int) or row["required_review_count"] < 1:
             raise ReferenceReviewPacketAdapterError("review quorum is invalid")
         if _required_text(row["accepted_taxon_key"], "accepted taxon key") is None:
             raise ReferenceReviewPacketAdapterError("review item target taxon is unresolved")
@@ -482,9 +478,7 @@ def _validate_queue_integrity(queue: pl.DataFrame, provenance: pl.DataFrame) -> 
             )
         leaves = source["source_leaf_fingerprints"]
         if not leaves or leaves != sorted(set(leaves)):
-            raise ReferenceReviewPacketAdapterError(
-                "review queue provenance leaves are invalid"
-            )
+            raise ReferenceReviewPacketAdapterError("review queue provenance leaves are invalid")
         fingerprint_values = [
             *leaves,
             source["source_binding_fingerprint"],
@@ -528,9 +522,7 @@ def _validate_decision_template(queue: pl.DataFrame, template: pl.DataFrame) -> 
         raise ReferenceReviewPacketAdapterError(
             "decision template does not cover the complete queue"
         )
-    queue_by_request = {
-        str(row["review_request_id"]): row for row in queue.iter_rows(named=True)
-    }
+    queue_by_request = {str(row["review_request_id"]): row for row in queue.iter_rows(named=True)}
     if template["review_request_id"].n_unique() != template.height:
         raise ReferenceReviewPacketAdapterError("decision template has duplicate requests")
     for row in template.iter_rows(named=True):
@@ -558,10 +550,7 @@ def _validate_decision_template(queue: pl.DataFrame, template: pl.DataFrame) -> 
             raise ReferenceReviewPacketAdapterError(
                 "decision template contains a prefilled human decision"
             )
-        if any(
-            row[field] != queue_row[field]
-            for field in ("life_stage", "visual_domain", "view")
-        ):
+        if any(row[field] != queue_row[field] for field in ("life_stage", "visual_domain", "view")):
             raise ReferenceReviewPacketAdapterError(
                 "decision template proposals do not match the queue"
             )
@@ -651,16 +640,12 @@ def _bind_source_context(
     objects: pl.DataFrame,
 ) -> dict[str, dict[str, Mapping[str, Any]]]:
     observation_by_id = {
-        str(row["reference_observation_id"]): row
-        for row in observations.iter_rows(named=True)
+        str(row["reference_observation_id"]): row for row in observations.iter_rows(named=True)
     }
     candidate_by_id = {
-        str(row["reference_media_id"]): row
-        for row in candidates.iter_rows(named=True)
+        str(row["reference_media_id"]): row for row in candidates.iter_rows(named=True)
     }
-    object_by_id = {
-        str(row["reference_media_id"]): row for row in objects.iter_rows(named=True)
-    }
+    object_by_id = {str(row["reference_media_id"]): row for row in objects.iter_rows(named=True)}
     contexts: dict[str, dict[str, Mapping[str, Any]]] = {}
     for queue_row in queue.iter_rows(named=True):
         media_id = str(queue_row["reference_media_id"])
@@ -669,9 +654,7 @@ def _bind_source_context(
         media_object = object_by_id.get(media_id)
         observation = observation_by_id.get(observation_id)
         if candidate is None or media_object is None or observation is None:
-            raise ReferenceReviewPacketAdapterError(
-                "review queue source context is incomplete"
-            )
+            raise ReferenceReviewPacketAdapterError("review queue source context is incomplete")
         _validate_context_binding(queue_row, observation, candidate, media_object)
         contexts[str(queue_row["review_request_id"])] = {
             "observation": observation,
@@ -717,8 +700,7 @@ def _validate_context_binding(
         media_object["object_fingerprint"] != queue["media_object_fingerprint"]
         or media_object["source_object_uri"] != queue["durable_preview_uri"]
         or media_object["duplicate_group_id"] != queue["duplicate_group_id"]
-        or media_object["canonical_reference_media_id"]
-        != queue["canonical_reference_media_id"]
+        or media_object["canonical_reference_media_id"] != queue["canonical_reference_media_id"]
         or media_object["licence_policy_status"] != queue["licence_policy_status"]
     ):
         raise ReferenceReviewPacketAdapterError("reference media fingerprint changed")
@@ -791,13 +773,9 @@ def _build_campaigns_and_items(
                 "stratumId": f"provider-{provider}",
                 "label": f"{_provider_label(provider)} reference queue",
                 "populationCount": None,
-                "targetSampleCount": sum(
-                    _provider(row["source"]) == provider for row in rows
-                ),
+                "targetSampleCount": sum(_provider(row["source"]) == provider for row in rows),
                 "populationWeight": None,
-                "selectionNotes": (
-                    "BioMiner priority review queue; not a probability sample."
-                ),
+                "selectionNotes": ("BioMiner priority review queue; not a probability sample."),
             }
             for provider in providers
         ]
@@ -816,9 +794,7 @@ def _build_campaigns_and_items(
                 "sourceProviders": providers,
                 "reviewRequirement": {
                     "requiredIndependentReviewers": quorum,
-                    "secondReviewPolicy": (
-                        "always" if quorum > 1 else "on_conflict_or_uncertain"
-                    ),
+                    "secondReviewPolicy": ("always" if quorum > 1 else "on_conflict_or_uncertain"),
                     "adjudicationRequiredOnConflict": quorum > 1,
                     "decisiveOutcomes": ["yes", "no"],
                     "mediaRequiredOutcomes": ["yes", "no", "cant_tell"],
@@ -916,14 +892,10 @@ def _build_campaigns_and_items(
                         "mediaLicense": {
                             "name": row["licence"],
                             "uri": row["licence_uri"],
-                            "policyStatus": _rights_policy(
-                                row["licence_policy_status"]
-                            ),
+                            "policyStatus": _rights_policy(row["licence_policy_status"]),
                         },
                         "observerId": observation["observer_id"],
-                        "observedAt": _datetime_text_or_none(
-                            observation["observed_at"]
-                        ),
+                        "observedAt": _datetime_text_or_none(observation["observed_at"]),
                         "fallbackLevel": observation["fallback_level"],
                         "geography": {
                             "locality": observation["locality"],
@@ -931,17 +903,11 @@ def _build_campaigns_and_items(
                             "countryCode": observation["country_code"],
                             "latitude": observation["latitude"],
                             "longitude": observation["longitude"],
-                            "coordinateUncertaintyMeters": observation[
-                                "coordinate_uncertainty"
-                            ],
-                            "coordinatesObscured": observation[
-                                "coordinates_obscured"
-                            ],
+                            "coordinateUncertaintyMeters": observation["coordinate_uncertainty"],
+                            "coordinatesObscured": observation["coordinates_obscured"],
                             "geographicClusterId": observation["geo_cluster_id"],
                         },
-                        "providerVerificationStatus": row[
-                            "provider_verification_status"
-                        ],
+                        "providerVerificationStatus": row["provider_verification_status"],
                     },
                     "questionFingerprint": question_fingerprint,
                 }
@@ -1068,9 +1034,7 @@ def _datetime_text_or_none(value: Any) -> str | None:
     if value is None:
         return None
     if not isinstance(value, datetime) or value.tzinfo is None:
-        raise ReferenceReviewPacketAdapterError(
-            "reference source date must be timezone-aware"
-        )
+        raise ReferenceReviewPacketAdapterError("reference source date must be timezone-aware")
     return value.astimezone(UTC).isoformat(timespec="microseconds")
 
 
@@ -1113,9 +1077,7 @@ def _validate_descriptor(descriptor: Any, label: str) -> None:
         raise ReferenceReviewPacketAdapterError(f"{label} descriptor is malformed")
     if not isinstance(descriptor["path"], str) or not descriptor["path"].strip():
         raise ReferenceReviewPacketAdapterError(f"{label} path is invalid")
-    if not isinstance(descriptor["sha256"], str) or _SHA256.fullmatch(
-        descriptor["sha256"]
-    ) is None:
+    if not isinstance(descriptor["sha256"], str) or _SHA256.fullmatch(descriptor["sha256"]) is None:
         raise ReferenceReviewPacketAdapterError(f"{label} SHA-256 is invalid")
     if (
         isinstance(descriptor["byte_count"], bool)
@@ -1134,9 +1096,7 @@ def _validate_report_artifact_record(record: Any, label: str) -> None:
         raise ReferenceReviewPacketAdapterError(
             f"review export artifact record is uncommitted: {label}"
         )
-    if not isinstance(record.get("sha256"), str) or _SHA256.fullmatch(
-        record["sha256"]
-    ) is None:
+    if not isinstance(record.get("sha256"), str) or _SHA256.fullmatch(record["sha256"]) is None:
         raise ReferenceReviewPacketAdapterError(
             f"review export artifact digest is invalid: {label}"
         )

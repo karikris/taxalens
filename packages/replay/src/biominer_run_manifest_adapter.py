@@ -7,11 +7,12 @@ into TaxaLens replay contracts without importing BioMiner runtime packages.
 from __future__ import annotations
 
 import json
-from pathlib import Path
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, TypedDict
 
 from packages.replay.src.validation import is_full_git_sha
+
 
 class RunManifestAdapterError(ValueError):
     pass
@@ -169,7 +170,8 @@ def _run_summary_from_payload(
         "schema_version": "run_summary:v1",
         "biominer_commit": biominer_commit,
         "run_id": payload.get("run_id") or "unknown-run",
-        "title": _required_str(taxon_scope, "input_name") or _required_str(taxon_scope, "accepted_scientific_name"),
+        "title": _required_str(taxon_scope, "input_name")
+        or _required_str(taxon_scope, "accepted_scientific_name"),
         "source_manifest_path": source_path,
         "source_biominer_run_artifact": source_path,
         "status": _normalize_status(payload.get("status")) or "unknown",
@@ -179,7 +181,9 @@ def _run_summary_from_payload(
         "records_out": _required_int(evidence_counts, "kept", fallback=None),
         "stage_count": _required_int({"x": len(stages)}, "x", fallback=None),
         "expected_output_artifacts": list(outputs.keys()) if outputs else [],
-        "notes": _list_of_strings(payload.get("notes")) if isinstance(payload.get("notes"), list) else None,
+        "notes": _list_of_strings(payload.get("notes"))
+        if isinstance(payload.get("notes"), list)
+        else None,
     }
 
     return summary, CompatibilityReport(
@@ -209,9 +213,7 @@ def adapt_run_manifest(
     if not biominer_commit or not isinstance(biominer_commit, str):
         raise RunManifestAdapterError("biominer_commit is required")
     if not is_full_git_sha(biominer_commit):
-        raise RunManifestAdapterError(
-            "biominer_commit must be a full 40-character hexadecimal SHA"
-        )
+        raise RunManifestAdapterError("biominer_commit must be a full 40-character hexadecimal SHA")
 
     path = Path(manifest_path)
     payload = _load_payload(path)

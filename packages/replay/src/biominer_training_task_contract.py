@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-
 TARGET_TASKS = frozenset(
     {
         "binary_target_verifier",

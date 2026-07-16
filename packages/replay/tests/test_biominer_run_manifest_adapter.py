@@ -3,7 +3,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from packages.replay.src.biominer_run_manifest_adapter import adapt_run_manifest, RunManifestAdapterError
+from packages.replay.src.biominer_run_manifest_adapter import (
+    RunManifestAdapterError,
+    adapt_run_manifest,
+)
 
 
 def test_adapt_run_manifest_from_fixture() -> None:
@@ -274,7 +277,9 @@ def test_adapt_run_manifest_treats_blank_status_as_unknown(tmp_path: Path) -> No
     assert "status" not in result["compatibility"]["missing_fields"]
 
 
-def test_adapt_run_manifest_non_object_outputs_is_treated_as_missing_payload(tmp_path: Path) -> None:
+def test_adapt_run_manifest_non_object_outputs_is_treated_as_missing_payload(
+    tmp_path: Path,
+) -> None:
     manifest_payload = json.loads(
         Path("packages/replay/tests/fixtures/run_manifest.json").read_text(encoding="utf-8")
     )

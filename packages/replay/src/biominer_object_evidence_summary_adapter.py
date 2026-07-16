@@ -39,9 +39,7 @@ def _load_json(path: Path) -> Any:
     except FileNotFoundError as exc:
         raise ObjectEvidenceSummaryAdapterError(f"Artifact not found: {path}") from exc
     except json.JSONDecodeError as exc:
-        raise ObjectEvidenceSummaryAdapterError(
-            f"Artifact is not valid JSON: {path}"
-        ) from exc
+        raise ObjectEvidenceSummaryAdapterError(f"Artifact is not valid JSON: {path}") from exc
 
 
 def _load_manifest(path: Path) -> dict[str, Any]:
@@ -132,7 +130,8 @@ def adapt_object_evidence_summary(
         notes.append("run manifest did not declare object_evidence artifact path")
     elif _is_parquet_path(object_path):
         notes.append(
-            f"object_evidence artifact is parquet and not parsed in deterministic replay fixtures: {object_path}"
+            "object_evidence artifact is parquet and not parsed in deterministic "
+            f"replay fixtures: {object_path}"
         )
         artifact_missing = True
     else:
@@ -147,7 +146,8 @@ def adapt_object_evidence_summary(
         artifact_missing = True
     elif _is_parquet_path(photo_path):
         notes.append(
-            f"photo_summary artifact is parquet and not parsed in deterministic replay fixtures: {photo_path}"
+            "photo_summary artifact is parquet and not parsed in deterministic "
+            f"replay fixtures: {photo_path}"
         )
         artifact_missing = True
     else:

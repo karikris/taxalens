@@ -7,7 +7,6 @@ from datetime import UTC, datetime
 
 import polars as pl
 import pytest
-
 from packages.replay.src.biominer_target_aware_output import (
     TARGET_AWARE_CANDIDATE_SCORE_SCHEMA,
     TARGET_AWARE_CANDIDATE_SCORES_SCHEMA_VERSION,
@@ -50,9 +49,7 @@ def _candidate(
         "reference_top_k": 3,
         "local_prototype_similarity": 0.77 if target else 0.58,
         "global_prototype_similarity": 0.71 if target else 0.57,
-        "classifier_task": "binary_target_verifier"
-        if target
-        else "regional_multiclass",
+        "classifier_task": "binary_target_verifier" if target else "regional_multiclass",
         "classifier_decision_score": 0.75 if target else 0.25,
         "calibrated_probability": 0.86 if target else probability,
         "regional_classifier_decision_score": 0.7 if target else 0.3,
@@ -67,9 +64,7 @@ def _candidate(
         "life_stage_compatible": True,
         "visual_domain_compatible": True,
         "best_competitor_accepted_taxon_key": ("gbif:2" if target else "gbif:1"),
-        "best_competitor_scientific_name": (
-            "Papilio polytes" if target else "Papilio demoleus"
-        ),
+        "best_competitor_scientific_name": ("Papilio polytes" if target else "Papilio demoleus"),
         "competitor_margin": 0.2 if target else -0.2,
         "nonmatch_score": 0.3 if target else 0.7,
         "abstention_reason": None,
@@ -209,15 +204,9 @@ def _row(**overrides: object) -> dict[str, object]:
 
 
 def test_target_aware_output_exposes_required_versioned_physical_types() -> None:
-    assert TARGET_AWARE_OBJECT_SCORES_SCHEMA_VERSION == (
-        "target-aware-object-scores-v1.0.0"
-    )
-    assert TARGET_AWARE_CANDIDATE_SCORES_SCHEMA_VERSION == (
-        "target-aware-candidate-scores-v1.0.0"
-    )
-    assert TARGET_AWARE_OBJECT_SCORE_SCHEMA["calibrated_target_probability"] == (
-        pl.Float64
-    )
+    assert TARGET_AWARE_OBJECT_SCORES_SCHEMA_VERSION == ("target-aware-object-scores-v1.0.0")
+    assert TARGET_AWARE_CANDIDATE_SCORES_SCHEMA_VERSION == ("target-aware-candidate-scores-v1.0.0")
+    assert TARGET_AWARE_OBJECT_SCORE_SCHEMA["calibrated_target_probability"] == (pl.Float64)
     assert TARGET_AWARE_OBJECT_SCORE_SCHEMA["target_regional_rank"] == pl.UInt32
     assert TARGET_AWARE_OBJECT_SCORE_SCHEMA["visual_input_evidence"] == pl.List(
         pl.Struct(
@@ -263,9 +252,7 @@ def test_frame_derives_stable_ids_and_complete_candidate_projection() -> None:
     assert row["schema_version"] == TARGET_AWARE_OBJECT_SCORES_SCHEMA_VERSION
     assert row["target_score_id"].startswith("target-score:")
     assert row["target_score_fingerprint"].startswith("sha256:")
-    assert [
-        item["candidate_priority"] for item in row["regional_candidate_evidence"]
-    ] == [
+    assert [item["candidate_priority"] for item in row["regional_candidate_evidence"]] == [
         0,
         1,
     ]
@@ -335,9 +322,7 @@ def test_output_rejects_incomplete_candidate_union_and_visual_weights() -> None:
         )
     ]
     with pytest.raises(ValueError, match="exactly one target"):
-        target_aware_object_scores_frame(
-            [_row(regional_candidate_evidence=competitor_only)]
-        )
+        target_aware_object_scores_frame([_row(regional_candidate_evidence=competitor_only)])
 
     visual = _visual_input()
     visual["aggregation_weight"] = 0.5
@@ -369,9 +354,7 @@ def test_validator_rejects_physical_schema_and_derived_identity_tampering() -> N
             frame.with_columns(pl.col("target_regional_rank").cast(pl.UInt64))
         )
 
-    tampered = frame.with_columns(
-        pl.lit("target-score:" + "0" * 64).alias("target_score_id")
-    )
+    tampered = frame.with_columns(pl.lit("target-score:" + "0" * 64).alias("target_score_id"))
     with pytest.raises(ValueError, match="target_score_id"):
         validate_target_aware_object_scores(tampered)
 

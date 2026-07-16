@@ -119,9 +119,7 @@ def failed_evidence(
 
     canonical_code = _bounded_text(error_code, "failed evidence error code")
     if _ERROR_CODE.fullmatch(canonical_code) is None:
-        raise EvidenceAvailabilityError(
-            "failed evidence error code must be lower snake case"
-        )
+        raise EvidenceAvailabilityError("failed evidence error code must be lower snake case")
     if not isinstance(retryable, bool):
         raise EvidenceAvailabilityError("failed evidence retryable must be boolean")
     return _freeze_envelope(
@@ -208,9 +206,7 @@ def _validate_blocked(
         or len(set(blockers)) != len(blockers)
         or list(blockers) != sorted(blockers)
     ):
-        failures.append(
-            "blocked evidence blockers must be non-empty unique sorted strings"
-        )
+        failures.append("blocked evidence blockers must be non-empty unique sorted strings")
 
 
 def _validate_failed(
@@ -251,9 +247,7 @@ def _bounded_text(value: str, label: str, *, maximum: int = 1_200) -> str:
         raise EvidenceAvailabilityError(f"{label} must be text")
     canonical = value.strip()
     if not 1 <= len(canonical) <= maximum:
-        raise EvidenceAvailabilityError(
-            f"{label} must contain between 1 and {maximum} characters"
-        )
+        raise EvidenceAvailabilityError(f"{label} must contain between 1 and {maximum} characters")
     return canonical
 
 

@@ -8,9 +8,7 @@ from packages.replay.src.biominer_reference_readiness_adapter import (
 
 
 def test_adapt_reference_readiness_from_fixture() -> None:
-    manifest = Path(
-        "packages/replay/tests/fixtures/run_manifest_reference_readiness.json"
-    )
+    manifest = Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json")
     result = adapt_reference_readiness(
         manifest_path=manifest,
         biominer_commit="1535c494f9403e22ed9b163f3ae0ce3706e17f4c",
@@ -55,9 +53,7 @@ def test_adapt_reference_readiness_from_fixture() -> None:
 
 
 def test_adapt_reference_readiness_rejects_invalid_biominer_sha() -> None:
-    manifest = Path(
-        "packages/replay/tests/fixtures/run_manifest_reference_readiness.json"
-    )
+    manifest = Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json")
     try:
         adapt_reference_readiness(
             manifest_path=manifest,
@@ -70,9 +66,7 @@ def test_adapt_reference_readiness_rejects_invalid_biominer_sha() -> None:
 
 
 def test_adapt_reference_readiness_rejects_missing_manifest_path() -> None:
-    missing_manifest = Path(
-        "/tmp/does-not-exist-reference-readiness-manifest.json"
-    )
+    missing_manifest = Path("/tmp/does-not-exist-reference-readiness-manifest.json")
     try:
         adapt_reference_readiness(
             manifest_path=missing_manifest,
@@ -109,13 +103,12 @@ def test_adapt_reference_readiness_without_artifact_returns_empty_result() -> No
     assert result["reference_readiness_summary"] is None
     assert result["reference_readiness_checks"] == []
     assert result["compatibility"]["artifact_missing"] is True
-    assert (
-        "run manifest did not declare reference readiness artifact path"
-        in str(result["compatibility"]["notes"][0])
+    assert "run manifest did not declare reference readiness artifact path" in str(
+        result["compatibility"]["notes"][0]
     )
 
 
-def test_adapt_reference_readiness_falls_back_to_reference_readiness_output_when_primary_key_non_string(
+def test_adapt_reference_readiness_falls_back_when_primary_key_is_not_string(
     tmp_path: Path,
 ) -> None:
     manifest = json.loads(
@@ -168,9 +161,7 @@ def test_adapt_reference_readiness_normalizes_status_aliases(tmp_path: Path) -> 
 
     manifest_path = tmp_path / "run_manifest_reference_readiness.json"
     artifact_path = tmp_path / "reference_bank_readiness.json"
-    run_payload["outputs"]["reference_readiness_manifest"] = str(
-        artifact_path.name
-    )
+    run_payload["outputs"]["reference_readiness_manifest"] = str(artifact_path.name)
 
     manifest_path.write_text(json.dumps(run_payload), encoding="utf-8")
     artifact_path.write_text(json.dumps(readiness_payload), encoding="utf-8")
@@ -236,9 +227,7 @@ def test_adapt_reference_readiness_permits_vision_unknown_value_is_none(
     readiness_payload["permits_vision"] = "maybe"
     manifest_payload["outputs"]["reference_readiness_manifest"] = "reference_bank_readiness.json"
 
-    manifest_path = (
-        tmp_path / "run_manifest_reference_readiness_permits_vision_unknown.json"
-    )
+    manifest_path = tmp_path / "run_manifest_reference_readiness_permits_vision_unknown.json"
     manifest_path.write_text(json.dumps(manifest_payload), encoding="utf-8")
     (tmp_path / "reference_bank_readiness.json").write_text(
         json.dumps(readiness_payload), encoding="utf-8"
@@ -272,9 +261,7 @@ def test_adapt_reference_readiness_normalizes_pascal_case_aliases(tmp_path: Path
 
     manifest_path = tmp_path / "run_manifest_reference_readiness.json"
     artifact_path = tmp_path / "reference_bank_readiness.json"
-    run_payload["outputs"]["reference_readiness_manifest"] = str(
-        artifact_path.name
-    )
+    run_payload["outputs"]["reference_readiness_manifest"] = str(artifact_path.name)
 
     manifest_path.write_text(json.dumps(run_payload), encoding="utf-8")
     artifact_path.write_text(json.dumps(readiness_payload), encoding="utf-8")
@@ -290,7 +277,9 @@ def test_adapt_reference_readiness_normalizes_pascal_case_aliases(tmp_path: Path
     assert checks[2]["status"] == "failed"
 
 
-def test_adapt_reference_readiness_normalizes_failed_with_warning_status_alias(tmp_path: Path) -> None:
+def test_adapt_reference_readiness_normalizes_failed_with_warning_status_alias(
+    tmp_path: Path,
+) -> None:
     run_payload = json.loads(
         Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
             encoding="utf-8"
@@ -409,9 +398,8 @@ def test_adapt_reference_readiness_non_mapping_outputs_skips_artifact_path(
     assert result["reference_readiness_checks"] == []
     assert result["compatibility"]["artifact_missing"] is True
     assert result["compatibility"]["artifact_path"] is None
-    assert (
-        "run manifest did not declare reference readiness artifact path"
-        in str(result["compatibility"]["notes"][0])
+    assert "run manifest did not declare reference readiness artifact path" in str(
+        result["compatibility"]["notes"][0]
     )
 
 
@@ -449,10 +437,7 @@ def test_adapt_reference_readiness_non_list_checks_records_note(tmp_path: Path) 
     assert summary["checks_failed"] == 0
     assert summary["checks_pending"] == 0
     assert result["compatibility"]["checks_read"] == 0
-    assert (
-        "reference readiness checks was missing or malformed"
-        in result["compatibility"]["notes"]
-    )
+    assert "reference readiness checks was missing or malformed" in result["compatibility"]["notes"]
     assert "reference readiness checks were empty" not in result["compatibility"]["notes"]
 
 
@@ -501,7 +486,9 @@ def test_adapt_reference_readiness_skips_non_mapping_checks(tmp_path: Path) -> N
     assert "skipped 1 readiness checks while adapting" in result["compatibility"]["notes"]
     assert result["reference_readiness_summary"]["check_ids"][0] == "readiness_check_0"
     assert result["reference_readiness_summary"]["check_ids"][1] == "target_adult_minimum"
-    assert result["reference_readiness_summary"]["check_ids"][2] == "model_building_inputs_available"
+    assert (
+        result["reference_readiness_summary"]["check_ids"][2] == "model_building_inputs_available"
+    )
 
 
 def test_adapt_reference_readiness_skips_non_mapping_check_in_middle(tmp_path: Path) -> None:
@@ -1136,9 +1123,7 @@ def test_adapt_reference_readiness_falls_back_to_reference_readiness_key(tmp_pat
 
     manifest_path = tmp_path / "run_manifest_reference_readiness_fallback.json"
     artifact_path = tmp_path / "reference_readiness_payload.json"
-    manifest_payload["outputs"] = {
-        "reference_readiness": artifact_path.name
-    }
+    manifest_payload["outputs"] = {"reference_readiness": artifact_path.name}
 
     manifest_path.write_text(json.dumps(manifest_payload), encoding="utf-8")
     artifact_path.write_text(json.dumps(readiness_payload), encoding="utf-8")
@@ -1167,9 +1152,7 @@ def test_adapt_reference_readiness_falls_back_to_readiness_manifest_key(tmp_path
 
     manifest_path = tmp_path / "run_manifest_reference_readiness_fallback_ready_manifest.json"
     artifact_path = tmp_path / "reference_readiness_manifest_payload.json"
-    manifest_payload["outputs"] = {
-        "readiness_manifest": str(artifact_path)
-    }
+    manifest_payload["outputs"] = {"readiness_manifest": str(artifact_path)}
 
     manifest_path.write_text(json.dumps(manifest_payload), encoding="utf-8")
     artifact_path.write_text(json.dumps(readiness_payload), encoding="utf-8")
@@ -1201,7 +1184,9 @@ def test_adapt_reference_readiness_trims_reference_readiness_manifest_path(
 
     manifest_path = tmp_path / "run_manifest_reference_readiness_path_whitespace.json"
     artifact_path = tmp_path / "reference_bank_readiness.json"
-    manifest_payload["outputs"]["reference_readiness_manifest"] = "  reference_bank_readiness.json  "
+    manifest_payload["outputs"]["reference_readiness_manifest"] = (
+        "  reference_bank_readiness.json  "
+    )
 
     manifest_path.write_text(json.dumps(manifest_payload), encoding="utf-8")
     artifact_path.write_text(json.dumps(readiness_payload), encoding="utf-8")
@@ -1212,9 +1197,7 @@ def test_adapt_reference_readiness_trims_reference_readiness_manifest_path(
     )
 
     assert result["reference_readiness_summary"] is not None
-    assert result["reference_readiness_summary"]["readiness_artifact_path"] == str(
-        artifact_path
-    )
+    assert result["reference_readiness_summary"]["readiness_artifact_path"] == str(artifact_path)
 
 
 def test_adapt_reference_readiness_trims_reference_readiness_directory_output_path(
@@ -1231,9 +1214,7 @@ def test_adapt_reference_readiness_trims_reference_readiness_directory_output_pa
         )
     )
 
-    manifest_path = (
-        tmp_path / "run_manifest_reference_readiness_directory_path_whitespace.json"
-    )
+    manifest_path = tmp_path / "run_manifest_reference_readiness_directory_path_whitespace.json"
     artifact_directory = tmp_path / "reference_readiness_output_dir"
     artifact_directory.mkdir()
     (artifact_directory / "reference_bank_readiness.json").write_text(
@@ -1241,7 +1222,9 @@ def test_adapt_reference_readiness_trims_reference_readiness_directory_output_pa
         encoding="utf-8",
     )
 
-    manifest_payload["outputs"]["reference_readiness_manifest"] = "  reference_readiness_output_dir  "
+    manifest_payload["outputs"]["reference_readiness_manifest"] = (
+        "  reference_readiness_output_dir  "
+    )
 
     manifest_path.write_text(json.dumps(manifest_payload), encoding="utf-8")
 
@@ -1287,7 +1270,7 @@ def test_adapt_reference_readiness_reference_manifest_output_blank_is_missing(
     )
 
 
-def test_adapt_reference_readiness_blank_reference_readiness_manifest_key_falls_back_to_reference_readiness(
+def test_adapt_reference_readiness_blank_manifest_key_falls_back(
     tmp_path: Path,
 ) -> None:
     manifest_payload = json.loads(
@@ -1354,7 +1337,9 @@ def test_adapt_reference_readiness_skips_none_output_value_and_falls_back(tmp_pa
     assert result["compatibility"]["checks_read"] == 3
 
 
-def test_adapt_reference_readiness_skips_non_string_output_value_and_falls_back(tmp_path: Path) -> None:
+def test_adapt_reference_readiness_skips_non_string_output_value_and_falls_back(
+    tmp_path: Path,
+) -> None:
     manifest_payload = json.loads(
         Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
             encoding="utf-8"
@@ -1387,7 +1372,9 @@ def test_adapt_reference_readiness_skips_non_string_output_value_and_falls_back(
     assert result["compatibility"]["checks_read"] == 3
 
 
-def test_adapt_reference_readiness_falls_back_to_reference_readiness_file_key(tmp_path: Path) -> None:
+def test_adapt_reference_readiness_falls_back_to_reference_readiness_file_key(
+    tmp_path: Path,
+) -> None:
     manifest_payload = json.loads(
         Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
             encoding="utf-8"
@@ -1401,9 +1388,7 @@ def test_adapt_reference_readiness_falls_back_to_reference_readiness_file_key(tm
 
     manifest_path = tmp_path / "run_manifest_reference_readiness_fallback_file.json"
     artifact_path = tmp_path / "reference_readiness_payload.json"
-    manifest_payload["outputs"] = {
-        "reference_readiness_file": artifact_path.name
-    }
+    manifest_payload["outputs"] = {"reference_readiness_file": artifact_path.name}
 
     manifest_path.write_text(json.dumps(manifest_payload), encoding="utf-8")
     artifact_path.write_text(json.dumps(readiness_payload), encoding="utf-8")
@@ -1433,9 +1418,7 @@ def test_adapt_reference_readiness_falls_back_to_readiness_key(tmp_path: Path) -
 
     manifest_path = tmp_path / "run_manifest_reference_readiness_fallback_key.json"
     artifact_path = tmp_path / "readiness_payload.json"
-    manifest_payload["outputs"] = {
-        "readiness": str(artifact_path)
-    }
+    manifest_payload["outputs"] = {"readiness": str(artifact_path)}
 
     manifest_path.write_text(json.dumps(manifest_payload), encoding="utf-8")
     artifact_path.write_text(json.dumps(readiness_payload), encoding="utf-8")
@@ -1451,7 +1434,9 @@ def test_adapt_reference_readiness_falls_back_to_readiness_key(tmp_path: Path) -
     assert result["compatibility"]["checks_read"] == 3
 
 
-def test_adapt_reference_readiness_trims_artifact_path_and_resolves_relative_path(tmp_path: Path) -> None:
+def test_adapt_reference_readiness_trims_artifact_path_and_resolves_relative_path(
+    tmp_path: Path,
+) -> None:
     manifest_payload = json.loads(
         Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
             encoding="utf-8"
@@ -1465,7 +1450,9 @@ def test_adapt_reference_readiness_trims_artifact_path_and_resolves_relative_pat
 
     manifest_path = tmp_path / "run_manifest_reference_readiness_trimmed.json"
     artifact_path = tmp_path / "reference_bank_readiness.json"
-    manifest_payload["outputs"]["reference_readiness_manifest"] = "  ./reference_bank_readiness.json  "
+    manifest_payload["outputs"]["reference_readiness_manifest"] = (
+        "  ./reference_bank_readiness.json  "
+    )
 
     manifest_path.write_text(json.dumps(manifest_payload), encoding="utf-8")
     artifact_path.write_text(json.dumps(readiness_payload), encoding="utf-8")
@@ -1513,7 +1500,9 @@ def test_adapt_reference_readiness_skips_empty_output_key_and_falls_back(tmp_pat
     assert result["compatibility"]["checks_read"] == 3
 
 
-def test_adapt_reference_readiness_resolves_manifest_directory_to_reference_bank_readiness_file(tmp_path: Path) -> None:
+def test_adapt_reference_readiness_resolves_manifest_directory_to_reference_bank_readiness_file(
+    tmp_path: Path,
+) -> None:
     manifest_payload = json.loads(
         Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
             encoding="utf-8"
@@ -1599,7 +1588,9 @@ def test_adapt_reference_readiness_handles_invalid_artifact_json(tmp_path: Path)
     )
 
 
-def test_adapt_reference_readiness_treats_non_dict_outputs_as_missing_artifact(tmp_path: Path) -> None:
+def test_adapt_reference_readiness_treats_non_dict_outputs_as_missing_artifact(
+    tmp_path: Path,
+) -> None:
     manifest_payload = json.loads(
         Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
             encoding="utf-8"
@@ -1680,7 +1671,9 @@ def test_adapt_reference_readiness_skips_non_list_checks(tmp_path: Path) -> None
     assert result["reference_readiness_summary"]["checks_failed"] == 0
     assert result["reference_readiness_summary"]["checks_pending"] == 0
     assert result["compatibility"]["checks_read"] == 0
-    assert result["compatibility"]["notes"] == ["reference readiness checks was missing or malformed"]
+    assert result["compatibility"]["notes"] == [
+        "reference readiness checks was missing or malformed"
+    ]
 
 
 def test_adapt_reference_readiness_none_checks_treated_as_no_checks(tmp_path: Path) -> None:
@@ -1715,10 +1708,7 @@ def test_adapt_reference_readiness_none_checks_treated_as_no_checks(tmp_path: Pa
     assert summary["checks_failed"] == 0
     assert summary["checks_pending"] == 0
     assert result["reference_readiness_checks"] == []
-    assert (
-        "reference readiness checks was missing or malformed"
-        in result["compatibility"]["notes"]
-    )
+    assert "reference readiness checks was missing or malformed" in result["compatibility"]["notes"]
 
 
 def test_adapt_reference_readiness_non_list_checks_does_not_emit_check_ids(tmp_path: Path) -> None:
@@ -1753,7 +1743,9 @@ def test_adapt_reference_readiness_non_list_checks_does_not_emit_check_ids(tmp_p
     assert "reference readiness checks was missing or malformed" in result["compatibility"]["notes"]
 
 
-def test_adapt_reference_readiness_non_mapping_checks_with_no_checks_list_uses_empty_check_ids(tmp_path: Path) -> None:
+def test_adapt_reference_readiness_non_mapping_checks_with_no_checks_list_uses_empty_check_ids(
+    tmp_path: Path,
+) -> None:
     manifest_payload = json.loads(
         Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
             encoding="utf-8"
@@ -1782,10 +1774,7 @@ def test_adapt_reference_readiness_non_mapping_checks_with_no_checks_list_uses_e
     assert summary is not None
     assert summary["checks_total"] == 0
     assert summary["check_ids"] == []
-    assert (
-        "reference readiness checks was missing or malformed"
-        in result["compatibility"]["notes"]
-    )
+    assert "reference readiness checks was missing or malformed" in result["compatibility"]["notes"]
 
 
 def test_adapt_reference_readiness_records_note_for_missing_counts_block(tmp_path: Path) -> None:
@@ -1817,14 +1806,13 @@ def test_adapt_reference_readiness_records_note_for_missing_counts_block(tmp_pat
     assert summary is not None
     assert summary["support_manifest_rows"] is None
     assert summary["eligible_support_rows"] is None
-    assert (
-        "readiness counts block was missing or malformed"
-        in result["compatibility"]["notes"]
-    )
+    assert "readiness counts block was missing or malformed" in result["compatibility"]["notes"]
     assert result["compatibility"]["checks_read"] == 3
 
 
-def test_adapt_reference_readiness_empty_candidate_set_fingerprints_stays_zero_count(tmp_path: Path) -> None:
+def test_adapt_reference_readiness_empty_candidate_set_fingerprints_stays_zero_count(
+    tmp_path: Path,
+) -> None:
     manifest_payload = json.loads(
         Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
             encoding="utf-8"
@@ -1838,7 +1826,9 @@ def test_adapt_reference_readiness_empty_candidate_set_fingerprints_stays_zero_c
     readiness_payload["candidate_set_fingerprints"] = []
     manifest_payload["outputs"]["reference_readiness_manifest"] = "reference_bank_readiness.json"
 
-    manifest_path = tmp_path / "run_manifest_reference_readiness_empty_candidate_set_fingerprints.json"
+    manifest_path = (
+        tmp_path / "run_manifest_reference_readiness_empty_candidate_set_fingerprints.json"
+    )
     manifest_path.write_text(json.dumps(manifest_payload), encoding="utf-8")
     (tmp_path / "reference_bank_readiness.json").write_text(
         json.dumps(readiness_payload), encoding="utf-8"
@@ -1884,12 +1874,13 @@ def test_adapt_reference_readiness_non_list_candidate_set_ids(tmp_path: Path) ->
     assert summary["candidate_set_ids"] == []
     assert summary["candidate_set_count"] == 0
     assert (
-        "reference readiness payload had no candidate_set_ids"
-        in result["compatibility"]["notes"]
+        "reference readiness payload had no candidate_set_ids" in result["compatibility"]["notes"]
     )
 
 
-def test_adapt_reference_readiness_non_string_candidate_set_ids_are_stringified(tmp_path: Path) -> None:
+def test_adapt_reference_readiness_non_string_candidate_set_ids_are_stringified(
+    tmp_path: Path,
+) -> None:
     manifest_payload = json.loads(
         Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
             encoding="utf-8"
@@ -1952,8 +1943,7 @@ def test_adapt_reference_readiness_none_candidate_set_ids_treated_as_empty(
     assert summary["candidate_set_ids"] == []
     assert summary["candidate_set_count"] == 0
     assert (
-        "reference readiness payload had no candidate_set_ids"
-        in result["compatibility"]["notes"]
+        "reference readiness payload had no candidate_set_ids" in result["compatibility"]["notes"]
     )
 
 
@@ -1973,9 +1963,7 @@ def test_adapt_reference_readiness_blank_candidate_set_ids_are_dropped_and_noted
     readiness_payload["candidate_set_ids"] = ["   ", "", None]
     manifest_payload["outputs"]["reference_readiness_manifest"] = "reference_bank_readiness.json"
 
-    manifest_path = (
-        tmp_path / "run_manifest_reference_readiness_candidate_set_ids_blank.json"
-    )
+    manifest_path = tmp_path / "run_manifest_reference_readiness_candidate_set_ids_blank.json"
     manifest_path.write_text(json.dumps(manifest_payload), encoding="utf-8")
     (tmp_path / "reference_bank_readiness.json").write_text(
         json.dumps(readiness_payload), encoding="utf-8"
@@ -1991,8 +1979,7 @@ def test_adapt_reference_readiness_blank_candidate_set_ids_are_dropped_and_noted
     assert summary["candidate_set_ids"] == []
     assert summary["candidate_set_count"] == 0
     assert (
-        "reference readiness payload had no candidate_set_ids"
-        in result["compatibility"]["notes"]
+        "reference readiness payload had no candidate_set_ids" in result["compatibility"]["notes"]
     )
 
 
@@ -2028,8 +2015,7 @@ def test_adapt_reference_readiness_non_list_candidate_set_ids_treated_as_empty(
     assert summary["candidate_set_ids"] == []
     assert summary["candidate_set_count"] == 0
     assert (
-        "reference readiness payload had no candidate_set_ids"
-        in result["compatibility"]["notes"]
+        "reference readiness payload had no candidate_set_ids" in result["compatibility"]["notes"]
     )
 
 
@@ -2142,7 +2128,9 @@ def test_adapt_reference_readiness_check_affected_collections_are_stringified(
     assert checks[0]["affected_routes_count"] == 0
 
 
-def test_adapt_reference_readiness_non_list_affected_collections_count_as_zero(tmp_path: Path) -> None:
+def test_adapt_reference_readiness_non_list_affected_collections_count_as_zero(
+    tmp_path: Path,
+) -> None:
     manifest_payload = json.loads(
         Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
             encoding="utf-8"
@@ -2158,9 +2146,7 @@ def test_adapt_reference_readiness_non_list_affected_collections_count_as_zero(t
     readiness_payload["checks"][0]["affected_routes"] = 3
     manifest_payload["outputs"]["reference_readiness_manifest"] = "reference_bank_readiness.json"
 
-    manifest_path = (
-        tmp_path / "run_manifest_reference_readiness_non_list_affected_fields.json"
-    )
+    manifest_path = tmp_path / "run_manifest_reference_readiness_non_list_affected_fields.json"
     manifest_path.write_text(json.dumps(manifest_payload), encoding="utf-8")
     (tmp_path / "reference_bank_readiness.json").write_text(
         json.dumps(readiness_payload), encoding="utf-8"
@@ -2271,7 +2257,9 @@ def test_adapt_reference_readiness_non_mapping_evidence_field_is_none(tmp_path: 
     assert checks[0]["evidence_fields"] is None
 
 
-def test_adapt_reference_readiness_nested_artifacts_non_mapping_values_are_ignored(tmp_path: Path) -> None:
+def test_adapt_reference_readiness_nested_artifacts_non_mapping_values_are_ignored(
+    tmp_path: Path,
+) -> None:
     manifest_payload = json.loads(
         Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
             encoding="utf-8"
@@ -2322,7 +2310,9 @@ def test_adapt_reference_readiness_non_list_candidate_set_fingerprints(tmp_path:
     readiness_payload["candidate_set_fingerprints"] = "not-a-list"
     manifest_payload["outputs"]["reference_readiness_manifest"] = "reference_bank_readiness.json"
 
-    manifest_path = tmp_path / "run_manifest_reference_readiness_bad_candidate_set_fingerprints.json"
+    manifest_path = (
+        tmp_path / "run_manifest_reference_readiness_bad_candidate_set_fingerprints.json"
+    )
     manifest_path.write_text(json.dumps(manifest_payload), encoding="utf-8")
     (tmp_path / "reference_bank_readiness.json").write_text(
         json.dumps(readiness_payload), encoding="utf-8"
@@ -2354,7 +2344,9 @@ def test_adapt_reference_readiness_none_candidate_set_fingerprints_treated_as_em
     readiness_payload["candidate_set_fingerprints"] = None
     manifest_payload["outputs"]["reference_readiness_manifest"] = "reference_bank_readiness.json"
 
-    manifest_path = tmp_path / "run_manifest_reference_readiness_none_candidate_set_fingerprints.json"
+    manifest_path = (
+        tmp_path / "run_manifest_reference_readiness_none_candidate_set_fingerprints.json"
+    )
     manifest_path.write_text(json.dumps(manifest_payload), encoding="utf-8")
     (tmp_path / "reference_bank_readiness.json").write_text(
         json.dumps(readiness_payload), encoding="utf-8"
@@ -2398,10 +2390,7 @@ def test_adapt_reference_readiness_records_note_for_missing_schema_version(tmp_p
     summary = result["reference_readiness_summary"]
     assert summary is not None
     assert summary["readiness_artifact_schema_version"] is None
-    assert (
-        "reference readiness schema_version was missing"
-        in result["compatibility"]["notes"]
-    )
+    assert "reference readiness schema_version was missing" in result["compatibility"]["notes"]
 
 
 def test_adapt_reference_readiness_marks_invalid_schema_version_in_readiness_payload(
@@ -2579,7 +2568,9 @@ def test_adapt_reference_readiness_float_counts_in_checks_are_ignored(tmp_path: 
     assert check["required_type"] == "float"
 
 
-def test_adapt_reference_readiness_prefers_documented_shortfalls_list_length_for_count(tmp_path: Path) -> None:
+def test_adapt_reference_readiness_prefers_documented_shortfalls_list_length_for_count(
+    tmp_path: Path,
+) -> None:
     manifest_payload = json.loads(
         Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
             encoding="utf-8"
@@ -2593,7 +2584,9 @@ def test_adapt_reference_readiness_prefers_documented_shortfalls_list_length_for
     readiness_payload["counts"]["documented_shortfall_count"] = "not-int"
     manifest_payload["outputs"]["reference_readiness_manifest"] = "reference_bank_readiness.json"
 
-    manifest_path = tmp_path / "run_manifest_reference_readiness_bad_documented_shortfall_count.json"
+    manifest_path = (
+        tmp_path / "run_manifest_reference_readiness_bad_documented_shortfall_count.json"
+    )
     manifest_path.write_text(json.dumps(manifest_payload), encoding="utf-8")
     (tmp_path / "reference_bank_readiness.json").write_text(
         json.dumps(readiness_payload), encoding="utf-8"
@@ -2675,14 +2668,13 @@ def test_adapt_reference_readiness_non_dict_counts_falls_back_to_defaults(tmp_pa
     assert summary["support_manifest_rows"] is None
     assert summary["eligible_support_rows"] is None
     assert summary["pending_review_count"] is None
-    assert (
-        "readiness counts block was missing or malformed"
-        in result["compatibility"]["notes"]
-    )
+    assert "readiness counts block was missing or malformed" in result["compatibility"]["notes"]
     assert result["compatibility"]["checks_read"] == 3
 
 
-def test_adapt_reference_readiness_boolean_counts_are_not_treated_as_integers(tmp_path: Path) -> None:
+def test_adapt_reference_readiness_boolean_counts_are_not_treated_as_integers(
+    tmp_path: Path,
+) -> None:
     manifest_payload = json.loads(
         Path("packages/replay/tests/fixtures/run_manifest_reference_readiness.json").read_text(
             encoding="utf-8"

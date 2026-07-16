@@ -110,8 +110,7 @@ def evaluate_prototype_release_gate(
         ),
         _gate(
             "release_acceptance_prototype_only",
-            _path(phase15, "acceptance_status")
-            == "accepted_prototype_only_with_limitations",
+            _path(phase15, "acceptance_status") == "accepted_prototype_only_with_limitations",
             "Release acceptance is explicitly prototype-only with limitations.",
             "Release acceptance is missing or exceeds the prototype boundary.",
             "contracts.phase15_release.data.acceptance_status",

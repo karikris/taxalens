@@ -4,7 +4,6 @@ from datetime import UTC, datetime
 
 import polars as pl
 import pytest
-
 from packages.replay.src.biominer_detection_policy import DetectionPolicy
 from packages.replay.src.biominer_detection_routing import DetectionRoutingPolicy
 from packages.replay.src.biominer_detection_schema import (

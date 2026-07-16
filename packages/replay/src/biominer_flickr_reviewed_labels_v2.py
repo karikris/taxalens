@@ -109,9 +109,7 @@ def build_flickr_reviewed_labels_v2(
 ) -> pl.DataFrame:
     """Build a deterministically ordered, physically typed export frame."""
     if not rows:
-        raise FlickrReviewedLabelsV2Error(
-            "reviewed-label export has no scientific decision rows"
-        )
+        raise FlickrReviewedLabelsV2Error("reviewed-label export has no scientific decision rows")
     expected_fields = set(flickr_reviewed_labels_v2_schema())
     canonical_rows: list[dict[str, Any]] = []
     for index, row in enumerate(rows):
@@ -141,17 +139,12 @@ def validate_flickr_reviewed_labels_v2(frame: pl.DataFrame) -> None:
         missing = sorted(set(expected_schema) - set(frame.columns))
         unknown = sorted(set(frame.columns) - set(expected_schema))
         raise FlickrReviewedLabelsV2Error(
-            "reviewed-label physical schema differs: "
-            f"missing={missing}; unknown={unknown}"
+            f"reviewed-label physical schema differs: missing={missing}; unknown={unknown}"
         )
     if frame.is_empty():
-        raise FlickrReviewedLabelsV2Error(
-            "reviewed-label export has no scientific decision rows"
-        )
+        raise FlickrReviewedLabelsV2Error("reviewed-label export has no scientific decision rows")
     if frame.to_dicts() != frame.sort(_SORT_FIELDS).to_dicts():
-        raise FlickrReviewedLabelsV2Error(
-            "reviewed-label rows are not deterministically sorted"
-        )
+        raise FlickrReviewedLabelsV2Error("reviewed-label rows are not deterministically sorted")
 
     rows = frame.to_dicts()
     _validate_campaign_bindings(rows)
@@ -166,12 +159,8 @@ def validate_flickr_reviewed_labels_v2(frame: pl.DataFrame) -> None:
                 f"Flickr photo is repeated in reviewed labels: {photo_id}"
             )
         photo_ids.add(photo_id)
-        duplicate_group = _required_text(
-            row["duplicate_group_id"], "duplicate_group_id"
-        )
-        owner_group = _required_text(
-            row["observer_owner_group_id"], "observer_owner_group_id"
-        )
+        duplicate_group = _required_text(row["duplicate_group_id"], "duplicate_group_id")
+        owner_group = _required_text(row["observer_owner_group_id"], "observer_owner_group_id")
         dataset_split = _required_text(row["dataset_split"], "dataset_split")
         binding = (owner_group, dataset_split)
         previous_duplicate = duplicate_bindings.get(duplicate_group)
@@ -182,9 +171,7 @@ def validate_flickr_reviewed_labels_v2(frame: pl.DataFrame) -> None:
         duplicate_bindings[duplicate_group] = binding
         previous_split = owner_splits.get(owner_group)
         if previous_split is not None and previous_split != dataset_split:
-            raise FlickrReviewedLabelsV2Error(
-                "reviewed-label owner group crosses dataset splits"
-            )
+            raise FlickrReviewedLabelsV2Error("reviewed-label owner group crosses dataset splits")
         owner_splits[owner_group] = dataset_split
 
 
@@ -214,19 +201,12 @@ def _validate_campaign_bindings(rows: list[dict[str, Any]]) -> None:
     for field in _CAMPAIGN_BINDINGS:
         values = {_hashable(row[field]) for row in rows}
         if len(values) != 1:
-            raise FlickrReviewedLabelsV2Error(
-                f"reviewed-label rows do not share one {field}"
-            )
+            raise FlickrReviewedLabelsV2Error(f"reviewed-label rows do not share one {field}")
 
 
 def _validate_row_provenance(row: Mapping[str, Any]) -> None:
-    if (
-        row["schema_version"] != BIOMINER_REVIEWED_LABEL_SCHEMA_VERSION
-        or row["source"] != "flickr"
-    ):
-        raise FlickrReviewedLabelsV2Error(
-            "reviewed-label source or schema version is unsupported"
-        )
+    if row["schema_version"] != BIOMINER_REVIEWED_LABEL_SCHEMA_VERSION or row["source"] != "flickr":
+        raise FlickrReviewedLabelsV2Error("reviewed-label source or schema version is unsupported")
     for field in (
         "taxalens_campaign_manifest_sha256",
         "taxalens_question_sha256",
@@ -247,15 +227,11 @@ def _validate_row_provenance(row: Mapping[str, Any]) -> None:
     )
     sampling_sha = hashlib.sha256(sampling_json.encode()).hexdigest()
     if sampling_sha != row["taxalens_sampling_plan_sha256"]:
-        raise FlickrReviewedLabelsV2Error(
-            "sampling plan JSON does not match its SHA-256"
-        )
+        raise FlickrReviewedLabelsV2Error("sampling plan JSON does not match its SHA-256")
     try:
         sampling_plan = json.loads(sampling_json)
     except json.JSONDecodeError as error:
-        raise FlickrReviewedLabelsV2Error(
-            "sampling plan JSON is invalid"
-        ) from error
+        raise FlickrReviewedLabelsV2Error("sampling plan JSON is invalid") from error
     if not isinstance(sampling_plan, dict):
         raise FlickrReviewedLabelsV2Error("sampling plan JSON must be an object")
     expected_plan_fields = {
@@ -266,9 +242,7 @@ def _validate_row_provenance(row: Mapping[str, Any]) -> None:
     }
     for field, expected in expected_plan_fields.items():
         if sampling_plan.get(field) != expected:
-            raise FlickrReviewedLabelsV2Error(
-                f"sampling plan JSON conflicts with {field}"
-            )
+            raise FlickrReviewedLabelsV2Error(f"sampling plan JSON conflicts with {field}")
 
     event_ids = _string_list(
         row["taxalens_effective_event_ids"],
@@ -282,9 +256,7 @@ def _validate_row_provenance(row: Mapping[str, Any]) -> None:
         raise FlickrReviewedLabelsV2Error(
             "reviewed labels require effective events and reviewer groups"
         )
-    if event_ids != sorted(set(event_ids)) or reviewer_ids != sorted(
-        set(reviewer_ids)
-    ):
+    if event_ids != sorted(set(event_ids)) or reviewer_ids != sorted(set(reviewer_ids)):
         raise FlickrReviewedLabelsV2Error(
             "effective events and reviewer groups must be sorted and unique"
         )
@@ -330,12 +302,7 @@ def _validate_row_provenance(row: Mapping[str, Any]) -> None:
 
 
 def _valid_probability(value: object) -> bool:
-    return (
-        isinstance(value, float)
-        and math.isfinite(value)
-        and value > 0
-        and value <= 1
-    )
+    return isinstance(value, float) and math.isfinite(value) and value > 0 and value <= 1
 
 
 def _valid_weight(value: object) -> bool:

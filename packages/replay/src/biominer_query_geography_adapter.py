@@ -306,11 +306,7 @@ def _normalize_range_source_coverage(
             or _first_str(row.get("name"))
         )
         if source is not None:
-            count = (
-                _to_int(row.get("dataset_count"))
-                if "dataset_count" in row
-                else None
-            )
+            count = _to_int(row.get("dataset_count")) if "dataset_count" in row else None
             if count is None and "eligible_occurrence_count" in row:
                 count = _to_int(row.get("eligible_occurrence_count"))
             if count is None and "count" in row:
@@ -398,9 +394,7 @@ def _load_json(payload_path: Path) -> Any:
     except FileNotFoundError as exc:
         raise QueryGeographyAdapterError(f"Artifact not found: {payload_path}") from exc
     except json.JSONDecodeError as exc:
-        raise QueryGeographyAdapterError(
-            f"Artifact is not valid JSON: {payload_path}"
-        ) from exc
+        raise QueryGeographyAdapterError(f"Artifact is not valid JSON: {payload_path}") from exc
 
 
 def _load_manifest(path: Path) -> dict[str, Any]:
@@ -532,15 +526,9 @@ def _build_query_summary(
 ) -> QueryDefinitionSummaryContract:
     total = len(rows)
     eligibility_values = [
-        value
-        for row in rows
-        if (value := _to_bool(row.get("query_eligible"))) is not None
+        value for row in rows if (value := _to_bool(row.get("query_eligible"))) is not None
     ]
-    enabled_values = [
-        value
-        for row in rows
-        if (value := _to_bool(row.get("enabled"))) is not None
-    ]
+    enabled_values = [value for row in rows if (value := _to_bool(row.get("enabled"))) is not None]
     eligible = sum(1 for value in eligibility_values if value)
     ineligible = sum(1 for value in eligibility_values if not value)
     disabled = sum(1 for value in enabled_values if not value)
@@ -574,9 +562,7 @@ def _build_query_summary(
     }
 
 
-def _map_geographic_spread_row(
-    row: dict[str, Any]
-) -> GeographicSpreadRecordContract:
+def _map_geographic_spread_row(row: dict[str, Any]) -> GeographicSpreadRecordContract:
     return {
         "schema_version": _first_str(row.get("schema_version")),
         "registry_version": _first_str(row.get("registry_version")),
@@ -600,9 +586,7 @@ def _map_geographic_spread_row(
         "preserved_specimen_count": _to_int(row.get("preserved_specimen_count")),
         "fossil_count": _to_int(row.get("fossil_count")),
         "geospatial_issue_count": _to_int(row.get("geospatial_issue_count")),
-        "coordinate_uncertainty_summary": _to_int_dict(
-            row.get("coordinate_uncertainty_summary")
-        ),
+        "coordinate_uncertainty_summary": _to_int_dict(row.get("coordinate_uncertainty_summary")),
         "earliest_occurrence_date": _first_str(row.get("earliest_occurrence_date")),
         "latest_occurrence_date": _first_str(row.get("latest_occurrence_date")),
         "known_range_role": _first_str(row.get("known_range_role")),
@@ -611,9 +595,7 @@ def _map_geographic_spread_row(
     }
 
 
-def _map_occurrence_evidence_row(
-    row: dict[str, Any]
-) -> GeographicOccurrenceEvidenceContract:
+def _map_occurrence_evidence_row(row: dict[str, Any]) -> GeographicOccurrenceEvidenceContract:
     return {
         "schema_version": _first_str(row.get("schema_version")),
         "source": _first_str(row.get("source")),
@@ -636,9 +618,7 @@ def _map_occurrence_evidence_row(
     }
 
 
-def _map_taxon_geographic_summary_row(
-    row: dict[str, Any]
-) -> TaxonGeographicSummaryRecordContract:
+def _map_taxon_geographic_summary_row(row: dict[str, Any]) -> TaxonGeographicSummaryRecordContract:
     occupied_envelope = _normalize_occupied_envelope(row.get("occupied_envelope"))
 
     return {
@@ -655,14 +635,14 @@ def _map_taxon_geographic_summary_row(
         "countries": _to_string_list(row.get("countries")),
         "admin_regions": _to_string_list(row.get("admin_regions")),
         "occupied_envelope": occupied_envelope,
-        "disconnected_range_component_count": _to_int(row.get("disconnected_range_component_count")),
+        "disconnected_range_component_count": _to_int(
+            row.get("disconnected_range_component_count")
+        ),
         "occurrence_density_summary": _to_float_dict(row.get("occurrence_density_summary")),
         "data_deficient": _to_bool(row.get("data_deficient")),
         "data_deficient_reasons": _to_string_list(row.get("data_deficient_reasons")),
         "suspicious_outlier_cell_count": _to_int(row.get("suspicious_outlier_cell_count")),
-        "range_source_coverage": _normalize_range_source_coverage(
-            row.get("range_source_coverage")
-        ),
+        "range_source_coverage": _normalize_range_source_coverage(row.get("range_source_coverage")),
         "known_introduced_regions": _to_string_list(row.get("known_introduced_regions")),
         "current_evidence_count": _to_int(row.get("current_evidence_count")),
         "historical_evidence_count": _to_int(row.get("historical_evidence_count")),
@@ -746,8 +726,7 @@ def _map_geographic_spread_manifest_summary(
         else len(spread_rows),
         "checkpoint_part_count": _to_int(payload.get("checkpoint_part_count")),
         "source_total_records": _to_int(payload.get("source_total_records")),
-        "source": _first_str(payload.get("source"))
-        or _first_str(identity.get("source")),
+        "source": _first_str(payload.get("source")) or _first_str(identity.get("source")),
         "source_query_hash": _first_str(payload.get("source_query_hash"))
         or _first_str(identity.get("source_query_hash")),
         "source_snapshot_version": _first_str(payload.get("source_snapshot_version"))
@@ -778,7 +757,9 @@ def _map_geographic_summary_manifest_summary(
     return {
         "schema_version": "geographic_summary_manifest_summary:v1",
         "biominer_commit": biominer_commit,
-        "run_id": _first_str(payload.get("run_id")) or run_id if isinstance(payload, dict) else run_id,
+        "run_id": _first_str(payload.get("run_id")) or run_id
+        if isinstance(payload, dict)
+        else run_id,
         "source_manifest_path": source_manifest_path,
         "geographic_summary_manifest_path": str(manifest_path) if manifest_path else None,
         "taxon_geographic_summary_artifact_path": str(summary_artifact_path)
@@ -786,15 +767,23 @@ def _map_geographic_summary_manifest_summary(
         else None,
         "geographic_qa_findings_artifact_path": str(qa_artifact_path) if qa_artifact_path else None,
         "status": _normalize_status(payload.get("status")) if isinstance(payload, dict) else None,
-        "qa_status": _normalize_status(payload.get("qa_status")) if isinstance(payload, dict) else None,
-        "qa_fatal_count": _to_int(payload.get("qa_fatal_count")) if isinstance(payload, dict) else None,
-        "qa_warning_count": _to_int(payload.get("qa_warning_count")) if isinstance(payload, dict) else None,
+        "qa_status": _normalize_status(payload.get("qa_status"))
+        if isinstance(payload, dict)
+        else None,
+        "qa_fatal_count": _to_int(payload.get("qa_fatal_count"))
+        if isinstance(payload, dict)
+        else None,
+        "qa_warning_count": _to_int(payload.get("qa_warning_count"))
+        if isinstance(payload, dict)
+        else None,
         "summary_row_count": summary_row_count,
         "qa_row_count": _to_int(payload.get("qa_row_count")) if isinstance(payload, dict) else None,
         "created_at": _first_str(payload.get("created_at")) if isinstance(payload, dict) else None,
         "policy_version": _first_str(policy.get("policy_version")),
         "grid_name": _first_str(payload.get("grid_name")) if isinstance(payload, dict) else None,
-        "grid_version": _first_str(payload.get("grid_version")) if isinstance(payload, dict) else None,
+        "grid_version": _first_str(payload.get("grid_version"))
+        if isinstance(payload, dict)
+        else None,
     }
 
 
@@ -856,7 +845,8 @@ def adapt_query_geography_artifacts(
         notes.append("run manifest did not declare query definition artifact path")
     elif _is_parquet_path(query_path):
         notes.append(
-            f"query definitions artifact is parquet and not parsed in deterministic replay fixtures: {query_path}"
+            "query definitions artifact is parquet and not parsed in deterministic "
+            f"replay fixtures: {query_path}"
         )
     else:
         try:
@@ -871,7 +861,8 @@ def adapt_query_geography_artifacts(
         notes.append("run manifest did not declare taxon_geographic_spread artifact path")
     elif _is_parquet_path(spread_path):
         notes.append(
-            f"taxon_geographic_spread artifact is parquet and not parsed in deterministic replay fixtures: {spread_path}"
+            "taxon_geographic_spread artifact is parquet and not parsed in deterministic "
+            f"replay fixtures: {spread_path}"
         )
     else:
         try:
@@ -883,12 +874,11 @@ def adapt_query_geography_artifacts(
             notes.append(str(exc))
 
     if occurrence_path is None:
-        notes.append(
-            "run manifest did not declare geographic_occurrence_evidence artifact path"
-        )
+        notes.append("run manifest did not declare geographic_occurrence_evidence artifact path")
     elif _is_parquet_path(occurrence_path):
         notes.append(
-            f"geographic_occurrence_evidence artifact is parquet and not parsed in deterministic replay fixtures: {occurrence_path}"
+            "geographic_occurrence_evidence artifact is parquet and not parsed in "
+            f"deterministic replay fixtures: {occurrence_path}"
         )
     else:
         try:
@@ -905,7 +895,8 @@ def adapt_query_geography_artifacts(
         notes.append("run manifest did not declare taxon_geographic_summary artifact path")
     elif _is_parquet_path(summary_path):
         notes.append(
-            f"taxon_geographic_summary artifact is parquet and not parsed in deterministic replay fixtures: {summary_path}"
+            "taxon_geographic_summary artifact is parquet and not parsed in deterministic "
+            f"replay fixtures: {summary_path}"
         )
     else:
         try:
@@ -921,7 +912,8 @@ def adapt_query_geography_artifacts(
         notes.append("run manifest did not declare geographic_spread_manifest artifact path")
     elif _is_parquet_path(spread_manifest_path):
         notes.append(
-            f"geographic_spread_manifest is parquet and not parsed in deterministic replay fixtures: {spread_manifest_path}"
+            "geographic_spread_manifest is parquet and not parsed in deterministic replay "
+            f"fixtures: {spread_manifest_path}"
         )
     else:
         try:
@@ -933,16 +925,15 @@ def adapt_query_geography_artifacts(
                     f"geographic_spread_manifest was not a JSON object at {spread_manifest_path}"
                 )
         except QueryGeographyAdapterError:
-            notes.append(
-                f"failed to parse geographic_spread_manifest at {spread_manifest_path}"
-            )
+            notes.append(f"failed to parse geographic_spread_manifest at {spread_manifest_path}")
 
     summary_manifest_payload: dict[str, Any] | None = None
     if summary_manifest_path is None:
         notes.append("run manifest did not declare geographic_summary_manifest artifact path")
     elif _is_parquet_path(summary_manifest_path):
         notes.append(
-            f"geographic_summary_manifest is parquet and not parsed in deterministic replay fixtures: {summary_manifest_path}"
+            "geographic_summary_manifest is parquet and not parsed in deterministic "
+            f"replay fixtures: {summary_manifest_path}"
         )
     else:
         try:
@@ -954,20 +945,12 @@ def adapt_query_geography_artifacts(
                     f"geographic_summary_manifest was not a JSON object at {summary_manifest_path}"
                 )
         except QueryGeographyAdapterError:
-            notes.append(
-                f"failed to parse geographic_summary_manifest at {summary_manifest_path}"
-            )
+            notes.append(f"failed to parse geographic_summary_manifest at {summary_manifest_path}")
 
-    query_definitions = [
-        _map_query_definition(row, biominer_commit) for row in query_rows_raw
-    ]
+    query_definitions = [_map_query_definition(row, biominer_commit) for row in query_rows_raw]
     spread_rows = [_map_geographic_spread_row(row) for row in spread_rows_raw]
-    occurrence_rows = [
-        _map_occurrence_evidence_row(row) for row in occurrence_rows_raw
-    ]
-    summary_rows = [
-        _map_taxon_geographic_summary_row(row) for row in summary_rows_raw
-    ]
+    occurrence_rows = [_map_occurrence_evidence_row(row) for row in occurrence_rows_raw]
+    summary_rows = [_map_taxon_geographic_summary_row(row) for row in summary_rows_raw]
 
     query_definition_summary = _build_query_summary(
         query_rows_raw,
@@ -1026,9 +1009,7 @@ def adapt_query_geography_artifacts(
             "geographic_summary_manifest_path": str(summary_manifest_path)
             if summary_manifest_path
             else None,
-            "geographic_qa_findings_path": str(qa_findings_path)
-            if qa_findings_path
-            else None,
+            "geographic_qa_findings_path": str(qa_findings_path) if qa_findings_path else None,
             "notes": notes,
         },
     }

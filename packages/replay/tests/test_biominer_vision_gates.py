@@ -1,13 +1,11 @@
 from __future__ import annotations
 
 import pytest
-
 from packages.replay.src.biominer_vision_gates import (
     BioClipGateMode,
     BioClipGatePolicy,
     bioclip_score_input_decision,
 )
-
 
 _ROUTING_POLICY_FINGERPRINT = "sha256:" + "a" * 64
 
@@ -66,11 +64,13 @@ def test_routed_gate_scores_only_explicitly_supported_comparison_routes(
             **_routed_row(bioclip_route=route),
             "detection_route": detection_route,
         },
-        BioClipGatePolicy(supported_comparison_routes=(
-            "adult_field",
-            "larval",
-            "pinned_specimen",
-        )),
+        BioClipGatePolicy(
+            supported_comparison_routes=(
+                "adult_field",
+                "larval",
+                "pinned_specimen",
+            )
+        ),
     )
 
     assert decision.should_score is True
@@ -93,11 +93,13 @@ def test_routed_gate_excludes_corrupt_detection_and_comparison_route_pair() -> N
 def test_routed_gate_excludes_unsupported_pupa_comparison() -> None:
     decision = bioclip_score_input_decision(
         _routed_row(bioclip_route="pupal"),
-        BioClipGatePolicy(supported_comparison_routes=(
-            "adult_field",
-            "larval",
-            "pinned_specimen",
-        )),
+        BioClipGatePolicy(
+            supported_comparison_routes=(
+                "adult_field",
+                "larval",
+                "pinned_specimen",
+            )
+        ),
     )
 
     assert decision.should_score is False
@@ -220,7 +222,9 @@ def test_routed_score_rejects_malformed_policy_fingerprint() -> None:
     assert decision.bioclip_gate_reason == "invalid_routing_policy_fingerprint"
 
 
-@pytest.mark.parametrize("label", ["butterfly_like", "moth_like", "caterpillar", "pupa", "insect_like"])
+@pytest.mark.parametrize(
+    "label", ["butterfly_like", "moth_like", "caterpillar", "pupa", "insect_like"]
+)
 def test_exclude_hard_negative_gate_scores_non_hard_negative_detections(label: str) -> None:
     decision = bioclip_score_input_decision(
         {"detection_status": "detected", "detector_label": label},
@@ -249,7 +253,9 @@ def test_exclude_hard_negative_gate_excludes_hard_negative_detection() -> None:
 def test_no_detection_becomes_whole_image_fallback_when_enabled() -> None:
     decision = bioclip_score_input_decision(
         {"detection_status": "no_detection", "detector_label": "no_detection"},
-        BioClipGatePolicy(mode=BioClipGateMode.EXCLUDE_HARD_NEGATIVE, score_no_detection_whole_image=True),
+        BioClipGatePolicy(
+            mode=BioClipGateMode.EXCLUDE_HARD_NEGATIVE, score_no_detection_whole_image=True
+        ),
     )
 
     assert decision.should_score is True
@@ -273,8 +279,12 @@ def test_image_failures_are_excluded(status: str) -> None:
 def test_legacy_butterfly_like_gate_keeps_old_filter() -> None:
     policy = BioClipGatePolicy.legacy_butterfly_like_only()
 
-    assert bioclip_score_input_decision({"detection_status": "detected", "detector_label": "butterfly_like"}, policy).should_score
-    moth = bioclip_score_input_decision({"detection_status": "detected", "detector_label": "moth_like"}, policy)
+    assert bioclip_score_input_decision(
+        {"detection_status": "detected", "detector_label": "butterfly_like"}, policy
+    ).should_score
+    moth = bioclip_score_input_decision(
+        {"detection_status": "detected", "detector_label": "moth_like"}, policy
+    )
 
     assert moth.should_score is False
     assert moth.bioclip_gate_reason == "detector_label_not_eligible"

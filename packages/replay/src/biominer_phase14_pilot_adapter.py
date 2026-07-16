@@ -433,10 +433,11 @@ def _source_registry(
     if len(snapshot_versions) != 1:
         raise Phase14PilotAdapterError("reference query source snapshot versions differ")
 
-    fetch_metadata = _mapping(
-        commands.get("fetch-metadata"), "settings.commands.fetch-metadata"
-    )
-    if fetch_metadata.get("queries") != "config/pilot/papilio_demoleus_reference_source_queries.json":
+    fetch_metadata = _mapping(commands.get("fetch-metadata"), "settings.commands.fetch-metadata")
+    if (
+        fetch_metadata.get("queries")
+        != "config/pilot/papilio_demoleus_reference_source_queries.json"
+    ):
         raise Phase14PilotAdapterError("fetch-metadata query source differs")
 
     return {
