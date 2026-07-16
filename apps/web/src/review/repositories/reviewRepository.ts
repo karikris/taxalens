@@ -3,6 +3,7 @@ import type {
   VerificationCampaign,
   VerificationItem,
 } from '../domain/verificationContracts'
+import type { VerificationConsensus } from '../domain/verificationConsensus'
 import {
   projectCurrentVerificationEvents,
   type VerificationEvent,
@@ -15,13 +16,13 @@ export type ReviewCurrentDecisions = Readonly<
 export const REVIEW_REPOSITORY_RECEIPT_SCHEMA_VERSION =
   'taxalens-review-repository-receipt:v1.0.0' as const
 
-export interface ReviewRepository<TConsensus = unknown> {
+export interface ReviewRepository {
   loadCampaign(campaignId: string): Promise<VerificationCampaign | null>
   loadItems(campaignId: string): Promise<readonly VerificationItem[]>
   loadEvents(campaignId: string): Promise<readonly VerificationEvent[]>
   appendEvent(event: VerificationEvent): Promise<void>
   loadCurrentDecisions(campaignId: string): Promise<ReviewCurrentDecisions>
-  loadConsensus(campaignId: string): Promise<readonly TConsensus[]>
+  loadConsensus(campaignId: string): Promise<readonly VerificationConsensus[]>
   exportReceipt(campaignId: string): Promise<Uint8Array<ArrayBuffer>>
   clearLocalCampaign(campaignId: string): Promise<void>
 }
@@ -33,7 +34,7 @@ export function reviewRepositoryReceiptBytes({
   items,
 }: {
   readonly campaign: VerificationCampaign
-  readonly consensus?: readonly unknown[]
+  readonly consensus?: readonly VerificationConsensus[]
   readonly events: readonly VerificationEvent[]
   readonly items: readonly VerificationItem[]
 }): Uint8Array<ArrayBuffer> {

@@ -7,6 +7,10 @@ import {
   type VerificationItem,
 } from '../domain/verificationContracts'
 import {
+  projectVerificationConsensus,
+  type VerificationConsensus,
+} from '../domain/verificationConsensus'
+import {
   projectCurrentVerificationEvents,
   validateVerificationEvent,
   validateVerificationEventLedger,
@@ -63,9 +67,7 @@ export interface IndexedDbReviewRepositoryOptions {
   readonly seeds?: readonly ReviewCampaignSeed[]
 }
 
-export class IndexedDbReviewRepository<TConsensus = unknown>
-  implements ReviewRepository<TConsensus>
-{
+export class IndexedDbReviewRepository implements ReviewRepository {
   readonly #databaseName: string
   readonly #factory: IDBFactory | undefined
   readonly #seeds: readonly ReviewCampaignSeed[]
@@ -168,8 +170,20 @@ export class IndexedDbReviewRepository<TConsensus = unknown>
     return cloneAndFreeze(projectCurrentVerificationEvents(events))
   }
 
-  async loadConsensus(_campaignId: string): Promise<readonly TConsensus[]> {
-    return Object.freeze([])
+  async loadConsensus(
+    campaignId: string,
+  ): Promise<readonly VerificationConsensus[]> {
+    const [campaign, items, events] = await Promise.all([
+      this.loadCampaign(campaignId),
+      this.loadItems(campaignId),
+      this.loadEvents(campaignId),
+    ])
+    if (campaign === null) {
+      return Object.freeze([])
+    }
+    return cloneAndFreeze(
+      projectVerificationConsensus(campaign, items, events),
+    )
   }
 
   async exportReceipt(

@@ -758,3 +758,23 @@ components:
     tests:
       - "TypeScript project check"
     status: "verified"
+  - component_id: "biominer_verification_consensus_projection"
+    source_repository: "karikris/BioMiner"
+    source_commit: "94fa1f634ee3c63917c05d78181dd3cf9ceff940"
+    source_path: "src/biominer/references/review.py"
+    destination_path: "apps/web/src/review/domain/verificationConsensus.ts;apps/web/src/review/repositories/reviewRepository.ts;apps/web/src/review/repositories/inMemoryReviewRepository.ts;apps/web/src/review/repositories/indexedDbReviewRepository.ts"
+    migration_kind: "adapter"
+    reason: "Derive deterministic generic consensus from append-only TaxaLens events while retaining BioMiner's no-majority-overwrite, distinct-reviewer uncertainty resolution, conflict-field, and support-blocker semantics."
+    build_week_scope: "new"
+    source_license: "MIT License, copyright 2026 Kris Kari"
+    changes:
+      - "Projected one unsuperseded latest event per normalized independent reviewer"
+      - "Compared Yes and No signatures across target outcome, alternative identity, life stage, visual domain, and view"
+      - "Kept any decisive dissent or explicit conflict pointer unresolved regardless of majority"
+      - "Required a later distinct decisive reviewer to resolve prior uncertainty"
+      - "Distinguished pending, uncertain-only, media-failure, deferred, agreement, conflict, and adjudicated states"
+      - "Derived reference preparation blockers and blind probability-audit final-test eligibility"
+      - "Made both local repository adapters derive consensus on read and include it in receipts"
+    tests:
+      - "TypeScript project check"
+    status: "verified"

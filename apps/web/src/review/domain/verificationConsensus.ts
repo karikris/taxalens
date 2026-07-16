@@ -1,11 +1,18 @@
 import type {
+  VerificationCampaign,
+  VerificationItem,
   VerificationLifeStage,
   VerificationView,
   VerificationVisualDomain,
 } from './verificationContracts'
-import type {
-  FlickrNonTargetCategory,
-  VerificationEvent,
+import {
+  validateVerificationItem,
+} from './verificationContracts'
+import {
+  validateVerificationEvent,
+  validateVerificationEventLedger,
+  type FlickrNonTargetCategory,
+  type VerificationEvent,
 } from './verificationEvents'
 
 export const VERIFICATION_CONSENSUS_SCHEMA_VERSION =
@@ -157,6 +164,441 @@ export function validateVerificationConsensus(
     failures.push('resolved consensus cannot require a second review')
   }
   return Object.freeze(failures)
+}
+
+export function projectVerificationConsensus(
+  campaign: VerificationCampaign,
+  items: readonly VerificationItem[],
+  events: readonly VerificationEvent[],
+): readonly VerificationConsensus[] {
+  const itemById = new Map<string, VerificationItem>()
+  for (const item of items) {
+    const failures = validateVerificationItem(item, campaign)
+    if (failures.length > 0 || itemById.has(item.itemId)) {
+      throw new Error(
+        `Consensus item is invalid: ${[
+          ...failures,
+          ...(itemById.has(item.itemId) ? ['item ID is repeated'] : []),
+        ].join('; ')}`,
+      )
+    }
+    itemById.set(item.itemId, item)
+  }
+  const ledgerFailures = validateVerificationEventLedger(events)
+  if (ledgerFailures.length > 0) {
+    throw new Error(
+      `Consensus event ledger is invalid: ${ledgerFailures.join('; ')}`,
+    )
+  }
+  for (const event of events) {
+    const item = itemById.get(event.itemId)
+    if (item === undefined) {
+      throw new Error(`Consensus event names an unknown item: ${event.itemId}`)
+    }
+    const failures = validateVerificationEvent(event, campaign, item)
+    if (failures.length > 0) {
+      throw new Error(`Consensus event is invalid: ${failures.join('; ')}`)
+    }
+  }
+  const consensus = [...items]
+    .sort((left, right) => left.itemId.localeCompare(right.itemId))
+    .map((item) =>
+      projectItemConsensus(
+        campaign,
+        item,
+        events.filter(({ itemId }) => itemId === item.itemId),
+      ),
+    )
+  return Object.freeze(consensus)
+}
+
+function projectItemConsensus(
+  campaign: VerificationCampaign,
+  item: VerificationItem,
+  events: readonly VerificationEvent[],
+): VerificationConsensus {
+  const latestEvents = effectiveLatestEvents(events)
+  const decisiveEvents = latestEvents.filter(
+    ({ outcome }) => outcome === 'yes' || outcome === 'no',
+  )
+  const signatures = decisiveEvents.map((event) =>
+    decisionSignature(event, item),
+  )
+  const conflictingFields = conflictFields(latestEvents, signatures)
+  const conflictEventIds =
+    conflictingFields.length === 0
+      ? []
+      : [
+          ...new Set(
+            latestEvents
+              .filter(
+                (event) =>
+                  event.outcome === 'yes' ||
+                  event.outcome === 'no' ||
+                  event.conflictsWithDecisionId !== null,
+              )
+              .map(({ eventId }) => eventId),
+          ),
+        ].sort()
+  const requiredReviewCount = effectiveRequiredReviewCount(campaign)
+  const unresolvedUncertainty = hasUnresolvedUncertainty(
+    events,
+    decisiveEvents,
+  )
+  const resolution = resolutionState({
+    campaign,
+    latestEvents,
+    decisiveEvents,
+    signatures,
+    conflictingFields,
+    requiredReviewCount,
+    unresolvedUncertainty,
+  })
+  const support = supportEligibility(item, decisiveEvents, resolution)
+  const finalTest = finalTestEligibility(
+    campaign,
+    item,
+    decisiveEvents,
+    resolution,
+  )
+  const consensus: VerificationConsensus = Object.freeze({
+    schemaVersion: VERIFICATION_CONSENSUS_SCHEMA_VERSION,
+    campaignId: campaign.campaignId,
+    itemId: item.itemId,
+    requiredReviewCount,
+    effectiveReviewCount: latestEvents.length,
+    decisiveReviewCount: decisiveEvents.length,
+    effectiveReviewerIds: Object.freeze(
+      latestEvents.map(({ reviewerId }) => reviewerKey(reviewerId)).sort(),
+    ),
+    latestEvents: Object.freeze(latestEvents),
+    decisiveEvents: Object.freeze(decisiveEvents),
+    status: resolution.status,
+    consensusOutcome: resolution.outcome,
+    resolvedSignature: resolution.signature,
+    conflictingFields: Object.freeze(conflictingFields),
+    conflictEventIds: Object.freeze(conflictEventIds),
+    secondReviewRequired: resolution.secondReviewRequired,
+    adjudicationRequired:
+      resolution.status === 'unresolved_disagreement' &&
+      campaign.reviewRequirement.adjudicationRequiredOnConflict,
+    supportEligibility: support.status,
+    supportEligibilityBlockers: Object.freeze(support.blockers),
+    finalTestEligibility: finalTest.status,
+    finalTestEligibilityBlockers: Object.freeze(finalTest.blockers),
+    resolvedAt:
+      latestEvents.length === 0
+        ? null
+        : [...latestEvents]
+            .sort(compareEvents)
+            .at(-1)!.reviewedAt,
+  })
+  const failures = validateVerificationConsensus(consensus)
+  if (failures.length > 0) {
+    throw new Error(`Consensus projection is invalid: ${failures.join('; ')}`)
+  }
+  return consensus
+}
+
+function effectiveLatestEvents(
+  events: readonly VerificationEvent[],
+): readonly VerificationEvent[] {
+  const superseded = new Set(
+    events
+      .map(({ supersedesEventId }) => supersedesEventId)
+      .filter((eventId): eventId is string => eventId !== null),
+  )
+  const byReviewer = new Map<string, VerificationEvent>()
+  for (const event of [...events]
+    .filter(({ eventId }) => !superseded.has(eventId))
+    .sort(compareEvents)) {
+    byReviewer.set(reviewerKey(event.reviewerId), event)
+  }
+  return [...byReviewer.entries()]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([, event]) => event)
+}
+
+function decisionSignature(
+  event: VerificationEvent,
+  item: VerificationItem,
+): VerificationDecisionSignature {
+  if (event.outcome !== 'yes' && event.outcome !== 'no') {
+    throw new Error('Consensus signature requires a decisive event.')
+  }
+  return Object.freeze({
+    outcome: event.outcome,
+    nonTargetCategory: event.nonTargetCategory,
+    alternativeAcceptedTaxonKey:
+      event.alternativeTaxon?.acceptedTaxonKey ?? null,
+    lifeStage:
+      event.correctedLifeStage ?? item.expectedLifeStage ?? 'unknown',
+    visualDomain:
+      event.correctedVisualDomain ??
+      item.expectedVisualDomain ??
+      'ambiguous',
+    view: event.correctedView ?? item.expectedView ?? 'unknown',
+  })
+}
+
+function conflictFields(
+  latestEvents: readonly VerificationEvent[],
+  signatures: readonly VerificationDecisionSignature[],
+): readonly VerificationConflictField[] {
+  const fields: VerificationConflictField[] = []
+  for (const [field, key] of [
+    ['outcome', 'outcome'],
+    ['non_target_category', 'nonTargetCategory'],
+    ['alternative_taxon', 'alternativeAcceptedTaxonKey'],
+    ['life_stage', 'lifeStage'],
+    ['visual_domain', 'visualDomain'],
+    ['view', 'view'],
+  ] as const) {
+    if (
+      new Set(signatures.map((signature) => signature[key] ?? null)).size > 1
+    ) {
+      fields.push(field)
+    }
+  }
+  if (
+    latestEvents.some(({ conflictsWithDecisionId }) =>
+      conflictsWithDecisionId !== null,
+    )
+  ) {
+    fields.push('explicit_conflict_pointer')
+  }
+  return Object.freeze(fields.sort())
+}
+
+function hasUnresolvedUncertainty(
+  history: readonly VerificationEvent[],
+  decisiveEvents: readonly VerificationEvent[],
+): boolean {
+  return history
+    .filter(({ outcome }) => outcome === 'cant_tell')
+    .some(
+      (uncertain) =>
+        !decisiveEvents.some(
+          (decisive) =>
+            reviewerKey(decisive.reviewerId) !==
+              reviewerKey(uncertain.reviewerId) &&
+            decisive.reviewedAt > uncertain.reviewedAt,
+        ),
+    )
+}
+
+function resolutionState({
+  campaign,
+  latestEvents,
+  decisiveEvents,
+  signatures,
+  conflictingFields,
+  requiredReviewCount,
+  unresolvedUncertainty,
+}: {
+  readonly campaign: VerificationCampaign
+  readonly latestEvents: readonly VerificationEvent[]
+  readonly decisiveEvents: readonly VerificationEvent[]
+  readonly signatures: readonly VerificationDecisionSignature[]
+  readonly conflictingFields: readonly VerificationConflictField[]
+  readonly requiredReviewCount: number
+  readonly unresolvedUncertainty: boolean
+}): {
+  readonly status: VerificationConsensusStatus
+  readonly outcome: 'yes' | 'no' | null
+  readonly signature: VerificationDecisionSignature | null
+  readonly secondReviewRequired: boolean
+} {
+  if (latestEvents.length === 0) {
+    return unresolved('pending', false)
+  }
+  if (conflictingFields.length > 0) {
+    return unresolved('unresolved_disagreement', true)
+  }
+  if (decisiveEvents.length === 0) {
+    if (latestEvents.some(({ outcome }) => outcome === 'cant_tell')) {
+      return unresolved(
+        'uncertain_only',
+        campaign.reviewRequirement.secondReviewPolicy !== 'never',
+      )
+    }
+    if (latestEvents.some(({ outcome }) => outcome === 'cant_view')) {
+      return unresolved('media_failure', false)
+    }
+    return unresolved('deferred', false)
+  }
+  if (
+    unresolvedUncertainty ||
+    decisiveEvents.length < requiredReviewCount
+  ) {
+    return unresolved('pending', true)
+  }
+  const signature = signatures[0]!
+  return {
+    status:
+      campaign.kind === 'adjudication'
+        ? 'adjudicated'
+        : 'complete_agreement',
+    outcome: signature.outcome,
+    signature,
+    secondReviewRequired: false,
+  }
+}
+
+function unresolved(
+  status: Exclude<
+    VerificationConsensusStatus,
+    'complete_agreement' | 'adjudicated'
+  >,
+  secondReviewRequired: boolean,
+) {
+  return {
+    status,
+    outcome: null,
+    signature: null,
+    secondReviewRequired,
+  } as const
+}
+
+function supportEligibility(
+  item: VerificationItem,
+  decisiveEvents: readonly VerificationEvent[],
+  resolution: {
+    readonly status: VerificationConsensusStatus
+    readonly outcome: 'yes' | 'no' | null
+    readonly signature: VerificationDecisionSignature | null
+  },
+): {
+  readonly status: VerificationSupportEligibility
+  readonly blockers: readonly string[]
+} {
+  if (item.source !== 'gbif' && item.source !== 'inaturalist') {
+    return { status: 'not_applicable', blockers: [] }
+  }
+  const blockers: string[] = []
+  if (
+    resolution.status !== 'complete_agreement' &&
+    resolution.status !== 'adjudicated'
+  ) {
+    blockers.push('review_not_completed')
+  } else if (resolution.outcome !== 'yes') {
+    blockers.push('not_verified')
+  }
+  if (
+    resolution.signature !== null &&
+    resolution.signature.visualDomain !== 'live_field' &&
+    resolution.signature.visualDomain !== 'pinned_specimen'
+  ) {
+    blockers.push('visual_domain_not_support_eligible')
+  }
+  if (item.sourceProvenance === undefined) {
+    blockers.push('source_provenance_missing')
+  }
+  if (item.rights.policyStatus !== 'allowed') {
+    blockers.push('licence_not_allowed')
+  }
+  if (item.rights.attribution.trim() === '') {
+    blockers.push('attribution_missing')
+  }
+  if (decisiveEvents.some(({ duplicateConcern }) => duplicateConcern)) {
+    blockers.push('duplicate_concern')
+  }
+  if (
+    decisiveEvents.some(
+      ({ captiveOrCultivatedConcern }) => captiveOrCultivatedConcern,
+    )
+  ) {
+    blockers.push('captive_or_cultivated_concern')
+  }
+  const canonicalBlockers = [...new Set(blockers)].sort()
+  return {
+    status:
+      canonicalBlockers.length === 0
+        ? 'prepared_for_biominer_resolution'
+        : 'blocked',
+    blockers: canonicalBlockers,
+  }
+}
+
+function finalTestEligibility(
+  campaign: VerificationCampaign,
+  item: VerificationItem,
+  decisiveEvents: readonly VerificationEvent[],
+  resolution: {
+    readonly status: VerificationConsensusStatus
+    readonly outcome: 'yes' | 'no' | null
+  },
+): {
+  readonly status: VerificationFinalTestEligibility
+  readonly blockers: readonly string[]
+} {
+  if (
+    item.flickrSource === undefined ||
+    item.flickrSource.datasetPartition !== 'final_test'
+  ) {
+    return { status: 'not_applicable', blockers: [] }
+  }
+  const blockers: string[] = []
+  if (
+    resolution.status !== 'complete_agreement' &&
+    resolution.status !== 'adjudicated'
+  ) {
+    blockers.push('review_not_completed')
+  }
+  if (campaign.samplingPlan.purpose !== 'quality_estimation') {
+    blockers.push('not_probability_audit')
+  }
+  if (item.inclusionProbability === null) {
+    blockers.push('inclusion_probability_missing')
+  }
+  if (
+    !campaign.samplingPlan.blindReview ||
+    campaign.disclosurePolicy.mode !== 'blind'
+  ) {
+    blockers.push('review_not_blind')
+  }
+  if (decisiveEvents.some(({ duplicateConcern }) => duplicateConcern)) {
+    blockers.push('duplicate_concern')
+  }
+  if (
+    decisiveEvents.some(
+      ({ captiveOrCultivatedConcern }) => captiveOrCultivatedConcern,
+    )
+  ) {
+    blockers.push('captive_or_cultivated_concern')
+  }
+  const canonicalBlockers = [...new Set(blockers)].sort()
+  return {
+    status: canonicalBlockers.length === 0 ? 'eligible' : 'blocked',
+    blockers: canonicalBlockers,
+  }
+}
+
+function effectiveRequiredReviewCount(
+  campaign: VerificationCampaign,
+): number {
+  return campaign.reviewRequirement.secondReviewPolicy === 'always'
+    ? Math.max(
+        2,
+        campaign.reviewRequirement.requiredIndependentReviewers,
+      )
+    : campaign.reviewRequirement.requiredIndependentReviewers
+}
+
+function reviewerKey(reviewerId: string): string {
+  return reviewerId.trim() || 'anonymous'
+}
+
+function compareEvents(
+  left: VerificationEvent,
+  right: VerificationEvent,
+): number {
+  return (
+    left.reviewedAt.localeCompare(right.reviewedAt) ||
+    left.reviewRound - right.reviewRound ||
+    left.reviewerId.localeCompare(right.reviewerId) ||
+    left.eventId.localeCompare(right.eventId)
+  )
 }
 
 function sortedUnique(values: readonly string[]): boolean {

@@ -5,6 +5,10 @@ import {
   type VerificationItem,
 } from '../domain/verificationContracts'
 import {
+  projectVerificationConsensus,
+  type VerificationConsensus,
+} from '../domain/verificationConsensus'
+import {
   projectCurrentVerificationEvents,
   validateVerificationEvent,
   validateVerificationEventLedger,
@@ -24,9 +28,7 @@ export interface ReviewCampaignSeed {
   readonly events?: readonly VerificationEvent[]
 }
 
-export class InMemoryReviewRepository<TConsensus = unknown>
-  implements ReviewRepository<TConsensus>
-{
+export class InMemoryReviewRepository implements ReviewRepository {
   readonly #campaigns = new Map<string, VerificationCampaign>()
   readonly #items = new Map<string, readonly VerificationItem[]>()
   readonly #events = new Map<string, readonly VerificationEvent[]>()
@@ -90,8 +92,20 @@ export class InMemoryReviewRepository<TConsensus = unknown>
     return cloneAndFreeze(projectCurrentVerificationEvents(events))
   }
 
-  async loadConsensus(_campaignId: string): Promise<readonly TConsensus[]> {
-    return Object.freeze([])
+  async loadConsensus(
+    campaignId: string,
+  ): Promise<readonly VerificationConsensus[]> {
+    const campaign = this.#campaigns.get(campaignId)
+    if (campaign === undefined) {
+      return Object.freeze([])
+    }
+    return cloneAndFreeze(
+      projectVerificationConsensus(
+        campaign,
+        this.#items.get(campaignId) ?? [],
+        this.#events.get(campaignId) ?? [],
+      ),
+    )
   }
 
   async exportReceipt(
@@ -103,11 +117,12 @@ export class InMemoryReviewRepository<TConsensus = unknown>
     }
     const items = this.#items.get(campaignId) ?? []
     const events = this.#events.get(campaignId) ?? []
+    const consensus = await this.loadConsensus(campaignId)
     return reviewRepositoryReceiptBytes({
       campaign,
       items,
       events,
-      consensus: [],
+      consensus,
     })
   }
 
