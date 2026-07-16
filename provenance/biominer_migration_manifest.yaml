@@ -776,5 +776,7 @@ components:
       - "Derived reference preparation blockers and blind probability-audit final-test eligibility"
       - "Made both local repository adapters derive consensus on read and include it in receipts"
     tests:
-      - "TypeScript project check"
+      - "apps/web/src/review/domain/verificationConsensus.test.ts"
+      - "apps/web/src/review/inMemoryReviewRepository.test.ts"
+      - "apps/web/src/review/indexedDbReviewRepository.test.ts"
     status: "verified"

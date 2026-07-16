@@ -62,6 +62,18 @@ describe('IndexedDB review repository', () => {
     await expect(
       reopenedRepository.loadItems(HUMAN_REVIEW_CAMPAIGN.campaignId),
     ).resolves.toHaveLength(3)
+    await expect(
+      reopenedRepository.loadConsensus(HUMAN_REVIEW_CAMPAIGN.campaignId),
+    ).resolves.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          itemId: secondEvent.itemId,
+          status: 'complete_agreement',
+          consensusOutcome: 'no',
+          decisiveReviewCount: 1,
+        }),
+      ]),
+    )
     const firstReceipt = await reopenedRepository.exportReceipt(
       HUMAN_REVIEW_CAMPAIGN.campaignId,
     )
@@ -79,6 +91,13 @@ describe('IndexedDB review repository', () => {
         },
       ],
       currentDecisions: [{ eventId: secondEvent.eventId }],
+      consensus: expect.arrayContaining([
+        expect.objectContaining({
+          itemId: secondEvent.itemId,
+          status: 'complete_agreement',
+          consensusOutcome: 'no',
+        }),
+      ]),
     })
     await reopenedRepository.close()
     await deleteDatabase(factory, databaseName)

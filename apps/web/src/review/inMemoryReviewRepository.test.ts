@@ -43,7 +43,16 @@ describe('in-memory review repository', () => {
     })
     await expect(
       repository.loadConsensus(HUMAN_REVIEW_CAMPAIGN.campaignId),
-    ).resolves.toEqual([])
+    ).resolves.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          itemId: event.itemId,
+          status: 'complete_agreement',
+          consensusOutcome: 'yes',
+          decisiveReviewCount: 1,
+        }),
+      ]),
+    )
   })
 
   it('rejects conflicting event IDs and exports deterministic receipts', async () => {
@@ -71,6 +80,12 @@ describe('in-memory review repository', () => {
       schemaVersion: REVIEW_REPOSITORY_RECEIPT_SCHEMA_VERSION,
       events: [{ eventId: event.eventId }],
       currentDecisions: [{ eventId: event.eventId }],
+      consensus: expect.arrayContaining([
+        expect.objectContaining({
+          itemId: event.itemId,
+          status: 'complete_agreement',
+        }),
+      ]),
       semantics: {
         appendOnlyEvents: true,
         supersededEventsRetained: true,
