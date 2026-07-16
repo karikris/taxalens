@@ -20,6 +20,7 @@ import {
   BlindFlickrReviewBoundary,
   CampaignSelector,
   ConflictQueue,
+  DecisionHistory,
   filterReferenceReviewItems,
   ReferenceReviewFilters,
   ReferenceReviewHandoff,
@@ -161,23 +162,29 @@ export function VerificationWorkspace({
       <VerificationSections
         defaultSection={resolvedRoute.section}
         conflicts={
-          <ConflictQueue
-            adjudicationReadyItemIds={
-              controller.adjudicationReadyItemIds
-            }
-            consensus={controller.consensus}
-            defaultAdjudicatorId={controller.session.reviewerId}
-            items={HUMAN_REVIEW_PACKET.items}
-            onAdjudicate={controller.adjudicate}
-            onOpenItem={(itemId) => {
-              const itemIndex = HUMAN_REVIEW_PACKET.items.findIndex(
-                (candidate) => candidate.itemId === itemId,
-              )
-              if (itemIndex !== -1) {
-                controller.openIndex(itemIndex)
+          <>
+            <ConflictQueue
+              adjudicationReadyItemIds={
+                controller.adjudicationReadyItemIds
               }
-            }}
-          />
+              consensus={controller.consensus}
+              defaultAdjudicatorId={controller.session.reviewerId}
+              items={HUMAN_REVIEW_PACKET.items}
+              onAdjudicate={controller.adjudicate}
+              onOpenItem={(itemId) => {
+                const itemIndex = HUMAN_REVIEW_PACKET.items.findIndex(
+                  (candidate) => candidate.itemId === itemId,
+                )
+                if (itemIndex !== -1) {
+                  controller.openIndex(itemIndex)
+                }
+              }}
+            />
+            <DecisionHistory
+              events={controller.session.events}
+              items={HUMAN_REVIEW_PACKET.items}
+            />
+          </>
         }
         flickrResults={
           resolvedRoute.flickrCandidate === null ? undefined : (

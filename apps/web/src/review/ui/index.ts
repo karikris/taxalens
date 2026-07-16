@@ -1,5 +1,6 @@
 export { CampaignSelector } from './CampaignSelector'
 export { ConflictQueue } from './ConflictQueue'
+export { DecisionHistory } from './DecisionHistory'
 export {
   BlindFlickrReviewBoundary,
   FlickrBlindReviewContextPanel,

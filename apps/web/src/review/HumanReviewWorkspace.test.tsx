@@ -242,6 +242,12 @@ describe('HumanReviewWorkspace', () => {
     expect(
       await screen.findByText('No unresolved conflicts'),
     ).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'Immutable decision history' }),
+    ).toBeInTheDocument()
+    expect(screen.getAllByText('event-a-yes').length).toBeGreaterThan(1)
+    expect(screen.getAllByText('event-b-no').length).toBeGreaterThan(1)
+    expect(screen.getByText('Adjudication')).toBeInTheDocument()
     await waitFor(async () => {
       const events = await repository.loadEvents(
         HUMAN_REVIEW_CAMPAIGN.campaignId,
