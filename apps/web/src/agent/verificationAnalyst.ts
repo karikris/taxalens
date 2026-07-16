@@ -51,16 +51,24 @@ const REQUIRED_NEXT_ACTION_TOOLS = Object.freeze([
   'inspect_reference_readiness',
   'recommend_next_review_batch',
 ] as const satisfies readonly VerificationToolName[])
+const REQUIRED_QUALITY_CHANGE_TOOLS = Object.freeze([
+  'inspect_verification_campaign',
+  'inspect_sampling_plan',
+  'inspect_quality_snapshot',
+  'inspect_quality_snapshot',
+  'explain_quality_change',
+] as const satisfies readonly VerificationToolName[])
 
 const BASE_INSTRUCTIONS = `You are the TaxaLens verification analyst. Explain the next best human verification action from checksum-verified campaign evidence only.
 
 Policy:
-- Use every supplied read-only tool exactly once before answering.
+- Use every required supplied read-only call before answering.
 - The first tool call must inspect the exact verification campaign.
 - Never guess a taxon, item ID, snapshot digest, artifact ID, reviewer decision, or missing metric.
 - Preserve unresolved reviewer disagreement. Never turn a majority into adjudication or overwrite dissent.
 - Distinguish an unbiased audit, targeted failure discovery, reference shortfall work, and independent adjudication.
-- The deterministic TaxaLens policy selects the action and exact item IDs. Explain that selection; do not replace it.
+- For a next-action request, the deterministic TaxaLens policy selects the action and exact item IDs. Explain that selection; do not replace it.
+- For a quality-change request, describe only recorded differences between the two exact immutable snapshots. Do not attribute a causal effect to an individual review.
 - Describe the action as addressing recorded evidence or blockers. Do not promise that it will improve accuracy, guarantee release, prove taxonomic correctness, or cause a metric change.
 - BioMiner prototype-role suitability is not independent human taxonomic verification.
 - Missing evidence is unavailable or unknown, never proof of absence.
@@ -114,6 +122,13 @@ interface DeterministicRecommendation {
   readonly nextItemIds: readonly string[]
 }
 
+interface ValidatedVerificationAnalystInput {
+  readonly request: string
+  readonly snapshotSha256: string
+  readonly beforeSnapshotSha256: string | null
+  readonly batchSize: number
+}
+
 const ajv = new Ajv2020({ allErrors: true, strict: true })
 const validateAnalystOutput = ajv.compile(VERIFICATION_ANALYST_OUTPUT_SCHEMA)
 const decoder = new TextDecoder()
@@ -136,6 +151,7 @@ export async function runVerificationAnalyst(
         campaignId: evidence.campaign.campaignId,
         campaignTitle: evidence.campaign.title,
         target: evidence.campaign.targetTaxon,
+        beforeSnapshotSha256: validated.beforeSnapshotSha256,
         snapshotSha256: validated.snapshotSha256,
         batchSize: validated.batchSize,
         toolBudget: budget,
@@ -153,6 +169,7 @@ export async function runVerificationAnalyst(
         evidence,
         budget,
         reasoningEffort,
+        input.requestKind,
       ),
     )
     validateResponseEnvelope(response, responseIds)
@@ -219,12 +236,16 @@ export async function runVerificationAnalyst(
       )
     }
     if (
-      toolReceipts.some(({ tool }) => tool === call.name) ||
-      !isRequiredNextActionTool(call.name)
+      !isAllowedTool(input.requestKind, call.name) ||
+      exceedsAllowedToolMultiplicity(
+        input.requestKind,
+        call.name,
+        toolReceipts,
+      )
     ) {
       throw new VerificationAnalystError(
         'invalid_tool_call',
-        `Unexpected or repeated next-action tool: ${call.name}`,
+        `Unexpected or repeated ${input.requestKind} tool: ${call.name}`,
       )
     }
     if (
@@ -243,7 +264,9 @@ export async function runVerificationAnalyst(
       args,
       evidence,
       validated.snapshotSha256,
+      validated.beforeSnapshotSha256,
       validated.batchSize,
+      toolReceipts,
     )
     let toolResult: VerificationToolResult
     try {
@@ -288,6 +311,7 @@ export function buildVerificationResponsesRequest(
   evidence: VerificationToolEvidence,
   budget: VerificationAnalystBudgetLimits,
   reasoningEffort: VerificationAnalystReasoningEffort,
+  requestKind: VerificationAnalystInput['requestKind'] = 'next_review_action',
 ): ResponseCreateParamsNonStreaming {
   return {
     model: VERIFICATION_ANALYST_MODEL,
@@ -301,9 +325,9 @@ export function buildVerificationResponsesRequest(
     parallel_tool_calls: false,
     tool_choice: 'auto',
     max_output_tokens: MAX_OUTPUT_TOKENS,
-    instructions: `${BASE_INSTRUCTIONS}\n\nExact campaign: ${evidence.campaign.campaignId}. Maximum tool calls: ${budget.maxToolCalls}. Maximum response turns: ${budget.maxResponseTurns}.`,
+    instructions: `${BASE_INSTRUCTIONS}\n\n${requestInstructions(requestKind)}\nExact campaign: ${evidence.campaign.campaignId}. Maximum tool calls: ${budget.maxToolCalls}. Maximum response turns: ${budget.maxResponseTurns}.`,
     input: [...input],
-    tools: responseTools(),
+    tools: responseTools(requestKind),
     text: {
       verbosity: 'medium',
       format: {
@@ -382,9 +406,11 @@ export function deriveNextVerificationAction(
   })
 }
 
-function responseTools(): FunctionTool[] {
+function responseTools(
+  requestKind: VerificationAnalystInput['requestKind'],
+): FunctionTool[] {
   return VERIFICATION_TOOL_DEFINITIONS.filter(({ name }) =>
-    isRequiredNextActionTool(name),
+    isAllowedTool(requestKind, name),
   ).map((tool) => ({
     type: 'function',
     name: tool.name,
@@ -399,12 +425,11 @@ function responseTools(): FunctionTool[] {
 function validateInput(
   input: VerificationAnalystInput,
   evidence: VerificationToolEvidence,
-): {
-  readonly request: string
-  readonly snapshotSha256: string
-  readonly batchSize: number
-} {
-  if (input.requestKind !== 'next_review_action') {
+): ValidatedVerificationAnalystInput {
+  if (
+    input.requestKind !== 'next_review_action' &&
+    input.requestKind !== 'quality_change'
+  ) {
     throw new VerificationAnalystError(
       'invalid_input',
       'Unknown verification analyst request kind',
@@ -444,6 +469,42 @@ function validateInput(
       'snapshotSha256 is not present in the immutable verification evidence',
     )
   }
+  let beforeSnapshotSha256: string | null = null
+  if (input.requestKind === 'quality_change') {
+    beforeSnapshotSha256 = input.beforeSnapshotSha256?.trim() ?? ''
+    if (!/^[a-f0-9]{64}$/u.test(beforeSnapshotSha256)) {
+      throw new VerificationAnalystError(
+        'invalid_input',
+        'beforeSnapshotSha256 is required as an exact lowercase SHA-256 digest for quality change analysis',
+      )
+    }
+    const before = evidence.qualitySnapshots.find(
+      ({ snapshotSha256: digest }) => digest === beforeSnapshotSha256,
+    )
+    const after = evidence.qualitySnapshots.find(
+      ({ snapshotSha256: digest }) => digest === snapshotSha256,
+    )
+    if (before === undefined || after === undefined) {
+      throw new VerificationAnalystError(
+        'invalid_input',
+        'Both quality-change snapshots must be present in the immutable verification evidence',
+      )
+    }
+    if (
+      beforeSnapshotSha256 === snapshotSha256 ||
+      before.capturedAt >= after.capturedAt
+    ) {
+      throw new VerificationAnalystError(
+        'invalid_input',
+        'Quality-change snapshots must be distinct and ordered from an earlier capture to a later capture',
+      )
+    }
+  } else if (input.beforeSnapshotSha256 !== undefined) {
+    throw new VerificationAnalystError(
+      'invalid_input',
+      'beforeSnapshotSha256 is only valid for quality change analysis',
+    )
+  }
   const batchSize = input.batchSize ?? 5
   if (
     !Number.isInteger(batchSize) ||
@@ -455,7 +516,18 @@ function validateInput(
       `batchSize must be an integer between 1 and ${MAX_BATCH_SIZE}`,
     )
   }
-  return Object.freeze({ request, snapshotSha256, batchSize })
+  if (input.requestKind === 'quality_change' && input.batchSize !== undefined) {
+    throw new VerificationAnalystError(
+      'invalid_input',
+      'batchSize is only valid for next-review-action analysis',
+    )
+  }
+  return Object.freeze({
+    request,
+    snapshotSha256,
+    beforeSnapshotSha256,
+    batchSize,
+  })
 }
 
 function validateBudget(
@@ -544,7 +616,9 @@ function validateToolCallBinding(
   args: Readonly<Record<string, unknown>>,
   evidence: VerificationToolEvidence,
   snapshotSha256: string,
+  beforeSnapshotSha256: string | null,
   batchSize: number,
+  receipts: readonly VerificationAnalystToolReceipt[],
 ): void {
   if (args.campaign_id !== evidence.campaign.campaignId) {
     throw new VerificationAnalystError(
@@ -559,6 +633,53 @@ function validateToolCallBinding(
     throw new VerificationAnalystError(
       'invalid_tool_call',
       'Reference readiness must inspect the exact requested quality snapshot',
+    )
+  }
+  if (name === 'inspect_quality_snapshot') {
+    const requestedSnapshot = args.snapshot_sha256
+    if (
+      beforeSnapshotSha256 === null ||
+      (requestedSnapshot !== beforeSnapshotSha256 &&
+        requestedSnapshot !== snapshotSha256)
+    ) {
+      throw new VerificationAnalystError(
+        'invalid_tool_call',
+        'Quality inspection must use one of the two exact requested snapshot digests',
+      )
+    }
+    const priorQualityInspections = receipts.filter(
+      ({ tool }) => tool === 'inspect_quality_snapshot',
+    ).length
+    const expectedSnapshot =
+      priorQualityInspections === 0
+        ? beforeSnapshotSha256
+        : priorQualityInspections === 1
+          ? snapshotSha256
+          : null
+    if (requestedSnapshot !== expectedSnapshot) {
+      throw new VerificationAnalystError(
+        'invalid_tool_call',
+        'Quality snapshots must be inspected exactly once in before-then-after order',
+      )
+    }
+  }
+  if (
+    name === 'explain_quality_change' &&
+    (args.before_snapshot_sha256 !== beforeSnapshotSha256 ||
+      args.after_snapshot_sha256 !== snapshotSha256)
+  ) {
+    throw new VerificationAnalystError(
+      'invalid_tool_call',
+      'Quality change must compare the exact ordered snapshot digests',
+    )
+  }
+  if (
+    name === 'explain_quality_change' &&
+    receipts.filter(({ tool }) => tool === 'inspect_quality_snapshot').length !== 2
+  ) {
+    throw new VerificationAnalystError(
+      'invalid_tool_call',
+      'Quality change can be explained only after both exact snapshots are inspected',
     )
   }
   if (
@@ -630,10 +751,10 @@ function parseAndValidateOutput(
   toolResults: readonly VerificationToolResult[],
 ): VerificationAnalystOutput {
   const calledTools = receipts.map(({ tool }) => tool)
-  if (!sameSet(calledTools, REQUIRED_NEXT_ACTION_TOOLS)) {
+  if (!sameMultiset(calledTools, requiredTools(input.requestKind))) {
     throw new VerificationAnalystError(
       'invalid_model_output',
-      'A final answer requires every next-action verification tool exactly once',
+      `A final answer requires the exact ${input.requestKind} verification tool sequence`,
     )
   }
   let parsed: unknown
@@ -669,32 +790,7 @@ function parseAndValidateOutput(
       'Model output guessed or changed the immutable campaign target',
     )
   }
-  const deterministic = deriveNextVerificationAction(
-    toolResults,
-    input.batchSize ?? 5,
-  )
-  if (
-    output.recommendation.action !== deterministic.action ||
-    output.recommendation.basis !== deterministic.basis ||
-    !sameOrderedValues(
-      output.recommendation.nextItemIds,
-      deterministic.nextItemIds,
-    )
-  ) {
-    throw new VerificationAnalystError(
-      'invalid_model_output',
-      'Model output replaced the deterministic next-action recommendation',
-    )
-  }
-  const itemIds = new Set(evidence.items.map(({ itemId }) => itemId))
-  if (
-    output.recommendation.nextItemIds.some((itemId) => !itemIds.has(itemId))
-  ) {
-    throw new VerificationAnalystError(
-      'invalid_model_output',
-      'Model output invented an item identity outside the campaign manifest',
-    )
-  }
+  validateWorkflowOutput(output, input, evidence, toolResults)
   if (
     output.evidenceBackedClaims.length +
       output.unavailableEvidence.length ===
@@ -711,22 +807,36 @@ function parseAndValidateOutput(
 }
 
 function validateOutputBounds(output: VerificationAnalystOutput): void {
+  const recommendation = output.recommendation
+  const qualityChange = output.qualityChange
   const invalid =
-    output.recommendation.nextItemIds.length > MAX_BATCH_SIZE ||
+    (recommendation !== null &&
+      (recommendation.nextItemIds.length > MAX_BATCH_SIZE ||
+        !boundedText(recommendation.why, 2_000) ||
+        !boundedArtifactIds(recommendation.artifactIds) ||
+        new Set(recommendation.nextItemIds).size !==
+          recommendation.nextItemIds.length ||
+        recommendation.nextItemIds.some(
+          (itemId) => !boundedText(itemId, 160),
+        ))) ||
+    (qualityChange !== null &&
+      (qualityChange.changedFactIds.length > 48 ||
+        !boundedText(qualityChange.beforeSnapshotSha256, 64) ||
+        !boundedText(qualityChange.afterSnapshotSha256, 64) ||
+        !boundedText(qualityChange.explanation, 2_000) ||
+        !boundedArtifactIds(qualityChange.artifactIds) ||
+        new Set(qualityChange.changedFactIds).size !==
+          qualityChange.changedFactIds.length ||
+        qualityChange.changedFactIds.some(
+          (factId) => !boundedText(factId, 160),
+        ))) ||
     output.evidenceBackedClaims.length > 24 ||
     output.unavailableEvidence.length > 24 ||
     output.limitations.length > 16 ||
     !boundedText(output.campaign.campaignId, 160) ||
     !boundedText(output.campaign.title, 300) ||
-    !boundedText(output.recommendation.why, 2_000) ||
     !boundedText(output.answer, 8_000) ||
-    !boundedArtifactIds(output.recommendation.artifactIds) ||
     !boundedArtifactIds(output.artifactIds) ||
-    new Set(output.recommendation.nextItemIds).size !==
-      output.recommendation.nextItemIds.length ||
-    output.recommendation.nextItemIds.some(
-      (itemId) => !boundedText(itemId, 160),
-    ) ||
     output.evidenceBackedClaims.some(
       (claim) =>
         !boundedText(claim.id, 120) ||
@@ -748,9 +858,82 @@ function validateOutputBounds(output: VerificationAnalystOutput): void {
   }
 }
 
+function validateWorkflowOutput(
+  output: VerificationAnalystOutput,
+  input: VerificationAnalystInput,
+  evidence: VerificationToolEvidence,
+  toolResults: readonly VerificationToolResult[],
+): void {
+  if (input.requestKind === 'next_review_action') {
+    if (output.recommendation === null || output.qualityChange !== null) {
+      throw new VerificationAnalystError(
+        'invalid_model_output',
+        'Next-review-action output requires a recommendation and no quality-change object',
+      )
+    }
+    const deterministic = deriveNextVerificationAction(
+      toolResults,
+      input.batchSize ?? 5,
+    )
+    if (
+      output.recommendation.action !== deterministic.action ||
+      output.recommendation.basis !== deterministic.basis ||
+      !sameOrderedValues(
+        output.recommendation.nextItemIds,
+        deterministic.nextItemIds,
+      )
+    ) {
+      throw new VerificationAnalystError(
+        'invalid_model_output',
+        'Model output replaced the deterministic next-action recommendation',
+      )
+    }
+    const itemIds = new Set(evidence.items.map(({ itemId }) => itemId))
+    if (
+      output.recommendation.nextItemIds.some((itemId) => !itemIds.has(itemId))
+    ) {
+      throw new VerificationAnalystError(
+        'invalid_model_output',
+        'Model output invented an item identity outside the campaign manifest',
+      )
+    }
+    return
+  }
+
+  if (output.recommendation !== null || output.qualityChange === null) {
+    throw new VerificationAnalystError(
+      'invalid_model_output',
+      'Quality-change output requires a quality-change object and no next-action recommendation',
+    )
+  }
+  const beforeSnapshotSha256 = input.beforeSnapshotSha256
+  if (
+    beforeSnapshotSha256 === undefined ||
+    output.qualityChange.beforeSnapshotSha256 !== beforeSnapshotSha256 ||
+    output.qualityChange.afterSnapshotSha256 !== input.snapshotSha256
+  ) {
+    throw new VerificationAnalystError(
+      'invalid_model_output',
+      'Model output changed the exact ordered quality snapshot identities',
+    )
+  }
+  const change = requiredToolResult(toolResults, 'explain_quality_change')
+  const changedFactIds = change.records.map(({ id }) => id)
+  if (
+    output.qualityChange.status !== change.status ||
+    !sameOrderedValues(output.qualityChange.changedFactIds, changedFactIds)
+  ) {
+    throw new VerificationAnalystError(
+      'invalid_model_output',
+      'Model output replaced the deterministic quality-change status or changed-field identities',
+    )
+  }
+}
+
 function rejectUnsupportedClaims(output: VerificationAnalystOutput): void {
   const text = [
-    output.recommendation.why,
+    output.recommendation?.why ?? '',
+    output.qualityChange?.explanation ?? '',
     output.answer,
     ...output.evidenceBackedClaims.map(({ claim }) => claim),
     ...output.unavailableEvidence.map(({ reason }) => reason),
@@ -761,6 +944,8 @@ function rejectUnsupportedClaims(output: VerificationAnalystOutput): void {
     /\b(?:accuracy|precision|quality)\b.{0,80}\bwill improve\b/iu,
     /\b(?:release[- ]ready|approved for (?:scientific )?release)\b/iu,
     /\bindependent(?:ly)? human taxonomic(?:ally)? verified\b/iu,
+    /\b(?:this|the|one|individual) review\b.{0,80}\b(?:caused|resulted in|made)\b/iu,
+    /\b(?:caused|resulted in|made)\b.{0,80}\b(?:this|the|one|individual) review\b/iu,
   ]
   if (forbidden.some((pattern) => pattern.test(text))) {
     throw new VerificationAnalystError(
@@ -785,6 +970,7 @@ function validateCitations(
     )
   }
   if (
+    output.recommendation !== null &&
     !sameOrderedValues(
       uniqueSorted(output.recommendation.artifactIds),
       returnedIds,
@@ -793,6 +979,18 @@ function validateCitations(
     throw new VerificationAnalystError(
       'invalid_model_output',
       'The deterministic recommendation must cite the complete returned evidence chain',
+    )
+  }
+  if (
+    output.qualityChange !== null &&
+    !sameOrderedValues(
+      uniqueSorted(output.qualityChange.artifactIds),
+      returnedIds,
+    )
+  ) {
+    throw new VerificationAnalystError(
+      'invalid_model_output',
+      'The quality-change explanation must cite the complete returned evidence chain',
     )
   }
   const nested = [
@@ -879,6 +1077,49 @@ function isRequiredNextActionTool(
   return (REQUIRED_NEXT_ACTION_TOOLS as readonly string[]).includes(value)
 }
 
+function isRequiredQualityChangeTool(
+  value: string,
+): value is (typeof REQUIRED_QUALITY_CHANGE_TOOLS)[number] {
+  return (REQUIRED_QUALITY_CHANGE_TOOLS as readonly string[]).includes(value)
+}
+
+function isAllowedTool(
+  requestKind: VerificationAnalystInput['requestKind'],
+  value: string,
+): value is VerificationToolName {
+  return requestKind === 'next_review_action'
+    ? isRequiredNextActionTool(value)
+    : isRequiredQualityChangeTool(value)
+}
+
+function requiredTools(
+  requestKind: VerificationAnalystInput['requestKind'],
+): readonly VerificationToolName[] {
+  return requestKind === 'next_review_action'
+    ? REQUIRED_NEXT_ACTION_TOOLS
+    : REQUIRED_QUALITY_CHANGE_TOOLS
+}
+
+function exceedsAllowedToolMultiplicity(
+  requestKind: VerificationAnalystInput['requestKind'],
+  name: VerificationToolName,
+  receipts: readonly VerificationAnalystToolReceipt[],
+): boolean {
+  const allowed = requiredTools(requestKind).filter(
+    (candidate) => candidate === name,
+  ).length
+  const used = receipts.filter(({ tool }) => tool === name).length
+  return used >= allowed
+}
+
+function requestInstructions(
+  requestKind: VerificationAnalystInput['requestKind'],
+): string {
+  return requestKind === 'next_review_action'
+    ? 'Call campaign, conflict, sampling, reference-readiness, and bounded-batch tools exactly once. Return a recommendation and set qualityChange to null.'
+    : 'Call campaign and sampling tools once, inspect the exact before and after snapshots once each, then call explain_quality_change once with the exact ordered digests. Return a qualityChange object and set recommendation to null.'
+}
+
 function mutableJsonObject(value: unknown): Record<string, unknown> {
   const converted = mutableJson(value)
   if (!isRecord(converted)) {
@@ -930,12 +1171,19 @@ function boundedText(value: string, maximum: number): boolean {
   return value.trim().length > 0 && value.length <= maximum
 }
 
-function sameSet<T>(left: readonly T[], right: readonly T[]): boolean {
-  return (
-    left.length === right.length &&
-    new Set(left).size === left.length &&
-    left.every((value) => right.includes(value))
-  )
+function sameMultiset<T>(left: readonly T[], right: readonly T[]): boolean {
+  if (left.length !== right.length) {
+    return false
+  }
+  const remaining = [...right]
+  for (const value of left) {
+    const index = remaining.indexOf(value)
+    if (index === -1) {
+      return false
+    }
+    remaining.splice(index, 1)
+  }
+  return remaining.length === 0
 }
 
 function sameOrderedValues<T>(

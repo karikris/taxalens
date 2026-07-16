@@ -29,6 +29,7 @@ import {
   type VerificationToolResult,
 } from './verificationTools'
 
+const BEFORE_SNAPSHOT_SHA = '9'.repeat(64)
 const SNAPSHOT_SHA = 'a'.repeat(64)
 const TAXALENS_SHA = '1'.repeat(40)
 const BIOMINER_SHA = '2'.repeat(40)
@@ -135,7 +136,7 @@ describe('GPT-5.6 verification analyst next action', () => {
     )
 
     expect(run).toMatchObject({
-      schemaVersion: 'taxalens-verification-analyst-run:v1.0.0',
+      schemaVersion: 'taxalens-verification-analyst-run:v1.1.0',
       model: VERIFICATION_ANALYST_MODEL,
       reasoningEffort: 'medium',
       responseStatus: 'completed',
@@ -249,16 +250,96 @@ describe('GPT-5.6 verification analyst next action', () => {
     })
   })
 
+  it('explains exact snapshot deltas without assigning causality to one review', async () => {
+    const results = qualityToolResults()
+    const transport = new ScriptedTransport([
+      response('quality-response-1', [
+        functionCall(
+          'quality-call-1',
+          'inspect_verification_campaign',
+          { campaign_id: CAMPAIGN_ID },
+        ),
+      ]),
+      response('quality-response-2', [
+        functionCall('quality-call-2', 'inspect_sampling_plan', {
+          campaign_id: CAMPAIGN_ID,
+        }),
+      ]),
+      response('quality-response-3', [
+        functionCall('quality-call-3', 'inspect_quality_snapshot', {
+          campaign_id: CAMPAIGN_ID,
+          snapshot_sha256: BEFORE_SNAPSHOT_SHA,
+        }),
+      ]),
+      response('quality-response-4', [
+        functionCall('quality-call-4', 'inspect_quality_snapshot', {
+          campaign_id: CAMPAIGN_ID,
+          snapshot_sha256: SNAPSHOT_SHA,
+        }),
+      ]),
+      response('quality-response-5', [
+        functionCall('quality-call-5', 'explain_quality_change', {
+          campaign_id: CAMPAIGN_ID,
+          before_snapshot_sha256: BEFORE_SNAPSHOT_SHA,
+          after_snapshot_sha256: SNAPSHOT_SHA,
+        }),
+      ]),
+      response('quality-response-6', [], qualityOutput()),
+    ])
+
+    const run = await runVerificationAnalyst(
+      {
+        requestKind: 'quality_change',
+        request: 'Why did the recorded quality state change after review?',
+        beforeSnapshotSha256: BEFORE_SNAPSHOT_SHA,
+        snapshotSha256: SNAPSHOT_SHA,
+      },
+      evidence(),
+      transport,
+      executor(results),
+    )
+
+    expect(run.output.recommendation).toBeNull()
+    expect(run.output.qualityChange).toMatchObject({
+      beforeSnapshotSha256: BEFORE_SNAPSHOT_SHA,
+      afterSnapshotSha256: SNAPSHOT_SHA,
+      status: 'partial',
+      changedFactIds: [
+        'attempted_items_delta',
+        'unresolved_conflicts_delta',
+      ],
+      causalEffectClaimed: false,
+    })
+    expect(run.toolReceipts.map(({ tool }) => tool)).toEqual([
+      'inspect_verification_campaign',
+      'inspect_sampling_plan',
+      'inspect_quality_snapshot',
+      'inspect_quality_snapshot',
+      'explain_quality_change',
+    ])
+    expect(transport.requests[0]?.tools).toHaveLength(4)
+    expect(transport.requests[0]?.instructions).toContain(
+      'before and after snapshots',
+    )
+
+    const causal = qualityOutput()
+    causal.qualityChange!.explanation =
+      'This individual review caused the conflict rate to change.'
+    await expect(runQualityScriptedFinal(causal)).rejects.toMatchObject({
+      code: 'invalid_model_output',
+    })
+  })
+
   it('rejects model-selected actions, invented items, and guarantee claims', async () => {
     const wrongAction = analystOutput()
-    wrongAction.recommendation.action = 'unbiased_audit'
-    wrongAction.recommendation.basis = 'representative_sampling_plan'
+    wrongAction.recommendation!.action = 'unbiased_audit'
+    wrongAction.recommendation!.basis = 'representative_sampling_plan'
     await expect(runScriptedFinal(wrongAction)).rejects.toMatchObject({
       code: 'invalid_model_output',
     })
 
     const inventedItem = analystOutput()
-    inventedItem.recommendation.nextItemIds = ['model-generated-item']
+    inventedItem.recommendation!.nextItemIds = ['model-generated-item']
     await expect(runScriptedFinal(inventedItem)).rejects.toMatchObject({
       code: 'invalid_model_output',
     })
@@ -440,6 +521,7 @@ function analystOutput(): Mutable<VerificationAnalystOutput> {
         'One recorded reviewer disagreement remains unresolved, so independent adjudication addresses the current decision blocker before another sampled review.',
       artifactIds: [...artifactIds],
     },
+    qualityChange: null,
     evidenceBackedClaims: [
       {
         id: 'unresolved-conflict',
@@ -453,6 +535,61 @@ function analystOutput(): Mutable<VerificationAnalystOutput> {
       'Assign the conflicted item to an independent adjudicator and retain both source reviews.',
     limitations: [
       'This recommendation addresses a recorded blocker and does not predict a quality or release outcome.',
+    ],
+    artifactIds: [...artifactIds],
+    externalActionsExecuted: false,
+    unsupportedClaimsRejected: true,
+    scientificClaimAllowed: false,
+  }
+}
+
+function qualityOutput(): Mutable<VerificationAnalystOutput> {
+  const artifactIds = citations().map(({ artifactId }) => artifactId)
+  return {
+    schemaVersion: VERIFICATION_ANALYST_OUTPUT_VERSION,
+    requestKind: 'quality_change',
+    campaign: {
+      campaignId: CAMPAIGN_ID,
+      title: 'Verification analyst campaign',
+      target: {
+        acceptedTaxonKey: 'gbif:1938069',
+        scientificName: 'Papilio demoleus',
+      },
+    },
+    recommendation: null,
+    qualityChange: {
+      beforeSnapshotSha256: BEFORE_SNAPSHOT_SHA,
+      afterSnapshotSha256: SNAPSHOT_SHA,
+      status: 'partial',
+      changedFactIds: [
+        'attempted_items_delta',
+        'unresolved_conflicts_delta',
+      ],
+      explanation:
+        'Between the immutable snapshots, attempted items increased from one to two and unresolved conflicts increased from zero to one; the evidence records deltas without assigning an individual causal effect.',
+      artifactIds: [...artifactIds],
+      causalEffectClaimed: false,
+    },
+    evidenceBackedClaims: [
+      {
+        id: 'recorded-quality-deltas',
+        claim:
+          'The exact snapshots record one additional attempted item and one additional unresolved conflict.',
+        artifactIds: [...artifactIds],
+      },
+    ],
+    unavailableEvidence: [
+      {
+        topic: 'Individual-review causality',
+        reason:
+          'The immutable before-and-after snapshots do not identify a causal effect for one review.',
+        artifactIds: [...artifactIds],
+      },
+    ],
+    answer:
+      'The recorded state changed in coverage and conflict counts; this is a snapshot comparison, not a causal attribution.',
+    limitations: [
+      'A before-and-after delta does not prove why an individual metric moved.',
     ],
     artifactIds: [...artifactIds],
     externalActionsExecuted: false,
@@ -480,7 +617,16 @@ function evidence(): VerificationToolEvidence {
     events: [],
     consensus: [],
     inspections: {},
-    qualitySnapshots: [{ snapshotSha256: SNAPSHOT_SHA }],
+    qualitySnapshots: [
+      {
+        snapshotSha256: BEFORE_SNAPSHOT_SHA,
+        capturedAt: '2026-07-16T19:00:00.000Z',
+      },
+      {
+        snapshotSha256: SNAPSHOT_SHA,
+        capturedAt: '2026-07-16T19:30:00.000Z',
+      },
+    ],
     artifactCitations: citations(),
   } as unknown as VerificationToolEvidence
 }
@@ -554,6 +700,49 @@ function toolResults(): readonly VerificationToolResult[] {
   ]
 }
 
+function qualityToolResults(): readonly VerificationToolResult[] {
+  return [
+    result('inspect_verification_campaign'),
+    result('inspect_sampling_plan', {
+      facts: [fact('sampling_purpose', 'quality_estimation')],
+    }),
+    result('inspect_quality_snapshot', {
+      status: 'partial',
+      summary: `Before snapshot ${BEFORE_SNAPSHOT_SHA}.`,
+      facts: [fact('attempted_items', 1)],
+    }),
+    result('inspect_quality_snapshot', {
+      status: 'partial',
+      summary: `After snapshot ${SNAPSHOT_SHA}.`,
+      facts: [fact('attempted_items', 2)],
+    }),
+    result('explain_quality_change', {
+      status: 'partial',
+      facts: [
+        fact('attempted_items_delta', 1),
+        fact('unresolved_conflicts_delta', 1),
+      ],
+      records: [
+        {
+          id: 'attempted_items_delta',
+          label: 'Attempted items delta',
+          status: 'available',
+          detail: 'Changed from 1 to 2.',
+        },
+        {
+          id: 'unresolved_conflicts_delta',
+          label: 'Unresolved conflicts delta',
+          status: 'available',
+          detail: 'Changed from 0 to 1.',
+        },
+      ],
+      limitations: [
+        'The recorded deltas do not infer a causal effect for an individual review.',
+      ],
+    }),
+  ]
+}
+
 function result(
   tool: VerificationToolName,
   overrides: Partial<VerificationToolResult> = {},
@@ -590,8 +779,15 @@ function fact(
 function executor(
   results: readonly VerificationToolResult[],
 ) {
+  const remaining = new Map<VerificationToolName, VerificationToolResult[]>()
+  for (const resultValue of results) {
+    const queue = remaining.get(resultValue.tool) ?? []
+    queue.push(resultValue)
+    remaining.set(resultValue.tool, queue)
+  }
   return async (name: string): Promise<VerificationToolResult> => {
-    const resultValue = results.find(({ tool }) => tool === name)
+    const queue = remaining.get(name as VerificationToolName)
+    const resultValue = queue?.shift()
     if (resultValue === undefined) {
       throw new Error(`No test result for ${name}`)
     }
@@ -643,6 +839,59 @@ async function runScriptedFinal(
     evidence(),
     transport,
     executor(toolResults()),
+  )
+}
+
+async function runQualityScriptedFinal(
+  output: unknown,
+): Promise<unknown> {
+  const calls: readonly [
+    VerificationToolName,
+    Readonly<Record<string, unknown>>,
+  ][] = [
+    ['inspect_verification_campaign', { campaign_id: CAMPAIGN_ID }],
+    ['inspect_sampling_plan', { campaign_id: CAMPAIGN_ID }],
+    [
+      'inspect_quality_snapshot',
+      {
+        campaign_id: CAMPAIGN_ID,
+        snapshot_sha256: BEFORE_SNAPSHOT_SHA,
+      },
+    ],
+    [
+      'inspect_quality_snapshot',
+      {
+        campaign_id: CAMPAIGN_ID,
+        snapshot_sha256: SNAPSHOT_SHA,
+      },
+    ],
+    [
+      'explain_quality_change',
+      {
+        campaign_id: CAMPAIGN_ID,
+        before_snapshot_sha256: BEFORE_SNAPSHOT_SHA,
+        after_snapshot_sha256: SNAPSHOT_SHA,
+      },
+    ],
+  ]
+  const transport = new ScriptedTransport([
+    ...calls.map(([name, args], index) =>
+      response(`quality-validation-response-${index}`, [
+        functionCall(`quality-validation-call-${index}`, name, args),
+      ]),
+    ),
+    response('quality-validation-final', [], output),
+  ])
+  return runVerificationAnalyst(
+    {
+      requestKind: 'quality_change',
+      request: 'Explain the recorded quality change.',
+      beforeSnapshotSha256: BEFORE_SNAPSHOT_SHA,
+      snapshotSha256: SNAPSHOT_SHA,
+    },
+    evidence(),
+    transport,
+    executor(qualityToolResults()),
   )
 }
 

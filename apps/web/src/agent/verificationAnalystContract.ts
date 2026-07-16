@@ -5,11 +5,13 @@ import type {
 
 export const VERIFICATION_ANALYST_MODEL = 'gpt-5.6-sol' as const
 export const VERIFICATION_ANALYST_OUTPUT_VERSION =
-  'taxalens-verification-analyst-output:v1.0.0' as const
+  'taxalens-verification-analyst-output:v1.1.0' as const
 export const VERIFICATION_ANALYST_RUN_VERSION =
-  'taxalens-verification-analyst-run:v1.0.0' as const
+  'taxalens-verification-analyst-run:v1.1.0' as const
 
-export type VerificationAnalystRequestKind = 'next_review_action'
+export type VerificationAnalystRequestKind =
+  | 'next_review_action'
+  | 'quality_change'
 export type VerificationAnalystReasoningEffort = 'medium' | 'high'
 export type VerificationActionKind =
   | 'unbiased_audit'
@@ -26,6 +28,7 @@ export interface VerificationAnalystInput {
   readonly requestKind: VerificationAnalystRequestKind
   readonly request: string
   readonly snapshotSha256: string
+  readonly beforeSnapshotSha256?: string
   readonly batchSize?: number
   readonly reasoningEffort?: VerificationAnalystReasoningEffort
   readonly budget?: Partial<VerificationAnalystBudgetLimits>
@@ -56,6 +59,16 @@ export interface VerificationActionRecommendation {
   readonly artifactIds: readonly string[]
 }
 
+export interface VerificationQualityChangeExplanation {
+  readonly beforeSnapshotSha256: string
+  readonly afterSnapshotSha256: string
+  readonly status: VerificationToolResult['status']
+  readonly changedFactIds: readonly string[]
+  readonly explanation: string
+  readonly artifactIds: readonly string[]
+  readonly causalEffectClaimed: false
+}
+
 export interface VerificationAnalystOutput {
   readonly schemaVersion: typeof VERIFICATION_ANALYST_OUTPUT_VERSION
   readonly requestKind: VerificationAnalystRequestKind
@@ -67,7 +80,8 @@ export interface VerificationAnalystOutput {
       readonly scientificName: string
     } | null
   }
-  readonly recommendation: VerificationActionRecommendation
+  readonly recommendation: VerificationActionRecommendation | null
+  readonly qualityChange: VerificationQualityChangeExplanation | null
   readonly evidenceBackedClaims: readonly VerificationAnalystClaim[]
   readonly unavailableEvidence: readonly VerificationAnalystUnavailableEvidence[]
   readonly answer: string
@@ -122,7 +136,7 @@ export const VERIFICATION_ANALYST_OUTPUT_SCHEMA: Readonly<Record<string, unknown
       },
       requestKind: {
         type: 'string',
-        const: 'next_review_action',
+        enum: ['next_review_action', 'quality_change'],
       },
       campaign: {
         type: 'object',
@@ -148,35 +162,73 @@ export const VERIFICATION_ANALYST_OUTPUT_SCHEMA: Readonly<Record<string, unknown
         required: ['campaignId', 'title', 'target'],
       },
       recommendation: {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          action: {
-            type: 'string',
-            enum: [
-              'unbiased_audit',
-              'failure_discovery',
-              'reference_shortfall',
-              'adjudication',
+        anyOf: [
+          {
+            type: 'object',
+            additionalProperties: false,
+            properties: {
+              action: {
+                type: 'string',
+                enum: [
+                  'unbiased_audit',
+                  'failure_discovery',
+                  'reference_shortfall',
+                  'adjudication',
+                ],
+              },
+              basis: {
+                type: 'string',
+                enum: [
+                  'representative_sampling_plan',
+                  'targeted_failure_discovery',
+                  'reference_readiness_blocker',
+                  'unresolved_review_conflict',
+                ],
+              },
+              nextItemIds: {
+                type: 'array',
+                items: { type: 'string' },
+              },
+              why: { type: 'string' },
+              artifactIds: ARTIFACT_IDS,
+            },
+            required: ['action', 'basis', 'nextItemIds', 'why', 'artifactIds'],
+          },
+          { type: 'null' },
+        ],
+      },
+      qualityChange: {
+        anyOf: [
+          {
+            type: 'object',
+            additionalProperties: false,
+            properties: {
+              beforeSnapshotSha256: { type: 'string' },
+              afterSnapshotSha256: { type: 'string' },
+              status: {
+                type: 'string',
+                enum: ['available', 'partial', 'unavailable', 'blocked'],
+              },
+              changedFactIds: {
+                type: 'array',
+                items: { type: 'string' },
+              },
+              explanation: { type: 'string' },
+              artifactIds: ARTIFACT_IDS,
+              causalEffectClaimed: { type: 'boolean', const: false },
+            },
+            required: [
+              'beforeSnapshotSha256',
+              'afterSnapshotSha256',
+              'status',
+              'changedFactIds',
+              'explanation',
+              'artifactIds',
+              'causalEffectClaimed',
             ],
           },
-          basis: {
-            type: 'string',
-            enum: [
-              'representative_sampling_plan',
-              'targeted_failure_discovery',
-              'reference_readiness_blocker',
-              'unresolved_review_conflict',
-            ],
-          },
-          nextItemIds: {
-            type: 'array',
-            items: { type: 'string' },
-          },
-          why: { type: 'string' },
-          artifactIds: ARTIFACT_IDS,
-        },
-        required: ['action', 'basis', 'nextItemIds', 'why', 'artifactIds'],
+          { type: 'null' },
+        ],
       },
       evidenceBackedClaims: {
         type: 'array',
@@ -219,6 +271,7 @@ export const VERIFICATION_ANALYST_OUTPUT_SCHEMA: Readonly<Record<string, unknown
       'requestKind',
       'campaign',
       'recommendation',
+      'qualityChange',
       'evidenceBackedClaims',
       'unavailableEvidence',
       'answer',
