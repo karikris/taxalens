@@ -1,5 +1,6 @@
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js'
 
+import { canonicalExportJsonBytes } from '../../evidence/evidenceExport'
 import {
   projectVerificationConsensus,
   type VerificationConsensus,
@@ -29,7 +30,10 @@ import {
 } from './supabaseReviewRows'
 
 export type SupabaseReviewRepositoryErrorCode =
-  'query_failed' | 'write_failed' | 'invalid_remote_data'
+  | 'query_failed'
+  | 'write_failed'
+  | 'invalid_remote_data'
+  | 'event_id_conflict'
 
 export class SupabaseReviewRepositoryError extends Error {
   readonly code: SupabaseReviewRepositoryErrorCode
@@ -118,6 +122,13 @@ export class SupabaseReviewRepository implements ReviewRepository {
     }
     const items = await this.#loadItemsForCampaign(campaign)
     const events = await this.#loadEventsForCampaign(campaign, items)
+    const existingEvent = events.find(
+      ({ eventId }) => eventId === event.eventId,
+    )
+    if (existingEvent !== undefined) {
+      assertSameEvent(existingEvent, event)
+      return
+    }
     const item = items.find(({ itemId }) => itemId === event.itemId)
     if (item === undefined) {
       throw invalidRemote(
@@ -137,15 +148,22 @@ export class SupabaseReviewRepository implements ReviewRepository {
     const { error } = await this.#client
       .from('verification_events')
       .insert(verificationEventToSupabaseInsert(event))
-    if (error !== null) {
-      throw new SupabaseReviewRepositoryError({
-        code: 'write_failed',
-        operation,
-        postgrestCode: error.code,
-        message: `Supabase verification write failed: ${error.message}`,
-        cause: error,
-      })
+    if (error === null) {
+      return
     }
+    if (
+      error.code === '23505' &&
+      (await this.#resolveDuplicateEvent(event, campaign, items, events))
+    ) {
+      return
+    }
+    throw new SupabaseReviewRepositoryError({
+      code: 'write_failed',
+      operation,
+      postgrestCode: error.code,
+      message: `Supabase verification write failed: ${error.message}`,
+      cause: error,
+    })
   }
 
   async loadCurrentDecisions(
@@ -270,6 +288,41 @@ export class SupabaseReviewRepository implements ReviewRepository {
     }
     return Object.freeze(events)
   }
+
+  async #resolveDuplicateEvent(
+    event: VerificationEvent,
+    campaign: VerificationCampaign,
+    items: readonly VerificationItem[],
+    priorEvents: readonly VerificationEvent[],
+  ): Promise<boolean> {
+    const operation = `resolve duplicate event ${event.eventId}`
+    const { data, error } = await this.#client
+      .from('verification_events')
+      .select('*')
+      .eq('event_id', event.eventId)
+      .maybeSingle()
+    throwQueryError(error, operation)
+    if (data === null) {
+      return false
+    }
+    const row = remoteRecord(data, operation)
+    if (!canonicalEqual(row.event_payload, event)) {
+      throw eventIdConflict(event.eventId)
+    }
+    const itemId = remoteStringField(row, 'item_id', operation)
+    const item = items.find((candidate) => candidate.itemId === itemId)
+    if (item === undefined) {
+      throw invalidRemote(
+        operation,
+        `event names an unavailable item: ${itemId}`,
+      )
+    }
+    const persistedEvent = decodeRemote(operation, () =>
+      verificationEventFromSupabaseRow(row, campaign, item, priorEvents),
+    )
+    assertSameEvent(persistedEvent, event)
+    return true
+  }
 }
 
 function throwQueryError(
@@ -324,14 +377,47 @@ function remoteStringField(
   field: string,
   operation: string,
 ): string {
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-    throw invalidRemote(operation, 'query returned a non-object row')
-  }
-  const fieldValue = (value as Record<string, unknown>)[field]
+  const fieldValue = remoteRecord(value, operation)[field]
   if (typeof fieldValue !== 'string') {
     throw invalidRemote(operation, `${field} is not a string`)
   }
   return fieldValue
+}
+
+function remoteRecord(
+  value: unknown,
+  operation: string,
+): Record<string, unknown> {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    throw invalidRemote(operation, 'query returned a non-object row')
+  }
+  return value as Record<string, unknown>
+}
+
+function assertSameEvent(
+  persistedEvent: VerificationEvent,
+  attemptedEvent: VerificationEvent,
+): void {
+  if (!canonicalEqual(persistedEvent, attemptedEvent)) {
+    throw eventIdConflict(attemptedEvent.eventId)
+  }
+}
+
+function eventIdConflict(eventId: string): SupabaseReviewRepositoryError {
+  return new SupabaseReviewRepositoryError({
+    code: 'event_id_conflict',
+    operation: `append event ${eventId}`,
+    message: `Supabase verification event ID is already bound to a different payload: ${eventId}`,
+  })
+}
+
+function canonicalEqual(left: unknown, right: unknown): boolean {
+  const leftBytes = canonicalExportJsonBytes(left)
+  const rightBytes = canonicalExportJsonBytes(right)
+  return (
+    leftBytes.byteLength === rightBytes.byteLength &&
+    leftBytes.every((byte, index) => byte === rightBytes[index])
+  )
 }
 
 function errorMessage(reason: unknown): string {

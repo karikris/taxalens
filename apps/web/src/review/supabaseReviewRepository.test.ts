@@ -121,6 +121,93 @@ describe('Supabase review repository', () => {
 
     expect(server.fetch).not.toHaveBeenCalled()
   })
+
+  it('treats an already persisted identical event ID as an idempotent retry', async () => {
+    const event = eventForItem(
+      HUMAN_REVIEW_ITEMS[0]!,
+      '00000000-0000-4000-8000-000000000001',
+      'event-supabase-retry',
+      '2026-07-16T19:49:00.000Z',
+    )
+    const server = fakeSupabaseServer([event])
+    const repository = new SupabaseReviewRepository({
+      client: supabaseClient(server.fetch),
+    })
+
+    await expect(repository.appendEvent(event)).resolves.toBeUndefined()
+
+    expect(server.insertedEvents).toEqual([])
+  })
+
+  it('rejects an event ID already bound to a different payload', async () => {
+    const event = eventForItem(
+      HUMAN_REVIEW_ITEMS[0]!,
+      '00000000-0000-4000-8000-000000000001',
+      'event-supabase-conflict',
+      '2026-07-16T19:50:00.000Z',
+    )
+    const conflictingEvent = Object.freeze({
+      ...event,
+      comment: 'A different persisted payload.',
+    })
+    const server = fakeSupabaseServer([conflictingEvent])
+    const repository = new SupabaseReviewRepository({
+      client: supabaseClient(server.fetch),
+    })
+
+    await expect(repository.appendEvent(event)).rejects.toMatchObject({
+      name: 'SupabaseReviewRepositoryError',
+      code: 'event_id_conflict',
+      postgrestCode: null,
+    } satisfies Partial<SupabaseReviewRepositoryError>)
+    expect(server.insertedEvents).toEqual([])
+  })
+
+  it('resolves a concurrent identical insert after PostgreSQL reports 23505', async () => {
+    const event = eventForItem(
+      HUMAN_REVIEW_ITEMS[0]!,
+      '00000000-0000-4000-8000-000000000001',
+      'event-supabase-race-retry',
+      '2026-07-16T19:51:00.000Z',
+    )
+    const server = fakeSupabaseServer([], {
+      duplicateOnNextInsert: event,
+    })
+    const repository = new SupabaseReviewRepository({
+      client: supabaseClient(server.fetch),
+    })
+
+    await expect(repository.appendEvent(event)).resolves.toBeUndefined()
+
+    expect(server.insertedEvents).toEqual([])
+    expect(server.eventRows).toEqual([eventRow(event)])
+  })
+
+  it('rejects a concurrent event-ID collision with a different payload', async () => {
+    const event = eventForItem(
+      HUMAN_REVIEW_ITEMS[0]!,
+      '00000000-0000-4000-8000-000000000001',
+      'event-supabase-race-conflict',
+      '2026-07-16T19:52:00.000Z',
+    )
+    const conflictingEvent = Object.freeze({
+      ...event,
+      comment: 'The concurrent writer used this payload.',
+    })
+    const server = fakeSupabaseServer([], {
+      duplicateOnNextInsert: conflictingEvent,
+    })
+    const repository = new SupabaseReviewRepository({
+      client: supabaseClient(server.fetch),
+    })
+
+    await expect(repository.appendEvent(event)).rejects.toMatchObject({
+      name: 'SupabaseReviewRepositoryError',
+      code: 'event_id_conflict',
+      postgrestCode: null,
+    } satisfies Partial<SupabaseReviewRepositoryError>)
+    expect(server.insertedEvents).toEqual([])
+  })
 })
 
 function supabaseClient(fetch: typeof globalThis.fetch) {
@@ -138,7 +225,14 @@ function supabaseClient(fetch: typeof globalThis.fetch) {
   )
 }
 
-function fakeSupabaseServer(initialEvents: readonly VerificationEvent[]) {
+function fakeSupabaseServer(
+  initialEvents: readonly VerificationEvent[],
+  {
+    duplicateOnNextInsert = null,
+  }: {
+    readonly duplicateOnNextInsert?: VerificationEvent | null
+  } = {},
+) {
   const insertedEvents: ReturnType<typeof verificationEventToSupabaseInsert>[] =
     []
   const itemRows = HUMAN_REVIEW_ITEMS.map(itemRow)
@@ -155,6 +249,20 @@ function fakeSupabaseServer(initialEvents: readonly VerificationEvent[]) {
     const table = url.pathname.split('/').at(-1)
     const method = init?.method ?? 'GET'
     if (table === 'verification_events' && method === 'POST') {
+      if (duplicateOnNextInsert !== null) {
+        eventRows.push(eventRow(duplicateOnNextInsert))
+        duplicateOnNextInsert = null
+        return response(
+          {
+            code: '23505',
+            message:
+              'duplicate key value violates unique constraint "verification_events_pkey"',
+            details: null,
+            hint: null,
+          },
+          409,
+        )
+      }
       const body = JSON.parse(String(init?.body))
       const insert = (Array.isArray(body) ? body[0] : body) as ReturnType<
         typeof verificationEventToSupabaseInsert
@@ -173,6 +281,14 @@ function fakeSupabaseServer(initialEvents: readonly VerificationEvent[]) {
       return response(itemRows)
     }
     if (table === 'verification_events') {
+      const eventIdFilter = url.searchParams.get('event_id')
+      if (eventIdFilter?.startsWith('eq.')) {
+        return response(
+          eventRows.find(
+            ({ event_id }) => event_id === eventIdFilter.slice('eq.'.length),
+          ) ?? null,
+        )
+      }
       return response(eventRows)
     }
     if (table === 'verification_consensus') {

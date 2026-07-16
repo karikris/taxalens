@@ -312,6 +312,7 @@ async function verifyImmutableEventLedger(database) {
     eventId,
     imageFingerprint = imageSha,
     outcome = 'yes',
+    reviewRound = 1,
     supersedesEventId = null,
     reviewedAt,
   }) =>
@@ -341,22 +342,23 @@ async function verifyImmutableEventLedger(database) {
           'item-test',
           $2,
           'event:v1',
-          1,
           $3,
+          $4,
           '{}'::jsonb,
-          $4,
-          $4,
+          $5,
           $5,
           $6,
           $7,
           $8,
           $9,
-          $10
+          $10,
+          $11
         )
       `,
       [
         eventId,
         actorId,
+        reviewRound,
         outcome,
         reviewedAt,
         imageFingerprint,
@@ -408,6 +410,7 @@ async function verifyImmutableEventLedger(database) {
   )
   await insertEvent({
     eventId: 'event-revision',
+    reviewRound: 2,
     reviewedAt: '2026-07-16T19:02:00.000Z',
     supersedesEventId: 'event-original',
   })
@@ -415,10 +418,21 @@ async function verifyImmutableEventLedger(database) {
     () =>
       insertEvent({
         eventId: 'event-second-revision',
+        reviewRound: 3,
         reviewedAt: '2026-07-16T19:03:00.000Z',
         supersedesEventId: 'event-original',
       }),
     /duplicate key|unique constraint/iu,
+  )
+  await assertRejectsSql(
+    () =>
+      insertEvent({
+        eventId: 'event-round-gap',
+        reviewRound: 4,
+        reviewedAt: '2026-07-16T19:03:30.000Z',
+        supersedesEventId: 'event-revision',
+      }),
+    /reviewer round is not contiguous/iu,
   )
   await assertRejectsSql(
     () =>
@@ -428,7 +442,7 @@ async function verifyImmutableEventLedger(database) {
         reviewedAt: '2026-07-16T19:04:00.000Z',
         supersedesEventId: 'event-revision',
       }),
-    /superseded review event relationship is invalid/iu,
+    /superseded verification event relationship is invalid/iu,
   )
   await insertEvent({
     actorId: userB,
@@ -445,11 +459,16 @@ async function verifyImmutableEventLedger(database) {
       insertAdjudication({
         actorId: userA,
         eventId: 'event-self-adjudication',
+        reviewRound: 3,
       }),
     /source events are invalid or not independent/iu,
   )
 
-  async function insertAdjudication({ actorId, eventId }) {
+  async function insertAdjudication({
+    actorId,
+    eventId,
+    reviewRound = 1,
+  }) {
     return database.query(
       `
         insert into public.verification_events (
@@ -479,16 +498,16 @@ async function verifyImmutableEventLedger(database) {
           $2,
           'event:v1',
           'adjudication',
-          2,
+          $3,
           'yes',
           '{}'::jsonb,
           '2026-07-16T19:06:00.000Z',
           '2026-07-16T19:06:00.000Z',
-          $3,
           $4,
           $5,
           $6,
           $7,
+          $8,
           array['event-revision', 'event-reviewer-b'],
           array['outcome']
         )
@@ -496,6 +515,7 @@ async function verifyImmutableEventLedger(database) {
       [
         eventId,
         actorId,
+        reviewRound,
         imageSha,
         questionSha,
         manifestSha,
@@ -611,7 +631,8 @@ async function verifyRowLevelSecurity(database) {
       question_sha256,
       campaign_manifest_sha256,
       taxalens_sha,
-      biominer_sha
+      biominer_sha,
+      supersedes_event_id
     )
     select
       'event-rls-reviewer',
@@ -619,7 +640,7 @@ async function verifyRowLevelSecurity(database) {
       item.item_id,
       '${reviewerId}',
       'event:v1',
-      1,
+      3,
       'yes',
       '{}'::jsonb,
       '2026-07-16T19:10:00.000Z',
@@ -628,7 +649,8 @@ async function verifyRowLevelSecurity(database) {
       item.question_sha256,
       campaign.manifest_sha256,
       campaign.taxalens_sha,
-      campaign.biominer_sha
+      campaign.biominer_sha,
+      'event-revision'
     from public.verification_campaigns as campaign
     join public.verification_items as item
       on item.campaign_id = campaign.campaign_id
@@ -676,6 +698,7 @@ async function verifyRowLevelSecurity(database) {
       campaign_manifest_sha256,
       taxalens_sha,
       biominer_sha,
+      supersedes_event_id,
       source_conflict_event_ids,
       source_conflict_fields
     )
@@ -696,6 +719,7 @@ async function verifyRowLevelSecurity(database) {
       campaign.manifest_sha256,
       campaign.taxalens_sha,
       campaign.biominer_sha,
+      'event-adjudication',
       array['event-rls-reviewer', 'event-reviewer-b'],
       array['outcome']
     from public.verification_campaigns as campaign
