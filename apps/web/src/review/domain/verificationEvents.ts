@@ -13,7 +13,7 @@ import {
 } from './verificationContracts'
 
 export const VERIFICATION_EVENT_SCHEMA_VERSION =
-  'taxalens-verification-event:v1.2.0' as const
+  'taxalens-verification-event:v1.3.0' as const
 
 export const VERIFICATION_OUTCOMES = Object.freeze([
   'yes',
@@ -24,6 +24,19 @@ export const VERIFICATION_OUTCOMES = Object.freeze([
 ] as const)
 
 export type VerificationOutcome = (typeof VERIFICATION_OUTCOMES)[number]
+
+export const FLICKR_NON_TARGET_CATEGORIES = Object.freeze([
+  'alternative_species',
+  'other_butterfly',
+  'other_insect',
+  'artifact',
+  'specimen',
+  'no_organism',
+  'insufficient_visual_detail',
+] as const)
+
+export type FlickrNonTargetCategory =
+  (typeof FLICKR_NON_TARGET_CATEGORIES)[number]
 
 export type VerificationConfidence = 'high' | 'medium' | 'low' | 'unknown'
 export type VerificationMediaQuality =
@@ -42,6 +55,7 @@ export interface VerificationEvent {
   readonly reviewRound: number
   readonly outcome: VerificationOutcome
   readonly comment: string | null
+  readonly nonTargetCategory: FlickrNonTargetCategory | null
   readonly alternativeTaxon: TaxonIdentity | null
   readonly correctedLifeStage: VerificationLifeStage | null
   readonly correctedVisualDomain: VerificationVisualDomain | null
@@ -86,6 +100,12 @@ export function validateVerificationEvent(
   if (!VERIFICATION_OUTCOMES.some((outcome) => outcome === event.outcome)) {
     failures.push('event outcome is unsupported')
   }
+  if (
+    event.nonTargetCategory !== null &&
+    !FLICKR_NON_TARGET_CATEGORIES.includes(event.nonTargetCategory)
+  ) {
+    failures.push('event non-target category is unsupported')
+  }
   if (!isVerificationMediaQuality(event.mediaQuality)) {
     failures.push('event media quality is unsupported')
   }
@@ -126,9 +146,35 @@ export function validateVerificationEvent(
   if (event.outcome === 'yes' && event.alternativeTaxon !== null) {
     failures.push('an affirmative decision cannot name an alternative taxon')
   }
+  if (event.outcome !== 'no' && event.nonTargetCategory !== null) {
+    failures.push('only a No decision can carry a non-target category')
+  }
+  if (
+    event.nonTargetCategory === 'alternative_species' &&
+    event.alternativeTaxon === null
+  ) {
+    failures.push('alternative species requires a named alternative taxon')
+  }
+  if (
+    event.nonTargetCategory !== null &&
+    event.nonTargetCategory !== 'alternative_species' &&
+    event.alternativeTaxon !== null
+  ) {
+    failures.push(
+      'only the alternative-species category can name an alternative taxon',
+    )
+  }
+  if (
+    item.source === 'flickr' &&
+    event.outcome === 'no' &&
+    event.nonTargetCategory === null
+  ) {
+    failures.push('a Flickr No decision requires a non-target category')
+  }
   if (
     (event.outcome === 'cant_view' || event.outcome === 'skipped') &&
-    (event.alternativeTaxon !== null ||
+    (event.nonTargetCategory !== null ||
+      event.alternativeTaxon !== null ||
       event.correctedLifeStage !== null ||
       event.correctedVisualDomain !== null ||
       event.correctedView !== null ||

@@ -18,7 +18,7 @@ REFERENCE_REVIEW_DECISION_IMPORT_SCHEMA_VERSION = (
     "reference-review-decision-import-v1.0.0"
 )
 REFERENCE_REVIEW_DECISION_IMPORT_FILE = "reference_review_decision_import.parquet"
-TAXALENS_VERIFICATION_EVENT_SCHEMA_VERSION = "taxalens-verification-event:v1.2.0"
+TAXALENS_VERIFICATION_EVENT_SCHEMA_VERSION = "taxalens-verification-event:v1.3.0"
 
 _REVIEWER_ID = re.compile(r"[a-z0-9][a-z0-9._:@/-]{2,127}\Z")
 _SHA256 = re.compile(r"[0-9a-f]{64}\Z")
@@ -57,6 +57,7 @@ _EVENT_FIELDS = frozenset(
         "reviewRound",
         "outcome",
         "comment",
+        "nonTargetCategory",
         "alternativeTaxon",
         "correctedLifeStage",
         "correctedVisualDomain",
@@ -386,6 +387,10 @@ def _event_row(
         )
     reviewed_at = _utc_datetime(event["reviewedAt"])
     outcome = str(event["outcome"])
+    if event["nonTargetCategory"] is not None:
+        raise ReferenceReviewDecisionExportError(
+            "reference events cannot carry a Flickr non-target category"
+        )
     comment = _optional_text(event["comment"], "comment")
     exclusion = _optional_text(event["exclusionReason"], "exclusionReason")
     conflict_id = _optional_text(

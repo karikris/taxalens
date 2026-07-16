@@ -4,6 +4,7 @@ export {
   BlindFlickrReviewBoundary,
   FlickrBlindReviewContextPanel,
 } from './FlickrBlindReviewContext'
+export { FlickrNonTargetOutcomeControls } from './FlickrNonTargetOutcomeControls'
 export { FlickrPostDecisionEvidencePanel } from './FlickrPostDecisionEvidence'
 export { QualityPanel } from './QualityPanel'
 export {

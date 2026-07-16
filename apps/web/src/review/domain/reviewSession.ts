@@ -12,6 +12,7 @@ import {
   type VerificationConfidence,
   type VerificationMediaQuality,
   type VerificationOutcome,
+  type FlickrNonTargetCategory,
 } from './verificationEvents'
 import type {
   TaxonIdentity,
@@ -28,6 +29,7 @@ export interface HumanReviewDecisionInput {
   readonly comment: string | null
   readonly reviewedAt: string
   readonly reviewDurationMs: number | null
+  readonly nonTargetCategory?: FlickrNonTargetCategory | null
   readonly alternativeTaxon?: TaxonIdentity | null
   readonly correctedLifeStage?: VerificationLifeStage | null
   readonly correctedVisualDomain?: VerificationVisualDomain | null
@@ -46,6 +48,7 @@ export interface HumanReviewDecision extends HumanReviewDecisionInput {
   readonly reviewRound: number
   readonly supersedesEventId: string | null
   readonly conflictsWithDecisionId: string | null
+  readonly nonTargetCategory: FlickrNonTargetCategory | null
   readonly alternativeTaxon: TaxonIdentity | null
   readonly correctedLifeStage: VerificationLifeStage | null
   readonly correctedVisualDomain: VerificationVisualDomain | null
@@ -214,6 +217,7 @@ export function currentHumanReviewDecisions(
       reviewerId: event.reviewerId,
       outcome: event.outcome,
       comment: event.comment,
+      nonTargetCategory: event.nonTargetCategory,
       reviewedAt: event.reviewedAt,
       reviewDurationMs: event.durationMs,
       alternativeTaxon: event.alternativeTaxon,
@@ -272,6 +276,7 @@ function restoreVerificationEvent(value: unknown): VerificationEvent {
   const legacySchemaVersions = new Set([
     'taxalens-verification-event:v1.0.0',
     'taxalens-verification-event:v1.1.0',
+    'taxalens-verification-event:v1.2.0',
   ])
   if (
     (candidate.schemaVersion !== VERIFICATION_EVENT_SCHEMA_VERSION &&
@@ -283,6 +288,9 @@ function restoreVerificationEvent(value: unknown): VerificationEvent {
     typeof candidate.reviewRound !== 'number' ||
     !isHumanReviewOutcome(candidate.outcome) ||
     (candidate.comment !== null && typeof candidate.comment !== 'string') ||
+    (candidate.nonTargetCategory !== undefined &&
+      candidate.nonTargetCategory !== null &&
+      !isFlickrNonTargetCategory(candidate.nonTargetCategory)) ||
     (candidate.alternativeTaxon !== null &&
       typeof candidate.alternativeTaxon !== 'object') ||
     (candidate.correctedLifeStage !== null &&
@@ -324,6 +332,7 @@ function restoreVerificationEvent(value: unknown): VerificationEvent {
       | 'mediaQuality'
       | 'duplicateConcern'
       | 'captiveOrCultivatedConcern'
+      | 'nonTargetCategory'
       | 'conflictsWithDecisionId'
     >),
     schemaVersion: VERIFICATION_EVENT_SCHEMA_VERSION,
@@ -331,6 +340,7 @@ function restoreVerificationEvent(value: unknown): VerificationEvent {
     duplicateConcern: candidate.duplicateConcern ?? false,
     captiveOrCultivatedConcern:
       candidate.captiveOrCultivatedConcern ?? false,
+    nonTargetCategory: candidate.nonTargetCategory ?? null,
     conflictsWithDecisionId: candidate.conflictsWithDecisionId ?? null,
   })
   const item = HUMAN_REVIEW_PACKET.items.find(
@@ -387,6 +397,7 @@ function createVerificationEvent(
     reviewRound,
     outcome: decision.outcome,
     comment: decision.comment,
+    nonTargetCategory: decision.nonTargetCategory ?? null,
     alternativeTaxon: decision.alternativeTaxon ?? null,
     correctedLifeStage: decision.correctedLifeStage ?? null,
     correctedVisualDomain: decision.correctedVisualDomain ?? null,
@@ -452,6 +463,20 @@ function isHumanReviewOutcome(value: unknown): value is HumanReviewOutcome {
     value === 'cant_tell' ||
     value === 'cant_view' ||
     value === 'skipped'
+  )
+}
+
+function isFlickrNonTargetCategory(
+  value: unknown,
+): value is FlickrNonTargetCategory {
+  return (
+    value === 'alternative_species' ||
+    value === 'other_butterfly' ||
+    value === 'other_insect' ||
+    value === 'artifact' ||
+    value === 'specimen' ||
+    value === 'no_organism' ||
+    value === 'insufficient_visual_detail'
   )
 }
 

@@ -1,6 +1,7 @@
 export * from './flickrCampaignSource'
 export * from './flickrAuditCampaign'
 export * from './flickrFailureDiscoveryCampaign'
+export * from './flickrNonTargetOutcome'
 export * from './flickrReviewDisclosure'
 export * from './reviewErrors'
 export * from './reviewSession'

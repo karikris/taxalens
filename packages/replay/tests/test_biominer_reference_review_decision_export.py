@@ -52,7 +52,7 @@ def _event(
     campaign = packet["campaigns"][0]
     item = packet["items"][0]
     return {
-        "schemaVersion": "taxalens-verification-event:v1.2.0",
+        "schemaVersion": "taxalens-verification-event:v1.3.0",
         "eventId": event_id,
         "campaignId": campaign["campaignId"],
         "itemId": item["itemId"],
@@ -60,6 +60,7 @@ def _event(
         "reviewRound": review_round,
         "outcome": outcome,
         "comment": comment,
+        "nonTargetCategory": None,
         "alternativeTaxon": None,
         "correctedLifeStage": corrected_life_stage,
         "correctedVisualDomain": corrected_visual_domain,

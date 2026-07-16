@@ -68,6 +68,7 @@ describe('ReferenceReviewHandoff', () => {
       reviewRound: 1,
       outcome: 'yes',
       comment: null,
+      nonTargetCategory: null,
       alternativeTaxon: null,
       correctedLifeStage: null,
       correctedVisualDomain: null,

@@ -238,6 +238,19 @@ describe('blind Flickr review disclosure', () => {
         itemId: 'wrong-item',
       }),
     ).toThrow('event itemId does not match the campaign item')
+    expect(() =>
+      projectRevealedFlickrReviewContext(packet.campaign, item, {
+        ...event,
+        outcome: 'no',
+      }),
+    ).toThrow('a Flickr No decision requires a non-target category')
+    expect(
+      projectRevealedFlickrReviewContext(packet.campaign, item, {
+        ...event,
+        outcome: 'no',
+        nonTargetCategory: 'other_butterfly',
+      }).humanDecision.outcome,
+    ).toBe('no')
   })
 })
 
@@ -254,6 +267,7 @@ function decisionEvent(
     reviewRound: 1,
     outcome: 'yes',
     comment: null,
+    nonTargetCategory: null,
     alternativeTaxon: null,
     correctedLifeStage: null,
     correctedVisualDomain: null,

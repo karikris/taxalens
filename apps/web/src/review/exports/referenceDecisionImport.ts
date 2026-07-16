@@ -31,6 +31,7 @@ const EVENT_FIELDS = Object.freeze([
   'reviewRound',
   'outcome',
   'comment',
+  'nonTargetCategory',
   'alternativeTaxon',
   'correctedLifeStage',
   'correctedVisualDomain',
