@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 import { EvidenceState } from '../../design-system'
 import type {
   VerificationConsensus,
@@ -7,11 +9,22 @@ import type {
 
 export function ConflictQueue({
   consensus = [],
+  defaultAdjudicatorId = '',
   items = [],
+  adjudicationReadyItemIds = new Set<string>(),
+  onAdjudicate,
   onOpenItem,
 }: {
   readonly consensus?: readonly VerificationConsensus[]
+  readonly defaultAdjudicatorId?: string
   readonly items?: readonly VerificationItem[]
+  readonly adjudicationReadyItemIds?: ReadonlySet<string>
+  readonly onAdjudicate?: (
+    conflict: VerificationConsensus,
+    outcome: 'yes' | 'no',
+    adjudicatorId: string,
+    comment: string,
+  ) => readonly string[]
   readonly onOpenItem?: (itemId: string) => void
 }) {
   const itemById = new Map(items.map((item) => [item.itemId, item]))
@@ -56,6 +69,9 @@ export function ConflictQueue({
                   key={conflict.itemId}
                   conflict={conflict}
                   item={item}
+                  adjudicationReady={adjudicationReadyItemIds.has(item.itemId)}
+                  defaultAdjudicatorId={defaultAdjudicatorId}
+                  onAdjudicate={onAdjudicate}
                   onOpenItem={onOpenItem}
                 />
               )
@@ -70,10 +86,23 @@ export function ConflictQueue({
 function ConflictCard({
   conflict,
   item,
+  adjudicationReady,
+  defaultAdjudicatorId,
+  onAdjudicate,
   onOpenItem,
 }: {
   readonly conflict: VerificationConsensus
   readonly item: VerificationItem
+  readonly adjudicationReady: boolean
+  readonly defaultAdjudicatorId: string
+  readonly onAdjudicate:
+    | ((
+        conflict: VerificationConsensus,
+        outcome: 'yes' | 'no',
+        adjudicatorId: string,
+        comment: string,
+      ) => readonly string[])
+    | undefined
   readonly onOpenItem: ((itemId: string) => void) | undefined
 }) {
   return (
@@ -134,8 +163,102 @@ function ConflictCard({
             Open item for adjudication
           </button>
         )}
+        {onAdjudicate !== undefined && (
+          <AdjudicationForm
+            conflict={conflict}
+            ready={adjudicationReady}
+            defaultAdjudicatorId={defaultAdjudicatorId}
+            onAdjudicate={onAdjudicate}
+          />
+        )}
       </div>
     </article>
+  )
+}
+
+function AdjudicationForm({
+  conflict,
+  defaultAdjudicatorId,
+  onAdjudicate,
+  ready,
+}: {
+  readonly conflict: VerificationConsensus
+  readonly defaultAdjudicatorId: string
+  readonly onAdjudicate: (
+    conflict: VerificationConsensus,
+    outcome: 'yes' | 'no',
+    adjudicatorId: string,
+    comment: string,
+  ) => readonly string[]
+  readonly ready: boolean
+}) {
+  const [adjudicatorId, setAdjudicatorId] = useState(defaultAdjudicatorId)
+  const [comment, setComment] = useState('')
+  const [failures, setFailures] = useState<readonly string[]>([])
+
+  function submit(outcome: 'yes' | 'no') {
+    setFailures(
+      onAdjudicate(conflict, outcome, adjudicatorId, comment),
+    )
+  }
+
+  return (
+    <section
+      className="verification-adjudication"
+      aria-labelledby={`adjudication-${encodeURIComponent(conflict.itemId)}`}
+    >
+      <h5 id={`adjudication-${encodeURIComponent(conflict.itemId)}`}>
+        Independent adjudication
+      </h5>
+      {!ready && (
+        <p className="verification-adjudication__gate">
+          Open this item first. Yes and No stay disabled until the
+          checksum-verified image has been displayed.
+        </p>
+      )}
+      <label>
+        Adjudicator ID
+        <input
+          type="text"
+          value={adjudicatorId}
+          onChange={(event) => setAdjudicatorId(event.target.value)}
+          autoComplete="off"
+        />
+      </label>
+      <label>
+        Optional adjudication comment
+        <textarea
+          value={comment}
+          onChange={(event) => setComment(event.target.value)}
+          rows={2}
+        />
+      </label>
+      {failures.length > 0 && (
+        <p className="verification-adjudication__error" role="alert">
+          {failures.join(' ')}
+        </p>
+      )}
+      <div className="verification-adjudication__actions">
+        <button
+          type="button"
+          disabled={!ready}
+          onClick={() => submit('yes')}
+        >
+          Adjudicate Yes
+        </button>
+        <button
+          type="button"
+          disabled={!ready}
+          onClick={() => submit('no')}
+        >
+          Adjudicate No
+        </button>
+      </div>
+      <p>
+        The new event links the exact conflict IDs. Neither reviewer decision
+        is removed.
+      </p>
+    </section>
   )
 }
 

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import {
   INITIAL_VERIFICATION_WORKFLOW_STATE,
   canRecordHumanReviewOutcome,
+  createVerificationAdjudicationEvent,
   currentHumanReviewDecisions,
   emptyHumanReviewSession,
   isScientificHumanReviewOutcome,
@@ -13,6 +14,8 @@ import {
   withDecision,
   withImageInspection,
   withReviewerId,
+  withVerificationEvent,
+  type VerificationConsensus,
   type HumanReviewOutcome,
   type HumanReviewSession,
 } from '../domain'
@@ -152,6 +155,18 @@ export function useVerificationWorkspaceController({
       ? null
       : referenceAnnotationFailures.join(' ')
   const counts = useMemo(() => outcomeCounts(session), [session])
+  const adjudicationReadyItemIds = useMemo(
+    () =>
+      new Set(
+        Object.values(session.inspections)
+          .filter(
+            ({ imageOpened, imageVerified }) =>
+              imageOpened && imageVerified,
+          )
+          .map(({ itemId }) => itemId),
+      ),
+    [session.inspections],
+  )
 
   useEffect(() => {
     let active = true
@@ -490,6 +505,50 @@ export function useVerificationWorkspaceController({
     setImageUrl(null)
   }
 
+  function adjudicate(
+    conflict: VerificationConsensus,
+    outcome: 'yes' | 'no',
+    adjudicatorId: string,
+    adjudicationComment: string,
+  ): readonly string[] {
+    if (repositoryState !== 'ready') {
+      return Object.freeze(['The review repository is not ready.'])
+    }
+    const adjudicationItem = HUMAN_REVIEW_PACKET.items.find(
+      ({ itemId }) => itemId === conflict.itemId,
+    )
+    if (adjudicationItem === undefined) {
+      return Object.freeze(['The conflict item is unavailable.'])
+    }
+    if (!adjudicationReadyItemIds.has(adjudicationItem.itemId)) {
+      return Object.freeze([
+        'Open the item and display its checksum-verified image before adjudicating.',
+      ])
+    }
+    try {
+      const reviewedAt = now().toISOString()
+      const event = createVerificationAdjudicationEvent(
+        HUMAN_REVIEW_CAMPAIGN,
+        adjudicationItem,
+        conflict,
+        sessionRef.current.events,
+        {
+          adjudicatorId,
+          outcome,
+          comment: adjudicationComment.trim() || null,
+          reviewedAt,
+          durationMs: null,
+        },
+      )
+      const next = withVerificationEvent(sessionRef.current, event)
+      applySession(next)
+      queueEventWrite(event, humanReviewSessionIsComplete(next))
+      return Object.freeze([])
+    } catch (reason) {
+      return Object.freeze([errorMessage(reason)])
+    }
+  }
+
   async function clearReview() {
     cancelPreparation()
     eventWriteGenerationRef.current += 1
@@ -542,6 +601,8 @@ export function useVerificationWorkspaceController({
   }
 
   return {
+    adjudicate,
+    adjudicationReadyItemIds,
     cacheError,
     cacheState,
     cacheStatus,

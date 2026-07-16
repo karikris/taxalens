@@ -9,6 +9,9 @@ import {
   type VerificationConsensus,
 } from '../domain/verificationConsensus'
 import {
+  validateVerificationEventExtension,
+} from '../domain/verificationAdjudication'
+import {
   projectCurrentVerificationEvents,
   validateVerificationEvent,
   validateVerificationEventLedger,
@@ -74,6 +77,12 @@ export class InMemoryReviewRepository implements ReviewRepository {
     }
     const failures = [
       ...validateVerificationEvent(event, campaign, item),
+      ...validateVerificationEventExtension(
+        event,
+        campaign,
+        item,
+        events,
+      ),
       ...validateVerificationEventLedger([...events, event]),
     ]
     if (failures.length > 0) {
@@ -144,7 +153,17 @@ export class InMemoryReviewRepository implements ReviewRepository {
       const item = seed.items.find(({ itemId }) => itemId === event.itemId)
       return item === undefined
         ? [`Review event item is unavailable: ${event.itemId}`]
-        : validateVerificationEvent(event, campaign, item)
+        : [
+            ...validateVerificationEvent(event, campaign, item),
+            ...validateVerificationEventExtension(
+              event,
+              campaign,
+              item,
+              (seed.events ?? []).filter(
+                (candidate) => candidate !== event,
+              ),
+            ),
+          ]
     })
     const ledgerFailures = validateVerificationEventLedger(seed.events ?? [])
     const failures = [...itemFailures, ...eventFailures, ...ledgerFailures]

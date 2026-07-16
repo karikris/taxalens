@@ -11,6 +11,9 @@ import {
   type VerificationConsensus,
 } from '../domain/verificationConsensus'
 import {
+  validateVerificationEventExtension,
+} from '../domain/verificationAdjudication'
+import {
   projectCurrentVerificationEvents,
   validateVerificationEvent,
   validateVerificationEventLedger,
@@ -461,6 +464,12 @@ async function appendEventToDatabase(
       .map(({ event: storedEvent }) => storedEvent)
     const failures = [
       ...validateVerificationEvent(event, campaign, itemRecord.item),
+      ...validateVerificationEventExtension(
+        event,
+        campaign,
+        itemRecord.item,
+        events,
+      ),
       ...validateVerificationEventLedger([...events, event]),
     ]
     if (failures.length > 0) {

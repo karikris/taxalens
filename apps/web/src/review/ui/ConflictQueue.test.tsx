@@ -17,23 +17,7 @@ const item = requiredItem()
 
 describe('ConflictQueue', () => {
   it('shows image, provenance, reviewer events, and an adjudication action', () => {
-    const campaign: VerificationCampaign = {
-      ...HUMAN_REVIEW_CAMPAIGN,
-      reviewRequirement: {
-        ...HUMAN_REVIEW_CAMPAIGN.reviewRequirement,
-        requiredIndependentReviewers: 2,
-        secondReviewPolicy: 'on_conflict',
-        adjudicationRequiredOnConflict: true,
-      },
-    }
-    const consensus = projectVerificationConsensus(
-      campaign,
-      [item],
-      [
-        event(campaign, 'event-a', 'reviewer-a', 'yes', '15:00'),
-        event(campaign, 'event-b', 'reviewer-b', 'no', '15:01'),
-      ],
-    )
+    const consensus = conflictConsensus()
     const onOpenItem = vi.fn()
 
     render(
@@ -59,7 +43,72 @@ describe('ConflictQueue', () => {
     fireEvent.click(open)
     expect(onOpenItem).toHaveBeenCalledWith(item.itemId)
   })
+
+  it('gates Yes and No on verified media, then records the simple form', () => {
+    const consensus = conflictConsensus()
+    const onAdjudicate = vi.fn().mockReturnValue([])
+    const { rerender } = render(
+      <ConflictQueue
+        consensus={consensus}
+        defaultAdjudicatorId="adjudicator-c"
+        items={[item]}
+        onAdjudicate={onAdjudicate}
+      />,
+    )
+
+    expect(
+      screen.getByRole('button', { name: 'Adjudicate Yes' }),
+    ).toBeDisabled()
+    expect(
+      screen.getByRole('button', { name: 'Adjudicate No' }),
+    ).toBeDisabled()
+    expect(
+      screen.getByText(/checksum-verified image has been displayed/u),
+    ).toBeInTheDocument()
+
+    rerender(
+      <ConflictQueue
+        adjudicationReadyItemIds={new Set([item.itemId])}
+        consensus={consensus}
+        defaultAdjudicatorId="adjudicator-c"
+        items={[item]}
+        onAdjudicate={onAdjudicate}
+      />,
+    )
+    fireEvent.change(
+      screen.getByLabelText('Optional adjudication comment'),
+      {
+        target: { value: 'Wing pattern supports the label.' },
+      },
+    )
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Adjudicate Yes' }),
+    )
+
+    expect(onAdjudicate).toHaveBeenCalledWith(
+      consensus[0],
+      'yes',
+      'adjudicator-c',
+      'Wing pattern supports the label.',
+    )
+  })
 })
+
+function conflictConsensus() {
+  const campaign: VerificationCampaign = {
+    ...HUMAN_REVIEW_CAMPAIGN,
+    reviewRequirement: {
+      ...HUMAN_REVIEW_CAMPAIGN.reviewRequirement,
+      requiredIndependentReviewers: 2,
+      secondReviewPolicy: 'on_conflict',
+      adjudicationRequiredOnConflict: true,
+    },
+  }
+  return projectVerificationConsensus(campaign, [item], [
+    event(campaign, 'event-a', 'reviewer-a', 'yes', '15:00'),
+    event(campaign, 'event-b', 'reviewer-b', 'no', '15:01'),
+  ])
+}
 
 function event(
   campaign: VerificationCampaign,

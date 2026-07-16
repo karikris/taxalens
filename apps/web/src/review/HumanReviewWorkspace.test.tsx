@@ -6,6 +6,10 @@ import { createCommittedFixtureFetcher } from '../test/fixtures'
 import { HumanReviewWorkspace } from './HumanReviewWorkspace'
 import { InMemoryReviewRepository } from './inMemoryReviewRepository'
 import {
+  VERIFICATION_EVENT_SCHEMA_VERSION,
+  type VerificationEvent,
+} from './domain'
+import {
   HUMAN_REVIEW_CAMPAIGN,
   HUMAN_REVIEW_ITEMS,
 } from './reviewPacket'
@@ -177,6 +181,83 @@ describe('HumanReviewWorkspace', () => {
       'aria-pressed',
       'true',
     )
+  })
+
+  it('appends adjudication only after the conflict image is verified', async () => {
+    const sourceEvents = [
+      conflictEvent('event-a-yes', 'reviewer-a', 'yes', '15:00'),
+      conflictEvent('event-b-no', 'reviewer-b', 'no', '15:01'),
+    ]
+    const repository = new InMemoryReviewRepository([
+      {
+        campaign: HUMAN_REVIEW_CAMPAIGN,
+        items: HUMAN_REVIEW_ITEMS,
+        events: sourceEvents,
+      },
+    ])
+    render(
+      <HumanReviewWorkspace
+        cache={fakeCache(true)}
+        now={() => new Date('2026-07-16T15:02:00.000Z')}
+        replay={replay}
+        repository={repository}
+      />,
+    )
+
+    fireEvent.click(
+      await screen.findByRole('tab', { name: 'Conflicts' }),
+    )
+    const adjudicateYes = await screen.findByRole('button', {
+      name: 'Adjudicate Yes',
+    })
+    expect(adjudicateYes).toBeDisabled()
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Open item for adjudication' }),
+    )
+    fireEvent.click(
+      screen.getByRole('tab', { name: 'Reference Images' }),
+    )
+    const image = await screen.findByRole('img', {
+      name: /Does this image show an adult Papilio demoleus/u,
+    })
+    fireEvent.load(image)
+    fireEvent.click(screen.getByRole('tab', { name: 'Conflicts' }))
+
+    const readyAdjudicateYes = screen.getByRole('button', {
+      name: 'Adjudicate Yes',
+    })
+    await waitFor(() => expect(readyAdjudicateYes).toBeEnabled())
+    fireEvent.change(screen.getByLabelText('Adjudicator ID'), {
+      target: { value: 'adjudicator-c' },
+    })
+    fireEvent.change(
+      screen.getByLabelText('Optional adjudication comment'),
+      {
+        target: { value: 'The displayed marks support the label.' },
+      },
+    )
+    fireEvent.click(readyAdjudicateYes)
+
+    expect(
+      await screen.findByText('No unresolved conflicts'),
+    ).toBeInTheDocument()
+    await waitFor(async () => {
+      const events = await repository.loadEvents(
+        HUMAN_REVIEW_CAMPAIGN.campaignId,
+      )
+      expect(events).toHaveLength(3)
+      expect(events[0]).toEqual(sourceEvents[0])
+      expect(events[1]).toEqual(sourceEvents[1])
+      expect(events[2]).toMatchObject({
+        reviewerId: 'adjudicator-c',
+        outcome: 'yes',
+        adjudication: {
+          sourceConflictEventIds: ['event-a-yes', 'event-b-no'],
+          sourceConflictFields: ['outcome'],
+        },
+      })
+    })
   })
 
   it('appends structured reference annotations to a scientific event', async () => {
@@ -432,6 +513,47 @@ function reviewRepository(): InMemoryReviewRepository {
       items: HUMAN_REVIEW_ITEMS,
     },
   ])
+}
+
+function conflictEvent(
+  eventId: string,
+  reviewerId: string,
+  outcome: 'yes' | 'no',
+  time: string,
+): VerificationEvent {
+  const item = HUMAN_REVIEW_ITEMS[0]
+  if (item === undefined) {
+    throw new Error('Conflict test requires one review item.')
+  }
+  return {
+    schemaVersion: VERIFICATION_EVENT_SCHEMA_VERSION,
+    eventId,
+    campaignId: HUMAN_REVIEW_CAMPAIGN.campaignId,
+    itemId: item.itemId,
+    reviewerId,
+    reviewRound: 1,
+    outcome,
+    comment: null,
+    nonTargetCategory: null,
+    alternativeTaxon: null,
+    correctedLifeStage: null,
+    correctedVisualDomain: null,
+    correctedView: null,
+    mediaQuality: 'high',
+    duplicateConcern: false,
+    captiveOrCultivatedConcern: false,
+    exclusionReason: null,
+    confidence: 'high',
+    reviewedAt: `2026-07-16T${time}:00.000Z`,
+    durationMs: 1_000,
+    imageSha256: item.imageSha256,
+    questionSha256: item.questionFingerprint,
+    campaignManifestSha256: HUMAN_REVIEW_CAMPAIGN.manifestSha256,
+    taxalensSha: HUMAN_REVIEW_CAMPAIGN.taxalensSha,
+    biominerSha: HUMAN_REVIEW_CAMPAIGN.biominerSha,
+    supersedesEventId: null,
+    conflictsWithDecisionId: null,
+  }
 }
 
 interface Deferred<T> {

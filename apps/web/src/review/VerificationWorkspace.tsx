@@ -162,8 +162,13 @@ export function VerificationWorkspace({
         defaultSection={resolvedRoute.section}
         conflicts={
           <ConflictQueue
+            adjudicationReadyItemIds={
+              controller.adjudicationReadyItemIds
+            }
             consensus={controller.consensus}
+            defaultAdjudicatorId={controller.session.reviewerId}
             items={HUMAN_REVIEW_PACKET.items}
+            onAdjudicate={controller.adjudicate}
             onOpenItem={(itemId) => {
               const itemIndex = HUMAN_REVIEW_PACKET.items.findIndex(
                 (candidate) => candidate.itemId === itemId,

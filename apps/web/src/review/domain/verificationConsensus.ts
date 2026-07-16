@@ -14,6 +14,11 @@ import {
   type FlickrNonTargetCategory,
   type VerificationEvent,
 } from './verificationEvents'
+import {
+  isVerificationAdjudicationEvent,
+  validateVerificationEventExtension,
+  type VerificationAdjudicationEvent,
+} from './verificationAdjudication'
 
 export const VERIFICATION_CONSENSUS_SCHEMA_VERSION =
   'taxalens-verification-consensus:v1.0.0' as const
@@ -199,6 +204,17 @@ export function projectVerificationConsensus(
     if (failures.length > 0) {
       throw new Error(`Consensus event is invalid: ${failures.join('; ')}`)
     }
+    const extensionFailures = validateVerificationEventExtension(
+      event,
+      campaign,
+      item,
+      events.filter((candidate) => candidate !== event),
+    )
+    if (extensionFailures.length > 0) {
+      throw new Error(
+        `Consensus event extension is invalid: ${extensionFailures.join('; ')}`,
+      )
+    }
   }
   const consensus = [...items]
     .sort((left, right) => left.itemId.localeCompare(right.itemId))
@@ -218,39 +234,51 @@ function projectItemConsensus(
   events: readonly VerificationEvent[],
 ): VerificationConsensus {
   const latestEvents = effectiveLatestEvents(events)
+  const sourceLatestEvents = latestEvents.filter(
+    (event) => !isVerificationAdjudicationEvent(event),
+  )
+  const adjudicationEvents = latestEvents.filter(
+    isVerificationAdjudicationEvent,
+  )
+  const sourceDecisiveEvents = sourceLatestEvents.filter(
+    ({ outcome }) => outcome === 'yes' || outcome === 'no',
+  )
+  const sourceSignatures = sourceDecisiveEvents.map((event) =>
+    decisionSignature(event, item),
+  )
+  const sourceConflictingFields = conflictFields(
+    sourceLatestEvents,
+    sourceSignatures,
+  )
+  const sourceConflictEventIds =
+    sourceConflictingFields.length === 0
+      ? []
+      : conflictIds(sourceLatestEvents)
+  const adjudicationSignatures = adjudicationEvents.map((event) =>
+    decisionSignature(event, item),
+  )
+  const adjudicationConflictingFields = conflictFields(
+    adjudicationEvents,
+    adjudicationSignatures,
+  )
   const decisiveEvents = latestEvents.filter(
     ({ outcome }) => outcome === 'yes' || outcome === 'no',
   )
-  const signatures = decisiveEvents.map((event) =>
-    decisionSignature(event, item),
-  )
-  const conflictingFields = conflictFields(latestEvents, signatures)
-  const conflictEventIds =
-    conflictingFields.length === 0
-      ? []
-      : [
-          ...new Set(
-            latestEvents
-              .filter(
-                (event) =>
-                  event.outcome === 'yes' ||
-                  event.outcome === 'no' ||
-                  event.conflictsWithDecisionId !== null,
-              )
-              .map(({ eventId }) => eventId),
-          ),
-        ].sort()
   const requiredReviewCount = effectiveRequiredReviewCount(campaign)
   const unresolvedUncertainty = hasUnresolvedUncertainty(
-    events,
-    decisiveEvents,
+    events.filter((event) => !isVerificationAdjudicationEvent(event)),
+    sourceDecisiveEvents,
   )
   const resolution = resolutionState({
     campaign,
-    latestEvents,
-    decisiveEvents,
-    signatures,
-    conflictingFields,
+    sourceLatestEvents,
+    sourceDecisiveEvents,
+    sourceSignatures,
+    sourceConflictingFields,
+    sourceConflictEventIds,
+    adjudicationEvents,
+    adjudicationSignatures,
+    adjudicationConflictingFields,
     requiredReviewCount,
     unresolvedUncertainty,
   })
@@ -276,8 +304,8 @@ function projectItemConsensus(
     status: resolution.status,
     consensusOutcome: resolution.outcome,
     resolvedSignature: resolution.signature,
-    conflictingFields: Object.freeze(conflictingFields),
-    conflictEventIds: Object.freeze(conflictEventIds),
+    conflictingFields: Object.freeze(resolution.conflictingFields),
+    conflictEventIds: Object.freeze(resolution.conflictEventIds),
     secondReviewRequired: resolution.secondReviewRequired,
     adjudicationRequired:
       resolution.status === 'unresolved_disagreement' &&
@@ -287,9 +315,9 @@ function projectItemConsensus(
     finalTestEligibility: finalTest.status,
     finalTestEligibilityBlockers: Object.freeze(finalTest.blockers),
     resolvedAt:
-      latestEvents.length === 0
+      resolution.resolutionEvents.length === 0
         ? null
-        : [...latestEvents]
+        : [...resolution.resolutionEvents]
             .sort(compareEvents)
             .at(-1)!.reviewedAt,
   })
@@ -389,18 +417,27 @@ function hasUnresolvedUncertainty(
 
 function resolutionState({
   campaign,
-  latestEvents,
-  decisiveEvents,
-  signatures,
-  conflictingFields,
+  sourceLatestEvents,
+  sourceDecisiveEvents,
+  sourceSignatures,
+  sourceConflictingFields,
+  sourceConflictEventIds,
+  adjudicationEvents,
+  adjudicationSignatures,
+  adjudicationConflictingFields,
   requiredReviewCount,
   unresolvedUncertainty,
 }: {
   readonly campaign: VerificationCampaign
-  readonly latestEvents: readonly VerificationEvent[]
-  readonly decisiveEvents: readonly VerificationEvent[]
-  readonly signatures: readonly VerificationDecisionSignature[]
-  readonly conflictingFields: readonly VerificationConflictField[]
+  readonly sourceLatestEvents: readonly VerificationEvent[]
+  readonly sourceDecisiveEvents: readonly VerificationEvent[]
+  readonly sourceSignatures: readonly VerificationDecisionSignature[]
+  readonly sourceConflictingFields: readonly VerificationConflictField[]
+  readonly sourceConflictEventIds: readonly string[]
+  readonly adjudicationEvents: readonly VerificationAdjudicationEvent[]
+  readonly adjudicationSignatures: readonly VerificationDecisionSignature[]
+  readonly adjudicationConflictingFields:
+    readonly VerificationConflictField[]
   readonly requiredReviewCount: number
   readonly unresolvedUncertainty: boolean
 }): {
@@ -408,32 +445,81 @@ function resolutionState({
   readonly outcome: 'yes' | 'no' | null
   readonly signature: VerificationDecisionSignature | null
   readonly secondReviewRequired: boolean
+  readonly conflictingFields: readonly VerificationConflictField[]
+  readonly conflictEventIds: readonly string[]
+  readonly resolutionEvents: readonly VerificationEvent[]
 } {
-  if (latestEvents.length === 0) {
-    return unresolved('pending', false)
+  if (adjudicationEvents.length > 0) {
+    if (adjudicationConflictingFields.length > 0) {
+      return unresolved(
+        'unresolved_disagreement',
+        true,
+        adjudicationConflictingFields,
+        conflictIds(adjudicationEvents),
+        adjudicationEvents,
+      )
+    }
+    const signature = adjudicationSignatures[0]!
+    return {
+      status: 'adjudicated',
+      outcome: signature.outcome,
+      signature,
+      secondReviewRequired: false,
+      conflictingFields: Object.freeze([]),
+      conflictEventIds: Object.freeze([]),
+      resolutionEvents: adjudicationEvents,
+    }
   }
-  if (conflictingFields.length > 0) {
-    return unresolved('unresolved_disagreement', true)
+  if (sourceLatestEvents.length === 0) {
+    return unresolved('pending', false, [], [], [])
   }
-  if (decisiveEvents.length === 0) {
-    if (latestEvents.some(({ outcome }) => outcome === 'cant_tell')) {
+  if (sourceConflictingFields.length > 0) {
+    return unresolved(
+      'unresolved_disagreement',
+      true,
+      sourceConflictingFields,
+      sourceConflictEventIds,
+      sourceLatestEvents,
+    )
+  }
+  if (sourceDecisiveEvents.length === 0) {
+    if (
+      sourceLatestEvents.some(({ outcome }) => outcome === 'cant_tell')
+    ) {
       return unresolved(
         'uncertain_only',
         campaign.reviewRequirement.secondReviewPolicy !== 'never',
+        [],
+        [],
+        sourceLatestEvents,
       )
     }
-    if (latestEvents.some(({ outcome }) => outcome === 'cant_view')) {
-      return unresolved('media_failure', false)
+    if (
+      sourceLatestEvents.some(({ outcome }) => outcome === 'cant_view')
+    ) {
+      return unresolved(
+        'media_failure',
+        false,
+        [],
+        [],
+        sourceLatestEvents,
+      )
     }
-    return unresolved('deferred', false)
+    return unresolved('deferred', false, [], [], sourceLatestEvents)
   }
   if (
     unresolvedUncertainty ||
-    decisiveEvents.length < requiredReviewCount
+    sourceDecisiveEvents.length < requiredReviewCount
   ) {
-    return unresolved('pending', true)
+    return unresolved(
+      'pending',
+      true,
+      [],
+      [],
+      sourceLatestEvents,
+    )
   }
-  const signature = signatures[0]!
+  const signature = sourceSignatures[0]!
   return {
     status:
       campaign.kind === 'adjudication'
@@ -442,6 +528,9 @@ function resolutionState({
     outcome: signature.outcome,
     signature,
     secondReviewRequired: false,
+    conflictingFields: Object.freeze([]),
+    conflictEventIds: Object.freeze([]),
+    resolutionEvents: sourceDecisiveEvents,
   }
 }
 
@@ -451,13 +540,38 @@ function unresolved(
     'complete_agreement' | 'adjudicated'
   >,
   secondReviewRequired: boolean,
+  conflictingFields: readonly VerificationConflictField[],
+  conflictEventIds: readonly string[],
+  resolutionEvents: readonly VerificationEvent[],
 ) {
   return {
     status,
     outcome: null,
     signature: null,
     secondReviewRequired,
+    conflictingFields: Object.freeze([...conflictingFields]),
+    conflictEventIds: Object.freeze([...conflictEventIds]),
+    resolutionEvents: Object.freeze([...resolutionEvents]),
   } as const
+}
+
+function conflictIds(
+  events: readonly VerificationEvent[],
+): readonly string[] {
+  return Object.freeze(
+    [
+      ...new Set(
+        events
+          .filter(
+            (event) =>
+              event.outcome === 'yes' ||
+              event.outcome === 'no' ||
+              event.conflictsWithDecisionId !== null,
+          )
+          .map(({ eventId }) => eventId),
+      ),
+    ].sort(),
+  )
 }
 
 function supportEligibility(

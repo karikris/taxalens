@@ -208,7 +208,7 @@ describe('append-only human review history', () => {
     ])
     expect(session.events[1]).toMatchObject({
       reviewRound: 1,
-      supersedesEventId: firstEvent!.eventId,
+      supersedesEventId: null,
     })
   })
 

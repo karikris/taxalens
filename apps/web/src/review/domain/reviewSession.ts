@@ -204,6 +204,33 @@ export function withDecision(
   })
 }
 
+export function withVerificationEvent(
+  session: HumanReviewSession,
+  event: VerificationEvent,
+): HumanReviewSession {
+  const item = HUMAN_REVIEW_PACKET.items.find(
+    ({ itemId }) => itemId === event.itemId,
+  )
+  if (item === undefined) {
+    throw new Error(
+      `Review event is outside the current campaign: ${event.itemId}`,
+    )
+  }
+  const failures = validateVerificationEvent(
+    event,
+    HUMAN_REVIEW_PACKET.campaign,
+    item,
+  )
+  if (failures.length > 0) {
+    throw new Error(`Invalid review event: ${failures.join('; ')}`)
+  }
+  assertVerificationEventLedger([...session.events, event])
+  return Object.freeze({
+    ...session,
+    events: Object.freeze([...session.events, event]),
+  })
+}
+
 export function currentHumanReviewDecisions(
   session: HumanReviewSession,
 ): Readonly<Record<string, HumanReviewDecision>> {
@@ -374,7 +401,19 @@ function createVerificationEvent(
       `Review item is outside the current campaign: ${decision.itemId}`,
     )
   }
-  const currentEvent = projectCurrentVerificationEvents(events)[decision.itemId]
+  const currentEvent = [...events]
+    .filter(
+      (event) =>
+        event.itemId === decision.itemId &&
+        event.reviewerId === reviewerId,
+    )
+    .sort(
+      (left, right) =>
+        left.reviewRound - right.reviewRound ||
+        left.reviewedAt.localeCompare(right.reviewedAt) ||
+        left.eventId.localeCompare(right.eventId),
+    )
+    .at(-1)
   const reviewRound =
     events
       .filter(
