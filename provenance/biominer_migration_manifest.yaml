@@ -19,6 +19,23 @@ scientific_claim_gate: "blocked-until-reviewed-references-leakage-safe-splits-ca
 handoff_contract: "storage-handoff-inventory-v1.0.0-with-explicit-uri-sha256-source-sha-and-receipt"
 recorded_at: "2026-07-16"
 components:
+  - component_id: biominer_phase14_phase15_prototype_artifacts
+    source_repository: karikris/BioMiner
+    source_commit: 67c1c2a3a2c9b909b256b3094913af342f4ccbed
+    source_path: reports/phase14/papilio_demoleus_build_week_prototype_report.json
+    destination_path: demo/source/biominer_phase15
+    migration_kind: imported
+    reason: Import the fixed compact Phase 14 and Phase 15 prototype evidence set without copying engine code, media, models, databases, caches, or untracked content.
+    build_week_scope: modified_existing
+    source_license: MIT
+    changes:
+      - Added a fixed 20-path allowlist covering the prototype reports and compact manifests required by TaxaLens adapters.
+      - Read exact bytes from committed Git objects at the pinned BioMiner SHA instead of the ambient working tree.
+      - Pinned every schema version, byte count, and SHA-256 digest in a deterministic TaxaLens import receipt.
+      - Explicitly excluded reference images, model files, databases, caches, Markdown duplicates, untracked paths, public-image authorization, and scientific claims.
+    tests:
+      - tests/test_import_biominer_prototype_artifacts.py
+    status: migrated
   - component_id: biominer_decision_policy
     source_repository: karikris/BioMiner
     source_commit: 0561906d994d6b9e56e0b6405fdb68272759595f

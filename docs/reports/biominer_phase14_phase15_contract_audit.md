@@ -105,3 +105,20 @@ repository policy. No external code was copied.
 - Rights: no media bytes are imported by this task.
 - Competition value: lets the existing product consume newly committed real
   prototype evidence without overstating scientific validity.
+
+## Task 14.2 compact artifact import
+
+Task 14.2 uses a fixed 20-path allowlist and reads each payload directly from
+the committed BioMiner Git object at the pinned SHA. The importer preserves
+exact upstream JSON bytes and verifies the schema version, byte count, and
+SHA-256 declared in `demo/source/biominer_phase15/import_manifest.json`.
+
+The imported set contains 15 compact prototype manifests plus the Phase 14
+prototype report and four Phase 15 decision/verification reports. It excludes
+all source images, reference media bytes, Parquet run payloads, model weights,
+databases, caches, Markdown duplicates, and untracked paths. The receipt also
+forbids scientific claims and public reference-image display.
+
+GitHits remained unavailable; the focused attempted import-pattern query and
+adopted/rejected approaches are recorded at
+`provenance/githits.jsonl#14.2`.

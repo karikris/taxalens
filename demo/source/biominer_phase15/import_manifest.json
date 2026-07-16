@@ -1,0 +1,219 @@
+{
+  "schema_version": "taxalens-biominer-prototype-import:v1.0.0",
+  "origin_repository": "karikris/BioMiner",
+  "origin_commit": "67c1c2a3a2c9b909b256b3094913af342f4ccbed",
+  "source_license": "MIT",
+  "attribution": "Copyright (c) 2026 Kris Kari",
+  "import_policy": {
+    "committed_git_objects_only": true,
+    "exact_source_bytes_preserved": true,
+    "untracked_sources_used": false,
+    "reference_media_imported": false,
+    "model_files_imported": false,
+    "databases_or_caches_imported": false,
+    "scientific_claim_allowed": false,
+    "public_reference_image_display_allowed": false
+  },
+  "artifacts": [
+    {
+      "artifact_id": "prototype-mode-manifest",
+      "phase": 15,
+      "role": "prototype_mode",
+      "source_path": "examples/species/papilio_demoleus/pilot_build_week_prototype_mode_manifest.json",
+      "imported_path": "demo/source/biominer_phase15/artifacts/manifests/pilot_build_week_prototype_mode_manifest.json",
+      "schema_version": "papilio-demoleus-build-week-prototype-mode-manifest-v1.0.0",
+      "byte_count": 2713,
+      "sha256": "c8910444effea685fd4dd25538398cd93184a5ed75cf5a23b2fb81b1ede397a2"
+    },
+    {
+      "artifact_id": "prototype-report-manifest",
+      "phase": 14,
+      "role": "phase14_report_manifest",
+      "source_path": "examples/species/papilio_demoleus/pilot_build_week_prototype_report_manifest.json",
+      "imported_path": "demo/source/biominer_phase15/artifacts/manifests/pilot_build_week_prototype_report_manifest.json",
+      "schema_version": "papilio-demoleus-build-week-prototype-report-manifest-v1.0.0",
+      "byte_count": 3048,
+      "sha256": "f3c17355c2121311a12e6c1adf3043f621baa80b2cc51d017cf1686d6856c48c"
+    },
+    {
+      "artifact_id": "metadata-qualified-support-manifest",
+      "phase": 14,
+      "role": "metadata_qualified_support",
+      "source_path": "examples/species/papilio_demoleus/pilot_metadata_qualified_support_manifest.json",
+      "imported_path": "demo/source/biominer_phase15/artifacts/manifests/pilot_metadata_qualified_support_manifest.json",
+      "schema_version": "papilio-demoleus-metadata-qualified-prototype-support-manifest-v1.0.0",
+      "byte_count": 2250,
+      "sha256": "f8a06c8fe24298ce68e8d5c16cba8546adb8770f04dd55f13ab63f16893aa9a0"
+    },
+    {
+      "artifact_id": "prototype-acquisition-manifest",
+      "phase": 14,
+      "role": "prototype_acquisition",
+      "source_path": "examples/species/papilio_demoleus/pilot_prototype_acquisition_manifest.json",
+      "imported_path": "demo/source/biominer_phase15/artifacts/manifests/pilot_prototype_acquisition_manifest.json",
+      "schema_version": "papilio-demoleus-prototype-acquisition-manifest-v1.0.0",
+      "byte_count": 7652,
+      "sha256": "25657c73fe0c3b41340b416510daf623d664c3362f271070fe9843de45829f1e"
+    },
+    {
+      "artifact_id": "prototype-benchmark-manifest",
+      "phase": 14,
+      "role": "prototype_benchmark",
+      "source_path": "examples/species/papilio_demoleus/pilot_prototype_b0_b16_manifest.json",
+      "imported_path": "demo/source/biominer_phase15/artifacts/manifests/pilot_prototype_b0_b16_manifest.json",
+      "schema_version": "papilio-demoleus-prototype-b0-b16-manifest-v1.0.0",
+      "byte_count": 4847,
+      "sha256": "dfe21afbc8998ae5fc8eb4aa0157afc4f17ede336635f62af7cb888f141d3bf0"
+    },
+    {
+      "artifact_id": "prototype-download-manifest",
+      "phase": 14,
+      "role": "prototype_download",
+      "source_path": "examples/species/papilio_demoleus/pilot_prototype_download_manifest.json",
+      "imported_path": "demo/source/biominer_phase15/artifacts/manifests/pilot_prototype_download_manifest.json",
+      "schema_version": "papilio-demoleus-prototype-download-manifest-v1.0.0",
+      "byte_count": 6277,
+      "sha256": "44b0d5a882595e964a2f417ad9d1976926583296ea1c834cbbd5d5968a8d8758"
+    },
+    {
+      "artifact_id": "prototype-duplicate-resolution-manifest",
+      "phase": 14,
+      "role": "prototype_duplicates",
+      "source_path": "examples/species/papilio_demoleus/pilot_prototype_duplicate_resolution_manifest.json",
+      "imported_path": "demo/source/biominer_phase15/artifacts/manifests/pilot_prototype_duplicate_resolution_manifest.json",
+      "schema_version": "papilio-demoleus-prototype-duplicate-resolution-manifest-v1.0.0",
+      "byte_count": 6113,
+      "sha256": "95ea99bc075798d13ee2a9ea42435c67e1a23d26369a1b75c31e885c82ce6920"
+    },
+    {
+      "artifact_id": "prototype-embeddings-manifest",
+      "phase": 14,
+      "role": "prototype_embeddings",
+      "source_path": "examples/species/papilio_demoleus/pilot_prototype_embeddings_manifest.json",
+      "imported_path": "demo/source/biominer_phase15/artifacts/manifests/pilot_prototype_embeddings_manifest.json",
+      "schema_version": "papilio-demoleus-prototype-embeddings-manifest-v1.0.0",
+      "byte_count": 5638,
+      "sha256": "381cc9a1266c30e744c12b320de4d4f3b11119c4c80b9136c25f6a0b9d9ecb0b"
+    },
+    {
+      "artifact_id": "prototype-evidence-manifest",
+      "phase": 15,
+      "role": "prototype_evidence",
+      "source_path": "examples/species/papilio_demoleus/pilot_prototype_evidence_manifest.json",
+      "imported_path": "demo/source/biominer_phase15/artifacts/manifests/pilot_prototype_evidence_manifest.json",
+      "schema_version": "papilio-demoleus-prototype-evidence-manifest-v1.0.0",
+      "byte_count": 2273,
+      "sha256": "c5885d6ec9973343c9d81ed55b2a455fef964d88a4ea7c45fd80f1d67dec1c74"
+    },
+    {
+      "artifact_id": "prototype-policy-manifest",
+      "phase": 14,
+      "role": "prototype_policy",
+      "source_path": "examples/species/papilio_demoleus/pilot_prototype_policy_manifest.json",
+      "imported_path": "demo/source/biominer_phase15/artifacts/manifests/pilot_prototype_policy_manifest.json",
+      "schema_version": "papilio-demoleus-prototype-policy-manifest-v1.0.0",
+      "byte_count": 6722,
+      "sha256": "d60f7b685366df619063df09d114f77d056ca2324f988e5707ae383cb3024f71"
+    },
+    {
+      "artifact_id": "prototype-qa-manifest",
+      "phase": 14,
+      "role": "prototype_qa",
+      "source_path": "examples/species/papilio_demoleus/pilot_prototype_qa_manifest.json",
+      "imported_path": "demo/source/biominer_phase15/artifacts/manifests/pilot_prototype_qa_manifest.json",
+      "schema_version": "papilio-demoleus-prototype-qa-manifest-v1.0.0",
+      "byte_count": 3885,
+      "sha256": "b3a8029eb706a98ec7bfd493ff74544edb867e6c124b67d5a40e648dea4ceff2"
+    },
+    {
+      "artifact_id": "prototype-selection-manifest",
+      "phase": 14,
+      "role": "prototype_selection",
+      "source_path": "examples/species/papilio_demoleus/pilot_prototype_selection_manifest.json",
+      "imported_path": "demo/source/biominer_phase15/artifacts/manifests/pilot_prototype_selection_manifest.json",
+      "schema_version": "papilio-demoleus-prototype-selection-manifest-v1.0.0",
+      "byte_count": 2855,
+      "sha256": "e5d3d5496969f9f8d5efbfa71a18f4cfd4bb99baaccc1268cc9637de82e22116"
+    },
+    {
+      "artifact_id": "prototype-support-bank-manifest",
+      "phase": 14,
+      "role": "prototype_support_bank",
+      "source_path": "examples/species/papilio_demoleus/pilot_prototype_support_bank_manifest.json",
+      "imported_path": "demo/source/biominer_phase15/artifacts/manifests/pilot_prototype_support_bank_manifest.json",
+      "schema_version": "papilio-demoleus-prototype-support-bank-manifest-v1.0.0",
+      "byte_count": 4026,
+      "sha256": "da558c04ac9b9c93941ee627532e3da657398415b707ad94757c903e0e51f76c"
+    },
+    {
+      "artifact_id": "prototype-vision-smoke-manifest",
+      "phase": 15,
+      "role": "prototype_vision_smoke",
+      "source_path": "examples/species/papilio_demoleus/pilot_prototype_vision_smoke_manifest.json",
+      "imported_path": "demo/source/biominer_phase15/artifacts/manifests/pilot_prototype_vision_smoke_manifest.json",
+      "schema_version": "papilio-demoleus-prototype-vision-smoke-manifest-v1.0.0",
+      "byte_count": 3980,
+      "sha256": "3a807046570a06de1f7588a71c394a3efa828c2fbef467968a16b4e301b4af65"
+    },
+    {
+      "artifact_id": "prototype-staged-flickr-manifest",
+      "phase": 14,
+      "role": "prototype_staged_inference",
+      "source_path": "examples/species/papilio_demoleus/pilot_staged_flickr_manifest.json",
+      "imported_path": "demo/source/biominer_phase15/artifacts/manifests/pilot_staged_flickr_manifest.json",
+      "schema_version": "papilio-demoleus-staged-flickr-manifest-v1.0.0",
+      "byte_count": 7703,
+      "sha256": "4f4aeeadb559e962eb11802301c3b2d691be674094c7449aab0ab061a4b362e3"
+    },
+    {
+      "artifact_id": "phase14-prototype-report",
+      "phase": 14,
+      "role": "phase14_report",
+      "source_path": "reports/phase14/papilio_demoleus_build_week_prototype_report.json",
+      "imported_path": "demo/source/biominer_phase15/artifacts/reports/phase14/papilio_demoleus_build_week_prototype_report.json",
+      "schema_version": "papilio-demoleus-build-week-prototype-report-v1.0.0",
+      "byte_count": 23486,
+      "sha256": "88bce2ca8838fff5a74dc616ccbb6fe951dcc61d64f23d57deba604248785469"
+    },
+    {
+      "artifact_id": "phase15-backlog",
+      "phase": 15,
+      "role": "phase15_backlog",
+      "source_path": "reports/phase15/post_build_week_backlog.json",
+      "imported_path": "demo/source/biominer_phase15/artifacts/reports/phase15/post_build_week_backlog.json",
+      "schema_version": "biominer-post-build-week-backlog-v1.0.0",
+      "byte_count": 4133,
+      "sha256": "014fe277b288a2489f7826db40263cded3cc6e28565f4c51fc830bcf90c7a4e6"
+    },
+    {
+      "artifact_id": "phase15-final-verification",
+      "phase": 15,
+      "role": "phase15_final_verification",
+      "source_path": "reports/phase15/prototype_final_verification.json",
+      "imported_path": "demo/source/biominer_phase15/artifacts/reports/phase15/prototype_final_verification.json",
+      "schema_version": "biominer-phase15-prototype-final-verification-v1.0.0",
+      "byte_count": 5481,
+      "sha256": "1f5a6f0d9746defc1b24628f190b78107b6cc763672d8c0ad1e392c4f111c1f2"
+    },
+    {
+      "artifact_id": "phase15-go-no-go",
+      "phase": 15,
+      "role": "phase15_go_no_go",
+      "source_path": "reports/phase15/prototype_go_no_go.json",
+      "imported_path": "demo/source/biominer_phase15/artifacts/reports/phase15/prototype_go_no_go.json",
+      "schema_version": "biominer-phase15-prototype-go-no-go-v1.0.0",
+      "byte_count": 12090,
+      "sha256": "c118a660fef8e076ad868182cf349bacb1e363a4ce87175566c0987b429ed3c0"
+    },
+    {
+      "artifact_id": "phase15-release-acceptance",
+      "phase": 15,
+      "role": "phase15_release_acceptance",
+      "source_path": "reports/phase15/prototype_release_acceptance.json",
+      "imported_path": "demo/source/biominer_phase15/artifacts/reports/phase15/prototype_release_acceptance.json",
+      "schema_version": "biominer-phase15-prototype-release-acceptance-v1.0.0",
+      "byte_count": 10453,
+      "sha256": "7855b57330005d9903757f7d43aab0de380043a710d41e322df238d691397879"
+    }
+  ]
+}
