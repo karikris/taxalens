@@ -125,6 +125,148 @@ function FlickrQualitySnapshot({
       <StrataTable snapshot={snapshot} />
       <ReleaseState release={snapshot.release} />
       <ReferenceBankQuality snapshot={snapshot} />
+      <ReviewerQuality snapshot={snapshot} />
+    </section>
+  )
+}
+
+function ReviewerQuality({
+  snapshot,
+}: {
+  readonly snapshot: VerificationQualitySnapshot
+}) {
+  const pairwise = snapshot.agreement.pairwise
+  const alpha = snapshot.agreement.nominalAlpha
+  const control = snapshot.reviewerControl
+  return (
+    <section
+      className="verification-quality__subsection"
+      aria-labelledby="reviewer-quality-title"
+    >
+      <h4 id="reviewer-quality-title">Reviewer reliability</h4>
+      <p>
+        Reviewer quality is aggregate-only. The snapshot contains reviewer
+        counts and rates, never reviewer identifiers or per-reviewer
+        scorecards.
+      </p>
+      <div className="verification-quality__metrics">
+        <QualityMetric
+          label="Reviewer overlap"
+          value={`${pairwise.overlappingItemCount} items`}
+          detail={`${pairwise.anonymousReviewerCount} anonymous reviewers · ${pairwise.pairCount} pairs`}
+        />
+        <QualityMetric
+          label="Pairwise agreement"
+          value={
+            pairwise.availability === 'available'
+              ? formatRate(pairwise.percentAgreement)
+              : 'Not available'
+          }
+          detail="Yes, No, and Can’t tell"
+        />
+        <QualityMetric
+          label="Nominal Krippendorff alpha"
+          value={
+            alpha.availability === 'available'
+              ? formatCoefficient(alpha.alpha)
+              : 'Not available'
+          }
+          detail={`${alpha.overlappingItemCount} overlapping items`}
+        />
+        <QualityMetric
+          label="Unresolved conflicts"
+          value={String(snapshot.conflicts.unresolvedConflictItems)}
+          detail={`${formatRate(
+            snapshot.conflicts.conflictRate,
+          )} total conflict rate`}
+        />
+        <QualityMetric
+          label="Adjudicated conflicts"
+          value={String(snapshot.conflicts.adjudicatedItems)}
+          detail={`${snapshot.conflicts.conflictedItems} conflicts observed`}
+        />
+        <QualityMetric
+          label="Control-item state"
+          value={
+            control === null
+              ? 'Not available'
+              : `${control.attemptedControlItemCount} / ${control.controlItemCount}`
+          }
+          detail={
+            control === null
+              ? 'No control snapshot'
+              : humanizeIdentifier(control.availability)
+          }
+        />
+      </div>
+      {control === null ? (
+        <EvidenceState
+          state="review"
+          title="Reviewer control items are unavailable"
+        >
+          No fingerprinted pre-reviewed control-set result is attached to this
+          QualitySnapshot.
+        </EvidenceState>
+      ) : (
+        <>
+          <div className="verification-quality__metrics">
+            <QualityMetric
+              label="Control accuracy"
+              value={
+                control.availability === 'available'
+                  ? formatRate(control.controlAccuracy)
+                  : 'Not available'
+              }
+              detail={`${control.controlAttemptCount} control attempts`}
+            />
+            <QualityMetric
+              label="Control false-positive rate"
+              value={formatRate(control.falsePositiveRate)}
+              detail="Negative viewable controls"
+            />
+            <QualityMetric
+              label="Control false-negative rate"
+              value={formatRate(control.falseNegativeRate)}
+              detail="Positive viewable controls"
+            />
+            <QualityMetric
+              label="Media-failure handling"
+              value={formatRate(control.mediaFailureHandlingRate)}
+              detail="Expected unviewable controls"
+            />
+            <QualityMetric
+              label="Unexpected media failure"
+              value={formatRate(control.unexpectedMediaFailureRate)}
+              detail="Viewable controls marked Can’t view"
+            />
+            <QualityMetric
+              label="Control truth fingerprint"
+              value={
+                control.groundTruthSha256 === null
+                  ? 'Not available'
+                  : shortFingerprint(control.groundTruthSha256)
+              }
+              detail={control.controlSetId ?? 'Control set unavailable'}
+            />
+          </div>
+          <EvidenceState
+            state={
+              control.availability === 'available' ? 'available' : 'review'
+            }
+            title={
+              control.availability === 'available'
+                ? 'Reviewer control items available'
+                : 'Reviewer control items unavailable'
+            }
+          >
+            {control.blockers.length === 0
+              ? 'Aggregate control performance is bound to the fingerprinted control truth.'
+              : `${control.blockers
+                  .map(humanizeIdentifier)
+                  .join('; ')}.`}
+          </EvidenceState>
+        </>
+      )}
     </section>
   )
 }
@@ -429,6 +571,14 @@ function formatNumber(value: number | null): string {
     ? 'Not available'
     : new Intl.NumberFormat('en-AU', {
         maximumFractionDigits: 1,
+      }).format(value)
+}
+
+function formatCoefficient(value: number | null): string {
+  return value === null
+    ? 'Not available'
+    : new Intl.NumberFormat('en-AU', {
+        maximumFractionDigits: 2,
       }).format(value)
 }
 

@@ -80,6 +80,54 @@ describe('Flickr verification quality panel', () => {
     expect(screen.getByText('Reference readiness: Not ready')).toBeVisible()
   })
 
+  it('shows aggregate reviewer reliability and fingerprinted controls', () => {
+    render(<QualityPanel snapshot={qualitySnapshotFixture()} />)
+
+    expect(
+      screen.getByRole('heading', { name: 'Reviewer reliability' }),
+    ).toBeVisible()
+    expect(
+      screen.getByText(/snapshot contains reviewer counts and rates/u),
+    ).toBeVisible()
+    expect(metric('Reviewer overlap')).toHaveTextContent(
+      '32 items4 anonymous reviewers · 48 pairs',
+    )
+    expect(metric('Pairwise agreement')).toHaveTextContent('87.5%')
+    expect(metric('Nominal Krippendorff alpha')).toHaveTextContent('0.78')
+    expect(metric('Unresolved conflicts')).toHaveTextContent('2')
+    expect(metric('Adjudicated conflicts')).toHaveTextContent(
+      '13 conflicts observed',
+    )
+    expect(metric('Control-item state')).toHaveTextContent('6 / 6Available')
+    expect(metric('Control accuracy')).toHaveTextContent(
+      '90%10 control attempts',
+    )
+    expect(metric('Control false-positive rate')).toHaveTextContent('10%')
+    expect(metric('Control false-negative rate')).toHaveTextContent('0%')
+    expect(metric('Media-failure handling')).toHaveTextContent('100%')
+    expect(metric('Unexpected media failure')).toHaveTextContent('0%')
+    expect(screen.getByText('Reviewer control items available')).toBeVisible()
+    expect(document.body.textContent).not.toContain('reviewer-a')
+  })
+
+  it('withholds unsupported reviewer controls', () => {
+    const snapshot = qualitySnapshotFixture()
+    render(
+      <QualityPanel
+        snapshot={{
+          ...snapshot,
+          reviewerControl: null,
+        }}
+      />,
+    )
+
+    expect(metric('Control-item state')).toHaveTextContent('Not available')
+    expect(
+      screen.getByText('Reviewer control items are unavailable'),
+    ).toBeVisible()
+    expect(screen.queryByText('Control accuracy')).not.toBeInTheDocument()
+  })
+
   it('shows unavailable states without leaking unsupported numbers', () => {
     const snapshot = qualitySnapshotFixture()
     render(

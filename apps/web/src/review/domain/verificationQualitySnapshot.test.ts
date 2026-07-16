@@ -256,6 +256,42 @@ describe('verification quality snapshots', () => {
       await verifyVerificationQualitySnapshotFingerprint(first),
     ).toBe(true)
   })
+
+  it('binds aggregate reviewer-control state without reviewer identities', async () => {
+    const base = input()
+    const first = await createVerificationQualitySnapshot({
+      ...base,
+      reviewerControlPerformance: reviewerControlPerformance(),
+    })
+    const changed = await createVerificationQualitySnapshot({
+      ...base,
+      reviewerControlPerformance: {
+        ...reviewerControlPerformance(),
+        correctControlAttemptCount: 8,
+        incorrectControlAttemptCount: 2,
+        controlAccuracy: 0.8,
+      },
+    })
+
+    expect(first.reviewerControl).toEqual({
+      availability: 'available',
+      blockers: [],
+      controlSetId: 'reviewer-controls-v1',
+      groundTruthSha256: 'e'.repeat(64),
+      controlItemCount: 6,
+      attemptedControlItemCount: 6,
+      controlAttemptCount: 10,
+      controlAccuracy: 0.9,
+      falsePositiveRate: 0.1,
+      falseNegativeRate: 0,
+      mediaFailureHandlingRate: 1,
+      unexpectedMediaFailureRate: 0,
+    })
+    expect(JSON.stringify(first.reviewerControl)).not.toContain(
+      'reviewer-a',
+    )
+    expect(first.snapshotSha256).not.toBe(changed.snapshotSha256)
+  })
 })
 
 function input(
@@ -515,5 +551,36 @@ function referenceBankQuality() {
       ],
     },
     sourceSnapshotSha256: 'f'.repeat(64),
+  }
+}
+
+function reviewerControlPerformance() {
+  return {
+    schemaVersion: REVIEWER_RELIABILITY_SCHEMA_VERSION,
+    method: 'pre_reviewed_control_performance' as const,
+    availability: 'available' as const,
+    blockers: [],
+    controlSetId: 'reviewer-controls-v1',
+    groundTruthSha256: 'e'.repeat(64),
+    controlItemCount: 6,
+    attemptedControlItemCount: 6,
+    controlAttemptCount: 10,
+    anonymousReviewerCount: 3,
+    correctControlAttemptCount: 9,
+    incorrectControlAttemptCount: 1,
+    positiveControlAttemptCount: 4,
+    negativeControlAttemptCount: 4,
+    falsePositiveCount: 1,
+    falseNegativeCount: 0,
+    mediaFailureControlAttemptCount: 2,
+    correctlyHandledMediaFailureCount: 2,
+    unexpectedMediaFailureCount: 0,
+    uncertainControlAttemptCount: 0,
+    deferredControlAttemptCount: 0,
+    controlAccuracy: 0.9,
+    falsePositiveRate: 0.1,
+    falseNegativeRate: 0,
+    mediaFailureHandlingRate: 1,
+    unexpectedMediaFailureRate: 0,
   }
 }

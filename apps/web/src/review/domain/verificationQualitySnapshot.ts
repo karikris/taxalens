@@ -843,7 +843,23 @@ function validateReviewerControlPerformance(
     control.schemaVersion !== REVIEWER_RELIABILITY_SCHEMA_VERSION ||
     control.method !== 'pre_reviewed_control_performance' ||
     (control.availability === 'available') !==
-      (control.controlAccuracy !== null)
+      (control.controlAccuracy !== null) ||
+    control.controlSetId.trim() === '' ||
+    !validSha256(control.groundTruthSha256) ||
+    control.controlItemCount < control.attemptedControlItemCount ||
+    ![
+      control.controlItemCount,
+      control.attemptedControlItemCount,
+      control.controlAttemptCount,
+    ].every(nonNegativeInteger) ||
+    !sortedUnique(control.blockers) ||
+    [
+      control.controlAccuracy,
+      control.falsePositiveRate,
+      control.falseNegativeRate,
+      control.mediaFailureHandlingRate,
+      control.unexpectedMediaFailureRate,
+    ].some((rate) => rate !== null && !isProportion(rate))
   ) {
     return Object.freeze(['reviewer control performance is inconsistent'])
   }
@@ -863,6 +879,9 @@ function validateReviewerControlQuality(
       control.controlAttemptCount,
     ].every(nonNegativeInteger) ||
     !sortedUnique(control.blockers) ||
+    (control.availability === 'available' &&
+      (control.controlSetId === null ||
+        control.groundTruthSha256 === null)) ||
     [
       control.controlAccuracy,
       control.falsePositiveRate,
