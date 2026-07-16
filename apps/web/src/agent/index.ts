@@ -53,3 +53,17 @@ export {
   type ResearchToolName,
   type ResearchToolResult,
 } from './researchTools'
+export {
+  createVerificationToolEvidence,
+  executeVerificationTool,
+  VERIFICATION_TOOL_DEFINITIONS,
+  VERIFICATION_TOOL_EVIDENCE_VERSION,
+  VERIFICATION_TOOL_NAMES,
+  VERIFICATION_TOOL_RESULT_VERSION,
+  VerificationToolError,
+  type VerificationToolDefinition,
+  type VerificationToolEvidence,
+  type VerificationToolEvidenceInput,
+  type VerificationToolName,
+  type VerificationToolResult,
+} from './verificationTools'
