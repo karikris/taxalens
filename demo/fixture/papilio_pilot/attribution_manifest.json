@@ -37,6 +37,8 @@
         "prototype-evidence-snapshot",
         "stored-analyst-request",
         "stored-analyst-run",
+        "verification-campaign-manifest",
+        "verification-items",
         "rights-manifest",
         "attribution-manifest"
       ],

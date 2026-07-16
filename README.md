@@ -102,11 +102,11 @@ publishes it with an exact source SHA, static fallback, and SHA-256 file invento
 | --- | --- |
 | Target | *Papilio demoleus* (`gbif:1938069`) |
 | Judge bundle | `papilio-demoleus-prototype-74a7d648-v3` |
-| Product evidence | 28 inventoried artifacts, 25 sections, 32 section records |
+| Product evidence | 30 inventoried artifacts, 25 sections, 36 section records |
 | Discovery workload | 76,485 many-to-many query-hit associations and 13,501 canonical source-photo records |
 | Prototype evidence | 81 / 81 user-confirmed as suitable for their assigned prototype roles, 0 independently taxonomically verified; B13 raw-margin policy; 13,496 of 13,501 staged records processed |
 | Release gate | 14 / 14 prototype-entry gates pass; `GO_PROTOTYPE_ONLY` for explicit prototype mode |
-| Product route | Research Mission, 13-stage Observatory, Evidence Lens, Human Review, Dashboard, Agent Trace, and six-step guided tour |
+| Product route | Research Mission, 13-stage Observatory, Evidence Lens, Verification, Dashboard, Agent Trace, and six-step guided tour |
 | Hero record | 1 candidate in `awaiting_human_review` |
 | Media | 3 licensed Commons review images; the discovery replay and hero record still admit 0 scientific images |
 | Visual and decision output | 0 YOLOE-processed images, 0 calibrated decisions, and no strongest-competitor rank |
@@ -127,7 +127,7 @@ Start the guided tour in the app and follow:
    record back to its artifacts.
 3. **Evidence Lens** — inspect discovery provenance, full-frame input contracts, regional
    candidates, uncertainty, and the unavailable calibrated decision.
-4. **Human Review** — download the small checksum-verified Commons image cache, inspect each
+4. **Verification** — download the small checksum-verified Commons image cache, inspect each
    verification label, and record Yes, No, Can’t tell, Can’t view, or Skip with an optional comment.
 5. **Dashboard** — review the evidence funnel, geographic workload, review priority, query yield,
    workflow efficiency, and blocked scientific evaluation.
@@ -137,6 +137,10 @@ Start the guided tour in the app and follow:
 Use **Reset replay** to return to the initial state. The longer technical and limitation route is
 in the [`JUDGE_GUIDE.md`](JUDGE_GUIDE.md); immutable implementation decisions are recorded under
 [`docs/reports`](docs/reports/).
+
+The browser packet, bundle campaign and item artifacts, asset verifier, and fixture builder all
+load the canonical
+[`Papilio demoleus` verification manifest](demo/source/verification/papilio-demoleus-commons.campaign.json).
 
 ## TaxaLens and BioMiner
 

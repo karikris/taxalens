@@ -37,6 +37,7 @@ TRUTHFUL_DEMO_CREATED_AT = "2026-07-16T11:57:54Z"
 TRUTHFUL_DEMO_BIOMINER_SHA = "74a7d648a562efa744e6502ef504a23b63b4e02f"
 TRUTHFUL_DEMO_LEGACY_BIOMINER_SHA = "75461d9c065af0cd96b41cd1f845c2e920f7ae34"
 TRUTHFUL_DEMO_TAXALENS_SHA = "fab9d3f1605d28d4bbfc3a4d0074f40e5ffff023"
+TRUTHFUL_DEMO_VERIFICATION_MANIFEST_SHA = "9b94891ea3ffc37c9e036838c938c596ef0dc529"
 TRUTHFUL_DEMO_VERIFICATION_MEDIA_SHA = "ff96b7f8f6feaf8197000b0f5265110a7d331e08"
 TRUTHFUL_DEMO_HERO_ID = "papilio-demoleus-pilot-awaiting-review"
 DEFAULT_TRUTHFUL_DEMO_ROOT = Path("demo/fixture/papilio_pilot")
@@ -45,12 +46,16 @@ DEFAULT_ANALYTICS_IMPORT_MANIFEST = Path(
 )
 _REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_VERIFICATION_CAMPAIGN_MANIFEST = _REPOSITORY_ROOT / (
-    "apps/web/src/review/fixtures/papilio-demoleus-commons.campaign.json"
+    "demo/source/verification/papilio-demoleus-commons.campaign.json"
 )
 DEFAULT_VERIFICATION_MEDIA_ROOT = _REPOSITORY_ROOT / "apps/web/src/review/assets"
 
 _BIOMINER_REPOSITORY = "karikris/BioMiner"
 _TAXALENS_REPOSITORY = "karikris/TaxaLens"
+_VERIFICATION_CAMPAIGN_ARTIFACT_ID = "verification-campaign-manifest"
+_VERIFICATION_CAMPAIGN_MANIFEST_SCHEMA_VERSION = "taxalens-verification-campaign-manifest:v1.0.0"
+_VERIFICATION_ITEMS_ARTIFACT_ID = "verification-items"
+_VERIFICATION_ITEMS_SCHEMA_VERSION = "taxalens-verification-items:v1.0.0"
 _VERIFICATION_MEDIA_SCHEMA_VERSION = "taxalens-verification-media:v1.0.0"
 
 
@@ -815,16 +820,30 @@ def _required_media_text(value: object, label: str) -> str:
 def _verification_media_assets(
     campaign_manifest: str | Path = DEFAULT_VERIFICATION_CAMPAIGN_MANIFEST,
     media_root: str | Path = DEFAULT_VERIFICATION_MEDIA_ROOT,
-) -> list[_VerificationMediaAsset]:
+) -> tuple[dict[str, Any], bytes, list[_VerificationMediaAsset]]:
     manifest_path = Path(campaign_manifest)
     try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest_bytes = manifest_path.read_bytes()
+        manifest = json.loads(manifest_bytes)
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
         raise ValueError(f"could not load verification campaign manifest: {error}") from error
     if not isinstance(manifest, dict):
         raise ValueError("verification campaign manifest must be an object")
-    if manifest.get("schemaVersion") != "taxalens-verification-campaign-manifest:v1.0.0":
+    if manifest.get("schemaVersion") != _VERIFICATION_CAMPAIGN_MANIFEST_SCHEMA_VERSION:
         raise ValueError("verification campaign manifest schema differs")
+    manifest_sha256 = _required_media_text(
+        manifest.get("manifestSha256"), "verification campaign manifestSha256"
+    )
+    unsigned_manifest = {key: value for key, value in manifest.items() if key != "manifestSha256"}
+    computed_manifest_sha256 = hashlib.sha256(
+        json.dumps(
+            unsigned_manifest,
+            ensure_ascii=False,
+            separators=(",", ":"),
+        ).encode()
+    ).hexdigest()
+    if computed_manifest_sha256 != manifest_sha256:
+        raise ValueError("verification campaign manifest identity differs")
     items = manifest.get("items")
     if not isinstance(items, list) or not items:
         raise ValueError("verification campaign manifest must contain items")
@@ -924,7 +943,7 @@ def _verification_media_assets(
                 use_scope=use_scope,
             )
         )
-    return assets
+    return manifest, manifest_bytes, assets
 
 
 def _section(
@@ -948,6 +967,8 @@ def _section(
 
 
 def _sections(
+    verification_campaign_id: str | None = None,
+    verification_items_id: str | None = None,
     verification_media_ids: list[str] | None = None,
 ) -> dict[str, dict[str, object]]:
     available = {
@@ -1093,6 +1114,23 @@ def _sections(
                 candidate_semantics=semantics,
                 verification_status="unavailable",
             )
+    if verification_campaign_id is not None:
+        sections["verification_campaigns"] = _section(
+            status="available",
+            artifact_ids=[verification_campaign_id],
+            reason=None,
+            candidate_semantics="not_applicable",
+            verification_status="machine_verified_contract",
+            human_review_required=False,
+        )
+    if verification_items_id is not None:
+        sections["verification_items"] = _section(
+            status="available",
+            artifact_ids=[verification_items_id],
+            reason=None,
+            candidate_semantics="candidate_reference_not_verified_support",
+            verification_status="unreviewed",
+        )
     if verification_media_ids:
         sections["verification_media"] = _section(
             status="available",
@@ -1133,8 +1171,30 @@ def build_truthful_demo_fixture(
     release_gate = evaluate_prototype_release_gate(prototype)
     if release_gate["decision"] != GO_PROTOTYPE_ONLY:
         raise ValueError("truthful demo prototype release gate returned NO_GO")
-    verification_media = _verification_media_assets()
+    (
+        verification_manifest,
+        verification_manifest_bytes,
+        verification_media,
+    ) = _verification_media_assets()
     verification_media_ids = [asset.spec.artifact_id for asset in verification_media]
+    verification_items = verification_manifest["items"]
+    if not isinstance(verification_items, list):
+        raise AssertionError("validated verification items changed type")
+    media_by_item_id = {asset.item_id: asset for asset in verification_media}
+    verification_item_records = []
+    for raw_item in verification_items:
+        if not isinstance(raw_item, dict):
+            raise AssertionError("validated verification item changed type")
+        item_id = str(raw_item["itemId"])
+        media = media_by_item_id[item_id]
+        verification_item_records.append(
+            {
+                **raw_item,
+                "previewUri": media.spec.path,
+                "mediaArtifactId": media.spec.artifact_id,
+                "scientificClaimAllowed": False,
+            }
+        )
 
     root = Path(destination)
     if root.exists():
@@ -1150,6 +1210,26 @@ def build_truthful_demo_fixture(
         *_analytics_payloads(analytics_import_manifest),
         *_prototype_payloads(prototype),
         *_stored_agent_payloads(),
+        _ArtifactSpec(
+            artifact_id=_VERIFICATION_CAMPAIGN_ARTIFACT_ID,
+            path="verification/campaign_manifest.json",
+            role="verification_campaigns",
+            schema_version=_VERIFICATION_CAMPAIGN_MANIFEST_SCHEMA_VERSION,
+            source_repository=_TAXALENS_REPOSITORY,
+            source_commit=TRUTHFUL_DEMO_VERIFICATION_MANIFEST_SHA,
+            payload=verification_manifest_bytes,
+            record_count=1,
+        ),
+        _ArtifactSpec(
+            artifact_id=_VERIFICATION_ITEMS_ARTIFACT_ID,
+            path="verification/items.json",
+            role="verification_items",
+            schema_version=_VERIFICATION_ITEMS_SCHEMA_VERSION,
+            source_repository=_TAXALENS_REPOSITORY,
+            source_commit=TRUTHFUL_DEMO_VERIFICATION_MANIFEST_SHA,
+            payload=verification_item_records,
+            record_count=len(verification_item_records),
+        ),
         *(asset.spec for asset in verification_media),
     ]
     biominer_ids = [
@@ -1332,7 +1412,11 @@ def build_truthful_demo_fixture(
         if spec.role in JUDGE_BUNDLE_SECTION_NAMES:
             record_counts[spec.role] = record_counts.get(spec.role, 0) + spec.record_count
 
-    sections = _sections(verification_media_ids)
+    sections = _sections(
+        _VERIFICATION_CAMPAIGN_ARTIFACT_ID,
+        _VERIFICATION_ITEMS_ARTIFACT_ID,
+        verification_media_ids,
+    )
     section_records = {name: record_counts.get(name, 0) for name in JUDGE_BUNDLE_SECTION_NAMES}
     all_ids = [row["artifact_id"] for row in inventory]
     request_descriptor = next(
@@ -1482,6 +1566,7 @@ __all__ = [
     "TRUTHFUL_DEMO_LEGACY_BIOMINER_SHA",
     "TRUTHFUL_DEMO_SCHEMA_VERSION",
     "TRUTHFUL_DEMO_TAXALENS_SHA",
+    "TRUTHFUL_DEMO_VERIFICATION_MANIFEST_SHA",
     "TRUTHFUL_DEMO_VERIFICATION_MEDIA_SHA",
     "build_truthful_demo_fixture",
 ]

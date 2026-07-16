@@ -55,7 +55,7 @@ the verified fixture and cannot launch acquisition or inference.
 ### 15–35 seconds — Observatory
 
 1. Resume the tour, advance to Observatory, and choose **Visit Observatory**.
-2. Confirm **28 / 28 verified** and all 13 ordered evidence stages.
+2. Confirm **30 / 30 verified** and all 13 ordered evidence stages.
 3. Select **Final replay record awaiting review**.
 
 Expected: all 13 contributing stages and 12 contributing artifacts highlight. Counts retain their
@@ -104,13 +104,13 @@ client state.
 
 | Evidence | Expected value |
 | --- | ---: |
-| Inventoried and verified artifacts | 25 |
-| Bundle sections | 20 |
-| Unavailable sections | 6 |
-| Section records | 29 |
-| Media items | 0 |
+| Inventoried and verified artifacts | 30 |
+| Bundle sections | 25 |
+| Unavailable sections | 8 |
+| Section records | 36 |
+| Media items | 3 |
 | Guided-tour steps | 6 |
-| Separate licensed human-review packet images | 3 |
+| Verification campaigns / items / images | 1 / 3 / 3 |
 | Observatory stages | 13 |
 | DuckDB-Wasm replay operations | 8 |
 | Regional candidate plans | 5 |
@@ -151,9 +151,9 @@ Open [`demo/fixture/papilio_pilot/judge_bundle.json`](demo/fixture/papilio_pilot
 and verify:
 
 - schema `taxalens-judge-bundle:v1.0.0`;
-- inventory checksum `9e3b52e923a507824ef03fbb46282bce8e73ecfb4272ce92a60ef98d11d8adc0`;
-- payload root `3f379242456b6d53ac63981015590c70e81425cd00e2b4e3fb716adf00183ef3`;
-- all 28 artifacts are rights-covered and attribution-complete;
+- inventory checksum `7bbb1c9f28d23e5b87abc8c6139182fff683c2ae4873f5bc2a17fe91b0784acc`;
+- payload root `9e6b4660d7d6ea885c0a231cca63e7237bf59cc8a8c4eae84a2f3fd701124974`;
+- all 30 artifacts are rights-covered and attribution-complete;
 - media-rights verification covers three CC BY-SA 4.0 Commons review images, while their
   provider-supplied taxonomic identities remain unreviewed.
 
@@ -196,10 +196,12 @@ is displayed.
 
 ### 5. Exercise the local human-review packet
 
-Open **Human Review**, select **Prepare review cache**, and confirm three checksum-verified,
+Open **Verification**, select **Prepare review cache**, and confirm three checksum-verified,
 CC BY-SA 4.0 images become available from the static origin. Record a choice using Yes, No,
 Can’t tell, Can’t view, or Skip, optionally add a comment, revisit an item to replace its choice,
-and export the local receipt. This packet is separate from the non-displayable BioMiner bank.
+and export the local receipt. This packet is separate from the non-displayable BioMiner bank. Its
+campaign, item, media, rights, and attribution identity comes from the single canonical
+[`Papilio demoleus` verification manifest](demo/source/verification/papilio-demoleus-commons.campaign.json).
 
 ### 6. Run the coherent browser contract
 
@@ -315,7 +317,7 @@ label. It must never replace or mutate the deterministic fixture expectations ab
 - [ ] Public hosted replay opened without login or installation.
 - [ ] Target, bundle ID, TaxaLens source, and BioMiner source were visible.
 - [ ] Five-step route completed and reset worked.
-- [ ] Observatory showed 28 / 28 verified artifacts and 13 stages.
+- [ ] Observatory showed 30 / 30 verified artifacts and 13 stages.
 - [ ] One record highlighted 13 stages and 12 artifacts.
 - [ ] Evidence Lens kept transformed media, scores, competitor rank, uncertainty, and calibration
       unavailable.

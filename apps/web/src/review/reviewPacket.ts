@@ -1,4 +1,4 @@
-import campaignManifestJson from './fixtures/papilio-demoleus-commons.campaign.json'
+import campaignManifestJson from '../../../../demo/source/verification/papilio-demoleus-commons.campaign.json'
 import {
   VERIFICATION_CAMPAIGN_SCHEMA_VERSION,
   validateReviewRequirement,
@@ -19,7 +19,7 @@ interface ManifestItem extends Omit<VerificationItem, 'previewUri'> {
   readonly verificationLabel: string
 }
 
-interface VerificationCampaignManifest {
+export interface VerificationCampaignManifest {
   readonly schemaVersion: typeof VERIFICATION_CAMPAIGN_MANIFEST_SCHEMA_VERSION
   readonly manifestSha256: string
   readonly campaign: ManifestCampaign
@@ -51,8 +51,12 @@ const fixtureAssetUrls = import.meta.glob<string>('./assets/*', {
   query: '?url',
 })
 
-export const COMMONS_VERIFICATION_FIXTURE = loadVerificationCampaignFixture(
+export const VERIFICATION_CAMPAIGN_MANIFEST = deepFreeze(
   campaignManifestJson as unknown as VerificationCampaignManifest,
+)
+
+export const COMMONS_VERIFICATION_FIXTURE = loadVerificationCampaignFixture(
+  VERIFICATION_CAMPAIGN_MANIFEST,
 )
 
 export const HUMAN_REVIEW_CAMPAIGN = COMMONS_VERIFICATION_FIXTURE.campaign

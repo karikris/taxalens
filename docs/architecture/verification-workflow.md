@@ -36,7 +36,11 @@ separate workspaces:
 The current Commons three-image packet will remain available as a public,
 credential-free judge campaign. It will use the same campaign, item, event,
 repository, consensus, and quality contracts as every other campaign. It will
-not remain a product-global Papilio-specific special case.
+not remain a product-global Papilio-specific special case. Its asset identity,
+rights metadata, campaign settings, and item records are declared once in the
+canonical
+[`Papilio demoleus` verification manifest](../../demo/source/verification/papilio-demoleus-commons.campaign.json);
+the browser packet and judge-bundle artifacts are projections of that file.
 
 ## Responsibility boundary
 

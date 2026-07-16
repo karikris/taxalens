@@ -15,6 +15,7 @@ const EXPECTED_BUNDLE_ID = 'papilio-demoleus-prototype-74a7d648-v3'
 const EXPECTED_TAXALENS_SHA = 'fab9d3f1605d28d4bbfc3a4d0074f40e5ffff023'
 const EXPECTED_BIOMINER_SHA = '74a7d648a562efa744e6502ef504a23b63b4e02f'
 const LEGACY_BIOMINER_SHA = '75461d9c065af0cd96b41cd1f845c2e920f7ae34'
+const VERIFICATION_MANIFEST_TAXALENS_SHA = '9b94891ea3ffc37c9e036838c938c596ef0dc529'
 const VERIFICATION_MEDIA_TAXALENS_SHA = 'ff96b7f8f6feaf8197000b0f5265110a7d331e08'
 const VERIFICATION_MEDIA_COUNT = 3
 
@@ -712,6 +713,11 @@ async function assertManifestSemantics(manifest: JudgeBundleContract): Promise<v
     const admitted =
       (artifact.source_repository === 'karikris/TaxaLens' &&
         (artifact.source_commit === manifest.source_revisions.taxalens_sha ||
+          (['verification_campaigns', 'verification_items'] as const).some(
+            (role) =>
+              artifact.role === role &&
+              artifact.source_commit === VERIFICATION_MANIFEST_TAXALENS_SHA,
+          ) ||
           (artifact.role === 'verification_media' &&
             artifact.source_commit === VERIFICATION_MEDIA_TAXALENS_SHA))) ||
       (artifact.source_repository === 'karikris/BioMiner' &&

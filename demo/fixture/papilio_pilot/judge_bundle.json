@@ -2,14 +2,14 @@
   "artifact_inventory": [
     {
       "artifact_id": "attribution-manifest",
-      "bytes": 3854,
+      "bytes": 3926,
       "media_type": "application/json",
       "path": "attribution_manifest.json",
       "record_count": 5,
       "required": true,
       "role": "attribution",
       "schema_version": "truthful-demo-attribution-manifest:v1.1.0",
-      "sha256": "2bc216df2c44b4c97664b176127de79d9485b35c3c04ac8b606ff9e8fa74bc24",
+      "sha256": "bb95ce41af7f39fac40d1928270611f5a254fa32b796ada91589fa6a68c4ecf9",
       "source_commit": "fab9d3f1605d28d4bbfc3a4d0074f40e5ffff023",
       "source_repository": "karikris/TaxaLens"
     },
@@ -236,14 +236,14 @@
     },
     {
       "artifact_id": "rights-manifest",
-      "bytes": 6457,
+      "bytes": 6529,
       "media_type": "application/json",
       "path": "rights_manifest.json",
       "record_count": 1,
       "required": true,
       "role": "rights",
       "schema_version": "truthful-demo-rights-manifest:v1.1.0",
-      "sha256": "2ceca1f6826d78f95c513f39e2739322b3a8aebb4632ee1211c8b73804fe231e",
+      "sha256": "633f38db680ee1310d25ed5ea77fe71ac2911043381a7ea77e086bd2112026d5",
       "source_commit": "fab9d3f1605d28d4bbfc3a4d0074f40e5ffff023",
       "source_repository": "karikris/TaxaLens"
     },
@@ -310,6 +310,32 @@
       "schema_version": "taxalens-research-analyst-run:v1.0.0",
       "sha256": "ab7b2a80e52bfd7ba11e5d1e7253e7cd0e69bab2e66db567f5a76c0f0bfb9281",
       "source_commit": "fab9d3f1605d28d4bbfc3a4d0074f40e5ffff023",
+      "source_repository": "karikris/TaxaLens"
+    },
+    {
+      "artifact_id": "verification-campaign-manifest",
+      "bytes": 9748,
+      "media_type": "application/json",
+      "path": "verification/campaign_manifest.json",
+      "record_count": 1,
+      "required": true,
+      "role": "verification_campaigns",
+      "schema_version": "taxalens-verification-campaign-manifest:v1.0.0",
+      "sha256": "00087bce738f5098893eea7b8fce238d3c88f85a7ee643eceddfb22466d6087d",
+      "source_commit": "9b94891ea3ffc37c9e036838c938c596ef0dc529",
+      "source_repository": "karikris/TaxaLens"
+    },
+    {
+      "artifact_id": "verification-items",
+      "bytes": 7280,
+      "media_type": "application/json",
+      "path": "verification/items.json",
+      "record_count": 3,
+      "required": true,
+      "role": "verification_items",
+      "schema_version": "taxalens-verification-items:v1.0.0",
+      "sha256": "27c248f2853177a563764ac4d322ad8f85d689644c05c510c88ce5099b8f6c18",
+      "source_commit": "9b94891ea3ffc37c9e036838c938c596ef0dc529",
       "source_repository": "karikris/TaxaLens"
     },
     {
@@ -404,6 +430,8 @@
           "prototype-evidence-snapshot",
           "stored-analyst-request",
           "stored-analyst-run",
+          "verification-campaign-manifest",
+          "verification-items",
           "rights-manifest",
           "attribution-manifest"
         ],
@@ -457,12 +485,12 @@
   "checksums": {
     "algorithm": "sha256",
     "canonicalization": "json-sorted-keys-utf8-v1",
-    "inventory_sha256": "9e3b52e923a507824ef03fbb46282bce8e73ecfb4272ce92a60ef98d11d8adc0",
-    "payload_root_sha256": "3f379242456b6d53ac63981015590c70e81425cd00e2b4e3fb716adf00183ef3"
+    "inventory_sha256": "7bbb1c9f28d23e5b87abc8c6139182fff683c2ae4873f5bc2a17fe91b0784acc",
+    "payload_root_sha256": "9e6b4660d7d6ea885c0a231cca63e7237bf59cc8a8c4eae84a2f3fd701124974"
   },
   "created_at": "2026-07-16T11:57:54Z",
   "expected_ui_counts": {
-    "artifact_count": 28,
+    "artifact_count": 30,
     "attribution_count": 5,
     "openai_replay_trace_count": 1,
     "screen_items": {
@@ -490,15 +518,15 @@
       "selective_decision_metadata": 1,
       "stage_metrics": 4,
       "target_aware_score_metadata": 0,
-      "verification_campaigns": 0,
+      "verification_campaigns": 1,
       "verification_decisions": 0,
-      "verification_items": 0,
+      "verification_items": 3,
       "verification_media": 3,
       "verification_quality": 0,
       "visual_domain_negatives": 1,
       "yoloe_evidence": 0
     },
-    "unavailable_section_count": 10
+    "unavailable_section_count": 8
   },
   "openai_replay": {
     "credentials_required": false,
@@ -566,7 +594,9 @@
           "run-summary",
           "selective-decision-metadata",
           "stored-analyst-request",
-          "stored-analyst-run"
+          "stored-analyst-run",
+          "verification-campaign-manifest",
+          "verification-items"
         ],
         "attribution_required": true,
         "creator_or_owner": "Kris Kari",
@@ -822,13 +852,15 @@
       "verification_status": "unavailable"
     },
     "verification_campaigns": {
-      "artifact_ids": [],
+      "artifact_ids": [
+        "verification-campaign-manifest"
+      ],
       "candidate_semantics": "not_applicable",
-      "human_review_required": true,
-      "reason": "Verification campaign manifests are not yet registered in the judge bundle.",
+      "human_review_required": false,
+      "reason": null,
       "scientific_claim_allowed": false,
-      "status": "unavailable",
-      "verification_status": "unavailable"
+      "status": "available",
+      "verification_status": "machine_verified_contract"
     },
     "verification_decisions": {
       "artifact_ids": [],
@@ -840,13 +872,15 @@
       "verification_status": "unavailable"
     },
     "verification_items": {
-      "artifact_ids": [],
-      "candidate_semantics": "not_applicable",
+      "artifact_ids": [
+        "verification-items"
+      ],
+      "candidate_semantics": "candidate_reference_not_verified_support",
       "human_review_required": true,
-      "reason": "Verification item manifests are not yet registered in the judge bundle.",
+      "reason": null,
       "scientific_claim_allowed": false,
-      "status": "unavailable",
-      "verification_status": "unavailable"
+      "status": "available",
+      "verification_status": "unreviewed"
     },
     "verification_media": {
       "artifact_ids": [

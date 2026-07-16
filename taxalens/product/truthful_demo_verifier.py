@@ -31,6 +31,7 @@ from taxalens.product.truthful_demo import (
     TRUTHFUL_DEMO_HERO_ID,
     TRUTHFUL_DEMO_LEGACY_BIOMINER_SHA,
     TRUTHFUL_DEMO_TAXALENS_SHA,
+    TRUTHFUL_DEMO_VERIFICATION_MANIFEST_SHA,
     TRUTHFUL_DEMO_VERIFICATION_MEDIA_SHA,
 )
 
@@ -117,6 +118,8 @@ _EXPECTED_ARTIFACT_VERSIONS = {
     "stage-metrics": "truthful-demo-metadata-metric:v1.0.0",
     "stored-analyst-request": "taxalens-stored-analyst-request:v1.0.0",
     "stored-analyst-run": "taxalens-research-analyst-run:v1.0.0",
+    "verification-campaign-manifest": ("taxalens-verification-campaign-manifest:v1.0.0"),
+    "verification-items": "taxalens-verification-items:v1.0.0",
     "verification-media-commons-papilio-demoleus-closed-wing": (
         "taxalens-verification-media:v1.0.0"
     ),
@@ -354,6 +357,21 @@ def _verify_versions(
                 (
                     "verification media must retain the pinned TaxaLens source commit "
                     f"{TRUTHFUL_DEMO_VERIFICATION_MEDIA_SHA}"
+                ),
+                f"artifact:{artifact_id}.source_commit",
+            )
+        if artifact_id in {
+            "verification-campaign-manifest",
+            "verification-items",
+        } and (
+            artifact.get("source_repository") != "karikris/TaxaLens"
+            or artifact.get("source_commit") != TRUTHFUL_DEMO_VERIFICATION_MANIFEST_SHA
+        ):
+            _fail(
+                TruthfulDemoFailure.STALE_ARTIFACT_VERSION,
+                (
+                    "verification manifest projections must retain the pinned TaxaLens "
+                    f"source commit {TRUTHFUL_DEMO_VERIFICATION_MANIFEST_SHA}"
                 ),
                 f"artifact:{artifact_id}.source_commit",
             )

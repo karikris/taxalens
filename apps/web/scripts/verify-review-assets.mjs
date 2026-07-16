@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 
 const manifestUrl = new URL(
-  '../src/review/fixtures/papilio-demoleus-commons.campaign.json',
+  '../../../demo/source/verification/papilio-demoleus-commons.campaign.json',
   import.meta.url,
 )
 const manifest = JSON.parse(await readFile(manifestUrl, 'utf8'))

@@ -15,6 +15,7 @@ from taxalens.product import (
 
 FIXTURE_ROOT = Path("demo/fixture/papilio_pilot")
 MANIFEST_PATH = FIXTURE_ROOT / "judge_bundle.json"
+VERIFICATION_MANIFEST_PATH = Path("demo/source/verification/papilio-demoleus-commons.campaign.json")
 RASTER_SUFFIXES = {".gif", ".jpeg", ".jpg", ".png", ".webp"}
 
 
@@ -26,9 +27,9 @@ def test_committed_fixture_is_a_valid_checksum_verified_judge_bundle() -> None:
     loaded = load_judge_bundle(MANIFEST_PATH, verify_files=True)
 
     assert loaded.validation.bundle_id == TRUTHFUL_DEMO_BUNDLE_ID
-    assert loaded.validation.artifact_count == 28
+    assert loaded.validation.artifact_count == 30
     assert loaded.validation.section_count == 25
-    assert loaded.validation.unavailable_section_count == 10
+    assert loaded.validation.unavailable_section_count == 8
     assert loaded.validation.replay_trace_count == 1
     assert loaded.data["source_revisions"]["biominer_sha"] == TRUTHFUL_DEMO_BIOMINER_SHA
     assert loaded.data["target"] == {
@@ -129,13 +130,35 @@ def test_rights_manifest_registers_commons_review_media_and_covers_every_payload
     assert all(item["sha256"] and item["bytes"] > 0 for item in media_rights)
     assert all("human-verification" in item["use_scope"] for item in media_rights)
     media_types = [artifact["media_type"] for artifact in loaded.data["artifact_inventory"]]
-    assert media_types.count("application/json") == 21
+    assert media_types.count("application/json") == 23
     assert media_types.count("application/vnd.apache.parquet") == 4
     assert media_types.count("image/jpeg") == 3
     media_section = loaded.data["sections"]["verification_media"]
     assert media_section["status"] == "available"
     assert len(media_section["artifact_ids"]) == 3
     assert media_section["scientific_claim_allowed"] is False
+
+
+def test_verification_campaign_and_items_are_projected_from_one_manifest() -> None:
+    source = json.loads(VERIFICATION_MANIFEST_PATH.read_text(encoding="utf-8"))
+    committed_campaign = FIXTURE_ROOT / "verification/campaign_manifest.json"
+    projected_items = _json("verification/items.json")
+    assert isinstance(source, dict)
+    assert isinstance(projected_items, list)
+
+    assert committed_campaign.read_bytes() == VERIFICATION_MANIFEST_PATH.read_bytes()
+    assert [item["itemId"] for item in projected_items] == [
+        item["itemId"] for item in source["items"]
+    ]
+    assert all(item["scientificClaimAllowed"] is False for item in projected_items)
+    assert all(
+        item["mediaArtifactId"] == f"verification-media-{item['itemId']}"
+        for item in projected_items
+    )
+    assert all(
+        item["previewUri"] == f"verification/media/{item['previewAsset']}"
+        for item in projected_items
+    )
 
 
 def test_prototype_snapshot_is_aggregate_only_and_preserves_claim_boundaries() -> None:
@@ -226,8 +249,6 @@ def test_unavailable_real_pipeline_outputs_are_named_and_empty() -> None:
         "comments",
         "candidate_revisions",
         "evaluation_summaries",
-        "verification_campaigns",
-        "verification_items",
         "verification_decisions",
         "verification_quality",
     }

@@ -76,7 +76,7 @@ describe('generateEvidencePlan', () => {
       first.artifactExpectations.filter(
         (expectation) => expectation.purpose === 'future_evidence_required',
       ),
-    ).toHaveLength(10)
+    ).toHaveLength(8)
     expect(first.approvalRequirement).toMatchObject({
       required: true,
       status: 'not_approved',

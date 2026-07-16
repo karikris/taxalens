@@ -1,0 +1,219 @@
+{
+  "schemaVersion": "taxalens-verification-campaign-manifest:v1.0.0",
+  "manifestSha256": "37bc1dcc781409a5adbd5c4882c71ad7dcf8862b1e8da7040e8ea399c5c6dd81",
+  "campaign": {
+    "schemaVersion": "taxalens-verification-campaign:v1.0.0",
+    "campaignId": "papilio-demoleus-commons-review-v1",
+    "title": "Papilio demoleus Commons verification",
+    "description": "Credential-free local verification of three rights-cleared Wikimedia Commons images.",
+    "kind": "reference_identity_verification",
+    "status": "active",
+    "targetTaxon": {
+      "acceptedTaxonKey": "gbif:1938069",
+      "scientificName": "Papilio demoleus",
+      "commonName": "lime swallowtail",
+      "rank": "species",
+      "authority": "Linnaeus, 1758"
+    },
+    "sourceProviders": [
+      "wikimedia_commons"
+    ],
+    "reviewRequirement": {
+      "requiredIndependentReviewers": 1,
+      "secondReviewPolicy": "never",
+      "adjudicationRequiredOnConflict": false,
+      "decisiveOutcomes": [
+        "yes",
+        "no"
+      ],
+      "mediaRequiredOutcomes": [
+        "yes",
+        "no",
+        "cant_tell"
+      ],
+      "nonScientificOutcomes": [
+        "cant_view",
+        "skipped"
+      ]
+    },
+    "samplingPlan": {
+      "planId": "papilio-demoleus-commons-fixed-fixture-v1",
+      "purpose": "credential_free_fixture",
+      "design": "fixed_fixture",
+      "representative": false,
+      "blindReview": false,
+      "selectionSeed": null,
+      "targetSampleSize": 3,
+      "inclusionProbabilityRequired": false,
+      "independentUnit": "media",
+      "groupingKeys": [
+        "duplicate_group",
+        "observation_group",
+        "owner_group"
+      ],
+      "leakagePolicy": "support_only",
+      "strata": [
+        {
+          "stratumId": "commons-credential-free",
+          "label": "Rights-cleared Commons fixture",
+          "populationCount": null,
+          "targetSampleCount": 3,
+          "populationWeight": null,
+          "selectionNotes": "Curated credential-free fixture; not a probability sample."
+        }
+      ],
+      "qualityEstimationAllowed": false,
+      "qualityEstimationBlockedReason": "A fixed three-image fixture cannot estimate population quality."
+    },
+    "disclosurePolicy": {
+      "mode": "unblinded",
+      "revealAfterDecision": false,
+      "hiddenBeforeDecision": []
+    },
+    "questionFingerprint": "b46873f4c98f4e4af72c29b7b6ab9689d535ca6614469de45147fe3ab426bece",
+    "taxalensSha": "23d72be1a102c80fd56f96fdb327b2f71f5c61a0",
+    "biominerSha": null,
+    "publicReplay": true,
+    "scientificClaimAllowed": false
+  },
+  "items": [
+    {
+      "itemId": "commons-papilio-demoleus-open-wing",
+      "campaignId": "papilio-demoleus-commons-review-v1",
+      "source": "wikimedia_commons",
+      "sourceObservationId": "commons-file:Common_Lime_Butterfly_Papilio_demoleus_UP_by_Kadavoor.jpg",
+      "sourceMediaId": "commons-file:Common_Lime_Butterfly_Papilio_demoleus_UP_by_Kadavoor.jpg",
+      "imageSha256": "47248e36944cf91256c906e8454adcad99121da049260745d57f4cbffae65a78",
+      "imageByteCount": 180698,
+      "mediaType": "image/jpeg",
+      "previewAsset": "papilio-demoleus-open-wing.jpg",
+      "targetTaxon": {
+        "acceptedTaxonKey": "gbif:1938069",
+        "scientificName": "Papilio demoleus",
+        "commonName": "lime swallowtail",
+        "rank": "species",
+        "authority": "Linnaeus, 1758"
+      },
+      "providerSuppliedIdentity": {
+        "providerTaxonKey": null,
+        "scientificName": "Papilio demoleus",
+        "commonName": "Common Lime Butterfly",
+        "rawLabel": "Common Lime Butterfly Papilio demoleus UP by Kadavoor",
+        "verificationStatus": null
+      },
+      "expectedLifeStage": "adult",
+      "expectedVisualDomain": "live_field",
+      "expectedView": "dorsal",
+      "duplicateGroupId": "sha256:47248e36944cf91256c906e8454adcad99121da049260745d57f4cbffae65a78",
+      "observationGroupId": "commons-file:Common_Lime_Butterfly_Papilio_demoleus_UP_by_Kadavoor.jpg",
+      "ownerPhotographerGroupId": "commons-creator:Jeevan_Jose",
+      "samplingStratumId": "commons-credential-free",
+      "inclusionProbability": null,
+      "rights": {
+        "creator": "Jeevan Jose",
+        "rightsHolder": "Jeevan Jose",
+        "licenseName": "CC BY-SA 4.0",
+        "licenseUri": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "policyStatus": "allowed",
+        "attribution": "Common Lime Butterfly Papilio demoleus UP by Kadavoor by Jeevan Jose, CC BY-SA 4.0",
+        "sourceUri": "https://commons.wikimedia.org/wiki/File:Common_Lime_Butterfly_Papilio_demoleus_UP_by_Kadavoor.jpg"
+      },
+      "questionFingerprint": "b46873f4c98f4e4af72c29b7b6ab9689d535ca6614469de45147fe3ab426bece",
+      "verificationLabel": "Does this image show an adult Papilio demoleus (lime swallowtail) in dorsal view?"
+    },
+    {
+      "itemId": "commons-papilio-demoleus-closed-wing",
+      "campaignId": "papilio-demoleus-commons-review-v1",
+      "source": "wikimedia_commons",
+      "sourceObservationId": "commons-file:Close_wing_position_of_Papilio_demoleus_Linnaeus_1758_Lime_Butterfly_WLB.jpg",
+      "sourceMediaId": "commons-file:Close_wing_position_of_Papilio_demoleus_Linnaeus_1758_Lime_Butterfly_WLB.jpg",
+      "imageSha256": "3bd3248347c3b82a977b0890f192f2f0c93253eff13d38b4b54dedb08b39627b",
+      "imageByteCount": 159332,
+      "mediaType": "image/jpeg",
+      "previewAsset": "papilio-demoleus-closed-wing.jpg",
+      "targetTaxon": {
+        "acceptedTaxonKey": "gbif:1938069",
+        "scientificName": "Papilio demoleus",
+        "commonName": "lime swallowtail",
+        "rank": "species",
+        "authority": "Linnaeus, 1758"
+      },
+      "providerSuppliedIdentity": {
+        "providerTaxonKey": null,
+        "scientificName": "Papilio demoleus",
+        "commonName": "Lime Butterfly",
+        "rawLabel": "Close wing position of Papilio demoleus, Linnaeus, 1758 – Lime Butterfly",
+        "verificationStatus": null
+      },
+      "expectedLifeStage": "adult",
+      "expectedVisualDomain": "live_field",
+      "expectedView": "ventral",
+      "duplicateGroupId": "sha256:3bd3248347c3b82a977b0890f192f2f0c93253eff13d38b4b54dedb08b39627b",
+      "observationGroupId": "commons-file:Close_wing_position_of_Papilio_demoleus_Linnaeus_1758_Lime_Butterfly_WLB.jpg",
+      "ownerPhotographerGroupId": "commons-creator:Sayan_Sanyal",
+      "samplingStratumId": "commons-credential-free",
+      "inclusionProbability": null,
+      "rights": {
+        "creator": "Sayan Sanyal",
+        "rightsHolder": "Sayan Sanyal",
+        "licenseName": "CC BY-SA 4.0",
+        "licenseUri": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "policyStatus": "allowed",
+        "attribution": "Close wing position of Papilio demoleus, Linnaeus, 1758 – Lime Butterfly by Sayan Sanyal, CC BY-SA 4.0",
+        "sourceUri": "https://commons.wikimedia.org/wiki/File:Close_wing_position_of_Papilio_demoleus,_Linnaeus,_1758_%E2%80%93_Lime_Butterfly_WLB.jpg"
+      },
+      "questionFingerprint": "b46873f4c98f4e4af72c29b7b6ab9689d535ca6614469de45147fe3ab426bece",
+      "verificationLabel": "Does this image show an adult Papilio demoleus (lime swallowtail) in ventral view?"
+    },
+    {
+      "itemId": "commons-papilio-demoleus-lime-swallowtail",
+      "campaignId": "papilio-demoleus-commons-review-v1",
+      "source": "wikimedia_commons",
+      "sourceObservationId": "commons-file:Closed_wing_of_Papilio_demoleus_Linnaeus_1758_Lime_Swallowtail.jpg",
+      "sourceMediaId": "commons-file:Closed_wing_of_Papilio_demoleus_Linnaeus_1758_Lime_Swallowtail.jpg",
+      "imageSha256": "9ceb5c0e354627441ba7be5a8e75a8eed7c278948e606e4892ae47387ee1bbea",
+      "imageByteCount": 130460,
+      "mediaType": "image/jpeg",
+      "previewAsset": "papilio-demoleus-lime-swallowtail.jpg",
+      "targetTaxon": {
+        "acceptedTaxonKey": "gbif:1938069",
+        "scientificName": "Papilio demoleus",
+        "commonName": "lime swallowtail",
+        "rank": "species",
+        "authority": "Linnaeus, 1758"
+      },
+      "providerSuppliedIdentity": {
+        "providerTaxonKey": null,
+        "scientificName": "Papilio demoleus",
+        "commonName": "Lime Swallowtail",
+        "rawLabel": "Closed wing of Papilio demoleus Linnaeus, 1758 – Lime Swallowtail",
+        "verificationStatus": null
+      },
+      "expectedLifeStage": "adult",
+      "expectedVisualDomain": "live_field",
+      "expectedView": "ventral",
+      "duplicateGroupId": "sha256:9ceb5c0e354627441ba7be5a8e75a8eed7c278948e606e4892ae47387ee1bbea",
+      "observationGroupId": "commons-file:Closed_wing_of_Papilio_demoleus_Linnaeus_1758_Lime_Swallowtail.jpg",
+      "ownerPhotographerGroupId": "commons-creator:Bias_Chakraborty",
+      "samplingStratumId": "commons-credential-free",
+      "inclusionProbability": null,
+      "rights": {
+        "creator": "Bias Chakraborty",
+        "rightsHolder": "Bias Chakraborty",
+        "licenseName": "CC BY-SA 4.0",
+        "licenseUri": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "policyStatus": "allowed",
+        "attribution": "Closed wing of Papilio demoleus Linnaeus, 1758 – Lime Swallowtail by Bias Chakraborty, CC BY-SA 4.0",
+        "sourceUri": "https://commons.wikimedia.org/wiki/File:Closed_wing_of_Papilio_demoleus_Linnaeus,_1758_%E2%80%93_Lime_Swallowtail.jpg"
+      },
+      "questionFingerprint": "b46873f4c98f4e4af72c29b7b6ab9689d535ca6614469de45147fe3ab426bece",
+      "verificationLabel": "Does this image show an adult Papilio demoleus (lime swallowtail) in ventral view?"
+    }
+  ],
+  "semantics": {
+    "localBrowserReview": true,
+    "separateFromFrozenBioMinerReferenceBank": true,
+    "reviewerDecisionsAreLocalUntilExported": true,
+    "scientificClaimAllowed": false
+  }
+}

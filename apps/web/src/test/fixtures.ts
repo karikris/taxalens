@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import verificationCampaignManifest from '../../../../demo/source/verification/papilio-demoleus-commons.campaign.json'
+
 const FIXTURE_PREFIX = '../../../../demo/fixture/papilio_pilot/'
 
 const fixtureModules = import.meta.glob<string>(
@@ -19,11 +21,9 @@ const parquetPaths = [
   'analytics/flickr_geography.parquet',
   'analytics/flickr_query_hits.parquet',
 ] as const
-const verificationMediaPaths = [
-  'verification/media/papilio-demoleus-closed-wing.jpg',
-  'verification/media/papilio-demoleus-lime-swallowtail.jpg',
-  'verification/media/papilio-demoleus-open-wing.jpg',
-] as const
+const verificationMediaPaths = verificationCampaignManifest.items.map(
+  ({ previewAsset }) => `verification/media/${previewAsset}`,
+)
 const fixtureDirectory = resolve(
   dirname(fileURLToPath(import.meta.url)),
   '../../../../demo/fixture/papilio_pilot',

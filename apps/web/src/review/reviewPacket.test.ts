@@ -4,6 +4,7 @@ import {
   COMMONS_VERIFICATION_FIXTURE,
   HUMAN_REVIEW_CAMPAIGN,
   HUMAN_REVIEW_PACKET,
+  VERIFICATION_CAMPAIGN_MANIFEST,
 } from './reviewPacket'
 import { validateVerificationItem } from './verificationContracts'
 
@@ -26,23 +27,14 @@ describe('Commons verification campaign fixture', () => {
           imageSha256,
         }),
       ),
-    ).toEqual([
-      {
-        imageByteCount: 180_698,
-        imageSha256:
-          '47248e36944cf91256c906e8454adcad99121da049260745d57f4cbffae65a78',
-      },
-      {
-        imageByteCount: 159_332,
-        imageSha256:
-          '3bd3248347c3b82a977b0890f192f2f0c93253eff13d38b4b54dedb08b39627b',
-      },
-      {
-        imageByteCount: 130_460,
-        imageSha256:
-          '9ceb5c0e354627441ba7be5a8e75a8eed7c278948e606e4892ae47387ee1bbea',
-      },
-    ])
+    ).toEqual(
+      VERIFICATION_CAMPAIGN_MANIFEST.items.map(
+        ({ imageByteCount, imageSha256 }) => ({
+          imageByteCount,
+          imageSha256,
+        }),
+      ),
+    )
     for (const item of COMMONS_VERIFICATION_FIXTURE.items) {
       expect(validateVerificationItem(item, HUMAN_REVIEW_CAMPAIGN)).toEqual([])
       expect(item.imageUrl).toBe(item.previewUri)
