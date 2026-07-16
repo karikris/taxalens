@@ -395,10 +395,10 @@ export const browserReviewMediaCache: ReviewMediaCache = Object.freeze({
   },
 
   async clear() {
-    memoryCache.clear()
     if (hasCacheStorage()) {
       await window.caches.delete(REVIEW_CACHE_NAME)
     }
+    memoryCache.clear()
   },
 })
 

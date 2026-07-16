@@ -51,6 +51,10 @@ export function HumanReviewWorkspace({
     'checking' | 'idle' | 'preparing' | 'ready' | 'error'
   >('checking')
   const [cacheError, setCacheError] = useState<string | null>(null)
+  const [clearState, setClearState] = useState<
+    'idle' | 'clearing' | 'success' | 'error'
+  >('idle')
+  const [clearError, setClearError] = useState<string | null>(null)
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [displayedItemId, setDisplayedItemId] = useState<string | null>(null)
   const preparationRef = useRef<{
@@ -151,6 +155,8 @@ export function HumanReviewWorkspace({
   const counts = useMemo(() => outcomeCounts(session), [session])
 
   function prepareCache() {
+    setClearState('idle')
+    setClearError(null)
     preparationRef.current?.controller.abort()
     const controller = new AbortController()
     const requestId = preparationRequestIdRef.current + 1
@@ -280,17 +286,26 @@ export function HumanReviewWorkspace({
     setDisplayedItemId(null)
   }
 
-  function clearReview() {
-    void cache.clear()
-    clearHumanReviewSession()
-    setSession(emptyHumanReviewSession())
-    setIndex(0)
-    setComment('')
-    setImageUrl(null)
-    setDisplayedItemId(null)
-    setCacheStatus(EMPTY_CACHE_STATUS)
-    setCacheState('idle')
-    setCacheError(null)
+  async function clearReview() {
+    cancelPreparation()
+    setClearState('clearing')
+    setClearError(null)
+    try {
+      await cache.clear()
+      clearHumanReviewSession()
+      setSession(emptyHumanReviewSession())
+      setIndex(0)
+      setComment('')
+      setImageUrl(null)
+      setDisplayedItemId(null)
+      setCacheStatus(EMPTY_CACHE_STATUS)
+      setCacheState('idle')
+      setCacheError(null)
+      setClearState('success')
+    } catch (reason) {
+      setClearState('error')
+      setClearError(errorMessage(reason))
+    }
   }
 
   return (
@@ -377,6 +392,19 @@ export function HumanReviewWorkspace({
       {cacheState === 'error' && (
         <EvidenceState state="failure" title="The review cache could not be prepared">
           {cacheError}
+        </EvidenceState>
+      )}
+
+      {clearState === 'success' && (
+        <EvidenceState state="available" title="Local review state cleared">
+          The cache and local review session were cleared after the browser operations
+          completed.
+        </EvidenceState>
+      )}
+
+      {clearState === 'error' && (
+        <EvidenceState state="failure" title="Local review state could not be cleared">
+          {clearError} The current in-memory review state was preserved.
         </EvidenceState>
       )}
 
@@ -556,8 +584,16 @@ export function HumanReviewWorkspace({
           >
             Export review receipt
           </button>
-          <button type="button" className="review-button--quiet" onClick={clearReview}>
-            Clear cache and review
+          <button
+            type="button"
+            className="review-button--quiet"
+            disabled={clearState === 'clearing'}
+            aria-busy={clearState === 'clearing'}
+            onClick={() => void clearReview()}
+          >
+            {clearState === 'clearing'
+              ? 'Clearing cache and review…'
+              : 'Clear cache and review'}
           </button>
         </div>
       </section>
