@@ -20,6 +20,7 @@ TAXALENS_SHA = "1" * 40
 BIOMINER_SHA = "2" * 40
 SCHEMA_PATH = Path("packages/contracts/schema/judge_bundle.schema.json")
 TYPESCRIPT_PATH = Path("packages/contracts/src/judge_bundle_contract.ts")
+TRUTHFUL_FIXTURE_PATH = Path("demo/fixture/papilio_pilot/judge_bundle.json")
 
 
 def _artifact(
@@ -291,6 +292,43 @@ def test_unavailable_and_partial_sections_fail_closed(tmp_path: Path) -> None:
     partial_sections["run_summary"]["scientific_claim_allowed"] = True
     with pytest.raises(JudgeBundleError, match="partial section"):
         validate_judge_bundle(partial)
+
+
+def test_contract_rejects_verification_relationship_gaps() -> None:
+    item_without_campaign = json.loads(TRUTHFUL_FIXTURE_PATH.read_text(encoding="utf-8"))
+    campaign = item_without_campaign["sections"]["verification_campaigns"]
+    campaign.update(
+        {
+            "status": "unavailable",
+            "artifact_ids": [],
+            "reason": "campaign removed by mutation",
+            "verification_status": "unavailable",
+            "human_review_required": True,
+        }
+    )
+    with pytest.raises(JudgeBundleError, match="items cannot be displayed"):
+        validate_judge_bundle(item_without_campaign)
+
+    media_without_items = json.loads(TRUTHFUL_FIXTURE_PATH.read_text(encoding="utf-8"))
+    items = media_without_items["sections"]["verification_items"]
+    items.update(
+        {
+            "status": "unavailable",
+            "artifact_ids": [],
+            "reason": "items removed by mutation",
+            "verification_status": "unavailable",
+        }
+    )
+    with pytest.raises(JudgeBundleError, match="media cannot be displayed"):
+        validate_judge_bundle(media_without_items)
+
+    non_image_media = json.loads(TRUTHFUL_FIXTURE_PATH.read_text(encoding="utf-8"))
+    artifact = next(
+        row for row in non_image_media["artifact_inventory"] if row["role"] == "verification_media"
+    )
+    artifact["media_type"] = "application/octet-stream"
+    with pytest.raises(JudgeBundleError, match="must use an image media type"):
+        validate_judge_bundle(non_image_media)
 
 
 def test_scientific_claim_requires_verified_rights_and_attribution(

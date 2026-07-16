@@ -33,6 +33,7 @@ from taxalens.product.truthful_demo import (
     TRUTHFUL_DEMO_TAXALENS_SHA,
     TRUTHFUL_DEMO_VERIFICATION_MANIFEST_SHA,
     TRUTHFUL_DEMO_VERIFICATION_MEDIA_SHA,
+    TRUTHFUL_DEMO_VERIFICATION_USE_SCOPE,
 )
 
 DEFAULT_TRUTHFUL_DEMO_MANIFEST = DEFAULT_TRUTHFUL_DEMO_ROOT / "judge_bundle.json"
@@ -162,6 +163,7 @@ def verify_truthful_demo(
     _verify_counts(bundle, artifacts, payloads)
     _verify_rights(bundle, artifacts, payloads)
     _verify_attribution(bundle, artifacts, payloads)
+    _verify_verification_media_integrity(bundle, artifacts, payloads)
     _verify_semantics(bundle, payloads)
     _verify_checksum_roots(bundle, inventory)
 
@@ -1007,6 +1009,323 @@ def _verify_attribution(
             "attribution_manifest.json must cover every inventory artifact",
             "attribution_manifest.json",
         )
+
+
+def _verify_verification_media_integrity(
+    bundle: Mapping[str, Any],
+    artifacts: Mapping[str, Mapping[str, Any]],
+    payloads: Mapping[str, object],
+) -> None:
+    sections = _object(bundle.get("sections"), "sections")
+    expected_sections = {
+        "verification_campaigns": ["verification-campaign-manifest"],
+        "verification_items": ["verification-items"],
+        "verification_media": sorted(
+            artifact_id
+            for artifact_id, artifact in artifacts.items()
+            if artifact.get("role") == "verification_media"
+        ),
+    }
+    for section_name, expected_ids in expected_sections.items():
+        section = _object(sections.get(section_name), f"sections.{section_name}")
+        actual_ids = sorted(
+            _string_array(
+                section.get("artifact_ids"),
+                f"sections.{section_name}.artifact_ids",
+            )
+        )
+        if section.get("status") != "available" or actual_ids != sorted(expected_ids):
+            _fail(
+                TruthfulDemoFailure.ORPHANED_ID,
+                f"{section_name} must expose exactly {sorted(expected_ids)}",
+                f"sections.{section_name}",
+            )
+
+    manifest = _object(
+        payloads["verification-campaign-manifest"],
+        "verification/campaign_manifest.json",
+    )
+    manifest_sha256 = _required_text(
+        manifest.get("manifestSha256"),
+        "verification campaign manifestSha256",
+    )
+    unsigned_manifest = {key: value for key, value in manifest.items() if key != "manifestSha256"}
+    computed_manifest_sha256 = hashlib.sha256(
+        json.dumps(
+            unsigned_manifest,
+            ensure_ascii=False,
+            separators=(",", ":"),
+        ).encode()
+    ).hexdigest()
+    if computed_manifest_sha256 != manifest_sha256:
+        _fail(
+            TruthfulDemoFailure.CHECKSUM_MISMATCH,
+            "verification campaign manifest identity differs",
+            "verification/campaign_manifest.json",
+        )
+
+    campaign = _object(manifest.get("campaign"), "verification campaign")
+    campaign_id = _required_text(campaign.get("campaignId"), "verification campaignId")
+    if (
+        campaign.get("manifestSha256") is not None
+        or campaign.get("scientificClaimAllowed") is not False
+        or campaign.get("publicReplay") is not True
+    ):
+        _fail(
+            TruthfulDemoFailure.CONTRACT_VIOLATION,
+            "verification campaign must remain public, unsigned internally, and non-scientific",
+            "verification campaign",
+        )
+    semantics = _object(manifest.get("semantics"), "verification semantics")
+    if semantics.get("scientificClaimAllowed") is not False:
+        _fail(
+            TruthfulDemoFailure.UNVERIFIED_REFERENCE_AS_SUPPORT,
+            "verification manifest cannot authorize a scientific claim",
+            "verification semantics",
+        )
+
+    source_rows = _array(manifest.get("items"), "verification manifest items")
+    projected_rows = _array(payloads["verification-items"], "verification/items.json")
+    source_items = _verification_items_by_id(
+        source_rows,
+        location="verification manifest items",
+    )
+    projected_items = _verification_items_by_id(
+        projected_rows,
+        location="verification/items.json",
+    )
+    if set(source_items) != set(projected_items):
+        _fail(
+            TruthfulDemoFailure.ORPHANED_ID,
+            (
+                "verification item projection differs; "
+                f"missing={sorted(set(source_items) - set(projected_items))}, "
+                f"unexpected={sorted(set(projected_items) - set(source_items))}"
+            ),
+            "verification/items.json",
+        )
+
+    media_artifact_ids = set(expected_sections["verification_media"])
+    expected_media_ids = {f"verification-media-{item_id}" for item_id in source_items}
+    if media_artifact_ids != expected_media_ids:
+        _fail(
+            TruthfulDemoFailure.ORPHANED_ID,
+            (
+                "displayed verification media differs from review items; "
+                f"missing={sorted(expected_media_ids - media_artifact_ids)}, "
+                f"unexpected={sorted(media_artifact_ids - expected_media_ids)}"
+            ),
+            "sections.verification_media",
+        )
+
+    bundle_rights = _array(
+        _object(bundle.get("rights"), "rights").get("items"),
+        "rights.items",
+    )
+    payload_rights = _array(
+        _object(payloads["rights-manifest"], "rights_manifest").get("items"),
+        "rights_manifest.items",
+    )
+    bundle_attribution = _array(
+        _object(bundle.get("attribution"), "attribution").get("entries"),
+        "attribution.entries",
+    )
+    payload_attribution = _array(
+        _object(payloads["attribution-manifest"], "attribution_manifest").get("entries"),
+        "attribution_manifest.entries",
+    )
+
+    for item_id, source_item in source_items.items():
+        projected = projected_items[item_id]
+        for key, expected in source_item.items():
+            if key in {
+                "campaignId",
+                "imageByteCount",
+                "imageSha256",
+                "mediaType",
+                "previewAsset",
+            }:
+                continue
+            if projected.get(key) != expected:
+                _fail(
+                    TruthfulDemoFailure.ORPHANED_ID,
+                    f"projected verification item field {key} differs from its manifest",
+                    f"verification/items.json:{item_id}",
+                )
+        if (
+            source_item.get("campaignId") != campaign_id
+            or projected.get("campaignId") != campaign_id
+        ):
+            _fail(
+                TruthfulDemoFailure.ORPHANED_ID,
+                "verification item does not resolve to its campaign",
+                f"verification/items.json:{item_id}.campaignId",
+            )
+
+        media_artifact_id = f"verification-media-{item_id}"
+        artifact = artifacts[media_artifact_id]
+        preview_asset = _required_text(
+            source_item.get("previewAsset"),
+            f"verification manifest item {item_id}.previewAsset",
+        )
+        expected_path = f"verification/media/{preview_asset}"
+        if (
+            projected.get("mediaArtifactId") != media_artifact_id
+            or projected.get("previewAsset") != preview_asset
+            or projected.get("previewUri") != expected_path
+            or projected.get("mediaType") != source_item.get("mediaType")
+            or projected.get("scientificClaimAllowed") is not False
+            or artifact.get("path") != expected_path
+            or artifact.get("media_type") != source_item.get("mediaType")
+        ):
+            _fail(
+                TruthfulDemoFailure.ORPHANED_ID,
+                "displayed verification image does not resolve exactly to its review item",
+                f"verification/items.json:{item_id}",
+            )
+        if artifact.get("sha256") != source_item.get("imageSha256") or projected.get(
+            "imageSha256"
+        ) != source_item.get("imageSha256"):
+            _fail(
+                TruthfulDemoFailure.CHECKSUM_MISMATCH,
+                "verification item image hash differs from the displayed artifact",
+                f"verification/items.json:{item_id}.imageSha256",
+            )
+        if artifact.get("bytes") != source_item.get("imageByteCount") or projected.get(
+            "imageByteCount"
+        ) != source_item.get("imageByteCount"):
+            _fail(
+                TruthfulDemoFailure.CHECKSUM_MISMATCH,
+                "verification item byte count differs from the displayed artifact",
+                f"verification/items.json:{item_id}.imageByteCount",
+            )
+
+        identity = _object(
+            source_item.get("providerSuppliedIdentity"),
+            f"verification manifest item {item_id}.providerSuppliedIdentity",
+        )
+        item_rights = _object(
+            source_item.get("rights"),
+            f"verification manifest item {item_id}.rights",
+        )
+        if item_rights.get("policyStatus") != "allowed":
+            _fail(
+                TruthfulDemoFailure.MISSING_RIGHTS,
+                "displayed verification media requires an allowed rights policy",
+                f"verification manifest item {item_id}.rights.policyStatus",
+            )
+
+        bundle_right = _single_artifact_entry(
+            bundle_rights,
+            media_artifact_id,
+            location="rights.items",
+            failure=TruthfulDemoFailure.MISSING_RIGHTS,
+        )
+        payload_right = _single_artifact_entry(
+            payload_rights,
+            media_artifact_id,
+            location="rights_manifest.items",
+            failure=TruthfulDemoFailure.MISSING_RIGHTS,
+        )
+        expected_rights = {
+            "license_name": item_rights.get("licenseName"),
+            "license_uri": item_rights.get("licenseUri"),
+            "creator_or_owner": item_rights.get("creator"),
+            "source_url": item_rights.get("sourceUri"),
+            "use_scope": TRUTHFUL_DEMO_VERIFICATION_USE_SCOPE,
+            "attribution_required": True,
+        }
+        if bundle_right.get("status") != "rights_verified" or any(
+            bundle_right.get(key) != value for key, value in expected_rights.items()
+        ):
+            _fail(
+                TruthfulDemoFailure.MISSING_RIGHTS,
+                "bundle media rights differ from the verification manifest or use scope",
+                f"rights.items:{media_artifact_id}",
+            )
+        expected_payload_rights = {
+            **expected_rights,
+            "status": "rights_verified",
+            "rights_holder": item_rights.get("rightsHolder"),
+            "source_title": identity.get("rawLabel"),
+            "sha256": artifact.get("sha256"),
+            "bytes": artifact.get("bytes"),
+        }
+        if any(payload_right.get(key) != value for key, value in expected_payload_rights.items()):
+            _fail(
+                TruthfulDemoFailure.MISSING_RIGHTS,
+                "rights manifest media entry differs from its item or inventory",
+                f"rights_manifest.items:{media_artifact_id}",
+            )
+
+        expected_attribution = {
+            "display_text": item_rights.get("attribution"),
+            "creator": item_rights.get("creator"),
+            "source_title": identity.get("rawLabel"),
+            "source_url": item_rights.get("sourceUri"),
+            "license_name": item_rights.get("licenseName"),
+            "license_uri": item_rights.get("licenseUri"),
+        }
+        for entries, location in (
+            (bundle_attribution, "attribution.entries"),
+            (payload_attribution, "attribution_manifest.entries"),
+        ):
+            attribution = _single_artifact_entry(
+                entries,
+                media_artifact_id,
+                location=location,
+                failure=TruthfulDemoFailure.MISSING_ATTRIBUTION,
+            )
+            if any(attribution.get(key) != value for key, value in expected_attribution.items()):
+                _fail(
+                    TruthfulDemoFailure.MISSING_ATTRIBUTION,
+                    "verification media attribution differs from its manifest item",
+                    f"{location}:{media_artifact_id}",
+                )
+
+
+def _verification_items_by_id(
+    rows: Sequence[object],
+    *,
+    location: str,
+) -> dict[str, Mapping[str, Any]]:
+    items: dict[str, Mapping[str, Any]] = {}
+    for index, raw in enumerate(rows):
+        item = _object(raw, f"{location}[{index}]")
+        item_id = _required_text(item.get("itemId"), f"{location}[{index}].itemId")
+        if item_id in items:
+            _fail(
+                TruthfulDemoFailure.ORPHANED_ID,
+                f"duplicate verification item ID {item_id}",
+                location,
+            )
+        items[item_id] = item
+    return items
+
+
+def _single_artifact_entry(
+    entries: Sequence[object],
+    artifact_id: str,
+    *,
+    location: str,
+    failure: TruthfulDemoFailure,
+) -> Mapping[str, Any]:
+    matches = []
+    for index, raw in enumerate(entries):
+        entry = _object(raw, f"{location}[{index}]")
+        artifact_ids = _string_array(
+            entry.get("artifact_ids"),
+            f"{location}[{index}].artifact_ids",
+        )
+        if artifact_id in artifact_ids:
+            matches.append((entry, artifact_ids))
+    if len(matches) != 1 or matches[0][1] != [artifact_id]:
+        _fail(
+            failure,
+            "verification media requires exactly one dedicated entry",
+            f"{location}:{artifact_id}",
+        )
+    return matches[0][0]
 
 
 def _attribution_coverage(entries: Sequence[object], location: str) -> set[str]:

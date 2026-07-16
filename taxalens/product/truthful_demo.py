@@ -39,6 +39,11 @@ TRUTHFUL_DEMO_LEGACY_BIOMINER_SHA = "75461d9c065af0cd96b41cd1f845c2e920f7ae34"
 TRUTHFUL_DEMO_TAXALENS_SHA = "fab9d3f1605d28d4bbfc3a4d0074f40e5ffff023"
 TRUTHFUL_DEMO_VERIFICATION_MANIFEST_SHA = "9b94891ea3ffc37c9e036838c938c596ef0dc529"
 TRUTHFUL_DEMO_VERIFICATION_MEDIA_SHA = "ff96b7f8f6feaf8197000b0f5265110a7d331e08"
+TRUTHFUL_DEMO_VERIFICATION_USE_SCOPE = (
+    "Credential-free TaxaLens human-verification display, offline judge replay, "
+    "and redistributable review packet under the source licence; not scientific "
+    "evidence until a human decision is retained."
+)
 TRUTHFUL_DEMO_HERO_ID = "papilio-demoleus-pilot-awaiting-review"
 DEFAULT_TRUTHFUL_DEMO_ROOT = Path("demo/fixture/papilio_pilot")
 DEFAULT_ANALYTICS_IMPORT_MANIFEST = Path(
@@ -901,11 +906,6 @@ def _verification_media_assets(
             raise ValueError(f"{label} requires provider identity and rights objects")
         if rights.get("policyStatus") != "allowed":
             raise ValueError(f"{label}.rights.policyStatus must be allowed")
-        use_scope = (
-            "Credential-free TaxaLens human-verification display, offline judge replay, "
-            "and redistributable review packet under the source licence; not scientific "
-            "evidence until a human decision is retained."
-        )
         artifact_id = f"verification-media-{item_id}"
         assets.append(
             _VerificationMediaAsset(
@@ -940,7 +940,7 @@ def _verification_media_assets(
                 attribution=_required_media_text(
                     rights.get("attribution"), f"{label}.rights.attribution"
                 ),
-                use_scope=use_scope,
+                use_scope=TRUTHFUL_DEMO_VERIFICATION_USE_SCOPE,
             )
         )
     return manifest, manifest_bytes, assets
@@ -1568,5 +1568,6 @@ __all__ = [
     "TRUTHFUL_DEMO_TAXALENS_SHA",
     "TRUTHFUL_DEMO_VERIFICATION_MANIFEST_SHA",
     "TRUTHFUL_DEMO_VERIFICATION_MEDIA_SHA",
+    "TRUTHFUL_DEMO_VERIFICATION_USE_SCOPE",
     "build_truthful_demo_fixture",
 ]

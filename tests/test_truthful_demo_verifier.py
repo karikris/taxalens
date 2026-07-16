@@ -48,6 +48,8 @@ def _mutate_artifact(
     root: Path,
     artifact_id: str,
     mutation: Callable[[Any], None],
+    *,
+    update_record_count: bool = False,
 ) -> None:
     manifest = _read_json(root / "judge_bundle.json")
     artifact = next(
@@ -58,6 +60,8 @@ def _mutate_artifact(
     mutation(payload)
     _write_json(path, payload)
     content = path.read_bytes()
+    if update_record_count:
+        artifact["record_count"] = len(payload) if isinstance(payload, list) else 1
     artifact["bytes"] = len(content)
     artifact["sha256"] = hashlib.sha256(content).hexdigest()
     _save_manifest(root, manifest)
@@ -104,6 +108,66 @@ def _apply_failure_mutation(root: Path, case: str) -> None:
                     item["artifact_ids"].remove("candidate-sets")
 
         _mutate_manifest(root, remove_attribution)
+    elif case == "verification_media_missing_rights":
+
+        def remove_media_rights(payload: dict[str, Any]) -> None:
+            item = next(
+                row for row in payload["items"] if row["rights_id"].startswith("commons-rights-")
+            )
+            item["artifact_ids"] = []
+
+        _mutate_artifact(root, "rights-manifest", remove_media_rights)
+    elif case == "verification_media_missing_attribution":
+
+        def remove_media_attribution(payload: dict[str, Any]) -> None:
+            item = next(
+                row
+                for row in payload["entries"]
+                if row["attribution_id"].startswith("commons-attribution-")
+            )
+            item["artifact_ids"] = []
+
+        _mutate_artifact(root, "attribution-manifest", remove_media_attribution)
+    elif case == "verification_media_hash_mismatch":
+        _mutate_artifact(
+            root,
+            "verification-items",
+            lambda payload: payload[0].update({"imageSha256": "0" * 64}),
+        )
+    elif case == "verification_media_byte_mismatch":
+        _mutate_artifact(
+            root,
+            "verification-items",
+            lambda payload: payload[0].update({"imageByteCount": payload[0]["imageByteCount"] + 1}),
+        )
+    elif case == "verification_media_incompatible_use_scope":
+
+        def replace_media_use_scope(payload: dict[str, Any]) -> None:
+            item = next(
+                row for row in payload["items"] if row["rights_id"].startswith("commons-rights-")
+            )
+            item["use_scope"] = "scientific evidence and unrestricted model training"
+
+        _mutate_artifact(root, "rights-manifest", replace_media_use_scope)
+    elif case == "verification_media_without_item":
+        _mutate_artifact(
+            root,
+            "verification-items",
+            lambda payload: payload.pop(),
+            update_record_count=True,
+        )
+        _mutate_manifest(
+            root,
+            lambda manifest: manifest["expected_ui_counts"]["section_records"].update(
+                {"verification_items": 2}
+            ),
+        )
+    elif case == "verification_item_without_campaign":
+        _mutate_artifact(
+            root,
+            "verification-items",
+            lambda payload: payload[0].update({"campaignId": "missing-campaign"}),
+        )
     elif case == "candidate_as_occurrence":
         _mutate_artifact(
             root,
@@ -185,6 +249,34 @@ def test_verifies_the_committed_truthful_fixture() -> None:
         ("inconsistent_count", TruthfulDemoFailure.INCONSISTENT_COUNT),
         ("missing_rights", TruthfulDemoFailure.MISSING_RIGHTS),
         ("missing_attribution", TruthfulDemoFailure.MISSING_ATTRIBUTION),
+        (
+            "verification_media_missing_rights",
+            TruthfulDemoFailure.MISSING_RIGHTS,
+        ),
+        (
+            "verification_media_missing_attribution",
+            TruthfulDemoFailure.MISSING_ATTRIBUTION,
+        ),
+        (
+            "verification_media_hash_mismatch",
+            TruthfulDemoFailure.CHECKSUM_MISMATCH,
+        ),
+        (
+            "verification_media_byte_mismatch",
+            TruthfulDemoFailure.CHECKSUM_MISMATCH,
+        ),
+        (
+            "verification_media_incompatible_use_scope",
+            TruthfulDemoFailure.MISSING_RIGHTS,
+        ),
+        (
+            "verification_media_without_item",
+            TruthfulDemoFailure.ORPHANED_ID,
+        ),
+        (
+            "verification_item_without_campaign",
+            TruthfulDemoFailure.ORPHANED_ID,
+        ),
         ("candidate_as_occurrence", TruthfulDemoFailure.CANDIDATE_AS_OCCURRENCE),
         (
             "unverified_reference_as_support",

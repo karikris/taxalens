@@ -139,11 +139,13 @@ uv run --locked python scripts/verify_demo.py
 Expected terminal receipt:
 
 ```text
-Truthful demo verification passed: bundle=papilio-demoleus-prototype-74a7d648-v3, artifacts=25, records=29, media=0, hero=awaiting_human_review.
+Truthful demo verification passed: bundle=papilio-demoleus-prototype-74a7d648-v3, artifacts=30, records=36, media=3, hero=awaiting_human_review.
 ```
 
 The verifier rejects undeclared, missing, changed, stale, or semantically inconsistent fixture
-content. Do not bypass it or substitute another fixture.
+content. Verification media also fails closed when campaign, item, rights, attribution, hash, byte
+count, media type, path, or bounded use-scope relationships disagree. Do not bypass it or
+substitute another fixture.
 
 ### 2. Inspect provenance and rights
 

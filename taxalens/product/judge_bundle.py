@@ -411,6 +411,22 @@ def _validate_sections(
                 f"{label} candidate semantics do not authorize a scientific claim"
             )
         validated[name] = section
+    campaign_status = validated["verification_campaigns"]["status"]
+    item_status = validated["verification_items"]["status"]
+    media_status = validated["verification_media"]["status"]
+    if item_status != "unavailable" and campaign_status == "unavailable":
+        raise JudgeBundleError(
+            "verification_items cannot be displayed without verification_campaigns"
+        )
+    if media_status != "unavailable" and item_status == "unavailable":
+        raise JudgeBundleError("verification_media cannot be displayed without verification_items")
+    if media_status != "unavailable":
+        for artifact_id in validated["verification_media"]["artifact_ids"]:
+            media_type = artifacts[str(artifact_id)].get("media_type")
+            if not isinstance(media_type, str) or not media_type.startswith("image/"):
+                raise JudgeBundleError(
+                    f"verification_media artifact {artifact_id} must use an image media type"
+                )
     return validated
 
 
