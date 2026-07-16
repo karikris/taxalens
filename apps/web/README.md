@@ -13,3 +13,30 @@ The shared shell in `src/shell` keeps target identity, bundle ID, and both sourc
 The Mission view projects its hierarchy, range hypotheses, candidate policy, reference shortfalls, budgets, stopping conditions, and prerequisites only from the checksum-verified replay artifacts. Its React Aria controls let a judge inspect a bounded draft, including replay-only execution and an optional device annotation. Changing the target away from the pinned species produces an explicit no-fixture state rather than borrowing evidence from the submitted bundle.
 
 Plan generation is a pure local TypeScript operation with a fixed plan version and no OpenAI, network, clock, or random input. The validator refuses targets without a verified fixture, budgets that cannot contain the submitted replay, candidate limits that would prune an eligible regional species, undeclared regions, unsupported policies, and live execution. A valid plan preserves the artifact-provided stage order, names every unavailable stage and future artifact role, keeps geography soft and unknown when missing, and leaves explicit human approval outstanding; it never launches work.
+
+## Visual regression baselines
+
+The committed Playwright baselines cover focused verification states, every primary route at the 1280×720 judge viewport, and reduced-motion interaction states. They are strict Chromium-on-Linux comparisons: no pixel-difference tolerance is configured. Browser time, locale, color scheme, device scale, viewport, and motion preference are fixed in each visual test. Timestamp elements and geographic map SVGs are masked only when they enter a captured viewport.
+
+Run the baselines without changing them:
+
+```bash
+npm run test:visual
+```
+
+Update baselines only for an intentional reviewed UI change, from a Linux environment using the locked dependencies and repository Playwright version:
+
+```bash
+npm run test:visual:update
+npm run test:visual
+```
+
+Before committing an update:
+
+1. Inspect every changed PNG and any `actual`, `expected`, and `diff` image under `test-results`.
+2. Confirm that scientific availability, control enablement, lineage, and review-state changes are intentional—not timing or loading drift.
+3. Keep deterministic evidence visible. Add a mask only for a genuinely volatile map or timestamp region.
+4. Run `npm run test:visual` again without the update flag and require a clean pass.
+5. Check `git status` and commit only the intended Linux snapshots with their test or styling change.
+
+Do not regenerate the `chromium-linux` files on another operating system or accept a new baseline solely to make a failure disappear.
