@@ -259,17 +259,29 @@ export const browserReviewMediaCache: ReviewMediaCache = Object.freeze({
       const cache = await window.caches.open(REVIEW_CACHE_NAME)
       for (const item of packet.items) {
         const response = await cache.match(item.imageUrl)
-        if (
-          response !== undefined &&
-          (await cachedResponseIsValid(response, item))
-        ) {
+        const blob =
+          response === undefined
+            ? undefined
+            : await readVerifiedMedia(item, response, () =>
+                cache.delete(item.imageUrl),
+              )
+        if (blob !== undefined) {
           cachedCount += 1
-        } else if (response !== undefined) {
-          await cache.delete(item.imageUrl)
         }
       }
     } else {
-      cachedCount = packet.items.filter((item) => memoryCache.has(item.imageUrl)).length
+      for (const item of packet.items) {
+        const blob = memoryCache.get(item.imageUrl)
+        const verified =
+          blob === undefined
+            ? undefined
+            : await readVerifiedMedia(item, blob, () => {
+                memoryCache.delete(item.imageUrl)
+              })
+        if (verified !== undefined) {
+          cachedCount += 1
+        }
+      }
     }
     return cacheStatus(packet, cachedCount, persistent)
   },
@@ -290,7 +302,15 @@ export const browserReviewMediaCache: ReviewMediaCache = Object.freeze({
         cache === null
           ? memoryCache.get(item.imageUrl)
           : await cache.match(item.imageUrl)
-      if (existing !== undefined) {
+      const verifiedExisting =
+        existing === undefined
+          ? undefined
+          : await readVerifiedMedia(item, existing, () =>
+              cache === null
+                ? memoryCache.delete(item.imageUrl)
+                : cache.delete(item.imageUrl),
+            )
+      if (verifiedExisting !== undefined) {
         cachedCount += 1
         onProgress(cacheStatus(packet, cachedCount, persistent))
         continue
@@ -303,14 +323,12 @@ export const browserReviewMediaCache: ReviewMediaCache = Object.freeze({
       if (!response.ok) {
         throw new Error(`Review image returned HTTP ${response.status}`)
       }
-      const bytes = new Uint8Array(await response.arrayBuffer())
-      if (
-        bytes.byteLength !== item.imageByteCount ||
-        (await sha256Hex(bytes)) !== item.imageSha256
-      ) {
-        throw new Error(`Review image ${item.itemId} failed checksum verification`)
+      const blob = await readVerifiedMedia(item, response, () => undefined)
+      if (blob === undefined) {
+        throw new Error(
+          `Review image ${item.itemId} failed media integrity verification`,
+        )
       }
-      const blob = new Blob([bytes], { type: item.mediaType })
       if (cache === null) {
         memoryCache.set(item.imageUrl, blob)
       } else {
@@ -333,17 +351,25 @@ export const browserReviewMediaCache: ReviewMediaCache = Object.freeze({
   async open(item: HumanReviewItem) {
     let blob: Blob | undefined
     if (hasCacheStorage()) {
-      const response = await (await window.caches.open(REVIEW_CACHE_NAME)).match(
-        item.imageUrl,
-      )
+      const cache = await window.caches.open(REVIEW_CACHE_NAME)
+      const response = await cache.match(item.imageUrl)
       if (response !== undefined) {
-        blob = await response.blob()
+        blob = await readVerifiedMedia(item, response, () =>
+          cache.delete(item.imageUrl),
+        )
       }
     } else {
-      blob = memoryCache.get(item.imageUrl)
+      const memoryBlob = memoryCache.get(item.imageUrl)
+      if (memoryBlob !== undefined) {
+        blob = await readVerifiedMedia(item, memoryBlob, () => {
+          memoryCache.delete(item.imageUrl)
+        })
+      }
     }
     if (blob === undefined) {
-      throw new Error('Prepare the review cache before opening this image')
+      throw new Error(
+        'The review image is missing or failed integrity verification. Prepare the review cache again.',
+      )
     }
     return URL.createObjectURL(blob)
   },
@@ -398,13 +424,30 @@ async function sha256Hex(bytes: Uint8Array<ArrayBuffer>): Promise<string> {
   ).join('')
 }
 
-async function cachedResponseIsValid(
-  response: Response,
+async function readVerifiedMedia(
   item: HumanReviewItem,
-): Promise<boolean> {
-  const bytes = new Uint8Array(await response.arrayBuffer())
-  return (
+  source: Response | Blob,
+  deleteInvalid: () => void | boolean | Promise<void | boolean>,
+): Promise<Blob | undefined> {
+  const response = source instanceof Response ? source : null
+  const contentType = normalizeMediaType(
+    response?.headers.get('Content-Type') ?? source.type,
+  )
+  const bytes = new Uint8Array(
+    await (response === null ? source.arrayBuffer() : response.arrayBuffer()),
+  )
+  const valid =
+    (response === null || response.ok) &&
+    contentType === item.mediaType &&
     bytes.byteLength === item.imageByteCount &&
     (await sha256Hex(bytes)) === item.imageSha256
-  )
+  if (!valid) {
+    await deleteInvalid()
+    return undefined
+  }
+  return new Blob([bytes], { type: item.mediaType })
+}
+
+function normalizeMediaType(value: string | null): string {
+  return (value ?? '').split(';', 1)[0]?.trim().toLowerCase() ?? ''
 }
