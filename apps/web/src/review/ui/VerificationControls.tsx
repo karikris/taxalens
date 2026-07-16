@@ -15,6 +15,7 @@ export function VerificationControls({
   cacheState,
   comment,
   currentOutcome,
+  decisionValidationError = null,
   imageFailureReason,
   onCommentChange,
   onReviewerIdChange,
@@ -22,10 +23,12 @@ export function VerificationControls({
   repositoryReady,
   reviewerId,
   scientificDecisionReady,
+  structuredControls,
 }: {
   readonly cacheState: VerificationCacheState
   readonly comment: string
   readonly currentOutcome: HumanReviewOutcome | undefined
+  readonly decisionValidationError?: string | null
   readonly imageFailureReason: string | null
   readonly onCommentChange: (comment: string) => void
   readonly onReviewerIdChange: (reviewerId: string) => void
@@ -33,6 +36,7 @@ export function VerificationControls({
   readonly repositoryReady: boolean
   readonly reviewerId: string
   readonly scientificDecisionReady: boolean
+  readonly structuredControls?: ReactNode
 }) {
   return (
     <form
@@ -58,6 +62,12 @@ export function VerificationControls({
           onChange={(event) => onCommentChange(event.target.value)}
         />
       </label>
+      {structuredControls}
+      {decisionValidationError !== null && (
+        <p className="review-decision__validation" role="alert">
+          {decisionValidationError}
+        </p>
+      )}
       <fieldset>
         <legend>Does the image support the verification label?</legend>
         <p
@@ -98,6 +108,7 @@ export function VerificationControls({
                 data-outcome={outcome}
                 disabled={
                   !repositoryReady ||
+                  decisionValidationError !== null ||
                   (scientific && !scientificDecisionReady)
                 }
                 onClick={() => onSelectOutcome(outcome)}
@@ -140,3 +151,4 @@ export function scientificReadinessMessage({
   }
   return 'Prepare and display the verified image before choosing Yes, No, or Can’t tell. Can’t view and Skip are available now.'
 }
+import type { ReactNode } from 'react'

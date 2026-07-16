@@ -20,6 +20,7 @@ import {
   CampaignSelector,
   filterReferenceReviewItems,
   ReferenceReviewFilters,
+  StructuredReferenceReviewControls,
   VerificationControls,
   VerificationItemViewer,
   VerificationProgress,
@@ -349,12 +350,19 @@ export function VerificationWorkspace({
           cacheState={controller.cacheState}
           comment={controller.comment}
           currentOutcome={controller.decision?.outcome}
+          decisionValidationError={controller.decisionValidationError}
           imageFailureReason={
             controller.inspection?.imageFailureReason ?? null
           }
           repositoryReady={controller.repositoryState === 'ready'}
           reviewerId={controller.session.reviewerId}
           scientificDecisionReady={controller.scientificDecisionReady}
+          structuredControls={
+            <StructuredReferenceReviewControls
+              draft={controller.referenceAnnotations}
+              onChange={controller.setReferenceAnnotations}
+            />
+          }
           onCommentChange={controller.setComment}
           onReviewerIdChange={controller.updateReviewerId}
           onSelectOutcome={controller.record}

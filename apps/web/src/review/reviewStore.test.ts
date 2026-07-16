@@ -15,6 +15,7 @@ import {
   humanReviewReceiptBytes,
   loadHumanReviewSession,
   loadHumanReviewSessionResult,
+  restoreHumanReviewEvents,
   ReviewPersistenceError,
   saveHumanReviewSession,
   type HumanReviewSession,
@@ -43,6 +44,43 @@ describe('human review local session', () => {
     saveHumanReviewSession(session, storage)
 
     expect(loadHumanReviewSession(storage)).toEqual(session)
+  })
+
+  it('normalizes retained v1 events with explicit structured defaults', () => {
+    const item = HUMAN_REVIEW_PACKET.items[0]
+    expect(item).toBeDefined()
+    const session = withDecision(emptyHumanReviewSession(), {
+      itemId: item!.itemId,
+      outcome: 'cant_view',
+      comment: 'Legacy media failure.',
+      reviewedAt: '2026-07-16T12:00:00.000Z',
+      reviewDurationMs: null,
+    })
+    const current = session.events[0]!
+    const {
+      mediaQuality: _mediaQuality,
+      duplicateConcern: _duplicateConcern,
+      captiveOrCultivatedConcern: _captiveConcern,
+      ...legacy
+    } = current
+
+    expect(
+      restoreHumanReviewEvents({
+        events: [
+          {
+            ...legacy,
+            schemaVersion: 'taxalens-verification-event:v1.0.0',
+          },
+        ],
+      }),
+    ).toEqual([
+      expect.objectContaining({
+        schemaVersion: 'taxalens-verification-event:v1.1.0',
+        mediaQuality: 'unknown',
+        duplicateConcern: false,
+        captiveOrCultivatedConcern: false,
+      }),
+    ])
   })
 
   it('requires a verified opened image for scientific outcomes', () => {

@@ -38,6 +38,12 @@ import {
   loadHumanReviewSessionResult,
 } from '../repositories/legacyReviewSession'
 import type { VerificationCacheState } from './VerificationControls'
+import {
+  EMPTY_REFERENCE_REVIEW_ANNOTATION_DRAFT,
+  referenceReviewEventFields,
+  validateReferenceReviewAnnotationDraft,
+  type ReferenceReviewAnnotationDraft,
+} from './StructuredReferenceReviewControls'
 
 const EMPTY_CACHE_STATUS: ReviewCacheStatus = Object.freeze({
   ready: false,
@@ -123,6 +129,18 @@ export function useVerificationWorkspaceController({
     inspection?.imageOpened === true &&
     inspection.imageVerified === true
   const [comment, setComment] = useState(decision?.comment ?? '')
+  const [referenceAnnotations, setReferenceAnnotations] =
+    useState<ReferenceReviewAnnotationDraft>(() =>
+      referenceAnnotationDraftFromDecision(decision),
+    )
+  const referenceAnnotationFailures = useMemo(
+    () => validateReferenceReviewAnnotationDraft(referenceAnnotations),
+    [referenceAnnotations],
+  )
+  const decisionValidationError =
+    referenceAnnotationFailures.length === 0
+      ? null
+      : referenceAnnotationFailures.join(' ')
   const counts = useMemo(() => outcomeCounts(session), [session])
 
   useEffect(() => {
@@ -257,6 +275,7 @@ export function useVerificationWorkspaceController({
 
   useEffect(() => {
     setComment(decision?.comment ?? '')
+    setReferenceAnnotations(referenceAnnotationDraftFromDecision(decision))
   }, [decision, item.itemId])
 
   useEffect(() => {
@@ -395,6 +414,7 @@ export function useVerificationWorkspaceController({
   function record(outcome: HumanReviewOutcome) {
     if (
       repositoryState !== 'ready' ||
+      decisionValidationError !== null ||
       !canRecordHumanReviewOutcome(session, item.itemId, outcome) ||
       (isScientificHumanReviewOutcome(outcome) && !scientificDecisionReady)
     ) {
@@ -416,6 +436,7 @@ export function useVerificationWorkspaceController({
         reviewDurationMs !== null && Number.isFinite(reviewDurationMs)
           ? reviewDurationMs
           : null,
+      ...referenceReviewEventFields(referenceAnnotations, outcome),
     })
     const event = next.events.at(-1)
     if (event === undefined) {
@@ -521,6 +542,7 @@ export function useVerificationWorkspaceController({
     comment,
     counts,
     currentDecisions,
+    decisionValidationError,
     decision,
     imageUrl,
     index,
@@ -532,10 +554,12 @@ export function useVerificationWorkspaceController({
     record,
     recordImageFailure,
     recordImageOpened,
+    referenceAnnotations,
     repositoryState,
     scientificDecisionReady,
     session,
     setComment,
+    setReferenceAnnotations,
     updateReviewerId,
     workflow,
   }
@@ -579,6 +603,31 @@ export function useVerificationWorkspaceController({
       preparationRef.current?.controller === controller
     )
   }
+}
+
+function referenceAnnotationDraftFromDecision(
+  decision:
+    | ReturnType<typeof currentHumanReviewDecisions>[string]
+    | undefined,
+): ReferenceReviewAnnotationDraft {
+  if (decision === undefined) {
+    return EMPTY_REFERENCE_REVIEW_ANNOTATION_DRAFT
+  }
+  return Object.freeze({
+    correctedLifeStage: decision.correctedLifeStage ?? '',
+    correctedVisualDomain: decision.correctedVisualDomain ?? '',
+    correctedView: decision.correctedView ?? '',
+    mediaQuality: decision.mediaQuality ?? 'unknown',
+    duplicateConcern: decision.duplicateConcern ?? false,
+    captiveOrCultivatedConcern:
+      decision.captiveOrCultivatedConcern ?? false,
+    alternativeAcceptedTaxonKey:
+      decision.alternativeTaxon?.acceptedTaxonKey ?? '',
+    alternativeScientificName:
+      decision.alternativeTaxon?.scientificName ?? '',
+    exclusionReason: decision.exclusionReason ?? '',
+    confidence: decision.confidence ?? 'unknown',
+  })
 }
 
 function itemAt(index: number): HumanReviewItem {

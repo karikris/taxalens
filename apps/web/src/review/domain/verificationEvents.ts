@@ -6,9 +6,14 @@ import type {
   VerificationView,
   VerificationVisualDomain,
 } from './verificationContracts'
+import {
+  VERIFICATION_LIFE_STAGES,
+  VERIFICATION_VIEWS,
+  VERIFICATION_VISUAL_DOMAINS,
+} from './verificationContracts'
 
 export const VERIFICATION_EVENT_SCHEMA_VERSION =
-  'taxalens-verification-event:v1.0.0' as const
+  'taxalens-verification-event:v1.1.0' as const
 
 export const VERIFICATION_OUTCOMES = Object.freeze([
   'yes',
@@ -21,6 +26,12 @@ export const VERIFICATION_OUTCOMES = Object.freeze([
 export type VerificationOutcome = (typeof VERIFICATION_OUTCOMES)[number]
 
 export type VerificationConfidence = 'high' | 'medium' | 'low' | 'unknown'
+export type VerificationMediaQuality =
+  | 'high'
+  | 'medium'
+  | 'low'
+  | 'unusable'
+  | 'unknown'
 
 export interface VerificationEvent {
   readonly schemaVersion: typeof VERIFICATION_EVENT_SCHEMA_VERSION
@@ -35,6 +46,9 @@ export interface VerificationEvent {
   readonly correctedLifeStage: VerificationLifeStage | null
   readonly correctedVisualDomain: VerificationVisualDomain | null
   readonly correctedView: VerificationView | null
+  readonly mediaQuality: VerificationMediaQuality
+  readonly duplicateConcern: boolean
+  readonly captiveOrCultivatedConcern: boolean
   readonly exclusionReason: string | null
   readonly confidence: VerificationConfidence
   readonly reviewedAt: string
@@ -70,6 +84,61 @@ export function validateVerificationEvent(
   }
   if (!VERIFICATION_OUTCOMES.some((outcome) => outcome === event.outcome)) {
     failures.push('event outcome is unsupported')
+  }
+  if (!isVerificationMediaQuality(event.mediaQuality)) {
+    failures.push('event media quality is unsupported')
+  }
+  if (
+    event.correctedLifeStage !== null &&
+    !VERIFICATION_LIFE_STAGES.includes(event.correctedLifeStage)
+  ) {
+    failures.push('event corrected life stage is unsupported')
+  }
+  if (
+    event.correctedVisualDomain !== null &&
+    !VERIFICATION_VISUAL_DOMAINS.includes(event.correctedVisualDomain)
+  ) {
+    failures.push('event corrected visual domain is unsupported')
+  }
+  if (
+    event.correctedView !== null &&
+    !VERIFICATION_VIEWS.includes(event.correctedView)
+  ) {
+    failures.push('event corrected view is unsupported')
+  }
+  if (!isVerificationConfidence(event.confidence)) {
+    failures.push('event confidence is unsupported')
+  }
+  if (
+    event.alternativeTaxon !== null &&
+    (event.alternativeTaxon.acceptedTaxonKey.trim() === '' ||
+      event.alternativeTaxon.scientificName.trim() === '')
+  ) {
+    failures.push('event alternative taxon identity is incomplete')
+  }
+  if (
+    typeof event.duplicateConcern !== 'boolean' ||
+    typeof event.captiveOrCultivatedConcern !== 'boolean'
+  ) {
+    failures.push('event reference concerns must be Boolean')
+  }
+  if (event.outcome === 'yes' && event.alternativeTaxon !== null) {
+    failures.push('an affirmative decision cannot name an alternative taxon')
+  }
+  if (
+    (event.outcome === 'cant_view' || event.outcome === 'skipped') &&
+    (event.alternativeTaxon !== null ||
+      event.correctedLifeStage !== null ||
+      event.correctedVisualDomain !== null ||
+      event.correctedView !== null ||
+      event.mediaQuality !== 'unknown' ||
+      event.duplicateConcern ||
+      event.captiveOrCultivatedConcern ||
+      event.confidence !== 'unknown')
+  ) {
+    failures.push(
+      'non-scientific outcomes cannot carry visual scientific annotations',
+    )
   }
   if (!isUtcInstant(event.reviewedAt)) {
     failures.push('reviewedAt must be a normalized UTC instant')
@@ -176,5 +245,28 @@ function isUtcInstant(value: string): boolean {
   return (
     Number.isFinite(milliseconds) &&
     new Date(milliseconds).toISOString() === value
+  )
+}
+
+function isVerificationMediaQuality(
+  value: unknown,
+): value is VerificationMediaQuality {
+  return (
+    value === 'high' ||
+    value === 'medium' ||
+    value === 'low' ||
+    value === 'unusable' ||
+    value === 'unknown'
+  )
+}
+
+function isVerificationConfidence(
+  value: unknown,
+): value is VerificationConfidence {
+  return (
+    value === 'high' ||
+    value === 'medium' ||
+    value === 'low' ||
+    value === 'unknown'
   )
 }

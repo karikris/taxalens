@@ -179,6 +179,77 @@ describe('HumanReviewWorkspace', () => {
     )
   })
 
+  it('appends structured reference annotations to a scientific event', async () => {
+    const repository = reviewRepository()
+    render(
+      <HumanReviewWorkspace
+        cache={fakeCache(true)}
+        replay={replay}
+        repository={repository}
+      />,
+    )
+
+    const image = await screen.findByRole('img', {
+      name: /Does this image show an adult Papilio demoleus/u,
+    })
+    fireEvent.load(image)
+    fireEvent.click(
+      screen.getByText('Structured reference annotations'),
+    )
+    fireEvent.change(screen.getByLabelText('Corrected life stage'), {
+      target: { value: 'larva' },
+    })
+    fireEvent.change(screen.getByLabelText('Corrected visual domain'), {
+      target: { value: 'pinned_specimen' },
+    })
+    fireEvent.change(screen.getByLabelText('Corrected view'), {
+      target: { value: 'ventral' },
+    })
+    fireEvent.change(screen.getByLabelText('Media quality'), {
+      target: { value: 'low' },
+    })
+    fireEvent.click(screen.getByLabelText('Duplicate concern'))
+    fireEvent.click(
+      screen.getByLabelText('Captive or cultivated concern'),
+    )
+    fireEvent.change(
+      screen.getByLabelText('Alternative accepted taxon key'),
+      { target: { value: 'gbif:1234567' } },
+    )
+    fireEvent.change(screen.getByLabelText('Alternative scientific name'), {
+      target: { value: 'Papilio polytes' },
+    })
+    fireEvent.change(screen.getByLabelText('Exclusion reason'), {
+      target: { value: 'Wrong identity.' },
+    })
+    fireEvent.change(screen.getByLabelText('Confidence'), {
+      target: { value: 'high' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'No' }))
+
+    await waitFor(async () => {
+      await expect(
+        repository.loadEvents(HUMAN_REVIEW_CAMPAIGN.campaignId),
+      ).resolves.toEqual([
+        expect.objectContaining({
+          outcome: 'no',
+          alternativeTaxon: expect.objectContaining({
+            acceptedTaxonKey: 'gbif:1234567',
+            scientificName: 'Papilio polytes',
+          }),
+          correctedLifeStage: 'larva',
+          correctedVisualDomain: 'pinned_specimen',
+          correctedView: 'ventral',
+          mediaQuality: 'low',
+          duplicateConcern: true,
+          captiveOrCultivatedConcern: true,
+          exclusionReason: 'Wrong identity.',
+          confidence: 'high',
+        }),
+      ])
+    })
+  })
+
   it('cancels preparation, aborts on unmount, and ignores stale completion', async () => {
     const pending = deferred<ReviewCacheStatus>()
     let activeSignal: AbortSignal | undefined

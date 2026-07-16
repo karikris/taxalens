@@ -9,8 +9,16 @@ import {
   validateVerificationEvent,
   validateVerificationEventLedger,
   type VerificationEvent,
+  type VerificationConfidence,
+  type VerificationMediaQuality,
   type VerificationOutcome,
 } from './verificationEvents'
+import type {
+  TaxonIdentity,
+  VerificationLifeStage,
+  VerificationView,
+  VerificationVisualDomain,
+} from './verificationContracts'
 
 export type HumanReviewOutcome = VerificationOutcome
 
@@ -20,6 +28,15 @@ export interface HumanReviewDecisionInput {
   readonly comment: string | null
   readonly reviewedAt: string
   readonly reviewDurationMs: number | null
+  readonly alternativeTaxon?: TaxonIdentity | null
+  readonly correctedLifeStage?: VerificationLifeStage | null
+  readonly correctedVisualDomain?: VerificationVisualDomain | null
+  readonly correctedView?: VerificationView | null
+  readonly mediaQuality?: VerificationMediaQuality
+  readonly duplicateConcern?: boolean
+  readonly captiveOrCultivatedConcern?: boolean
+  readonly exclusionReason?: string | null
+  readonly confidence?: VerificationConfidence
 }
 
 export interface HumanReviewDecision extends HumanReviewDecisionInput {
@@ -27,6 +44,15 @@ export interface HumanReviewDecision extends HumanReviewDecisionInput {
   readonly reviewerId: string
   readonly reviewRound: number
   readonly supersedesEventId: string | null
+  readonly alternativeTaxon: TaxonIdentity | null
+  readonly correctedLifeStage: VerificationLifeStage | null
+  readonly correctedVisualDomain: VerificationVisualDomain | null
+  readonly correctedView: VerificationView | null
+  readonly mediaQuality: VerificationMediaQuality
+  readonly duplicateConcern: boolean
+  readonly captiveOrCultivatedConcern: boolean
+  readonly exclusionReason: string | null
+  readonly confidence: VerificationConfidence
 }
 
 export interface HumanReviewInspection {
@@ -188,6 +214,15 @@ export function currentHumanReviewDecisions(
       comment: event.comment,
       reviewedAt: event.reviewedAt,
       reviewDurationMs: event.durationMs,
+      alternativeTaxon: event.alternativeTaxon,
+      correctedLifeStage: event.correctedLifeStage,
+      correctedVisualDomain: event.correctedVisualDomain,
+      correctedView: event.correctedView,
+      mediaQuality: event.mediaQuality,
+      duplicateConcern: event.duplicateConcern,
+      captiveOrCultivatedConcern: event.captiveOrCultivatedConcern,
+      exclusionReason: event.exclusionReason,
+      confidence: event.confidence,
       reviewRound: event.reviewRound,
       supersedesEventId: event.supersedesEventId,
     })
@@ -231,8 +266,10 @@ function restoreVerificationEvent(value: unknown): VerificationEvent {
     throw corruptReviewSession('The stored review event is invalid.')
   }
   const candidate = value as Partial<VerificationEvent>
+  const legacySchemaVersion = 'taxalens-verification-event:v1.0.0'
   if (
-    candidate.schemaVersion !== VERIFICATION_EVENT_SCHEMA_VERSION ||
+    (candidate.schemaVersion !== VERIFICATION_EVENT_SCHEMA_VERSION &&
+      candidate.schemaVersion !== legacySchemaVersion) ||
     typeof candidate.eventId !== 'string' ||
     typeof candidate.campaignId !== 'string' ||
     typeof candidate.itemId !== 'string' ||
@@ -248,6 +285,12 @@ function restoreVerificationEvent(value: unknown): VerificationEvent {
       typeof candidate.correctedVisualDomain !== 'string') ||
     (candidate.correctedView !== null &&
       typeof candidate.correctedView !== 'string') ||
+    (candidate.mediaQuality !== undefined &&
+      !isVerificationMediaQuality(candidate.mediaQuality)) ||
+    (candidate.duplicateConcern !== undefined &&
+      typeof candidate.duplicateConcern !== 'boolean') ||
+    (candidate.captiveOrCultivatedConcern !== undefined &&
+      typeof candidate.captiveOrCultivatedConcern !== 'boolean') ||
     (candidate.exclusionReason !== null &&
       typeof candidate.exclusionReason !== 'string') ||
     !isVerificationConfidence(candidate.confidence) ||
@@ -265,7 +308,20 @@ function restoreVerificationEvent(value: unknown): VerificationEvent {
   ) {
     throw corruptReviewSession('The stored review event fields are invalid.')
   }
-  const event = candidate as VerificationEvent
+  const event: VerificationEvent = Object.freeze({
+    ...(candidate as Omit<
+      VerificationEvent,
+      | 'schemaVersion'
+      | 'mediaQuality'
+      | 'duplicateConcern'
+      | 'captiveOrCultivatedConcern'
+    >),
+    schemaVersion: VERIFICATION_EVENT_SCHEMA_VERSION,
+    mediaQuality: candidate.mediaQuality ?? 'unknown',
+    duplicateConcern: candidate.duplicateConcern ?? false,
+    captiveOrCultivatedConcern:
+      candidate.captiveOrCultivatedConcern ?? false,
+  })
   const item = HUMAN_REVIEW_PACKET.items.find(
     ({ itemId }) => itemId === event.itemId,
   )
@@ -281,7 +337,7 @@ function restoreVerificationEvent(value: unknown): VerificationEvent {
       'The stored review event does not match the current campaign.',
     )
   }
-  return Object.freeze({ ...event })
+  return event
 }
 
 function createVerificationEvent(
@@ -320,12 +376,16 @@ function createVerificationEvent(
     reviewRound,
     outcome: decision.outcome,
     comment: decision.comment,
-    alternativeTaxon: null,
-    correctedLifeStage: null,
-    correctedVisualDomain: null,
-    correctedView: null,
-    exclusionReason: null,
-    confidence: 'unknown',
+    alternativeTaxon: decision.alternativeTaxon ?? null,
+    correctedLifeStage: decision.correctedLifeStage ?? null,
+    correctedVisualDomain: decision.correctedVisualDomain ?? null,
+    correctedView: decision.correctedView ?? null,
+    mediaQuality: decision.mediaQuality ?? 'unknown',
+    duplicateConcern: decision.duplicateConcern ?? false,
+    captiveOrCultivatedConcern:
+      decision.captiveOrCultivatedConcern ?? false,
+    exclusionReason: decision.exclusionReason ?? null,
+    confidence: decision.confidence ?? 'unknown',
     reviewedAt: decision.reviewedAt,
     durationMs: decision.reviewDurationMs,
     imageSha256: item.imageSha256,
@@ -390,6 +450,18 @@ function isVerificationConfidence(
     value === 'high' ||
     value === 'medium' ||
     value === 'low' ||
+    value === 'unknown'
+  )
+}
+
+function isVerificationMediaQuality(
+  value: unknown,
+): value is VerificationMediaQuality {
+  return (
+    value === 'high' ||
+    value === 'medium' ||
+    value === 'low' ||
+    value === 'unusable' ||
     value === 'unknown'
   )
 }

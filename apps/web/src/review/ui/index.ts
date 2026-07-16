@@ -9,6 +9,13 @@ export type {
   ReferenceReviewFilter,
   ReferenceReviewFilterContext,
 } from './ReferenceReviewFilters'
+export {
+  EMPTY_REFERENCE_REVIEW_ANNOTATION_DRAFT,
+  referenceReviewEventFields,
+  StructuredReferenceReviewControls,
+  validateReferenceReviewAnnotationDraft,
+} from './StructuredReferenceReviewControls'
+export type { ReferenceReviewAnnotationDraft } from './StructuredReferenceReviewControls'
 export { VerificationControls } from './VerificationControls'
 export type { VerificationCacheState } from './VerificationControls'
 export { VerificationItemViewer } from './VerificationItemViewer'

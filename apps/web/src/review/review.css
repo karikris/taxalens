@@ -364,7 +364,8 @@
 }
 
 .review-decision-panel input,
-.review-decision-panel textarea {
+.review-decision-panel textarea,
+.review-decision-panel select {
   box-sizing: border-box;
   width: 100%;
   padding: var(--tl-space-2);
@@ -377,6 +378,46 @@
 
 .review-decision-panel textarea {
   resize: vertical;
+}
+
+.reference-review-annotations {
+  padding: var(--tl-space-2);
+  background: var(--tl-surface-subtle);
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.reference-review-annotations summary {
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.reference-review-annotations > p {
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-sm);
+}
+
+.reference-review-annotations__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--tl-space-2);
+}
+
+.reference-review-annotations__check {
+  align-content: center;
+  grid-template-columns: auto 1fr !important;
+}
+
+.reference-review-annotations__check input {
+  width: auto;
+}
+
+.review-decision__validation {
+  padding: var(--tl-space-2);
+  margin: 0;
+  color: var(--tl-state-failure-ink);
+  background: var(--tl-state-failure-bg);
+  border-left: 3px solid var(--tl-state-failure-line);
 }
 
 .review-decision-panel fieldset {
@@ -524,6 +565,10 @@
   }
 
   .review-decision-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .reference-review-annotations__grid {
     grid-template-columns: 1fr;
   }
 
