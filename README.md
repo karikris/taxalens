@@ -34,6 +34,12 @@ coverage-gap cells. The retained campaigns currently contain **zero human-suppor
 cells and zero release-ready occurrence candidates**; the amber rings are hypotheses awaiting
 review, not new occurrence records.
 
+![Animated TaxaLens Geographic Impact journey from the global evidence comparison through Europe and Sweden, the Flickr-candidate layer, a selected candidate-only cell, the empty human-reviewed layer, and an individual candidate's geographic context](docs/assets/taxalens-geographic-impact-journey.gif)
+
+The seven-frame journey is generated from the same fixed-time local production build. Its
+human-reviewed frame deliberately renders the exact zero retained outcomes; the animation does not
+invent a review, release decision, or occurrence claim.
+
 ### Human-verification preview
 
 ![TaxaLens human-verification workflow: a checksum-verified butterfly image beside optional reviewer fields and Yes, No, Can’t tell, Can’t view, and Skip controls](docs/assets/taxalens-verification-workflow.png)
