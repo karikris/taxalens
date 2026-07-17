@@ -1,7 +1,7 @@
 {
   "bucket_alias": "taxalens-repository-fixture",
   "credentials_included": false,
-  "object_count": 94,
+  "object_count": 95,
   "objects": [
     {
       "bytes": 484,
@@ -407,6 +407,15 @@
       "object_key": "taxalens/demo/source/biominer_phase14/baseline_provider_union/baseline_provider_relationships.parquet",
       "repository_path": "demo/source/biominer_phase14/baseline_provider_union/baseline_provider_relationships.parquet",
       "sha256": "f5eee31f587a35743f08f2eec8a3f2b252d8d30b1186706ca1badabc3cf88a4f"
+    },
+    {
+      "bytes": 5680,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase14/baseline_provider_union/baseline_provider_union_manifest.json",
+      "repository_path": "demo/source/biominer_phase14/baseline_provider_union/baseline_provider_union_manifest.json",
+      "sha256": "4b18ff6a3173a80c5586bb75b9c3b71328f37e5257ec791518f4f21a74401233"
     },
     {
       "bytes": 916755,
@@ -855,5 +864,5 @@
   "scientific_claim_allowed": false,
   "signed_urls_included": false,
   "storage_mode": "repository_mirror",
-  "total_bytes": 14829421
+  "total_bytes": 14835101
 }

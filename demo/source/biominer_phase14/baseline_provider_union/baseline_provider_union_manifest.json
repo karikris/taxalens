@@ -1,0 +1,154 @@
+{
+  "build_id": "baseline-provider-union:20b02fbef5d3117cf97539df",
+  "builder": {
+    "output_commit_recorded_by_git_history": true,
+    "path": "scripts/build_baseline_provider_union.py"
+  },
+  "citation_availability": {
+    "available": 0,
+    "unavailable_in_committed_baseline_snapshot": 19201
+  },
+  "content_fingerprint": "sha256:20b02fbef5d3117cf97539df79d18b8312604f1a935d4fe523cfa123c71d1342",
+  "direct_inaturalist_policy": {
+    "display_zero_permitted": false,
+    "fetch_performed": false,
+    "provider_comparison_permitted": false
+  },
+  "geography_availability": {
+    "country_code_missing": 1,
+    "country_code_policy": "Preserve provider country codes; do not infer labels or coordinates when the committed low-resolution hierarchy has no matching boundary.",
+    "country_code_present": 19200,
+    "country_codes_without_110m_boundary": [
+      "AI",
+      "AW",
+      "BH",
+      "BL",
+      "BQ",
+      "HK",
+      "KN",
+      "KY",
+      "MF",
+      "MO",
+      "SC",
+      "SG",
+      "SX",
+      "VI",
+      "ZZ"
+    ],
+    "country_label_present": 17134,
+    "country_label_unavailable": 2067
+  },
+  "output_artifacts": [
+    {
+      "byte_count": 3343827,
+      "origin_commit": null,
+      "origin_repository": "karikris/taxalens",
+      "path": "demo/source/biominer_phase14/baseline_provider_union/baseline_occurrence_union.parquet",
+      "role": "baseline_occurrence_union",
+      "row_count": 57603,
+      "schema_version": "taxalens-baseline-occurrence-union:v1.0.0",
+      "sha256": "242e280b78a75b79dffb2012d24163d7ce62d07eeac908a31f55510afc486445"
+    },
+    {
+      "byte_count": 2207970,
+      "origin_commit": null,
+      "origin_repository": "karikris/taxalens",
+      "path": "demo/source/biominer_phase14/baseline_provider_union/baseline_provider_relationships.parquet",
+      "role": "baseline_provider_relationships",
+      "row_count": 19201,
+      "schema_version": "taxalens-baseline-provider-relationship:v1.0.0",
+      "sha256": "f5eee31f587a35743f08f2eec8a3f2b252d8d30b1186706ca1badabc3cf88a4f"
+    }
+  ],
+  "provider_composition": {
+    "baseline_union": 19201,
+    "direct_inaturalist_delta": {
+      "count": null,
+      "reason": "No committed direct iNaturalist occurrence snapshot exists.",
+      "snapshot_id": null,
+      "status": "unavailable"
+    },
+    "duplicates_removed": 0,
+    "gbif_only": 4017,
+    "inaturalist_origin_through_gbif": 15184,
+    "unresolved_provider_duplicate_groups": 0
+  },
+  "provider_union_policy_version": "baseline-provider-union-policy-v1.0.0",
+  "reconciliation": {
+    "canonical_observations_equal_relationships": true,
+    "direct_inaturalist_observed_rows": 0,
+    "projection_rows_equal_source_evidence": true,
+    "provider_partition_equals_baseline_union": true
+  },
+  "record_counts": {
+    "canonical_observations": 19201,
+    "provider_input_observations": 19201,
+    "provider_relationships": 19201,
+    "range_inference_eligible": 630,
+    "range_inference_excluded": 18571,
+    "source_datasets": 91,
+    "spatial_projection_rows": 57603,
+    "spatial_resolutions": [
+      3,
+      5,
+      7
+    ]
+  },
+  "schema_version": "taxalens-baseline-provider-union-manifest:v1.0.0",
+  "scientific_semantics": {
+    "baseline_absence_proves_biological_absence": false,
+    "provider_origin_is_direct_provider_delta": false,
+    "spatial_projection_is_independent_observation": false,
+    "unknown_duplicate_matches_discarded": false
+  },
+  "scope": {
+    "accepted_taxon_key": "gbif:1938069",
+    "baseline_snapshot_id": "gbif-occurrence-search-20260715",
+    "project_id": "taxalens-papilio-demoleus-judge-replay",
+    "registry_version": "butterflies-v2-20260712",
+    "run_id": "papilio-demoleus-pilot-20260715",
+    "scientific_name": "Papilio demoleus"
+  },
+  "source_artifacts": [
+    {
+      "byte_count": 5320,
+      "origin_commit": "247b42f3206d48bb79e2dbf97c5a92e4f207ae71",
+      "origin_repository": "karikris/BioMiner",
+      "path": "demo/source/biominer_phase14/baseline_geography_import_manifest.json",
+      "role": "baseline_geography_import_manifest",
+      "row_count": null,
+      "schema_version": "taxalens-biominer-baseline-geography-import:v1.0.0",
+      "sha256": "46ba1f71c0537dab862f18e589fd3ea48f2b661bda402d22f6f6e3a6ff92ea0c"
+    },
+    {
+      "byte_count": 867794,
+      "origin_commit": "247b42f3206d48bb79e2dbf97c5a92e4f207ae71",
+      "origin_repository": "karikris/BioMiner",
+      "path": "demo/source/biominer_phase14/baseline_geography/geographic_occurrence_evidence.parquet",
+      "role": "baseline_occurrence_evidence",
+      "row_count": 57603,
+      "schema_version": "geographic-occurrence-evidence-v1.0.0",
+      "sha256": "1387f3c9967d322e537e9f2079b58641543707db863d2057c1caa4408d208a47"
+    },
+    {
+      "byte_count": 513562,
+      "origin_commit": "247b42f3206d48bb79e2dbf97c5a92e4f207ae71",
+      "origin_repository": "karikris/BioMiner",
+      "path": "demo/source/biominer_phase14/baseline_geography/taxon_geographic_spread.parquet",
+      "role": "baseline_geographic_spread",
+      "row_count": 16678,
+      "schema_version": "taxon-geographic-spread-v1.0.0",
+      "sha256": "46f38228cb5e7ba58f5f38f79a38dd87ae8fab80cf987e916f620d5cc4b9e83c"
+    },
+    {
+      "byte_count": 51457,
+      "origin_commit": "f1890d9f152c896d250a77557a5751a93d494776",
+      "origin_repository": "nvkelso/natural-earth-vector",
+      "path": "demo/source/geography/natural_earth_110m_iso_country_mapping.json",
+      "role": "offline_country_mapping",
+      "row_count": null,
+      "schema_version": "taxalens-offline-country-mapping:v1.0.0",
+      "sha256": "4b70b5b4b00e4713caf933dd53a57b383361773fe029b1cc2938b6e94479777d"
+    }
+  ]
+}
