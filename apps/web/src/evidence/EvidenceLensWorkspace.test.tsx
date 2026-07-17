@@ -165,22 +165,37 @@ describe('EvidenceLensWorkspace', () => {
         name: 'Local human verification evidence',
       }),
     ).toBeInTheDocument()
-    const summary = screen.getByText('Current human outcomes').closest('dl')
+    const summary = screen.getByText('Current human consensus').closest('dl')
     expect(summary).not.toBeNull()
     expect(
-      within(summary!).getByText('Current human outcomes').parentElement,
-    ).toHaveTextContent('1 of 3')
+      within(summary!).getByText('Current human consensus').parentElement,
+    ).toHaveTextContent('1 of 3 decisive')
     expect(
-      within(summary!).getByText('Reviewer count').parentElement,
-    ).toHaveTextContent('1 recorded reviewer identity')
+      within(summary!).getByText('Current human consensus').parentElement,
+    ).toHaveTextContent('1 recorded reviewer label')
     expect(
-      within(summary!).getByText('Conflict status').parentElement,
-    ).toHaveTextContent('Not calculated')
+      within(summary!).getByText('Current human consensus').parentElement,
+    ).toHaveTextContent('0 unresolved conflicts')
+    expect(
+      within(summary!).getByText('Quality contribution').parentElement,
+    ).toHaveTextContent('Workflow only0 weighted Flickr audit outcomes')
+    expect(
+      within(summary!).getByText('Reference review state').parentElement,
+    ).toHaveTextContent(
+      'Blocked0 / 24 independently reviewed · 81 provider-role suitable only',
+    )
+    expect(
+      within(summary!).getByText('Event lineage').parentElement,
+    ).toHaveTextContent('1 retainedAppend-only local event IDs')
     const outcomes = screen.getByRole('list', {
       name: 'Current human verification outcomes',
     })
     expect(outcomes.children).toHaveLength(1)
     expect(outcomes).toHaveTextContent('Yes')
+    expect(outcomes).toHaveTextContent('Complete agreement · Yes')
+    expect(outcomes).toHaveTextContent(
+      'Workflow only · excluded from weighted audit',
+    )
     expect(outcomes).toHaveTextContent(session.events[0]!.eventId)
 
     const ledger = screen.getByRole('list', {

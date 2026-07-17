@@ -1,7 +1,9 @@
 import {
   projectCurrentVerificationEvents,
+  projectVerificationConsensus,
   validateVerificationEvent,
   validateVerificationEventLedger,
+  type VerificationConsensusStatus,
   type VerificationEvent,
   type VerificationOutcome,
 } from '../review/domain'
@@ -12,12 +14,18 @@ import {
   HUMAN_REVIEW_ITEMS,
 } from '../review/reviewPacket'
 
-export type HumanVerificationConflictStatus = 'not_calculated'
+export type HumanVerificationConflictStatus = 'none' | 'unresolved'
 
 export interface HumanVerificationItemEvidence {
   readonly itemId: string
   readonly verificationLabel: string
   readonly outcome: VerificationOutcome
+  readonly consensusStatus: VerificationConsensusStatus
+  readonly consensusOutcome: 'yes' | 'no' | null
+  readonly decisiveReviewCount: number
+  readonly effectiveReviewCount: number
+  readonly secondReviewRequired: boolean
+  readonly adjudicationRequired: boolean
   readonly currentEventId: string
   readonly eventIds: readonly string[]
   readonly reviewerCount: number
@@ -32,8 +40,22 @@ export interface HumanVerificationEvidence {
   readonly recordedItemCount: number
   readonly totalEventCount: number
   readonly reviewerCount: number
+  readonly decisiveConsensusCount: number
+  readonly unresolvedConsensusCount: number
   readonly conflictStatus: HumanVerificationConflictStatus
   readonly conflictReason: string
+  readonly qualityContribution: {
+    readonly status: 'workflow_only'
+    readonly eligibleWeightedAuditOutcomeCount: 0
+    readonly reason: string
+  }
+  readonly referenceReviewState: {
+    readonly status: 'blocked'
+    readonly independentlyReviewedItemCount: 0
+    readonly campaignItemCount: 24
+    readonly providerRoleSuitableRecordCount: 81
+    readonly reason: string
+  }
   readonly eventIds: readonly string[]
   readonly latestReviewedAt: string | null
   readonly items: readonly HumanVerificationItemEvidence[]
@@ -90,10 +112,23 @@ export function buildHumanVerificationEvidence(
   }
 
   const currentEvents = projectCurrentVerificationEvents(events)
+  const consensus = projectVerificationConsensus(
+    HUMAN_REVIEW_CAMPAIGN,
+    HUMAN_REVIEW_ITEMS,
+    events,
+  )
   const items = HUMAN_REVIEW_ITEMS.flatMap((item) => {
     const current = currentEvents[item.itemId]
     if (current === undefined) {
       return []
+    }
+    const currentConsensus = consensus.find(
+      ({ itemId }) => itemId === item.itemId,
+    )
+    if (currentConsensus === undefined) {
+      throw new Error(
+        `Local human verification consensus is unavailable: ${item.itemId}`,
+      )
     }
     const itemEvents = events.filter(({ itemId }) => itemId === item.itemId)
     return [
@@ -101,6 +136,12 @@ export function buildHumanVerificationEvidence(
         itemId: item.itemId,
         verificationLabel: item.verificationLabel,
         outcome: current.outcome,
+        consensusStatus: currentConsensus.status,
+        consensusOutcome: currentConsensus.consensusOutcome,
+        decisiveReviewCount: currentConsensus.decisiveReviewCount,
+        effectiveReviewCount: currentConsensus.effectiveReviewCount,
+        secondReviewRequired: currentConsensus.secondReviewRequired,
+        adjudicationRequired: currentConsensus.adjudicationRequired,
         currentEventId: current.eventId,
         eventIds: Object.freeze(itemEvents.map(({ eventId }) => eventId)),
         reviewerCount: distinctReviewerCount(itemEvents),
@@ -114,6 +155,12 @@ export function buildHumanVerificationEvidence(
       .map(({ reviewedAt }) => reviewedAt)
       .sort()
       .at(-1) ?? null
+  const decisiveConsensusCount = consensus.filter(({ status }) =>
+    ['complete_agreement', 'adjudicated'].includes(status),
+  ).length
+  const unresolvedConsensusCount = consensus.filter(
+    ({ status }) => status === 'unresolved_disagreement',
+  ).length
 
   return Object.freeze({
     state: events.length === 0 ? 'empty' : 'recorded',
@@ -123,9 +170,14 @@ export function buildHumanVerificationEvidence(
     recordedItemCount: items.length,
     totalEventCount: events.length,
     reviewerCount: distinctReviewerCount(events),
-    conflictStatus: 'not_calculated',
+    decisiveConsensusCount,
+    unresolvedConsensusCount,
+    conflictStatus:
+      unresolvedConsensusCount === 0 ? 'none' : 'unresolved',
     conflictReason:
-      'Independent-review assignments and consensus policy are not implemented yet.',
+      'Consensus follows this campaign’s review policy. Reviewer labels are recorded, but reviewer independence is not identity-verified.',
+    qualityContribution: qualityContribution(),
+    referenceReviewState: referenceReviewState(),
     eventIds,
     latestReviewedAt,
     items: Object.freeze(items),
@@ -145,14 +197,38 @@ export function unavailableHumanVerificationEvidence(
     recordedItemCount: 0,
     totalEventCount: 0,
     reviewerCount: 0,
-    conflictStatus: 'not_calculated',
+    decisiveConsensusCount: 0,
+    unresolvedConsensusCount: 0,
+    conflictStatus: 'none',
     conflictReason:
-      'Independent-review assignments and consensus policy are not implemented yet.',
+      'Consensus cannot be projected while the local event ledger is unavailable.',
+    qualityContribution: qualityContribution(),
+    referenceReviewState: referenceReviewState(),
     eventIds: Object.freeze([]),
     latestReviewedAt: null,
     items: Object.freeze([]),
     unavailableReason: reason,
     scientificClaimAllowed: false,
+  })
+}
+
+function qualityContribution(): HumanVerificationEvidence['qualityContribution'] {
+  return Object.freeze({
+    status: 'workflow_only',
+    eligibleWeightedAuditOutcomeCount: 0,
+    reason:
+      'Commons fixture outcomes exercise the review workflow but are excluded from the weighted Flickr target-precision audit.',
+  })
+}
+
+function referenceReviewState(): HumanVerificationEvidence['referenceReviewState'] {
+  return Object.freeze({
+    status: 'blocked',
+    independentlyReviewedItemCount: 0,
+    campaignItemCount: 24,
+    providerRoleSuitableRecordCount: 81,
+    reason:
+      'The reference packet is ready, but no independent taxonomic outcomes are committed. BioMiner role suitability is supporting context only.',
   })
 }
 

@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+
 import { describe, expect, it } from 'vitest'
 
 import {
@@ -44,13 +47,17 @@ describe('human verification evidence', () => {
       totalItemCount: 3,
       totalEventCount: 3,
       reviewerCount: 2,
-      conflictStatus: 'not_calculated',
+      decisiveConsensusCount: 0,
+      unresolvedConsensusCount: 1,
+      conflictStatus: 'unresolved',
       latestReviewedAt: '2026-07-16T12:02:00.000Z',
       scientificClaimAllowed: false,
     })
     expect(evidence.items[0]).toMatchObject({
       itemId: firstItem.itemId,
       outcome: 'no',
+      consensusStatus: 'unresolved_disagreement',
+      consensusOutcome: null,
       reviewerCount: 2,
       currentEventId: session.events[1]!.eventId,
       eventIds: [
@@ -61,6 +68,8 @@ describe('human verification evidence', () => {
     expect(evidence.items[1]).toMatchObject({
       itemId: secondItem.itemId,
       outcome: 'cant_view',
+      consensusStatus: 'media_failure',
+      consensusOutcome: null,
       reviewerCount: 1,
     })
     expect(evidence.eventIds).toEqual(
@@ -74,7 +83,50 @@ describe('human verification evidence', () => {
     expect(evidence.state).toBe('empty')
     expect(evidence.recordedItemCount).toBe(0)
     expect(evidence.reviewerCount).toBe(0)
-    expect(evidence.conflictStatus).toBe('not_calculated')
-    expect(evidence.conflictReason).toContain('not implemented yet')
+    expect(evidence.decisiveConsensusCount).toBe(0)
+    expect(evidence.conflictStatus).toBe('none')
+    expect(evidence.qualityContribution).toMatchObject({
+      status: 'workflow_only',
+      eligibleWeightedAuditOutcomeCount: 0,
+    })
+    expect(evidence.referenceReviewState).toMatchObject({
+      status: 'blocked',
+      independentlyReviewedItemCount: 0,
+      campaignItemCount: 24,
+      providerRoleSuitableRecordCount: 81,
+    })
+  })
+
+  it('pins the blocked reference state to the imported BioMiner evidence boundary', () => {
+    const referenceCampaign = readJson<{
+      readonly items: readonly unknown[]
+    }>(
+      'demo/source/verification/papilio-demoleus-reference-audit.campaign.json',
+    )
+    const providerVerification = readJson<{
+      readonly records_meeting_goal_count: number
+      readonly semantics: {
+        readonly independent_human_taxonomic_verification_claimed: boolean
+      }
+    }>(
+      'demo/source/biominer_phase15/artifacts/manifests/pilot_provider_support_goal_verification.json',
+    )
+    const state = buildHumanVerificationEvidence([]).referenceReviewState
+
+    expect(state.campaignItemCount).toBe(referenceCampaign.items.length)
+    expect(state.providerRoleSuitableRecordCount).toBe(
+      providerVerification.records_meeting_goal_count,
+    )
+    expect(
+      providerVerification.semantics
+        .independent_human_taxonomic_verification_claimed,
+    ).toBe(false)
+    expect(state.independentlyReviewedItemCount).toBe(0)
   })
 })
+
+function readJson<T>(relativePath: string): T {
+  return JSON.parse(
+    readFileSync(resolve(process.cwd(), '..', '..', relativePath), 'utf8'),
+  ) as T
+}

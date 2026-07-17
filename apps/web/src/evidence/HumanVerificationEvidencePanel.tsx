@@ -27,6 +27,54 @@ export function HumanVerificationEvidencePanel({
         </p>
       </div>
 
+      {evidence !== null && (
+        <dl className="human-verification-evidence__summary">
+          <div>
+            <dt>Current human consensus</dt>
+            <dd>
+              {evidence.state === 'unavailable'
+                ? 'Unavailable'
+                : `${evidence.decisiveConsensusCount} of ${evidence.totalItemCount} decisive`}
+            </dd>
+            <small>
+              {evidence.reviewerCount}{' '}
+              {evidence.reviewerCount === 1
+                ? 'recorded reviewer label'
+                : 'recorded reviewer labels'}{' '}
+              · {evidence.unresolvedConsensusCount} unresolved conflicts
+            </small>
+          </div>
+          <div>
+            <dt>Quality contribution</dt>
+            <dd>Workflow only</dd>
+            <small>
+              {evidence.qualityContribution.eligibleWeightedAuditOutcomeCount}{' '}
+              weighted Flickr audit outcomes
+            </small>
+          </div>
+          <div data-state="blocked">
+            <dt>Reference review state</dt>
+            <dd>Blocked</dd>
+            <small>
+              {evidence.referenceReviewState.independentlyReviewedItemCount} /{' '}
+              {evidence.referenceReviewState.campaignItemCount} independently
+              reviewed ·{' '}
+              {evidence.referenceReviewState.providerRoleSuitableRecordCount}{' '}
+              provider-role suitable only
+            </small>
+          </div>
+          <div>
+            <dt>Event lineage</dt>
+            <dd>
+              {evidence.state === 'unavailable'
+                ? 'Unavailable'
+                : `${evidence.totalEventCount} retained`}
+            </dd>
+            <small>Append-only local event IDs</small>
+          </div>
+        </dl>
+      )}
+
       {loadError !== null ? (
         <EvidenceState state="blocked" title="Local review lineage is unavailable">
           {loadError}
@@ -54,31 +102,6 @@ export function HumanVerificationEvidencePanel({
               occurrence or change the frozen BioMiner reference bank.
             </p>
           </div>
-          <dl className="human-verification-evidence__summary">
-            <div>
-              <dt>Current human outcomes</dt>
-              <dd>
-                {evidence.recordedItemCount} of {evidence.totalItemCount}
-              </dd>
-            </div>
-            <div>
-              <dt>Reviewer count</dt>
-              <dd>
-                {evidence.reviewerCount}{' '}
-                {evidence.reviewerCount === 1
-                  ? 'recorded reviewer identity'
-                  : 'recorded reviewer identities'}
-              </dd>
-            </div>
-            <div>
-              <dt>Conflict status</dt>
-              <dd>Not calculated</dd>
-            </div>
-            <div>
-              <dt>Retained events</dt>
-              <dd>{evidence.totalEventCount}</dd>
-            </div>
-          </dl>
           <p className="human-verification-evidence__conflict">
             {evidence.conflictReason}
           </p>
@@ -111,12 +134,23 @@ function HumanVerificationOutcome({
         <strong>{outcomeLabel(item.outcome)}</strong>
         <dl>
           <div>
-            <dt>Reviewer count</dt>
-            <dd>{item.reviewerCount}</dd>
+            <dt>Current consensus</dt>
+            <dd>
+              {consensusLabel(item.consensusStatus)}
+              {item.consensusOutcome === null
+                ? ''
+                : ` · ${outcomeLabel(item.consensusOutcome)}`}
+            </dd>
           </div>
           <div>
-            <dt>Conflict status</dt>
-            <dd>Not calculated</dd>
+            <dt>Quality contribution</dt>
+            <dd>Workflow only · excluded from weighted audit</dd>
+          </div>
+          <div>
+            <dt>Effective reviews</dt>
+            <dd>
+              {item.effectiveReviewCount} · {item.decisiveReviewCount} decisive
+            </dd>
           </div>
           <div>
             <dt>Current event ID</dt>
@@ -144,6 +178,25 @@ function HumanVerificationOutcome({
       </article>
     </li>
   )
+}
+
+function consensusLabel(status: HumanVerificationItemEvidence['consensusStatus']): string {
+  switch (status) {
+    case 'pending':
+      return 'Pending'
+    case 'complete_agreement':
+      return 'Complete agreement'
+    case 'unresolved_disagreement':
+      return 'Unresolved disagreement'
+    case 'uncertain_only':
+      return 'Uncertain only'
+    case 'media_failure':
+      return 'Media failure'
+    case 'deferred':
+      return 'Deferred'
+    case 'adjudicated':
+      return 'Adjudicated'
+  }
 }
 
 function outcomeLabel(outcome: HumanVerificationItemEvidence['outcome']): string {

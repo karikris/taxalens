@@ -192,7 +192,7 @@ describe('TaxaLens scaffold', () => {
       }),
     ).toBeInTheDocument()
     expect(
-      await screen.findByText('1 recorded reviewer identity'),
+      await screen.findByText(/1 recorded reviewer label/u),
     ).toBeInTheDocument()
     expect(
       screen.getByRole('list', {

@@ -60,6 +60,10 @@
   background: var(--tl-surface-subtle);
 }
 
+.human-verification-evidence__summary > div[data-state="blocked"] {
+  background: var(--tl-state-review-bg);
+}
+
 .human-verification-evidence dt {
   color: var(--tl-ink-muted);
   font-size: var(--tl-text-xs);
@@ -70,6 +74,12 @@
 .human-verification-evidence dd {
   margin: var(--tl-space-1) 0 0;
   overflow-wrap: anywhere;
+}
+
+.human-verification-evidence__summary small {
+  display: block;
+  margin-top: var(--tl-space-1);
+  color: var(--tl-ink-muted);
 }
 
 .human-verification-evidence__conflict {
