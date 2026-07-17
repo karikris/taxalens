@@ -123,8 +123,151 @@
   opacity: 0.72;
 }
 
+.geographic-impact-legend {
+  display: grid;
+  gap: var(--tl-space-3);
+  padding: var(--tl-space-3);
+  background: var(--tl-surface-subtle);
+  border: 1px solid var(--tl-line-strong);
+  border-radius: var(--tl-radius-sm);
+}
+
+.geographic-impact-legend h4,
+.geographic-impact-legend h5,
+.geographic-impact-legend p {
+  margin: 0;
+}
+
+.geographic-impact-legend__columns {
+  display: grid;
+  grid-template-columns: minmax(18rem, 1.3fr) minmax(16rem, 1fr);
+  gap: var(--tl-space-4);
+}
+
+.geographic-impact-legend__columns > div {
+  display: grid;
+  align-content: start;
+  gap: var(--tl-space-2);
+}
+
+.geographic-impact-legend__states,
+.geographic-impact-legend__sizes {
+  display: grid;
+  gap: var(--tl-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.geographic-impact-legend__states li {
+  display: grid;
+  grid-template-columns: 2rem 1fr;
+  gap: var(--tl-space-2);
+  align-items: center;
+}
+
+.geographic-impact-legend__states li > span:last-child {
+  display: grid;
+  gap: 0.125rem;
+}
+
+.geographic-impact-legend__states small,
+.geographic-impact-legend__scale-contract,
+.geographic-impact-legend__disclosure {
+  color: var(--tl-ink-muted);
+}
+
+.geographic-impact-legend__swatch {
+  position: relative;
+  display: inline-block;
+  width: 1.25rem;
+  height: 1.25rem;
+  justify-self: center;
+  border-radius: 50%;
+}
+
+.geographic-impact-legend__swatch--baseline {
+  background: #2563eb;
+  border: 1px solid #163f8f;
+}
+
+.geographic-impact-legend__swatch--pending {
+  background: transparent;
+  border: 2px solid #b45309;
+}
+
+.geographic-impact-legend__swatch--positive {
+  background: #f59e0b;
+  border: 1px solid #92400e;
+}
+
+.geographic-impact-legend__swatch--negative {
+  border: 2px solid #b45309;
+}
+
+.geographic-impact-legend__swatch--negative::before,
+.geographic-impact-legend__swatch--negative::after {
+  position: absolute;
+  top: 50%;
+  left: 10%;
+  width: 80%;
+  height: 2px;
+  content: '';
+  background: #b45309;
+}
+
+.geographic-impact-legend__swatch--negative::before {
+  transform: rotate(45deg);
+}
+
+.geographic-impact-legend__swatch--negative::after {
+  transform: rotate(-45deg);
+}
+
+.geographic-impact-legend__swatch--uncertain {
+  border: 2px dashed #b45309;
+}
+
+.geographic-impact-legend__swatch--release {
+  background: #f59e0b;
+  border: 3px solid #111827;
+}
+
+.geographic-impact-legend__sizes {
+  grid-template-columns: repeat(3, minmax(5rem, 1fr));
+  min-height: 4.5rem;
+  align-items: end;
+}
+
+.geographic-impact-legend__sizes li {
+  display: grid;
+  gap: var(--tl-space-1);
+  justify-items: center;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.geographic-impact-legend__size {
+  display: inline-block;
+  width: var(--geographic-legend-diameter);
+  height: var(--geographic-legend-diameter);
+  background: color-mix(in srgb, #2563eb 58%, transparent);
+  border: 1px solid #163f8f;
+  border-radius: 50%;
+}
+
+.geographic-impact-legend__scale-contract,
+.geographic-impact-legend__disclosure {
+  max-width: var(--tl-reading-width);
+  font-size: var(--tl-text-sm);
+}
+
 @media (max-width: 48rem) {
   .geographic-slicers {
+    grid-template-columns: 1fr;
+  }
+
+  .geographic-impact-legend__columns {
     grid-template-columns: 1fr;
   }
 }

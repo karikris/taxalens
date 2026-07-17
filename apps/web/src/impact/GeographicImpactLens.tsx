@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { EvidenceState } from '../design-system'
 import { GeographicBreadcrumbs } from './GeographicBreadcrumbs'
 import { GeographicScopeSlicers } from './GeographicScopeSlicers'
+import { GeographicImpactLegend } from './GeographicImpactLegend'
 import { useGeographicScopeState } from './geographicScope'
 import { OfflineWorldMap } from './OfflineWorldMap'
 import { buildBoundedGeographicImpactFeatures } from './geographicImpactFeatureCollection'
@@ -70,6 +71,9 @@ export function GeographicImpactLens({
       </div>
       <GeographicBreadcrumbs controller={scope} />
       <GeographicScopeSlicers controller={scope} />
+      {impactFeatures === undefined ? null : (
+        <GeographicImpactLegend features={impactFeatures} />
+      )}
       <OfflineWorldMap
         {...(impactFeatures === undefined ? {} : { impactFeatures })}
         onCountrySelect={selectCountry}
