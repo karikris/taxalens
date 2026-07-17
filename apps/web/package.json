@@ -27,6 +27,7 @@
     "test:e2e": "playwright test",
     "verify:build": "npm run build && node scripts/verify-static-build.mjs",
     "prepare:deployment": "node scripts/static-deployment.mjs prepare",
+    "report:geographic-bundle-size": "node scripts/report-geographic-bundle-size.mjs",
     "verify:deployment": "node scripts/static-deployment.mjs verify",
     "build:deployment": "npm run verify:build && npm run prepare:deployment && npm run verify:deployment"
   },
