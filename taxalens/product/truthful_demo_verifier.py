@@ -17,8 +17,8 @@ from packages.replay.src.biominer_prototype_release_gate import (
 )
 
 from taxalens.product.judge_bundle import (
-    JUDGE_BUNDLE_SCHEMA_VERSION,
-    JUDGE_BUNDLE_SECTION_NAMES,
+    JUDGE_BUNDLE_V1_SCHEMA_VERSION,
+    JUDGE_BUNDLE_V1_SECTION_NAMES,
     JudgeBundleError,
     compute_inventory_sha256,
     compute_payload_root_sha256,
@@ -187,8 +187,13 @@ def verify_truthful_demo(
         biominer_sha=TRUTHFUL_DEMO_BIOMINER_SHA,
         taxalens_sha=TRUTHFUL_DEMO_TAXALENS_SHA,
         artifact_count=len(artifacts),
-        section_count=len(JUDGE_BUNDLE_SECTION_NAMES),
-        unavailable_section_count=loaded.validation.unavailable_section_count,
+        section_count=len(JUDGE_BUNDLE_V1_SECTION_NAMES),
+        unavailable_section_count=_required_nonnegative_int(
+            _object(bundle["expected_ui_counts"], "expected_ui_counts").get(
+                "unavailable_section_count"
+            ),
+            "expected_ui_counts.unavailable_section_count",
+        ),
         total_section_record_count=sum(
             _required_nonnegative_int(
                 _object(bundle["expected_ui_counts"], "expected_ui_counts")["section_records"][
@@ -196,7 +201,7 @@ def verify_truthful_demo(
                 ],
                 f"expected_ui_counts.section_records.{name}",
             )
-            for name in JUDGE_BUNDLE_SECTION_NAMES
+            for name in JUDGE_BUNDLE_V1_SECTION_NAMES
         ),
         media_asset_count=_required_nonnegative_int(
             rights.get("media_asset_count"), "rights_manifest.media_asset_count"
@@ -207,10 +212,10 @@ def verify_truthful_demo(
 
 
 def _verify_bundle_identity(bundle: Mapping[str, Any]) -> None:
-    if bundle.get("schema_version") != JUDGE_BUNDLE_SCHEMA_VERSION:
+    if bundle.get("schema_version") != JUDGE_BUNDLE_V1_SCHEMA_VERSION:
         _fail(
             TruthfulDemoFailure.STALE_ARTIFACT_VERSION,
-            f"expected {JUDGE_BUNDLE_SCHEMA_VERSION}",
+            f"expected stored fixture version {JUDGE_BUNDLE_V1_SCHEMA_VERSION}",
             "judge_bundle.schema_version",
         )
     if bundle.get("bundle_id") != TRUTHFUL_DEMO_BUNDLE_ID:
@@ -718,7 +723,7 @@ def _verify_references(
 ) -> None:
     known_artifacts = set(artifacts)
     sections = _object(bundle.get("sections"), "sections")
-    if set(sections) != set(JUDGE_BUNDLE_SECTION_NAMES):
+    if set(sections) != set(JUDGE_BUNDLE_V1_SECTION_NAMES):
         _fail(
             TruthfulDemoFailure.ORPHANED_ID,
             "section IDs do not match the judge contract",
@@ -836,12 +841,12 @@ def _verify_counts(
                 str(artifact["path"]),
             )
         role = str(artifact.get("role"))
-        if role in JUDGE_BUNDLE_SECTION_NAMES:
+        if role in JUDGE_BUNDLE_V1_SECTION_NAMES:
             observed_counts[role] = observed_counts.get(role, 0) + observed
 
     expected = _object(bundle.get("expected_ui_counts"), "expected_ui_counts")
     section_records = _object(expected.get("section_records"), "section_records")
-    for name in JUDGE_BUNDLE_SECTION_NAMES:
+    for name in JUDGE_BUNDLE_V1_SECTION_NAMES:
         declared = _required_nonnegative_int(section_records.get(name), f"section_records.{name}")
         if declared != observed_counts.get(name, 0):
             _fail(

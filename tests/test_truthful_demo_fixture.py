@@ -5,6 +5,9 @@ from pathlib import Path
 
 import pytest
 from taxalens.product import (
+    JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES,
+    JUDGE_BUNDLE_V1_SCHEMA_VERSION,
+    JUDGE_BUNDLE_V2_SCHEMA_VERSION,
     TRUTHFUL_DEMO_BIOMINER_SHA,
     TRUTHFUL_DEMO_BUNDLE_ID,
     TRUTHFUL_DEMO_HERO_ID,
@@ -28,9 +31,15 @@ def test_committed_fixture_is_a_valid_checksum_verified_judge_bundle() -> None:
 
     assert loaded.validation.bundle_id == TRUTHFUL_DEMO_BUNDLE_ID
     assert loaded.validation.artifact_count == 30
-    assert loaded.validation.section_count == 25
-    assert loaded.validation.unavailable_section_count == 8
+    assert loaded.validation.section_count == 31
+    assert loaded.validation.unavailable_section_count == 14
     assert loaded.validation.replay_trace_count == 1
+    assert loaded.source_schema_version == JUDGE_BUNDLE_V1_SCHEMA_VERSION
+    assert loaded.data["schema_version"] == JUDGE_BUNDLE_V2_SCHEMA_VERSION
+    assert loaded.migration_receipt is not None
+    assert loaded.migration_receipt.applied is True
+    assert loaded.migration_receipt.stored_files_rewritten is False
+    assert loaded.migration_receipt.added_sections == JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES
     assert loaded.data["source_revisions"]["biominer_sha"] == TRUTHFUL_DEMO_BIOMINER_SHA
     assert loaded.data["target"] == {
         "accepted_taxon_key": "gbif:1938069",
@@ -251,6 +260,7 @@ def test_unavailable_real_pipeline_outputs_are_named_and_empty() -> None:
         "evaluation_summaries",
         "verification_decisions",
         "verification_quality",
+        *JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES,
     }
     observed = {
         name
@@ -265,6 +275,9 @@ def test_unavailable_real_pipeline_outputs_are_named_and_empty() -> None:
         assert section["reason"]
         assert section["verification_status"] == "unavailable"
         assert section["human_review_required"] is True
+    for name in JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES:
+        assert loaded.data["expected_ui_counts"]["section_records"][name] == 0
+        assert "did not invent geographic evidence" in loaded.data["sections"][name]["reason"]
 
 
 def test_builder_reproduces_every_committed_fixture_byte(tmp_path: Path) -> None:

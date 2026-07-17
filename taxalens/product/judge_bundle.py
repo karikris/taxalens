@@ -6,6 +6,7 @@ import hashlib
 import json
 import re
 from collections.abc import Mapping
+from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path, PurePosixPath
@@ -63,8 +64,28 @@ JUDGE_SCREEN_NAMES = (
     "butterfly_dashboard",
 )
 
-_ARTIFACT_ROLES = frozenset(
+_ARTIFACT_ROLES_V1 = frozenset(
+    (*JUDGE_BUNDLE_V1_SECTION_NAMES, "rights", "attribution", "openai_replay_traces", "other")
+)
+_ARTIFACT_ROLES_V2 = frozenset(
     (*JUDGE_BUNDLE_SECTION_NAMES, "rights", "attribution", "openai_replay_traces", "other")
+)
+_TOP_LEVEL_FIELDS = frozenset(
+    (
+        "schema_version",
+        "bundle_id",
+        "title",
+        "created_at",
+        "target",
+        "source_revisions",
+        "artifact_inventory",
+        "sections",
+        "rights",
+        "attribution",
+        "openai_replay",
+        "expected_ui_counts",
+        "checksums",
+    )
 )
 _AVAILABILITY = frozenset(("available", "partial", "unavailable"))
 _CANDIDATE_SEMANTICS = frozenset(
@@ -119,12 +140,35 @@ class JudgeBundleValidation:
 
 
 @dataclass(frozen=True, slots=True)
+class JudgeBundleMigrationReceipt:
+    """Evidence that a stored v1 bundle was projected to v2 without rewriting it."""
+
+    source_schema_version: str
+    target_schema_version: str
+    applied: bool
+    stored_files_rewritten: bool
+    added_sections: tuple[str, ...]
+    preserved_v1_fingerprint_sha256: str
+
+
+@dataclass(frozen=True, slots=True)
+class MigratedJudgeBundle:
+    """One validated canonical v2 projection plus its migration receipt."""
+
+    data: dict[str, object]
+    validation: JudgeBundleValidation
+    receipt: JudgeBundleMigrationReceipt
+
+
+@dataclass(frozen=True, slots=True)
 class LoadedJudgeBundle:
     """Immutable loaded manifest plus its validation result."""
 
     manifest_path: Path
     data: Mapping[str, FrozenJson]
     validation: JudgeBundleValidation
+    source_schema_version: str
+    migration_receipt: JudgeBundleMigrationReceipt | None
 
 
 def canonical_json_bytes(value: object) -> bytes:
@@ -169,11 +213,39 @@ def validate_judge_bundle(
     bundle_root: str | Path | None = None,
     verify_files: bool = False,
 ) -> JudgeBundleValidation:
-    """Validate cross-field invariants and optionally every artifact payload."""
+    """Validate the current v2 contract and optionally every artifact payload."""
+
+    return _validate_judge_bundle_version(
+        payload,
+        schema_version=JUDGE_BUNDLE_V2_SCHEMA_VERSION,
+        section_names=JUDGE_BUNDLE_V2_SECTION_NAMES,
+        artifact_roles=_ARTIFACT_ROLES_V2,
+        bundle_root=bundle_root,
+        verify_files=verify_files,
+    )
+
+
+def _validate_judge_bundle_version(
+    payload: object,
+    *,
+    schema_version: str,
+    section_names: tuple[str, ...],
+    artifact_roles: frozenset[str],
+    bundle_root: str | Path | None,
+    verify_files: bool,
+) -> JudgeBundleValidation:
+    """Validate one explicit judge-bundle version without implicit migration."""
 
     bundle = _mapping(payload, "judge bundle")
-    if bundle.get("schema_version") != JUDGE_BUNDLE_SCHEMA_VERSION:
-        raise JudgeBundleError(f"schema_version must be {JUDGE_BUNDLE_SCHEMA_VERSION!r}")
+    if set(bundle) != _TOP_LEVEL_FIELDS:
+        missing = sorted(_TOP_LEVEL_FIELDS - set(bundle))
+        unexpected = sorted(set(bundle) - _TOP_LEVEL_FIELDS)
+        raise JudgeBundleError(
+            f"judge bundle fields must match the contract; "
+            f"missing={missing}, unexpected={unexpected}"
+        )
+    if bundle.get("schema_version") != schema_version:
+        raise JudgeBundleError(f"schema_version must be {schema_version!r}")
     bundle_id = _identifier(bundle.get("bundle_id"), "bundle_id")
     _string(bundle.get("title"), "title")
     _timestamp(bundle.get("created_at"), "created_at")
@@ -185,10 +257,15 @@ def validate_judge_bundle(
         raise JudgeBundleError("bundle_root is required when verify_files is true")
     inventory, artifacts = _validate_inventory(
         bundle.get("artifact_inventory"),
+        artifact_roles=artifact_roles,
         bundle_root=root,
         verify_files=verify_files,
     )
-    sections = _validate_sections(bundle.get("sections"), artifacts)
+    sections = _validate_sections(
+        bundle.get("sections"),
+        artifacts,
+        section_names=section_names,
+    )
     rights, attribution_required = _validate_rights(bundle.get("rights"), artifacts)
     attribution_count, attribution_complete = _validate_attribution(
         bundle.get("attribution"),
@@ -204,6 +281,7 @@ def validate_judge_bundle(
         attribution_count=attribution_count,
         replay_trace_count=replay_trace_count,
         unavailable_count=unavailable_count,
+        section_names=section_names,
     )
 
     if any(section["scientific_claim_allowed"] for section in sections.values()):
@@ -233,6 +311,130 @@ def validate_judge_bundle(
     )
 
 
+def migrate_judge_bundle_v1_to_v2(
+    payload: object,
+    *,
+    bundle_root: str | Path | None = None,
+    verify_files: bool = False,
+) -> MigratedJudgeBundle:
+    """Validate v1, add unavailable geography, and return a canonical v2 copy."""
+
+    source = _mapping(payload, "judge bundle")
+    source_bytes = canonical_json_bytes(source)
+    _validate_judge_bundle_version(
+        source,
+        schema_version=JUDGE_BUNDLE_V1_SCHEMA_VERSION,
+        section_names=JUDGE_BUNDLE_V1_SECTION_NAMES,
+        artifact_roles=_ARTIFACT_ROLES_V1,
+        bundle_root=bundle_root,
+        verify_files=verify_files,
+    )
+    preserved_fingerprint = _v1_preservation_fingerprint(source)
+
+    migrated = deepcopy(dict(source))
+    migrated["schema_version"] = JUDGE_BUNDLE_V2_SCHEMA_VERSION
+    sections = migrated.get("sections")
+    expected_counts = migrated.get("expected_ui_counts")
+    if not isinstance(sections, dict) or not isinstance(expected_counts, dict):
+        raise JudgeBundleError("validated v1 bundle lost section or expected-count objects")
+    section_records = expected_counts.get("section_records")
+    unavailable_count = expected_counts.get("unavailable_section_count")
+    if not isinstance(section_records, dict) or not isinstance(unavailable_count, int):
+        raise JudgeBundleError("validated v1 bundle lost deterministic section counts")
+    for name in JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES:
+        sections[name] = _migrated_unavailable_geographic_section(name)
+        section_records[name] = 0
+    expected_counts["unavailable_section_count"] = unavailable_count + len(
+        JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES
+    )
+
+    validation = validate_judge_bundle(
+        migrated,
+        bundle_root=bundle_root,
+        verify_files=verify_files,
+    )
+    if canonical_json_bytes(source) != source_bytes:
+        raise JudgeBundleError("v1-to-v2 migration mutated its source bundle")
+    if _v1_preservation_fingerprint(migrated) != preserved_fingerprint:
+        raise JudgeBundleError("v1-to-v2 migration changed preserved v1 evidence")
+    receipt = JudgeBundleMigrationReceipt(
+        source_schema_version=JUDGE_BUNDLE_V1_SCHEMA_VERSION,
+        target_schema_version=JUDGE_BUNDLE_V2_SCHEMA_VERSION,
+        applied=True,
+        stored_files_rewritten=False,
+        added_sections=JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES,
+        preserved_v1_fingerprint_sha256=preserved_fingerprint,
+    )
+    return MigratedJudgeBundle(data=migrated, validation=validation, receipt=receipt)
+
+
+def _migrated_unavailable_geographic_section(name: str) -> dict[str, object]:
+    candidate_semantics = (
+        "hypothesis_not_occurrence"
+        if name
+        in {
+            "flickr_geography",
+            "geographic_impact_cells",
+            "geographic_impact_summary",
+        }
+        else "not_applicable"
+    )
+    return {
+        "status": "unavailable",
+        "artifact_ids": [],
+        "reason": (
+            f"{name} is not present in the source v1 bundle; "
+            "migration did not invent geographic evidence"
+        ),
+        "candidate_semantics": candidate_semantics,
+        "verification_status": "unavailable",
+        "human_review_required": True,
+        "scientific_claim_allowed": False,
+    }
+
+
+def _v1_preservation_fingerprint(bundle: Mapping[str, object]) -> str:
+    """Hash every v1-owned value whose meaning migration must preserve."""
+
+    sections = _mapping(bundle.get("sections"), "sections")
+    expected_counts = _mapping(bundle.get("expected_ui_counts"), "expected_ui_counts")
+    section_records = _mapping(
+        expected_counts.get("section_records"),
+        "expected_ui_counts.section_records",
+    )
+    projection = {
+        key: bundle[key]
+        for key in (
+            "bundle_id",
+            "title",
+            "created_at",
+            "target",
+            "source_revisions",
+            "artifact_inventory",
+            "rights",
+            "attribution",
+            "openai_replay",
+            "checksums",
+        )
+    }
+    projection["sections"] = {
+        name: sections[name] for name in JUDGE_BUNDLE_V1_SECTION_NAMES
+    }
+    projection["expected_ui_counts"] = {
+        key: expected_counts[key]
+        for key in (
+            "screen_items",
+            "artifact_count",
+            "attribution_count",
+            "openai_replay_trace_count",
+        )
+    }
+    projection["expected_ui_counts"]["section_records"] = {
+        name: section_records[name] for name in JUDGE_BUNDLE_V1_SECTION_NAMES
+    }
+    return hashlib.sha256(canonical_json_bytes(projection)).hexdigest()
+
+
 def load_judge_bundle(
     manifest: str | Path,
     *,
@@ -253,18 +455,38 @@ def load_judge_bundle(
         raise JudgeBundleError(
             f"judge bundle manifest is not strict UTF-8 JSON: {error}"
         ) from error
-    validation = validate_judge_bundle(
-        payload,
-        bundle_root=manifest_path.parent,
-        verify_files=verify_files,
-    )
-    frozen = freeze_json(payload)
+    source = _mapping(payload, "judge bundle")
+    source_schema_version = _string(source.get("schema_version"), "schema_version")
+    migration_receipt: JudgeBundleMigrationReceipt | None = None
+    if source_schema_version == JUDGE_BUNDLE_V1_SCHEMA_VERSION:
+        migrated = migrate_judge_bundle_v1_to_v2(
+            source,
+            bundle_root=manifest_path.parent,
+            verify_files=verify_files,
+        )
+        canonical = migrated.data
+        validation = migrated.validation
+        migration_receipt = migrated.receipt
+    elif source_schema_version == JUDGE_BUNDLE_V2_SCHEMA_VERSION:
+        canonical = deepcopy(dict(source))
+        validation = validate_judge_bundle(
+            canonical,
+            bundle_root=manifest_path.parent,
+            verify_files=verify_files,
+        )
+    else:
+        raise JudgeBundleError(
+            f"unsupported judge bundle schema_version: {source_schema_version!r}"
+        )
+    frozen = freeze_json(canonical)
     if not isinstance(frozen, Mapping):
         raise JudgeBundleError("judge bundle did not freeze to a mapping")
     return LoadedJudgeBundle(
         manifest_path=manifest_path,
         data=frozen,
         validation=validation,
+        source_schema_version=source_schema_version,
+        migration_receipt=migration_receipt,
     )
 
 
@@ -284,6 +506,7 @@ def _validate_source_revisions(value: object) -> None:
 def _validate_inventory(
     value: object,
     *,
+    artifact_roles: frozenset[str],
     bundle_root: Path | None,
     verify_files: bool,
 ) -> tuple[list[object], dict[str, Mapping[str, object]]]:
@@ -303,7 +526,7 @@ def _validate_inventory(
             raise JudgeBundleError(f"duplicate artifact path: {path}")
         paths.add(path)
         _string(artifact.get("media_type"), f"{label}.media_type")
-        _choice(artifact.get("role"), _ARTIFACT_ROLES, f"{label}.role")
+        _choice(artifact.get("role"), artifact_roles, f"{label}.role")
         expected_sha256 = _digest(artifact.get("sha256"), f"{label}.sha256")
         expected_bytes = _nonnegative_int(artifact.get("bytes"), f"{label}.bytes")
         record_count = artifact.get("record_count")
@@ -355,10 +578,12 @@ def _verify_artifact_file(
 def _validate_sections(
     value: object,
     artifacts: Mapping[str, Mapping[str, object]],
+    *,
+    section_names: tuple[str, ...],
 ) -> dict[str, Mapping[str, object]]:
     sections = _mapping(value, "sections")
     actual_names = set(sections)
-    expected_names = set(JUDGE_BUNDLE_SECTION_NAMES)
+    expected_names = set(section_names)
     if actual_names != expected_names:
         missing = sorted(expected_names - actual_names)
         unexpected = sorted(actual_names - expected_names)
@@ -366,7 +591,7 @@ def _validate_sections(
             f"sections must match the contract; missing={missing}, unexpected={unexpected}"
         )
     validated: dict[str, Mapping[str, object]] = {}
-    for name in JUDGE_BUNDLE_SECTION_NAMES:
+    for name in section_names:
         label = f"sections.{name}"
         section = _mapping(sections[name], label)
         status = _choice(section.get("status"), _AVAILABILITY, f"{label}.status")
@@ -602,14 +827,15 @@ def _validate_expected_counts(
     attribution_count: int,
     replay_trace_count: int,
     unavailable_count: int,
+    section_names: tuple[str, ...],
 ) -> None:
     counts = _mapping(value, "expected_ui_counts")
     section_records = _mapping(counts.get("section_records"), "expected_ui_counts.section_records")
-    if set(section_records) != set(JUDGE_BUNDLE_SECTION_NAMES):
+    if set(section_records) != set(section_names):
         raise JudgeBundleError(
             "expected_ui_counts.section_records must contain every judge section"
         )
-    for name in JUDGE_BUNDLE_SECTION_NAMES:
+    for name in section_names:
         expected = _nonnegative_int(
             section_records[name], f"expected_ui_counts.section_records.{name}"
         )
@@ -783,11 +1009,14 @@ __all__ = [
     "JUDGE_BUNDLE_V2_SCHEMA_VERSION",
     "JUDGE_BUNDLE_V2_SECTION_NAMES",
     "JudgeBundleError",
+    "JudgeBundleMigrationReceipt",
     "JudgeBundleValidation",
     "LoadedJudgeBundle",
+    "MigratedJudgeBundle",
     "canonical_json_bytes",
     "compute_inventory_sha256",
     "compute_payload_root_sha256",
     "load_judge_bundle",
+    "migrate_judge_bundle_v1_to_v2",
     "validate_judge_bundle",
 ]

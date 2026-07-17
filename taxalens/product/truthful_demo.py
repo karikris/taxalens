@@ -24,8 +24,8 @@ from packages.replay.src.biominer_prototype_release_gate import (
 )
 
 from taxalens.product.judge_bundle import (
-    JUDGE_BUNDLE_SCHEMA_VERSION,
-    JUDGE_BUNDLE_SECTION_NAMES,
+    JUDGE_BUNDLE_V1_SCHEMA_VERSION,
+    JUDGE_BUNDLE_V1_SECTION_NAMES,
     compute_inventory_sha256,
     compute_payload_root_sha256,
     load_judge_bundle,
@@ -1077,7 +1077,7 @@ def _sections(
         ),
     }
     sections: dict[str, dict[str, object]] = {}
-    for name in JUDGE_BUNDLE_SECTION_NAMES:
+    for name in JUDGE_BUNDLE_V1_SECTION_NAMES:
         if name in available:
             artifact_id, semantics, verification, status = available[name]
             sections[name] = _section(
@@ -1409,7 +1409,7 @@ def build_truthful_demo_fixture(
                 "required": True,
             }
         )
-        if spec.role in JUDGE_BUNDLE_SECTION_NAMES:
+        if spec.role in JUDGE_BUNDLE_V1_SECTION_NAMES:
             record_counts[spec.role] = record_counts.get(spec.role, 0) + spec.record_count
 
     sections = _sections(
@@ -1417,7 +1417,9 @@ def build_truthful_demo_fixture(
         _VERIFICATION_ITEMS_ARTIFACT_ID,
         verification_media_ids,
     )
-    section_records = {name: record_counts.get(name, 0) for name in JUDGE_BUNDLE_SECTION_NAMES}
+    section_records = {
+        name: record_counts.get(name, 0) for name in JUDGE_BUNDLE_V1_SECTION_NAMES
+    }
     all_ids = [row["artifact_id"] for row in inventory]
     request_descriptor = next(
         row for row in inventory if row["artifact_id"] == "stored-analyst-request"
@@ -1426,7 +1428,7 @@ def build_truthful_demo_fixture(
         row for row in inventory if row["artifact_id"] == "stored-analyst-run"
     )
     bundle = {
-        "schema_version": JUDGE_BUNDLE_SCHEMA_VERSION,
+        "schema_version": JUDGE_BUNDLE_V1_SCHEMA_VERSION,
         "bundle_id": TRUTHFUL_DEMO_BUNDLE_ID,
         "title": "Truthful Papilio demoleus prototype evidence pilot",
         "created_at": TRUTHFUL_DEMO_CREATED_AT,

@@ -2,13 +2,18 @@ import Ajv2020 from 'ajv/dist/2020.js'
 import addFormats from 'ajv-formats'
 
 import judgeBundleSchema from '../../../../packages/contracts/schema/judge_bundle.schema.json'
+import judgeBundleV1Schema from '../../../../packages/contracts/schema/judge_bundle_v1.schema.json'
 import {
+  JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES,
   JUDGE_BUNDLE_SCHEMA_VERSION,
   JUDGE_BUNDLE_SECTION_NAMES,
+  JUDGE_BUNDLE_V1_SCHEMA_VERSION,
+  JUDGE_BUNDLE_V1_SECTION_NAMES,
   type JudgeBundleArtifact,
   type JudgeBundleAvailability,
   type JudgeBundleContract,
   type JudgeBundleSectionName,
+  type JudgeBundleV1Contract,
 } from '../../../../packages/contracts/src/judge_bundle_contract'
 
 const EXPECTED_BUNDLE_ID = 'papilio-demoleus-prototype-74a7d648-v3'
@@ -181,7 +186,22 @@ export interface ReplayEvidence extends ReplayIdentity {
     readonly dataMode: 'verified-json-bootstrap'
     readonly fallbackReason: 'analytics_on_demand'
     readonly wasmStarted: false
+    readonly bundleMigration: JudgeBundleMigrationReceipt
   }
+}
+
+export interface JudgeBundleMigrationReceipt {
+  readonly sourceSchemaVersion: string
+  readonly targetSchemaVersion: typeof JUDGE_BUNDLE_SCHEMA_VERSION
+  readonly applied: boolean
+  readonly storedFilesRewritten: false
+  readonly addedSections: readonly JudgeBundleSectionName[]
+  readonly preservedV1FingerprintSha256: string | null
+}
+
+export interface JudgeBundleMigrationResult {
+  readonly manifest: JudgeBundleContract
+  readonly receipt: JudgeBundleMigrationReceipt
 }
 
 export interface PrototypeEvidenceBoundary {
@@ -473,6 +493,7 @@ export class EvidenceFacadeError extends Error {
 const ajv = new Ajv2020({ allErrors: false, strict: true })
 addFormats(ajv)
 const validateJudgeBundle = ajv.compile<JudgeBundleContract>(judgeBundleSchema)
+const validateJudgeBundleV1 = ajv.compile<JudgeBundleV1Contract>(judgeBundleV1Schema)
 
 function canonicalJson(value: unknown): string {
   if (value === null || typeof value === 'boolean' || typeof value === 'string') {
@@ -502,6 +523,142 @@ async function sha256Hex(bytes: Uint8Array<ArrayBuffer>): Promise<string> {
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join(
     '',
   )
+}
+
+function v1PreservationProjection(
+  bundle: JudgeBundleV1Contract | JudgeBundleContract,
+): Record<string, unknown> {
+  return {
+    bundle_id: bundle.bundle_id,
+    title: bundle.title,
+    created_at: bundle.created_at,
+    target: bundle.target,
+    source_revisions: bundle.source_revisions,
+    artifact_inventory: bundle.artifact_inventory,
+    sections: Object.fromEntries(
+      JUDGE_BUNDLE_V1_SECTION_NAMES.map((name) => [name, bundle.sections[name]]),
+    ),
+    rights: bundle.rights,
+    attribution: bundle.attribution,
+    openai_replay: bundle.openai_replay,
+    expected_ui_counts: {
+      section_records: Object.fromEntries(
+        JUDGE_BUNDLE_V1_SECTION_NAMES.map((name) => [
+          name,
+          bundle.expected_ui_counts.section_records[name],
+        ]),
+      ),
+      screen_items: bundle.expected_ui_counts.screen_items,
+      artifact_count: bundle.expected_ui_counts.artifact_count,
+      attribution_count: bundle.expected_ui_counts.attribution_count,
+      openai_replay_trace_count: bundle.expected_ui_counts.openai_replay_trace_count,
+    },
+    checksums: bundle.checksums,
+  }
+}
+
+function unavailableGeographicSection(name: JudgeBundleSectionName) {
+  const hypothesisSections = new Set<JudgeBundleSectionName>([
+    'flickr_geography',
+    'geographic_impact_cells',
+    'geographic_impact_summary',
+  ])
+  return {
+    status: 'unavailable' as const,
+    artifact_ids: [],
+    reason: `${name} is not present in the source v1 bundle; migration did not invent geographic evidence`,
+    candidate_semantics: hypothesisSections.has(name)
+      ? ('hypothesis_not_occurrence' as const)
+      : ('not_applicable' as const),
+    verification_status: 'unavailable' as const,
+    human_review_required: true,
+    scientific_claim_allowed: false,
+  }
+}
+
+function schemaVersionOf(candidate: JsonValue): string | null {
+  if (typeof candidate !== 'object' || candidate === null || Array.isArray(candidate)) {
+    return null
+  }
+  return typeof candidate.schema_version === 'string' ? candidate.schema_version : null
+}
+
+function schemaFailure(label: string, instancePath?: string, keyword?: string): never {
+  const location = instancePath === '' || instancePath === undefined ? '/' : instancePath
+  throw new EvidenceFacadeError(
+    `judge_bundle failed ${label} runtime schema validation at ${location} (${keyword ?? 'unknown'})`,
+  )
+}
+
+/** Project a stored v1 manifest to canonical v2 without changing source files or evidence. */
+export async function migrateJudgeBundleToCurrent(
+  candidate: JsonValue,
+): Promise<JudgeBundleMigrationResult> {
+  const sourceSchemaVersion = schemaVersionOf(candidate)
+  if (sourceSchemaVersion === JUDGE_BUNDLE_SCHEMA_VERSION) {
+    if (!validateJudgeBundle(candidate)) {
+      const firstError = validateJudgeBundle.errors?.[0]
+      schemaFailure('v2', firstError?.instancePath, firstError?.keyword)
+    }
+    return {
+      manifest: deepFreeze(candidate),
+      receipt: deepFreeze({
+        sourceSchemaVersion,
+        targetSchemaVersion: JUDGE_BUNDLE_SCHEMA_VERSION,
+        applied: false,
+        storedFilesRewritten: false,
+        addedSections: [],
+        preservedV1FingerprintSha256: null,
+      }),
+    }
+  }
+  if (sourceSchemaVersion !== JUDGE_BUNDLE_V1_SCHEMA_VERSION) {
+    throw new EvidenceFacadeError(
+      `judge_bundle schema_version ${JSON.stringify(sourceSchemaVersion)} is unsupported`,
+    )
+  }
+  if (!validateJudgeBundleV1(candidate)) {
+    const firstError = validateJudgeBundleV1.errors?.[0]
+    schemaFailure('v1', firstError?.instancePath, firstError?.keyword)
+  }
+
+  const sourceCanonical = canonicalJson(candidate)
+  const preservedV1FingerprintSha256 = await sha256Hex(
+    new TextEncoder().encode(canonicalJson(v1PreservationProjection(candidate))),
+  )
+  const migrated = structuredClone(candidate) as unknown as JudgeBundleContract
+  migrated.schema_version = JUDGE_BUNDLE_SCHEMA_VERSION
+  for (const name of JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES) {
+    migrated.sections[name] = unavailableGeographicSection(name)
+    migrated.expected_ui_counts.section_records[name] = 0
+  }
+  migrated.expected_ui_counts.unavailable_section_count +=
+    JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES.length
+
+  if (!validateJudgeBundle(migrated)) {
+    const firstError = validateJudgeBundle.errors?.[0]
+    schemaFailure('migrated v2', firstError?.instancePath, firstError?.keyword)
+  }
+  if (canonicalJson(candidate) !== sourceCanonical) {
+    throw new EvidenceFacadeError('v1-to-v2 migration mutated its source bundle')
+  }
+  const migratedFingerprint = await sha256Hex(
+    new TextEncoder().encode(canonicalJson(v1PreservationProjection(migrated))),
+  )
+  if (migratedFingerprint !== preservedV1FingerprintSha256) {
+    throw new EvidenceFacadeError('v1-to-v2 migration changed preserved v1 evidence')
+  }
+  return {
+    manifest: deepFreeze(migrated),
+    receipt: deepFreeze({
+      sourceSchemaVersion,
+      targetSchemaVersion: JUDGE_BUNDLE_SCHEMA_VERSION,
+      applied: true,
+      storedFilesRewritten: false,
+      addedSections: [...JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES],
+      preservedV1FingerprintSha256,
+    }),
+  }
 }
 
 function replayAssetUrl(path: string): URL {
@@ -2285,14 +2442,8 @@ export async function loadEvidenceFacade(
 ): Promise<EvidenceFacade> {
   const manifestBytes = await fetchBytes('judge_bundle.json', signal, fetcher)
   const candidate = parseJson(manifestBytes, 'judge_bundle')
-  if (!validateJudgeBundle(candidate)) {
-    const firstError = validateJudgeBundle.errors?.[0]
-    const location = firstError?.instancePath === '' ? '/' : firstError?.instancePath
-    throw new EvidenceFacadeError(
-      `judge_bundle failed runtime schema validation at ${location ?? '/'} (${firstError?.keyword ?? 'unknown'})`,
-    )
-  }
-  const manifest = candidate
+  const migration = await migrateJudgeBundleToCurrent(candidate)
+  const manifest = migration.manifest
   await assertManifestSemantics(manifest)
 
   const artifacts = new Map<string, VerifiedArtifact>()
@@ -2395,6 +2546,7 @@ export async function loadEvidenceFacade(
       dataMode: 'verified-json-bootstrap',
       fallbackReason: 'analytics_on_demand',
       wasmStarted: false,
+      bundleMigration: migration.receipt,
     },
   })
   return Object.freeze(new VerifiedEvidenceFacade(replay, artifacts, storedOpenAIReplay))

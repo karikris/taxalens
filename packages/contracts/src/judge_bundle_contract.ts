@@ -180,6 +180,13 @@ export interface JudgeBundleExpectedUiCounts {
   unavailable_section_count: number;
 }
 
+export type JudgeBundleV1ExpectedUiCounts = Omit<
+  JudgeBundleExpectedUiCounts,
+  'section_records'
+> & {
+  section_records: Record<JudgeBundleV1SectionName, number>;
+};
+
 export interface JudgeBundleChecksums {
   algorithm: 'sha256';
   canonicalization: 'json-sorted-keys-utf8-v1';
@@ -209,3 +216,13 @@ export interface JudgeBundleContract {
   expected_ui_counts: JudgeBundleExpectedUiCounts;
   checksums: JudgeBundleChecksums;
 }
+
+/** Exact stored v1 shape accepted only by the non-mutating v1-to-v2 loader. */
+export type JudgeBundleV1Contract = Omit<
+  JudgeBundleContract,
+  'schema_version' | 'sections' | 'expected_ui_counts'
+> & {
+  schema_version: typeof JUDGE_BUNDLE_V1_SCHEMA_VERSION;
+  sections: Record<JudgeBundleV1SectionName, JudgeBundleSection>;
+  expected_ui_counts: JudgeBundleV1ExpectedUiCounts;
+};

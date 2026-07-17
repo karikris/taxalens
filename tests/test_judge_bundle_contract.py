@@ -19,6 +19,7 @@ from taxalens.product import (
     compute_inventory_sha256,
     compute_payload_root_sha256,
     load_judge_bundle,
+    migrate_judge_bundle_v1_to_v2,
     validate_judge_bundle,
 )
 
@@ -216,16 +217,7 @@ def _bundle(root: Path) -> dict[str, object]:
 
 def _project_v1_fixture_to_v2_shape() -> dict[str, object]:
     bundle = json.loads(TRUTHFUL_FIXTURE_PATH.read_text(encoding="utf-8"))
-    bundle["schema_version"] = JUDGE_BUNDLE_SCHEMA_VERSION
-    sections = bundle["sections"]
-    section_records = bundle["expected_ui_counts"]["section_records"]
-    for name in JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES:
-        sections[name] = _unavailable(name)
-        section_records[name] = 0
-    bundle["expected_ui_counts"]["unavailable_section_count"] += len(
-        JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES
-    )
-    return bundle
+    return migrate_judge_bundle_v1_to_v2(bundle).data
 
 
 def test_schema_declares_every_required_judge_bundle_section() -> None:
@@ -319,10 +311,75 @@ def test_loading_returns_an_immutable_strict_json_contract(tmp_path: Path) -> No
 
     assert loaded.validation.files_verified is True
     assert loaded.data["bundle_id"] == "judge-contract-test-v1"
+    assert loaded.source_schema_version == JUDGE_BUNDLE_V2_SCHEMA_VERSION
+    assert loaded.migration_receipt is None
     with pytest.raises(FrozenInstanceError):
         loaded.manifest_path = Path("changed")  # type: ignore[misc]
     with pytest.raises(TypeError):
         loaded.data["bundle_id"] = "changed"  # type: ignore[index]
+
+
+def test_v1_migration_preserves_evidence_and_adds_only_unavailable_geography() -> None:
+    source = json.loads(TRUTHFUL_FIXTURE_PATH.read_text(encoding="utf-8"))
+    source_before = json.loads(json.dumps(source))
+
+    migrated = migrate_judge_bundle_v1_to_v2(source)
+
+    assert source == source_before
+    assert migrated.data["schema_version"] == JUDGE_BUNDLE_V2_SCHEMA_VERSION
+    assert migrated.validation.section_count == len(JUDGE_BUNDLE_V2_SECTION_NAMES)
+    assert migrated.validation.unavailable_section_count == 14
+    assert migrated.receipt.source_schema_version == JUDGE_BUNDLE_V1_SCHEMA_VERSION
+    assert migrated.receipt.target_schema_version == JUDGE_BUNDLE_V2_SCHEMA_VERSION
+    assert migrated.receipt.applied is True
+    assert migrated.receipt.stored_files_rewritten is False
+    assert migrated.receipt.added_sections == JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES
+    assert len(migrated.receipt.preserved_v1_fingerprint_sha256) == 64
+
+    for field in (
+        "bundle_id",
+        "title",
+        "created_at",
+        "target",
+        "source_revisions",
+        "artifact_inventory",
+        "rights",
+        "attribution",
+        "openai_replay",
+        "checksums",
+    ):
+        assert migrated.data[field] == source[field]
+    for name in JUDGE_BUNDLE_V1_SECTION_NAMES:
+        assert migrated.data["sections"][name] == source["sections"][name]
+        assert (
+            migrated.data["expected_ui_counts"]["section_records"][name]
+            == source["expected_ui_counts"]["section_records"][name]
+        )
+    for name in JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES:
+        section = migrated.data["sections"][name]
+        assert section["status"] == "unavailable"
+        assert section["artifact_ids"] == []
+        assert section["scientific_claim_allowed"] is False
+        assert "did not invent geographic evidence" in section["reason"]
+        assert migrated.data["expected_ui_counts"]["section_records"][name] == 0
+
+
+def test_v1_migration_rejects_invalid_source_before_projection() -> None:
+    source = json.loads(TRUTHFUL_FIXTURE_PATH.read_text(encoding="utf-8"))
+    del source["sections"]["run_summary"]
+
+    with pytest.raises(JudgeBundleError, match="sections must match"):
+        migrate_judge_bundle_v1_to_v2(source)
+
+
+def test_loader_rejects_unknown_future_bundle_version(tmp_path: Path) -> None:
+    source = json.loads(TRUTHFUL_FIXTURE_PATH.read_text(encoding="utf-8"))
+    source["schema_version"] = "taxalens-judge-bundle:v99.0.0"
+    manifest = tmp_path / "judge_bundle.json"
+    manifest.write_text(json.dumps(source), encoding="utf-8")
+
+    with pytest.raises(JudgeBundleError, match="unsupported judge bundle schema_version"):
+        load_judge_bundle(manifest, verify_files=False)
 
 
 def test_contract_rejects_missing_required_section(tmp_path: Path) -> None:

@@ -8,7 +8,9 @@ import {
 } from '../test/fixtures'
 import {
   EvidenceFacadeError,
+  type JsonValue,
   loadEvidenceFacade,
+  migrateJudgeBundleToCurrent,
   replayEvidenceContract,
 } from './evidenceFacade'
 
@@ -93,8 +95,30 @@ describe('loadEvidenceFacade', () => {
     expect(facade.replay.target.scientificName).toBe('Papilio demoleus')
     expect(facade.replay.artifactCount).toBe(30)
     expect(facade.replay.verifiedArtifactCount).toBe(30)
-    expect(facade.replay.unavailableSections).toHaveLength(8)
+    expect(facade.replay.unavailableSections).toHaveLength(14)
     expect(facade.replay.sections.yoloe_evidence.status).toBe('unavailable')
+    expect(facade.replay.sections.baseline_provider_union).toMatchObject({
+      status: 'unavailable',
+      artifactIds: [],
+      scientificClaimAllowed: false,
+    })
+    expect(facade.replay.verification.bundleMigration).toMatchObject({
+      sourceSchemaVersion: 'taxalens-judge-bundle:v1.0.0',
+      targetSchemaVersion: 'taxalens-judge-bundle:v2.0.0',
+      applied: true,
+      storedFilesRewritten: false,
+      addedSections: [
+        'baseline_geographic_spread',
+        'baseline_provider_union',
+        'flickr_geography',
+        'geographic_impact_cells',
+        'geographic_impact_summary',
+        'country_hierarchy',
+      ],
+    })
+    expect(facade.replay.verification.bundleMigration.preservedV1FingerprintSha256).toMatch(
+      /^[0-9a-f]{64}$/,
+    )
     expect(facade.replay.artifactInventory).toHaveLength(30)
     expect(facade.replay.artifactInventory.every(({ verified }) => verified)).toBe(true)
     expect(facade.loadStoredOpenAIReplay()).toMatchObject([
@@ -436,7 +460,7 @@ describe('loadEvidenceFacade', () => {
         new AbortController().signal,
         createCommittedFixtureFetcher({ 'judge_bundle.json': JSON.stringify(stale) }),
       ),
-    ).rejects.toThrow('runtime schema validation')
+    ).rejects.toThrow('schema_version "future-bundle:v2" is unsupported')
   })
 
   it('uses verified JSON when Parquet or its Wasm reader is unavailable', async () => {
@@ -471,5 +495,37 @@ describe('loadEvidenceFacade', () => {
       name: 'EvidenceFacadeError',
       message: 'stopped',
     })
+  })
+})
+
+describe('migrateJudgeBundleToCurrent', () => {
+  it('does not mutate the stored v1 manifest or invent geographic evidence', async () => {
+    const source = structuredClone(committedJudgeBundle)
+    const before = canonicalJson(source)
+
+    const result = await migrateJudgeBundleToCurrent(source as JsonValue)
+
+    expect(canonicalJson(source)).toBe(before)
+    expect(result.manifest.schema_version).toBe('taxalens-judge-bundle:v2.0.0')
+    expect(Object.keys(result.manifest.sections)).toHaveLength(31)
+    expect(result.manifest.expected_ui_counts.unavailable_section_count).toBe(14)
+    for (const name of result.receipt.addedSections) {
+      expect(result.manifest.sections[name]).toMatchObject({
+        status: 'unavailable',
+        artifact_ids: [],
+        scientific_claim_allowed: false,
+      })
+      expect(result.manifest.expected_ui_counts.section_records[name]).toBe(0)
+    }
+  })
+
+  it('rejects an invalid v1 source before projection', async () => {
+    const source = structuredClone(committedJudgeBundle)
+    const sections = source.sections as Record<string, unknown>
+    delete sections.run_summary
+
+    await expect(migrateJudgeBundleToCurrent(source as JsonValue)).rejects.toThrow(
+      /failed v1 runtime schema validation/,
+    )
   })
 })
