@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   TAXALENS_GEOGRAPHIC_SCOPE_INDEX,
@@ -61,5 +61,50 @@ describe('geographic scope state', () => {
       window.dispatchEvent(new HashChangeEvent('hashchange'))
     })
     expect(result.current.selected.scope_name).toBe('Asia')
+  })
+
+  it('drills from Global to continent and country, then resets without losing query state', () => {
+    window.history.replaceState(
+      null,
+      '',
+      '/#dashboard?metric=candidate_only_cells',
+    )
+    const pushState = vi.spyOn(window.history, 'pushState')
+    const { result } = renderHook(() => useGeographicScopeState())
+
+    act(() => result.current.selectScope('continent:asia'))
+    expect(result.current.selected.scope_name).toBe('Asia')
+    expect(window.location.hash).toBe(
+      '#dashboard?metric=candidate_only_cells&geo=continent%3Aasia',
+    )
+
+    act(() => result.current.selectScope('country:IN'))
+    expect(result.current.selected.scope_name).toBe('India')
+    expect(
+      geographicScopeAncestors(result.current.selected.scope_id).map(
+        ({ scope_id }) => scope_id,
+      ),
+    ).toEqual(['global', 'continent:asia', 'country:IN'])
+    expect(window.location.hash).toBe(
+      '#dashboard?metric=candidate_only_cells&geo=country%3AIN',
+    )
+
+    const historyEntriesAfterCountry = pushState.mock.calls.length
+    act(() => result.current.selectScope('country:IN'))
+    expect(pushState).toHaveBeenCalledTimes(historyEntriesAfterCountry)
+
+    act(() => result.current.selectScope('global'))
+    expect(result.current.selected.scope_name).toBe('Global')
+    expect(window.location.hash).toBe('#dashboard?metric=candidate_only_cells')
+    expect(pushState).toHaveBeenCalledTimes(historyEntriesAfterCountry + 1)
+  })
+
+  it('rejects unknown selection identities before changing the URL', () => {
+    const initialHash = window.location.hash
+
+    expect(() => geographicScopeHash('country:XX', initialHash)).toThrow(
+      'Unknown geographic scope: country:XX',
+    )
+    expect(window.location.hash).toBe(initialHash)
   })
 })
