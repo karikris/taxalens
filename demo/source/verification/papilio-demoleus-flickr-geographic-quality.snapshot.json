@@ -1,0 +1,1155 @@
+{
+  "blockers": [
+    "retained_human_outcomes_empty",
+    "decisive_sample_empty"
+  ],
+  "campaignId": "flickr-audit-fa3dbbb5e5a678f38eb7e7cd",
+  "counts": {
+    "assignedOwnerGroupCount": 49,
+    "cantViewItemCount": 0,
+    "consensusItemCount": 0,
+    "decisiveItemCount": 0,
+    "mediaFailureItemCount": 0,
+    "pendingItemCount": 49,
+    "retainedEventCount": 0,
+    "reviewedNegativeItemCount": 0,
+    "reviewedPositiveItemCount": 0,
+    "skippedItemCount": 0,
+    "uncertainItemCount": 0
+  },
+  "dimensions": {
+    "continent": [
+      {
+        "assignedOwnerGroupCount": 0,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 0,
+        "populationOwnerGroupCount": 2,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "Africa",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 17,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 17,
+        "populationOwnerGroupCount": 24,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "Asia",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 15,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 15,
+        "populationOwnerGroupCount": 46,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "Europe",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 11,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 11,
+        "populationOwnerGroupCount": 45,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "North America",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 4,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 4,
+        "populationOwnerGroupCount": 14,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "Oceania",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 0,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 0,
+        "populationOwnerGroupCount": 2,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "South America",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 2,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 2,
+        "populationOwnerGroupCount": 12,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "unavailable",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      }
+    ],
+    "coordinate_support": [
+      {
+        "assignedOwnerGroupCount": 1,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 1,
+        "populationOwnerGroupCount": 3,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "country_precision_only",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 1,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 1,
+        "populationOwnerGroupCount": 1,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "no_usable_geo",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 47,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 47,
+        "populationOwnerGroupCount": 141,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "spatial_cell_supported",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      }
+    ],
+    "country": [
+      {
+        "assignedOwnerGroupCount": 0,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 0,
+        "populationOwnerGroupCount": 1,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "AT",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 3,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 3,
+        "populationOwnerGroupCount": 12,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "AU",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 0,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 0,
+        "populationOwnerGroupCount": 1,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "BG",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 0,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 0,
+        "populationOwnerGroupCount": 1,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "BJ",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 0,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 0,
+        "populationOwnerGroupCount": 1,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "BO",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 0,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 0,
+        "populationOwnerGroupCount": 3,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "CA",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 1,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 1,
+        "populationOwnerGroupCount": 1,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "CN",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 0,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 0,
+        "populationOwnerGroupCount": 1,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "CY",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 1,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 1,
+        "populationOwnerGroupCount": 2,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "CZ",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 4,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 4,
+        "populationOwnerGroupCount": 5,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "DE",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 0,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 0,
+        "populationOwnerGroupCount": 3,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "ES",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 0,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 0,
+        "populationOwnerGroupCount": 1,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "FI",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 4,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 4,
+        "populationOwnerGroupCount": 12,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "FR",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 4,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 4,
+        "populationOwnerGroupCount": 9,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "GB",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 0,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 0,
+        "populationOwnerGroupCount": 1,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "GR",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 1,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 1,
+        "populationOwnerGroupCount": 1,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "GT",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 7,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 7,
+        "populationOwnerGroupCount": 8,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "IN",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 0,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 0,
+        "populationOwnerGroupCount": 6,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "IT",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 0,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 0,
+        "populationOwnerGroupCount": 2,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "JP",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 1,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 1,
+        "populationOwnerGroupCount": 1,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "KH",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 0,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 0,
+        "populationOwnerGroupCount": 1,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "LK",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 1,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 1,
+        "populationOwnerGroupCount": 1,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "LT",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 0,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 0,
+        "populationOwnerGroupCount": 1,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "MX",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 2,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 2,
+        "populationOwnerGroupCount": 2,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "MY",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 0,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 0,
+        "populationOwnerGroupCount": 1,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "NL",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 1,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 1,
+        "populationOwnerGroupCount": 1,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "NP",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 1,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 1,
+        "populationOwnerGroupCount": 2,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "NZ",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 1,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 1,
+        "populationOwnerGroupCount": 1,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "OM",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 1,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 1,
+        "populationOwnerGroupCount": 1,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "PH",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 0,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 0,
+        "populationOwnerGroupCount": 1,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "PY",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 1,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 1,
+        "populationOwnerGroupCount": 1,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "RO",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 0,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 0,
+        "populationOwnerGroupCount": 2,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "RU",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 0,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 0,
+        "populationOwnerGroupCount": 1,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "SN",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 2,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 2,
+        "populationOwnerGroupCount": 2,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "TH",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 0,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 0,
+        "populationOwnerGroupCount": 2,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "TR",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 10,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 10,
+        "populationOwnerGroupCount": 40,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "US",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 1,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 1,
+        "populationOwnerGroupCount": 1,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "VN",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 2,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 2,
+        "populationOwnerGroupCount": 12,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "unavailable",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      }
+    ],
+    "coverage": [
+      {
+        "assignedOwnerGroupCount": 1,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 1,
+        "populationOwnerGroupCount": 1,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "baseline_covered_cell",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 46,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 46,
+        "populationOwnerGroupCount": 140,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "candidate_only_cell",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 2,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 2,
+        "populationOwnerGroupCount": 4,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "comparison_unavailable",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      }
+    ],
+    "query_trust_tier": [
+      {
+        "assignedOwnerGroupCount": 0,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 0,
+        "populationOwnerGroupCount": 3,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "T1",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 41,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 41,
+        "populationOwnerGroupCount": 125,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "T2",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 7,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 7,
+        "populationOwnerGroupCount": 16,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "T3",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 1,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 1,
+        "populationOwnerGroupCount": 1,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "T4",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      }
+    ],
+    "raw_screening_score_band": [
+      {
+        "assignedOwnerGroupCount": 17,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 17,
+        "populationOwnerGroupCount": 61,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "high",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 20,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 20,
+        "populationOwnerGroupCount": 62,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "low",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      },
+      {
+        "assignedOwnerGroupCount": 12,
+        "decisiveItemCount": 0,
+        "interval": null,
+        "intervalAvailability": "unavailable",
+        "intervalBlockers": [
+          "decisive_sample_empty"
+        ],
+        "mediaFailureItemCount": 0,
+        "pendingItemCount": 12,
+        "populationOwnerGroupCount": 22,
+        "reviewedNegativeItemCount": 0,
+        "reviewedPositiveItemCount": 0,
+        "uncertainItemCount": 0,
+        "value": "middle",
+        "weightedDecisiveOwnerTotal": 0,
+        "weightedPositiveOwnerTotal": 0,
+        "weightedTargetPrecisionEstimate": null
+      }
+    ]
+  },
+  "firstDecisiveMilestone": 20,
+  "qualitySnapshotStatus": "unavailable",
+  "sampling": {
+    "design": "stratified_random",
+    "geographicDimensionsDoNotAlterInclusionProbability": true,
+    "independentUnit": "owner_group",
+    "nonScientificOutcomesExcludedFromDecisiveSample": true,
+    "representative": true,
+    "weightsPreserved": true
+  },
+  "schemaVersion": "taxalens-geographic-quality-snapshot:v1.0.0",
+  "scientificClaimAllowed": false,
+  "snapshotSha256": "423df881dd8a741e7f638739e4041d7105c87b9d43a621bcd69f42d5f6e05202",
+  "sources": {
+    "campaignPacketSha256": "0a2100ba90032a12b9bdfeac6810c4cf4129b1789c815f7796dfad1f0addf754",
+    "consensusTableSha256": "358afaf053c095b275e6189632fd22b4bd10b266953d57fd40e606163e194e0f",
+    "eventsTableSha256": "2f87e232c9721c6d38ff2da7974bd468cd7c9048e2064ebcadc221663b612d67",
+    "geographicImpactArtifactSha256": "a02927ffbb4dc09fca582c61e6ceab51af6d12f8998cf0f7762ebfe26a4ea1c9"
+  }
+}

@@ -1,7 +1,7 @@
 {
   "bucket_alias": "taxalens-repository-fixture",
   "credentials_included": false,
-  "object_count": 99,
+  "object_count": 100,
   "objects": [
     {
       "bytes": 484,
@@ -850,13 +850,22 @@
       "sha256": "00087bce738f5098893eea7b8fce238d3c88f85a7ee643eceddfb22466d6087d"
     },
     {
-      "bytes": 293048,
+      "bytes": 334696,
       "git_tracked_required": true,
       "immutable": true,
       "media_type": "application/json",
       "object_key": "taxalens/demo/source/verification/papilio-demoleus-flickr-audit.campaign.json",
       "repository_path": "demo/source/verification/papilio-demoleus-flickr-audit.campaign.json",
-      "sha256": "c9efb76f6c576b217aa7fd7469f49d671d81e3b248b2ab735d4fb874be6b61bc"
+      "sha256": "0a2100ba90032a12b9bdfeac6810c4cf4129b1789c815f7796dfad1f0addf754"
+    },
+    {
+      "bytes": 37122,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/verification/papilio-demoleus-flickr-geographic-quality.snapshot.json",
+      "repository_path": "demo/source/verification/papilio-demoleus-flickr-geographic-quality.snapshot.json",
+      "sha256": "d40396ca47f16168aed55f3855d6c983fff022cc9099f144b21712aaf68cb905"
     },
     {
       "bytes": 112356,
@@ -900,5 +909,5 @@
   "scientific_claim_allowed": false,
   "signed_urls_included": false,
   "storage_mode": "repository_mirror",
-  "total_bytes": 15524081
+  "total_bytes": 15602851
 }
