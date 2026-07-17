@@ -40,8 +40,10 @@ function QualityCampaign({
 }: {
   readonly quality: GeographicReviewQualityProjection
 }) {
+  const populationInferenceEligible =
+    quality.samplingRepresentative && quality.qualityEstimationAllowed
   return (
-    <li>
+    <li data-population-inference={populationInferenceEligible ? 'eligible' : 'blocked'}>
       <h5>{quality.campaignTitle}</h5>
       <p>
         <strong>{formatToken(quality.samplingPurpose)}</strong> ·{' '}
@@ -50,7 +52,7 @@ function QualityCampaign({
       </p>
       <dl>
         <div>
-          <dt>Current decisive outcomes</dt>
+          <dt>Reviewed examples</dt>
           <dd>{formatCount(quality.currentDecisivelyReviewedCount)}</dd>
         </div>
         <div>
@@ -58,11 +60,9 @@ function QualityCampaign({
           <dd>{quality.snapshot.availability}</dd>
         </div>
         <div>
-          <dt>Interval state</dt>
+          <dt>Population inference</dt>
           <dd>
-            {quality.snapshot.availability === 'available'
-              ? formatToken(quality.snapshot.intervalAvailability)
-              : 'unavailable'}
+            {populationInferenceEligible ? 'sampling design eligible' : 'blocked'}
           </dd>
         </div>
         <div>
@@ -74,6 +74,17 @@ function QualityCampaign({
           </dd>
         </div>
       </dl>
+      {populationInferenceEligible ? (
+        <EligibleQualityEstimate quality={quality} />
+      ) : (
+        <p role="status">
+          Population-quality claims are blocked.{' '}
+          {quality.qualityEstimationBlockedReason ??
+            'This campaign sampling design is not representative.'}{' '}
+          The {formatCount(quality.currentDecisivelyReviewedCount)} decisive outcome
+          {quality.currentDecisivelyReviewedCount === 1 ? '' : 's'} remain reviewed examples only.
+        </p>
+      )}
       {quality.snapshot.availability === 'unavailable' ? (
         <p role="status">{quality.snapshot.reason}</p>
       ) : (
@@ -86,10 +97,44 @@ function QualityCampaign({
   )
 }
 
+function EligibleQualityEstimate({
+  quality,
+}: {
+  readonly quality: GeographicReviewQualityProjection
+}) {
+  if (quality.snapshot.availability === 'unavailable') {
+    return <p>Population-quality estimate unavailable until a retained snapshot is attached.</p>
+  }
+  if (
+    quality.snapshot.precisionAvailability !== 'available' ||
+    quality.snapshot.pointEstimate === null
+  ) {
+    return <p>Population-quality estimate unavailable in the retained snapshot.</p>
+  }
+  const interval =
+    quality.snapshot.intervalAvailability === 'available' &&
+    quality.snapshot.interval !== null &&
+    quality.snapshot.confidenceLevel !== null
+      ? ` ${formatPercent(quality.snapshot.confidenceLevel)} confidence interval ${formatPercent(quality.snapshot.interval.lower)}–${formatPercent(quality.snapshot.interval.upper)}.`
+      : ' Confidence interval unavailable.'
+  return (
+    <p>
+      Snapshot quality estimate {formatPercent(quality.snapshot.pointEstimate)}.{interval}
+    </p>
+  )
+}
+
 function formatToken(value: string): string {
   return value.replaceAll('_', ' ')
 }
 
 function formatCount(value: number): string {
   return value.toLocaleString('en-US')
+}
+
+function formatPercent(value: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'percent',
+    maximumFractionDigits: 1,
+  }).format(value)
 }
