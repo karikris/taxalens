@@ -3,6 +3,9 @@ from __future__ import annotations
 import polars as pl
 import pytest
 from packages.replay.src.geographic_impact_materializer import (
+    NEAREST_BASELINE_DISTANCE_METHOD,
+    _haversine_km,
+    _with_nearest_baseline_distance,
     geographic_impact_cell_schema,
     geographic_impact_summary_schema,
 )
@@ -114,6 +117,72 @@ def test_committed_cells_preserve_zero_review_and_unassigned_scope(
         pl.col("country_code").is_null()
         & (pl.col("continent").is_not_null() | pl.col("country").is_not_null())
     ).is_empty()
+
+
+def test_committed_candidate_only_cells_have_same_resolution_baseline_proximity(
+    committed_cells: pl.DataFrame,
+) -> None:
+    candidate_only = committed_cells.filter(pl.col("candidate_only_cell"))
+
+    assert candidate_only.height == 6_764
+    assert candidate_only.get_column("nearest_baseline_distance_status").unique().to_list() == [
+        "available"
+    ]
+    assert candidate_only.get_column("nearest_baseline_distance_method").unique().to_list() == [
+        NEAREST_BASELINE_DISTANCE_METHOD
+    ]
+    assert candidate_only.filter(
+        pl.col("nearest_baseline_distance_km").is_null()
+        | (pl.col("nearest_baseline_distance_km") <= 0)
+        | pl.col("nearest_baseline_cell_id").is_null()
+    ).is_empty()
+
+    baseline_identities = committed_cells.select(
+        pl.col("spatial_resolution").alias("spatial_resolution"),
+        pl.col("spatial_cell_id").alias("nearest_baseline_cell_id"),
+        pl.col("baseline_range_inference_eligible_count").alias("nearest_eligible_count"),
+    )
+    reconciled = candidate_only.join(
+        baseline_identities,
+        on=["spatial_resolution", "nearest_baseline_cell_id"],
+        how="left",
+        validate="m:1",
+    )
+    assert reconciled.filter(pl.col("nearest_eligible_count").fill_null(0) == 0).is_empty()
+
+
+def test_nearest_baseline_distance_uses_haversine_and_lexical_tie_breaking() -> None:
+    joined = pl.DataFrame(
+        {
+            "spatial_resolution": [3, 3, 3, 5],
+            "spatial_cell_id": ["baseline-z", "baseline-a", "candidate", "unmatched"],
+            "centroid_latitude": [0.0, 0.0, 0.0, 1.0],
+            "centroid_longitude": [-1.0, 1.0, 0.0, 1.0],
+            "baseline_range_inference_eligible_count": [1, 1, 0, 0],
+            "flickr_candidate_count": [0, 0, 1, 1],
+        },
+        schema={
+            "spatial_resolution": pl.UInt8,
+            "spatial_cell_id": pl.String,
+            "centroid_latitude": pl.Float64,
+            "centroid_longitude": pl.Float64,
+            "baseline_range_inference_eligible_count": pl.UInt64,
+            "flickr_candidate_count": pl.UInt64,
+        },
+    )
+
+    actual = _with_nearest_baseline_distance(joined)
+    candidate = actual.filter(pl.col("spatial_cell_id") == "candidate").row(0, named=True)
+    unmatched = actual.filter(pl.col("spatial_cell_id") == "unmatched").row(0, named=True)
+
+    assert candidate["nearest_baseline_distance_status"] == "available"
+    assert candidate["nearest_baseline_cell_id"] == "baseline-a"
+    assert candidate["nearest_baseline_distance_method"] == NEAREST_BASELINE_DISTANCE_METHOD
+    assert candidate["nearest_baseline_distance_km"] == pytest.approx(
+        _haversine_km(0.0, 0.0, 0.0, 1.0)
+    )
+    assert unmatched["nearest_baseline_distance_status"] == "unavailable"
+    assert unmatched["nearest_baseline_distance_km"] is None
 
 
 def test_committed_summaries_cover_supported_hierarchy_scopes(

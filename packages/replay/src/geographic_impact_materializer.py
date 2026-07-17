@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import date
@@ -47,6 +48,8 @@ DEFAULT_COUNTRY_HIERARCHY = REPOSITORY_ROOT / "demo/source/geography/country_hie
 
 GEOGRAPHIC_IMPACT_MATERIALIZATION_POLICY_VERSION = "geographic-impact-materialization-policy:v1.0.0"
 OCCURRENCE_RELEASE_POLICY_VERSION = RELEASE_POLICY_VERSION
+NEAREST_BASELINE_DISTANCE_METHOD = "haversine_cell_centroid"
+MEAN_EARTH_RADIUS_KM = 6_371.0088
 
 _CELL_KEYS = ["spatial_resolution", "spatial_cell_id"]
 
@@ -157,6 +160,7 @@ def build_geographic_impact_cells(
         "release_ready_count",
     ]
     joined = joined.with_columns([pl.col(column).fill_null(0) for column in count_columns])
+    joined = _with_nearest_baseline_distance(joined)
     eligible = pl.col("baseline_range_inference_eligible_count")
     candidates = pl.col("flickr_candidate_count")
     data_deficient_reasons = pl.concat_list(
@@ -207,13 +211,10 @@ def build_geographic_impact_cells(
             ((eligible == 0) & (pl.col("release_ready_count") > 0)).alias(
                 "release_ready_additional_cell"
             ),
-            pl.when(eligible > 0)
-            .then(pl.lit("not_applicable"))
-            .otherwise(pl.lit("unavailable"))
-            .alias("nearest_baseline_distance_status"),
-            pl.lit(None, dtype=pl.Float64).alias("nearest_baseline_distance_km"),
-            pl.lit(None, dtype=pl.String).alias("nearest_baseline_cell_id"),
-            pl.lit(None, dtype=pl.String).alias("nearest_baseline_distance_method"),
+            pl.col("nearest_baseline_distance_status"),
+            pl.col("nearest_baseline_distance_km"),
+            pl.col("nearest_baseline_cell_id"),
+            pl.col("nearest_baseline_distance_method"),
             pl.lit(None, dtype=pl.Date).alias("latest_flickr_candidate_date"),
             pl.lit("data_deficient").alias("data_deficient_state"),
             data_deficient_reasons.alias("data_deficient_reasons"),
@@ -771,6 +772,117 @@ def _cell_scope_frame(cells: pl.DataFrame, lookup: OfflineCountryLookup) -> pl.D
             "centroid_longitude": pl.Float64,
         },
     )
+
+
+def _with_nearest_baseline_distance(joined: pl.DataFrame) -> pl.DataFrame:
+    """Attach deterministic same-resolution candidate-to-baseline proximity."""
+
+    required = {
+        "spatial_resolution",
+        "spatial_cell_id",
+        "centroid_latitude",
+        "centroid_longitude",
+        "baseline_range_inference_eligible_count",
+        "flickr_candidate_count",
+    }
+    if not required.issubset(joined.columns):
+        raise GeographicImpactMaterializationError(
+            "nearest baseline distance input columns are missing"
+        )
+
+    baseline_by_resolution: dict[int, list[tuple[str, float, float]]] = {}
+    for row in joined.filter(pl.col("baseline_range_inference_eligible_count") > 0).iter_rows(
+        named=True
+    ):
+        resolution = int(row["spatial_resolution"])
+        baseline_by_resolution.setdefault(resolution, []).append(
+            (
+                _required_text(row["spatial_cell_id"], "baseline spatial cell ID"),
+                float(row["centroid_latitude"]),
+                float(row["centroid_longitude"]),
+            )
+        )
+    for baselines in baseline_by_resolution.values():
+        baselines.sort(key=lambda item: item[0])
+
+    proximity_rows: list[dict[str, object]] = []
+    for row in joined.iter_rows(named=True):
+        eligible_count = int(row["baseline_range_inference_eligible_count"])
+        candidate_count = int(row["flickr_candidate_count"])
+        if eligible_count > 0:
+            proximity_rows.append(_unavailable_distance_row("not_applicable"))
+            continue
+        baselines = baseline_by_resolution.get(int(row["spatial_resolution"]), [])
+        if candidate_count == 0 or not baselines:
+            proximity_rows.append(_unavailable_distance_row("unavailable"))
+            continue
+
+        latitude = float(row["centroid_latitude"])
+        longitude = float(row["centroid_longitude"])
+        nearest_cell_id, nearest_distance = min(
+            [
+                (
+                    baseline_cell_id,
+                    _haversine_km(
+                        latitude,
+                        longitude,
+                        baseline_latitude,
+                        baseline_longitude,
+                    ),
+                )
+                for baseline_cell_id, baseline_latitude, baseline_longitude in baselines
+            ],
+            key=lambda item: (item[1], item[0]),
+        )
+        proximity_rows.append(
+            {
+                "nearest_baseline_distance_status": "available",
+                "nearest_baseline_distance_km": nearest_distance,
+                "nearest_baseline_cell_id": nearest_cell_id,
+                "nearest_baseline_distance_method": NEAREST_BASELINE_DISTANCE_METHOD,
+            }
+        )
+
+    proximity = pl.DataFrame(
+        proximity_rows,
+        schema={
+            "nearest_baseline_distance_status": pl.String,
+            "nearest_baseline_distance_km": pl.Float64,
+            "nearest_baseline_cell_id": pl.String,
+            "nearest_baseline_distance_method": pl.String,
+        },
+    )
+    return joined.hstack(proximity)
+
+
+def _unavailable_distance_row(status: str) -> dict[str, object]:
+    return {
+        "nearest_baseline_distance_status": status,
+        "nearest_baseline_distance_km": None,
+        "nearest_baseline_cell_id": None,
+        "nearest_baseline_distance_method": None,
+    }
+
+
+def _haversine_km(
+    latitude_a: float,
+    longitude_a: float,
+    latitude_b: float,
+    longitude_b: float,
+) -> float:
+    """Return centroid great-circle distance using a fixed mean Earth radius."""
+
+    latitude_a_radians = math.radians(latitude_a)
+    latitude_b_radians = math.radians(latitude_b)
+    latitude_delta = latitude_b_radians - latitude_a_radians
+    longitude_delta = math.radians(longitude_b - longitude_a)
+    haversine = (
+        math.sin(latitude_delta / 2.0) ** 2
+        + math.cos(latitude_a_radians)
+        * math.cos(latitude_b_radians)
+        * math.sin(longitude_delta / 2.0) ** 2
+    )
+    return 2.0 * MEAN_EARTH_RADIUS_KM * math.asin(math.sqrt(min(1.0, haversine)))
 
 
 def _validate_inputs(
