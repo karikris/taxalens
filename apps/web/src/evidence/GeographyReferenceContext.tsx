@@ -9,6 +9,7 @@ import {
 } from './geographyReferenceModel'
 import { RecordGeographicMiniMap } from './RecordGeographicMiniMap'
 import { RecordGeographicFacts } from './RecordGeographicFacts'
+import { RecordGeographicActions } from './RecordGeographicActions'
 import type { RecordGeographicContextLoadState } from './recordGeographicContext'
 
 export function GeographyReferenceContext({
@@ -107,7 +108,10 @@ export function GeographyReferenceContext({
       </div>
 
       {recordGeography.status === 'available' ? (
-        <RecordGeographicFacts context={recordGeography.context} />
+        <>
+          <RecordGeographicFacts context={recordGeography.context} />
+          <RecordGeographicActions context={recordGeography.context} />
+        </>
       ) : null}
 
       <div className="geography-reference__evidence">

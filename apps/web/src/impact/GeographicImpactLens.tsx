@@ -23,6 +23,9 @@ import { SelectedGeographyDetails } from './SelectedGeographyDetails'
 import { useGeographicScopeState } from './geographicScope'
 import { OfflineWorldMap } from './OfflineWorldMap'
 import { buildBoundedGeographicImpactFeatures } from './geographicImpactFeatureCollection'
+import {
+  useGeographicImpactRecordRouteState,
+} from './geographicImpactRecordRoute'
 import type {
   GeographicEvidenceMode,
   GeographicImpactMetric,
@@ -41,7 +44,10 @@ export function GeographicImpactLens({
   readonly webGlSupported?: boolean
 }) {
   const scope = useGeographicScopeState()
-  const [selectedCellId, setSelectedCellId] = useState<string | null>(null)
+  const recordRoute = useGeographicImpactRecordRouteState()
+  const [selectedCellId, setSelectedCellId] = useState<string | null>(
+    recordRoute.target?.spatialCellId ?? null,
+  )
   const [rankingMetric, setRankingMetric] =
     useState<GeographicImpactMetric>('candidate_only_cells')
   const [evidenceMode, setEvidenceMode] =
@@ -113,6 +119,22 @@ export function GeographicImpactLens({
     () => setSelectedCellId(null),
     [evidenceMode, scope.selected.scope_id],
   )
+  useEffect(() => {
+    if (recordRoute.target?.scopeId === scope.selected.scope_id) {
+      setSelectedCellId(recordRoute.target.spatialCellId)
+    }
+  }, [recordRoute.target, scope.selected.scope_id])
+  useEffect(() => {
+    const target = recordRoute.target
+    if (
+      target === null ||
+      visibleCells === undefined ||
+      !visibleCells.some(({ spatialCellId }) => spatialCellId === target.spatialCellId)
+    ) return
+    if (target.focus === 'lens') {
+      window.requestAnimationFrame(() => document.getElementById('geographic-impact-lens')?.focus())
+    }
+  }, [recordRoute.target, visibleCells])
 
   return (
     <section
@@ -134,6 +156,11 @@ export function GeographicImpactLens({
         </p>
       </div>
       <MapEvidenceState state={mapData} evidenceData={evidenceData} />
+      {recordRoute.error === null ? null : (
+        <EvidenceState state="failure" title="Record geographic link stopped">
+          {recordRoute.error}
+        </EvidenceState>
+      )}
       <div className="geographic-impact-lens__scope" role="status" aria-live="polite">
         <span>Geographic scope</span>
         <strong>{scope.selected.scope_name}</strong>
@@ -185,6 +212,7 @@ export function GeographicImpactLens({
           />
           <GeographicImpactTable
             cells={visibleData.cells}
+            focusCellId={recordRoute.target?.focus === 'table' ? recordRoute.target.spatialCellId : null}
             selectedCellId={selectedCellId}
             onCellSelect={setSelectedCellId}
           />

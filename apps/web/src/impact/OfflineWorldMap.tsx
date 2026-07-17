@@ -104,6 +104,7 @@ export function OfflineWorldMap({
 
   useEffect(() => {
     if (
+      impactFeatures !== undefined &&
       effectiveSelectedImpactCellId !== null &&
       selectedImpactFeature === null
     ) {

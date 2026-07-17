@@ -1577,6 +1577,86 @@
   display: block;
 }
 
+.record-geographic-actions {
+  display: grid;
+  gap: var(--tl-space-3);
+  padding: var(--tl-space-3);
+  background: var(--tl-surface-paper);
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.record-geographic-actions__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tl-space-2);
+}
+
+.record-geographic-actions__links a,
+.record-geographic-actions__links span[aria-disabled="true"] {
+  min-height: 2.75rem;
+  padding: var(--tl-space-2) var(--tl-space-3);
+  font-weight: 800;
+  border: 1px solid var(--tl-brand-strong);
+  border-radius: var(--tl-radius-sm);
+}
+
+.record-geographic-actions__links a {
+  color: var(--tl-surface-paper);
+  background: var(--tl-brand-strong);
+}
+
+.record-geographic-actions__links span[aria-disabled="true"] {
+  color: var(--tl-ink-muted);
+  background: var(--tl-state-unavailable-bg);
+  border-style: dashed;
+}
+
+.record-geographic-actions__provenance {
+  padding: var(--tl-space-2);
+  background: var(--tl-surface-subtle);
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.record-geographic-actions__provenance summary {
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.record-geographic-actions__provenance dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--tl-space-2);
+  margin: var(--tl-space-3) 0 0;
+}
+
+.record-geographic-actions__provenance dl > div {
+  min-width: 0;
+  padding: var(--tl-space-2);
+  background: var(--tl-surface-paper);
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.record-geographic-actions__provenance dt {
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-xs);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.record-geographic-actions__provenance dd {
+  margin: var(--tl-space-1) 0 0;
+  overflow-wrap: anywhere;
+}
+
+.record-geographic-actions__provenance p {
+  margin: var(--tl-space-2) 0 0;
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-sm);
+}
+
 .record-geographic-facts dd > span,
 .record-geographic-facts dd > code {
   margin-top: var(--tl-space-1);
@@ -2047,6 +2127,7 @@
   .geography-reference__shortfalls > dl,
   .geography-reference__footer,
   .record-geographic-facts dl,
+  .record-geographic-actions__provenance dl,
   .evidence-ledger__timeline dl {
     grid-template-columns: 1fr;
   }

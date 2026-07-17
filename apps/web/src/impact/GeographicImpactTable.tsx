@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import type { PublicGeographicImpactMapCell } from './publicGeographicImpactMapData'
+import { geographicImpactCellRowId } from './geographicImpactRecordRoute'
 
 const DEFAULT_PAGE_SIZE = 25
 
@@ -27,11 +28,13 @@ export interface GeographicImpactTableSort {
 
 export function GeographicImpactTable({
   cells,
+  focusCellId = null,
   selectedCellId,
   onCellSelect,
   pageSize = DEFAULT_PAGE_SIZE,
 }: {
   readonly cells: readonly PublicGeographicImpactMapCell[]
+  readonly focusCellId?: string | null
   readonly selectedCellId: string | null
   readonly onCellSelect: (spatialCellId: string) => void
   readonly pageSize?: number
@@ -54,6 +57,14 @@ export function GeographicImpactTable({
     )
     if (selectedIndex >= 0) setPage(Math.floor(selectedIndex / pageSize))
   }, [pageSize, selectedCellId, sortedCells])
+  useEffect(() => {
+    if (focusCellId === null || focusCellId !== selectedCellId) return
+    const row = document.getElementById(geographicImpactCellRowId(focusCellId))
+    if (row instanceof HTMLElement) {
+      row.focus()
+      row.scrollIntoView?.({ block: 'center' })
+    }
+  }, [focusCellId, safePage, selectedCellId])
 
   const changeSort = (key: GeographicImpactTableSortKey) => {
     setSort((current) => ({
@@ -107,7 +118,12 @@ export function GeographicImpactTable({
             {visibleCells.map((cell) => {
               const selected = cell.spatialCellId === selectedCellId
               return (
-                <tr key={cell.spatialCellId} data-selected={selected ? 'true' : 'false'}>
+                <tr
+                  id={geographicImpactCellRowId(cell.spatialCellId)}
+                  key={cell.spatialCellId}
+                  data-selected={selected ? 'true' : 'false'}
+                  tabIndex={selected ? -1 : undefined}
+                >
                   <td>
                     <button
                       type="button"

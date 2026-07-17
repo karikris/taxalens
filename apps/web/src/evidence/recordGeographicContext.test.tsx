@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { RecordGeographicMiniMap } from './RecordGeographicMiniMap'
+import { RecordGeographicActions } from './RecordGeographicActions'
 import {
   RecordGeographicFacts,
   buildRecordGeographicFactsModel,
@@ -169,5 +170,27 @@ describe('record Geographic Impact context', () => {
     expect(screen.getByText('Baseline data state').parentElement).toHaveTextContent(
       'data deficientData deficiency is not a species-absence claim.',
     )
+  })
+
+  it('links the exact country cell, verification item, and inline baseline provenance', () => {
+    render(<RecordGeographicActions context={context} />)
+
+    expect(screen.getByRole('link', { name: 'Open Geographic Impact' })).toHaveAttribute(
+      'href',
+      '#dashboard?geo=country%3ASE&geo-cell=87088660cffffff&geo-resolution=7&geo-focus=lens',
+    )
+    expect(screen.getByRole('link', { name: 'View records in this cell' })).toHaveAttribute(
+      'href',
+      '#dashboard?geo=country%3ASE&geo-cell=87088660cffffff&geo-resolution=7&geo-focus=table',
+    )
+    expect(screen.getByRole('link', { name: 'Verify this result' })).toHaveAttribute(
+      'href',
+      '#verification?campaign=papilio-demoleus-flickr-candidate-intake-v1&item=flickr%3A55081300254&return=evidence-lens',
+    )
+    const provenance = screen.getByText('Inspect baseline provenance').closest('details')
+    expect(provenance).not.toBeNull()
+    expect(provenance).toHaveTextContent('baseline:snapshot')
+    expect(provenance).toHaveTextContent('871968a00ffffff')
+    expect(provenance).toHaveTextContent(/does not prove biological absence/u)
   })
 })

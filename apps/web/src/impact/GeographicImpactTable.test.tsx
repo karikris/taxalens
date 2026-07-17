@@ -44,6 +44,7 @@ describe('GeographicImpactTable', () => {
     rerender(
       <GeographicImpactTable
         cells={cells}
+        focusCellId="cell:00"
         selectedCellId="cell:00"
         onCellSelect={onCellSelect}
         pageSize={10}
@@ -52,6 +53,7 @@ describe('GeographicImpactTable', () => {
     expect(screen.getByRole('status', { name: '' })).toHaveTextContent('Page 3 of 3')
     const selectedButton = screen.getByRole('button', { name: 'Selected cell:00' })
     expect(selectedButton).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('rowheader', { name: 'cell:00' }).closest('tr')).toHaveFocus()
   })
 
   it('uses aria-sort and preserves unavailable and zero values', () => {
