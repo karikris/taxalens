@@ -163,9 +163,9 @@ export interface GeographicImpactCellRow {
   readonly spatial_cell_id: string
   readonly parent_spatial_cell_id: string | null
   readonly country_hierarchy_id: string
-  readonly continent: GeographicContinent
-  readonly country_code: string
-  readonly country: string
+  readonly continent: GeographicContinent | null
+  readonly country_code: string | null
+  readonly country: string | null
   readonly admin1: string | null
   readonly centroid_latitude: number
   readonly centroid_longitude: number
@@ -454,9 +454,9 @@ export const GEOGRAPHIC_IMPACT_CELL_PARQUET_COLUMNS = Object.freeze({
   spatial_cell_id: { physicalType: 'utf8', nullable: false },
   parent_spatial_cell_id: { physicalType: 'utf8', nullable: true },
   country_hierarchy_id: { physicalType: 'utf8', nullable: false },
-  continent: { physicalType: 'utf8', nullable: false },
-  country_code: { physicalType: 'utf8', nullable: false },
-  country: { physicalType: 'utf8', nullable: false },
+  continent: { physicalType: 'utf8', nullable: true },
+  country_code: { physicalType: 'utf8', nullable: true },
+  country: { physicalType: 'utf8', nullable: true },
   admin1: { physicalType: 'utf8', nullable: true },
   centroid_latitude: { physicalType: 'float64', nullable: false },
   centroid_longitude: { physicalType: 'float64', nullable: false },

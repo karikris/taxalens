@@ -11,9 +11,9 @@
       "sha256": "12bdea477ada9f6b4452f406df70ad441ea7576134e8fd1b950e2ead6f8049b4"
     },
     {
-      "bytes": 40607,
+      "bytes": 41059,
       "path": "demo/repository_storage/backblaze_b2/object_manifest.json",
-      "sha256": "49c721e4d5e48f581d77a12bc23be0df74fb1863d808ceddfdb6d1020484556a"
+      "sha256": "9b204498e8e9584ad0086e3225ef810421bf6954b7f5565c7b16498f127cd93e"
     },
     {
       "bytes": 293,

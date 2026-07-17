@@ -196,9 +196,9 @@ GEOGRAPHIC_IMPACT_CELL_PARQUET_COLUMNS: Final[tuple[ParquetColumnContract, ...]]
     ParquetColumnContract("spatial_cell_id", "utf8", False),
     ParquetColumnContract("parent_spatial_cell_id", "utf8", True),
     ParquetColumnContract("country_hierarchy_id", "utf8", False),
-    ParquetColumnContract("continent", "utf8", False),
-    ParquetColumnContract("country_code", "utf8", False),
-    ParquetColumnContract("country", "utf8", False),
+    ParquetColumnContract("continent", "utf8", True),
+    ParquetColumnContract("country_code", "utf8", True),
+    ParquetColumnContract("country", "utf8", True),
     ParquetColumnContract("admin1", "utf8", True),
     ParquetColumnContract("centroid_latitude", "float64", False),
     ParquetColumnContract("centroid_longitude", "float64", False),
@@ -392,9 +392,9 @@ class GeographicImpactCellRow:
     spatial_cell_id: str
     parent_spatial_cell_id: str | None
     country_hierarchy_id: str
-    continent: GeographicContinent
-    country_code: str
-    country: str
+    continent: GeographicContinent | None
+    country_code: str | None
+    country: str | None
     admin1: str | None
     centroid_latitude: float
     centroid_longitude: float

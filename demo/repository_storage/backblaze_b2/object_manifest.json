@@ -1,7 +1,7 @@
 {
   "bucket_alias": "taxalens-repository-fixture",
   "credentials_included": false,
-  "object_count": 95,
+  "object_count": 96,
   "objects": [
     {
       "bytes": 484,
@@ -463,6 +463,15 @@
       "sha256": "dc58d485d6aee0233ab45c1a857f35ff52c242b5552e50d8a31367a7973ceb71"
     },
     {
+      "bytes": 558789,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/vnd.apache.parquet",
+      "object_key": "taxalens/demo/source/biominer_phase14/geographic_impact/geographic_impact_cells.parquet",
+      "repository_path": "demo/source/biominer_phase14/geographic_impact/geographic_impact_cells.parquet",
+      "sha256": "4b889b51507fe10e6942ff09b38baf25dcaa53084e7ccf731a5ddc5a6d00f2be"
+    },
+    {
       "bytes": 3144,
       "git_tracked_required": true,
       "immutable": true,
@@ -864,5 +873,5 @@
   "scientific_claim_allowed": false,
   "signed_urls_included": false,
   "storage_mode": "repository_mirror",
-  "total_bytes": 14835101
+  "total_bytes": 15393890
 }

@@ -195,6 +195,23 @@ def test_impact_cell_contract_accepts_human_supported_release_ready_cell() -> No
     assert_geographic_contract("geographic_impact_cell", candidate_only)
 
 
+def test_impact_cell_contract_preserves_unassigned_cartographic_scope() -> None:
+    unassigned = {
+        **_impact_cell_row(),
+        "continent": None,
+        "country_code": None,
+        "country": None,
+        "admin1": None,
+    }
+
+    row = GeographicImpactCellRow.from_mapping(unassigned)
+
+    assert row.continent is None
+    assert row.country_code is None
+    assert row.country is None
+    assert row.to_dict() == unassigned
+
+
 @pytest.mark.parametrize(
     ("updates", "expected_keyword"),
     [

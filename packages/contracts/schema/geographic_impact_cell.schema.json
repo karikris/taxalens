@@ -91,19 +91,9 @@
     "spatial_cell_id": {"$ref": "#/$defs/nonEmptyString"},
     "parent_spatial_cell_id": {"$ref": "#/$defs/nullableNonEmptyString"},
     "country_hierarchy_id": {"$ref": "#/$defs/nonEmptyString"},
-    "continent": {
-      "enum": [
-        "Africa",
-        "Antarctica",
-        "Asia",
-        "Europe",
-        "North America",
-        "Oceania",
-        "South America"
-      ]
-    },
-    "country_code": {"type": "string", "pattern": "^[A-Z]{2}$"},
-    "country": {"$ref": "#/$defs/nonEmptyString"},
+    "continent": {"$ref": "#/$defs/nullableContinent"},
+    "country_code": {"$ref": "#/$defs/nullableCountryCode"},
+    "country": {"$ref": "#/$defs/nullableNonEmptyString"},
     "admin1": {"$ref": "#/$defs/nullableNonEmptyString"},
     "centroid_latitude": {"type": "number", "minimum": -90, "maximum": 90},
     "centroid_longitude": {"type": "number", "minimum": -180, "maximum": 180},
@@ -277,6 +267,30 @@
     "nullableNonEmptyString": {
       "anyOf": [
         {"$ref": "#/$defs/nonEmptyString"},
+        {"type": "null"}
+      ]
+    },
+    "continent": {
+      "enum": [
+        "Africa",
+        "Antarctica",
+        "Asia",
+        "Europe",
+        "North America",
+        "Oceania",
+        "South America"
+      ]
+    },
+    "nullableContinent": {
+      "anyOf": [
+        {"$ref": "#/$defs/continent"},
+        {"type": "null"}
+      ]
+    },
+    "countryCode": {"type": "string", "pattern": "^[A-Z]{2}$"},
+    "nullableCountryCode": {
+      "anyOf": [
+        {"$ref": "#/$defs/countryCode"},
         {"type": "null"}
       ]
     },

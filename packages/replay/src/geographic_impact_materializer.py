@@ -1,0 +1,468 @@
+"""Materialize deterministic baseline/Flickr full-outer spatial-cell evidence."""
+
+from __future__ import annotations
+
+import json
+from collections.abc import Mapping
+from dataclasses import dataclass
+from datetime import date
+from pathlib import Path
+from typing import Any
+
+import h3
+import polars as pl
+from taxalens.product.geographic_contracts import (
+    GEOGRAPHIC_IMPACT_CELL_PARQUET_COLUMNS,
+    GEOGRAPHIC_IMPACT_CELL_SCHEMA_VERSION,
+    assert_geographic_contract,
+)
+
+from packages.replay.src.baseline_provider_identity import PROVIDER_UNION_POLICY_VERSION
+from packages.replay.src.baseline_provider_union import baseline_occurrence_union_schema
+from packages.replay.src.flickr_geography_verification import (
+    VERIFICATION_GEOGRAPHY_SCHEMA_VERSION,
+    flickr_geography_verification_schema,
+)
+from packages.replay.src.offline_country_lookup import OfflineCountryLookup
+
+REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
+DEFAULT_BASELINE_UNION = (
+    REPOSITORY_ROOT
+    / "demo/source/biominer_phase14/baseline_provider_union/baseline_occurrence_union.parquet"
+)
+DEFAULT_FLICKR_GEOGRAPHY = (
+    REPOSITORY_ROOT
+    / "demo/source/biominer_phase14/flickr_geography/flickr_geography_verification.parquet"
+)
+DEFAULT_COUNTRY_HIERARCHY = REPOSITORY_ROOT / "demo/source/geography/country_hierarchy.json"
+
+GEOGRAPHIC_IMPACT_MATERIALIZATION_POLICY_VERSION = "geographic-impact-materialization-policy:v1.0.0"
+OCCURRENCE_RELEASE_POLICY_VERSION = "occurrence-release-policy:v1.0.0"
+
+_CELL_KEYS = ["spatial_resolution", "spatial_cell_id"]
+
+
+class GeographicImpactMaterializationError(ValueError):
+    """Raised when impact cells cannot be materialized without invention."""
+
+
+@dataclass(frozen=True, slots=True)
+class GeographicImpactScope:
+    project_id: str
+    run_id: str
+    registry_version: str
+    accepted_taxon_key: str
+    scientific_name: str
+    baseline_snapshot_id: str
+    flickr_snapshot_id: str
+    grid_name: str
+    grid_version: str
+    country_hierarchy_id: str
+
+
+def geographic_impact_cell_schema() -> dict[str, pl.DataType]:
+    """Return the exact impact-cell physical schema in contract order."""
+
+    physical = {
+        "utf8": pl.String,
+        "uint8": pl.UInt8,
+        "uint64": pl.UInt64,
+        "float64": pl.Float64,
+        "date32": pl.Date,
+        "boolean": pl.Boolean,
+        "list_utf8": pl.List(pl.String),
+    }
+    return {
+        column.name: physical[column.physical_type]
+        for column in GEOGRAPHIC_IMPACT_CELL_PARQUET_COLUMNS
+    }
+
+
+def build_geographic_impact_cells(
+    baseline: pl.DataFrame,
+    flickr: pl.DataFrame,
+    *,
+    geographic_impact_build_id: str,
+    country_lookup: OfflineCountryLookup,
+    country_hierarchy: Mapping[str, Any],
+) -> pl.DataFrame:
+    """Preaggregate and full-outer join one compatible baseline/Flickr scope."""
+
+    build_id = _required_text(geographic_impact_build_id, "geographic impact build ID")
+    if not isinstance(country_lookup, OfflineCountryLookup):
+        raise TypeError("country_lookup must be OfflineCountryLookup")
+    scope = _validate_inputs(baseline, flickr, country_hierarchy)
+    baseline_cells = _aggregate_baseline(baseline)
+    flickr_cells = _aggregate_flickr(flickr)
+    joined = baseline_cells.join(
+        flickr_cells,
+        on=_CELL_KEYS,
+        how="full",
+        coalesce=True,
+        validate="1:1",
+    )
+    cell_scope = _cell_scope_frame(joined.select(_CELL_KEYS), country_lookup)
+    joined = joined.join(cell_scope, on=_CELL_KEYS, how="left", validate="1:1")
+
+    count_columns = [
+        "provider_input_row_count",
+        "baseline_union_count",
+        "baseline_range_inference_eligible_count",
+        "baseline_excluded_occurrence_count",
+        "gbif_only_count",
+        "inaturalist_origin_through_gbif_count",
+        "duplicates_removed_count",
+        "unresolved_provider_duplicate_group_count",
+        "flickr_candidate_count",
+        "flickr_visually_eligible_count",
+    ]
+    joined = joined.with_columns([pl.col(column).fill_null(0) for column in count_columns])
+    eligible = pl.col("baseline_range_inference_eligible_count")
+    candidates = pl.col("flickr_candidate_count")
+    data_deficient_reasons = pl.concat_list(
+        pl.lit("direct_inaturalist_delta_unavailable"),
+        pl.when(pl.col("baseline_union_count") == 0)
+        .then(pl.lit("no_baseline_rows_in_cell"))
+        .otherwise(pl.lit(None, dtype=pl.String)),
+        pl.when(
+            (pl.col("baseline_union_count") > 0)
+            & (pl.col("baseline_range_inference_eligible_count") == 0)
+        )
+        .then(pl.lit("no_range_inference_eligible_baseline"))
+        .otherwise(pl.lit(None, dtype=pl.String)),
+        pl.when(pl.col("unresolved_provider_duplicate_group_count") > 0)
+        .then(pl.lit("unresolved_provider_duplicates"))
+        .otherwise(pl.lit(None, dtype=pl.String)),
+    ).list.drop_nulls()
+
+    cells = (
+        joined.with_columns(
+            pl.lit(GEOGRAPHIC_IMPACT_CELL_SCHEMA_VERSION).alias("schema_version"),
+            pl.lit(build_id).alias("geographic_impact_build_id"),
+            pl.lit(scope.project_id).alias("project_id"),
+            pl.lit(scope.run_id).alias("run_id"),
+            pl.lit(scope.registry_version).alias("registry_version"),
+            pl.lit(scope.accepted_taxon_key).alias("accepted_taxon_key"),
+            pl.lit(scope.scientific_name).alias("scientific_name"),
+            pl.lit(scope.baseline_snapshot_id).alias("baseline_snapshot_id"),
+            pl.lit(scope.flickr_snapshot_id).alias("flickr_snapshot_id"),
+            pl.lit(PROVIDER_UNION_POLICY_VERSION).alias("provider_union_policy_version"),
+            pl.lit(VERIFICATION_GEOGRAPHY_SCHEMA_VERSION).alias("verification_projection_version"),
+            pl.lit(OCCURRENCE_RELEASE_POLICY_VERSION).alias("release_policy_version"),
+            pl.lit(None, dtype=pl.String).alias("verification_campaign_id"),
+            pl.lit(None, dtype=pl.String).alias("quality_snapshot_id"),
+            pl.lit(None, dtype=pl.String).alias("release_decision_id"),
+            pl.lit(scope.grid_name).alias("grid_name"),
+            pl.lit(scope.grid_version).alias("grid_version"),
+            pl.lit(scope.country_hierarchy_id).alias("country_hierarchy_id"),
+            pl.lit("available").alias("baseline_evidence_status"),
+            pl.lit("unavailable").alias("direct_inaturalist_delta_status"),
+            pl.lit(None, dtype=pl.UInt64).alias("direct_inaturalist_delta_count"),
+            candidates.alias("pending_count"),
+            pl.lit(0, dtype=pl.UInt64).alias("reviewed_positive_count"),
+            pl.lit(0, dtype=pl.UInt64).alias("reviewed_negative_count"),
+            pl.lit(0, dtype=pl.UInt64).alias("uncertain_count"),
+            pl.lit(0, dtype=pl.UInt64).alias("media_failure_count"),
+            pl.lit(0, dtype=pl.UInt64).alias("skipped_count"),
+            pl.lit(0, dtype=pl.UInt64).alias("release_ready_count"),
+            ((eligible > 0) & (candidates == 0)).alias("baseline_only_cell"),
+            ((eligible > 0) & (candidates > 0)).alias("matched_cell"),
+            ((eligible == 0) & (candidates > 0)).alias("candidate_only_cell"),
+            pl.lit(False).alias("reviewed_additional_cell"),
+            pl.lit(False).alias("release_ready_additional_cell"),
+            pl.when(eligible > 0)
+            .then(pl.lit("not_applicable"))
+            .otherwise(pl.lit("unavailable"))
+            .alias("nearest_baseline_distance_status"),
+            pl.lit(None, dtype=pl.Float64).alias("nearest_baseline_distance_km"),
+            pl.lit(None, dtype=pl.String).alias("nearest_baseline_cell_id"),
+            pl.lit(None, dtype=pl.String).alias("nearest_baseline_distance_method"),
+            pl.lit(None, dtype=pl.Date).alias("latest_flickr_candidate_date"),
+            pl.lit(None, dtype=pl.Date).alias("latest_reviewed_positive_date"),
+            pl.lit(None, dtype=pl.Date).alias("latest_release_ready_date"),
+            pl.lit("data_deficient").alias("data_deficient_state"),
+            data_deficient_reasons.alias("data_deficient_reasons"),
+        )
+        .select(
+            [pl.col(name).cast(dtype) for name, dtype in geographic_impact_cell_schema().items()]
+        )
+        .sort(_CELL_KEYS)
+    )
+    _validate_cells(cells, baseline_cells, flickr_cells)
+    return cells
+
+
+def build_committed_geographic_impact_cells(
+    *,
+    geographic_impact_build_id: str,
+    baseline_path: str | Path = DEFAULT_BASELINE_UNION,
+    flickr_path: str | Path = DEFAULT_FLICKR_GEOGRAPHY,
+    country_hierarchy_path: str | Path = DEFAULT_COUNTRY_HIERARCHY,
+) -> pl.DataFrame:
+    """Build cells from repository-contained, checksum-verified handoffs."""
+
+    try:
+        country_hierarchy = json.loads(Path(country_hierarchy_path).read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise GeographicImpactMaterializationError("country hierarchy is unreadable") from error
+    if not isinstance(country_hierarchy, dict):
+        raise GeographicImpactMaterializationError("country hierarchy must be an object")
+    return build_geographic_impact_cells(
+        pl.read_parquet(baseline_path),
+        pl.read_parquet(flickr_path),
+        geographic_impact_build_id=geographic_impact_build_id,
+        country_lookup=OfflineCountryLookup.from_path(),
+        country_hierarchy=country_hierarchy,
+    )
+
+
+def _aggregate_baseline(frame: pl.DataFrame) -> pl.DataFrame:
+    canonical = pl.col("canonical_flag")
+    eligible = canonical & pl.col("range_inference_eligible")
+    return (
+        frame.group_by(_CELL_KEYS)
+        .agg(
+            pl.col("provider_relationship_id").n_unique().alias("provider_input_row_count"),
+            pl.col("canonical_observation_id")
+            .filter(canonical)
+            .n_unique()
+            .alias("baseline_union_count"),
+            pl.col("canonical_observation_id")
+            .filter(eligible)
+            .n_unique()
+            .alias("baseline_range_inference_eligible_count"),
+            pl.col("canonical_observation_id")
+            .filter(canonical & (pl.col("provider_source") == "gbif"))
+            .n_unique()
+            .alias("gbif_only_count"),
+            pl.col("canonical_observation_id")
+            .filter(canonical & (pl.col("provider_relationship_kind") == "inaturalist_via_gbif"))
+            .n_unique()
+            .alias("inaturalist_origin_through_gbif_count"),
+            pl.col("provider_relationship_id")
+            .filter(pl.col("exact_duplicate_removed"))
+            .n_unique()
+            .alias("duplicates_removed_count"),
+            pl.col("unresolved_duplicate_group_id")
+            .drop_nulls()
+            .n_unique()
+            .alias("unresolved_provider_duplicate_group_count"),
+            pl.col("event_date").filter(eligible).max().alias("latest_baseline_event_date"),
+        )
+        .with_columns(
+            (
+                pl.col("baseline_union_count") - pl.col("baseline_range_inference_eligible_count")
+            ).alias("baseline_excluded_occurrence_count")
+        )
+        .select(
+            *_CELL_KEYS,
+            "provider_input_row_count",
+            "baseline_union_count",
+            "baseline_range_inference_eligible_count",
+            "baseline_excluded_occurrence_count",
+            "gbif_only_count",
+            "inaturalist_origin_through_gbif_count",
+            "duplicates_removed_count",
+            "unresolved_provider_duplicate_group_count",
+            "latest_baseline_event_date",
+        )
+    )
+
+
+def _aggregate_flickr(frame: pl.DataFrame) -> pl.DataFrame:
+    supported = frame.filter(pl.col("cell_supported"))
+    identity_columns = [*_CELL_KEYS, "flickr_photo_id"]
+    if supported.select(pl.struct(identity_columns).n_unique()).item() != supported.height:
+        raise GeographicImpactMaterializationError("Flickr cell/photo identity is duplicated")
+    return supported.group_by(_CELL_KEYS).agg(
+        pl.col("flickr_photo_id").n_unique().alias("flickr_candidate_count"),
+        pl.col("flickr_photo_id")
+        .filter(pl.col("machine_screening_state") == "target")
+        .n_unique()
+        .alias("flickr_visually_eligible_count"),
+    )
+
+
+def _cell_scope_frame(cells: pl.DataFrame, lookup: OfflineCountryLookup) -> pl.DataFrame:
+    rows: list[dict[str, object]] = []
+    for row in cells.sort(_CELL_KEYS).iter_rows(named=True):
+        resolution = int(row["spatial_resolution"])
+        cell_id = _required_text(row["spatial_cell_id"], "spatial cell ID")
+        if not h3.is_valid_cell(cell_id) or h3.get_resolution(cell_id) != resolution:
+            raise GeographicImpactMaterializationError("spatial cell identity differs from H3")
+        latitude, longitude = h3.cell_to_latlng(cell_id)
+        parent = h3.cell_to_parent(cell_id, resolution - 1) if resolution > 0 else None
+        country = lookup.assign(latitude=latitude, longitude=longitude)
+        rows.append(
+            {
+                "spatial_resolution": resolution,
+                "spatial_cell_id": cell_id,
+                "parent_spatial_cell_id": parent,
+                "continent": country.continent if country else None,
+                "country_code": country.country_code if country else None,
+                "country": country.country if country else None,
+                "admin1": None,
+                "centroid_latitude": latitude,
+                "centroid_longitude": longitude,
+            }
+        )
+    return pl.DataFrame(
+        rows,
+        schema={
+            "spatial_resolution": pl.UInt8,
+            "spatial_cell_id": pl.String,
+            "parent_spatial_cell_id": pl.String,
+            "continent": pl.String,
+            "country_code": pl.String,
+            "country": pl.String,
+            "admin1": pl.String,
+            "centroid_latitude": pl.Float64,
+            "centroid_longitude": pl.Float64,
+        },
+    )
+
+
+def _validate_inputs(
+    baseline: pl.DataFrame,
+    flickr: pl.DataFrame,
+    country_hierarchy: Mapping[str, Any],
+) -> GeographicImpactScope:
+    if dict(baseline.schema) != baseline_occurrence_union_schema():
+        raise GeographicImpactMaterializationError("baseline union schema differs")
+    if dict(flickr.schema) != flickr_geography_verification_schema():
+        raise GeographicImpactMaterializationError("Flickr verification geography schema differs")
+    if not baseline.height or not flickr.height:
+        raise GeographicImpactMaterializationError("geographic impact input is empty")
+    baseline_scope = _single_values(
+        baseline,
+        [
+            "project_id",
+            "run_id",
+            "registry_version",
+            "accepted_taxon_key",
+            "scientific_name",
+            "baseline_snapshot_id",
+            "grid_name",
+            "grid_version",
+            "provider_union_policy_version",
+        ],
+    )
+    flickr_scope = _single_values(
+        flickr,
+        [
+            "project_id",
+            "run_id",
+            "target_accepted_taxon_key",
+            "scientific_name",
+            "flickr_snapshot_id",
+            "grid_name",
+            "grid_version",
+        ],
+    )
+    for baseline_name, flickr_name in (
+        ("project_id", "project_id"),
+        ("run_id", "run_id"),
+        ("accepted_taxon_key", "target_accepted_taxon_key"),
+        ("scientific_name", "scientific_name"),
+        ("grid_name", "grid_name"),
+        ("grid_version", "grid_version"),
+    ):
+        if baseline_scope[baseline_name] != flickr_scope[flickr_name]:
+            raise GeographicImpactMaterializationError(
+                f"baseline and Flickr {baseline_name} differ"
+            )
+    if baseline_scope["provider_union_policy_version"] != PROVIDER_UNION_POLICY_VERSION:
+        raise GeographicImpactMaterializationError("provider union policy differs")
+    baseline_resolutions = sorted(baseline.get_column("spatial_resolution").unique().to_list())
+    flickr_resolutions = sorted(flickr.get_column("spatial_resolution").unique().to_list())
+    if baseline_resolutions != flickr_resolutions:
+        raise GeographicImpactMaterializationError("spatial resolutions differ")
+    if country_hierarchy.get("schema_version") != "taxalens-country-hierarchy:v1.0.0":
+        raise GeographicImpactMaterializationError("country hierarchy schema differs")
+    hierarchy_id = _required_text(
+        country_hierarchy.get("country_hierarchy_id"), "country hierarchy ID"
+    )
+    return GeographicImpactScope(
+        project_id=baseline_scope["project_id"],
+        run_id=baseline_scope["run_id"],
+        registry_version=baseline_scope["registry_version"],
+        accepted_taxon_key=baseline_scope["accepted_taxon_key"],
+        scientific_name=baseline_scope["scientific_name"],
+        baseline_snapshot_id=baseline_scope["baseline_snapshot_id"],
+        flickr_snapshot_id=flickr_scope["flickr_snapshot_id"],
+        grid_name=baseline_scope["grid_name"],
+        grid_version=baseline_scope["grid_version"],
+        country_hierarchy_id=hierarchy_id,
+    )
+
+
+def _validate_cells(
+    cells: pl.DataFrame,
+    baseline_cells: pl.DataFrame,
+    flickr_cells: pl.DataFrame,
+) -> None:
+    if cells.schema != geographic_impact_cell_schema():
+        raise GeographicImpactMaterializationError("impact cell physical schema differs")
+    expected_keys = pl.concat(
+        [baseline_cells.select(_CELL_KEYS), flickr_cells.select(_CELL_KEYS)]
+    ).unique()
+    if cells.height != expected_keys.height:
+        raise GeographicImpactMaterializationError("full outer cell count differs")
+    if cells.select(pl.struct(_CELL_KEYS).n_unique()).item() != cells.height:
+        raise GeographicImpactMaterializationError("impact cell identity is not unique")
+    invalid_reconciliation = cells.filter(
+        (
+            pl.col("provider_input_row_count")
+            != pl.col("baseline_union_count") + pl.col("duplicates_removed_count")
+        )
+        | (
+            pl.col("baseline_union_count")
+            != pl.col("baseline_range_inference_eligible_count")
+            + pl.col("baseline_excluded_occurrence_count")
+        )
+        | (
+            pl.col("baseline_union_count")
+            != pl.col("gbif_only_count") + pl.col("inaturalist_origin_through_gbif_count")
+        )
+        | (pl.col("pending_count") != pl.col("flickr_candidate_count"))
+    )
+    if invalid_reconciliation.height:
+        raise GeographicImpactMaterializationError("impact cell counts do not reconcile")
+    for row in cells.iter_rows(named=True):
+        assert_geographic_contract("geographic_impact_cell", _json_row(row))
+
+
+def _single_values(frame: pl.DataFrame, columns: list[str]) -> dict[str, str]:
+    values: dict[str, str] = {}
+    for column in columns:
+        unique = frame.get_column(column).drop_nulls().unique().to_list()
+        if len(unique) != 1:
+            raise GeographicImpactMaterializationError(f"{column} is not single-scope")
+        values[column] = _required_text(unique[0], column)
+    return values
+
+
+def _json_row(row: Mapping[str, Any]) -> dict[str, Any]:
+    return {
+        key: value.isoformat() if isinstance(value, date) else value for key, value in row.items()
+    }
+
+
+def _required_text(value: object, label: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise GeographicImpactMaterializationError(f"{label} must be non-empty")
+    return value
+
+
+__all__ = [
+    "DEFAULT_BASELINE_UNION",
+    "DEFAULT_COUNTRY_HIERARCHY",
+    "DEFAULT_FLICKR_GEOGRAPHY",
+    "GEOGRAPHIC_IMPACT_MATERIALIZATION_POLICY_VERSION",
+    "OCCURRENCE_RELEASE_POLICY_VERSION",
+    "GeographicImpactMaterializationError",
+    "GeographicImpactScope",
+    "build_committed_geographic_impact_cells",
+    "build_geographic_impact_cells",
+    "geographic_impact_cell_schema",
+]
