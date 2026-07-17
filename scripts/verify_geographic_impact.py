@@ -6,16 +6,27 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import sys
 from pathlib import Path
 
-import duckdb
-from packages.replay.src.geographic_impact_materializer import (
+_REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
+if str(_REPOSITORY_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPOSITORY_ROOT))
+
+import duckdb  # noqa: E402
+from packages.replay.src.geographic_impact_materializer import (  # noqa: E402
     DEFAULT_BASELINE_UNION,
     DEFAULT_FLICKR_GEOGRAPHY,
     REPOSITORY_ROOT,
 )
-from packages.replay.src.occurrence_release import DEFAULT_RELEASE_DECISIONS
-from scripts.build_geographic_impact import OUTPUT_CELLS, OUTPUT_MANIFEST, OUTPUT_SUMMARY
+from packages.replay.src.occurrence_release import (  # noqa: E402
+    DEFAULT_RELEASE_DECISIONS,
+)
+from scripts.build_geographic_impact import (  # noqa: E402
+    OUTPUT_CELLS,
+    OUTPUT_MANIFEST,
+    OUTPUT_SUMMARY,
+)
 
 
 class GeographicImpactVerificationError(ValueError):

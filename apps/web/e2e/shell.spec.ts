@@ -69,10 +69,15 @@ test('navigates the evidence views and guided tour from the keyboard', async ({ 
   ).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Replayed analyst session' })).toBeVisible()
   await expect(page.getByText('gpt-5.6-sol', { exact: true }).first()).toBeVisible()
-  await expect(page.getByText('Stored output · no live call')).toBeVisible()
+  await expect(
+    page
+      .getByRole('heading', { name: 'Replayed analyst session' })
+      .locator('..')
+      .getByText('Stored output · no live call'),
+  ).toBeVisible()
   await expect(page.getByText('What target does this verified replay resolve?')).toBeVisible()
   await expect(page.getByRole('heading', { name: 'resolve_taxon' })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Answer' })).toBeVisible()
+  await expect(page.locator('.agent-answer').getByRole('heading', { name: 'Answer' })).toBeVisible()
   await expect(
     page.locator('.agent-answer').getByText(/This target resolution is not an occurrence/u),
   ).toBeVisible()
@@ -252,7 +257,7 @@ test('shows only checksum-verified evidence with explicit analytics and unavaila
 
   await page.getByRole('link', { name: 'Evidence Lens' }).click()
   await expect(page.getByRole('heading', { name: 'Explicitly unavailable evidence' })).toBeVisible()
-  await expect(page.locator('.unavailable-evidence-list > li')).toHaveCount(8)
+  await expect(page.locator('.unavailable-evidence-list > li')).toHaveCount(14)
 
   await page.getByRole('link', { name: 'Dashboard' }).click()
   await expect(page.getByRole('heading', { name: 'Verified local data boundary' })).toBeVisible()
@@ -1149,12 +1154,12 @@ test('reports only measured workflow efficiency without inferring avoided work',
   await expect(metric('Evidence completeness')).toContainText('30 of 30 artifacts verified')
   await expect(metric('Evidence completeness')).toContainText('Available sections8')
   await expect(metric('Evidence completeness')).toContainText('Partial sections9')
-  await expect(metric('Evidence completeness')).toContainText('Unavailable sections8')
+  await expect(metric('Evidence completeness')).toContainText('Unavailable sections14')
 
   const guardrail = report.getByRole('heading', { name: 'Integrity is not scientific completeness' })
     .locator('..')
     .locator('..')
-  await expect(guardrail).toContainText('8 are available, 9 partial, and 8 unavailable')
+  await expect(guardrail).toContainText('8 are available, 9 partial, and 14 unavailable')
   await expect(guardrail).toContainText('No accuracy, readiness, or performance percentage')
   await report.getByText('Read the complete efficiency ledger as a table').click()
   await expect(report.getByRole('table').locator('tbody tr')).toHaveCount(6)

@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import hashlib
+import subprocess
+import sys
+from pathlib import Path
 
 import pytest
 from scripts.verify_geographic_impact import (
@@ -8,6 +11,8 @@ from scripts.verify_geographic_impact import (
     _verify_artifact_fingerprints,
     verify_geographic_impact,
 )
+
+REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 
 
 def test_duckdb_independently_reconciles_the_full_outer_join() -> None:
@@ -25,6 +30,19 @@ def test_duckdb_independently_reconciles_the_full_outer_join() -> None:
         "mismatch_count": 0,
         "manifest_id": "geographic-impact-manifest:e3c532a1c6310d2a0906cacc",
     }
+
+
+def test_verifier_runs_as_a_direct_release_entry_point(tmp_path) -> None:
+    result = subprocess.run(
+        [sys.executable, str(REPOSITORY_ROOT / "scripts/verify_geographic_impact.py")],
+        cwd=tmp_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert '"mismatch_count": 0' in result.stdout
 
 
 def test_fingerprint_verifier_rejects_stale_artifact_bytes(tmp_path) -> None:
