@@ -18,7 +18,14 @@ beforeAll(async () => {
 
 describe('GeographyReferenceContext', () => {
   it('shows verified summary and rights boundaries before the coordinate query runs', () => {
-    render(<GeographyReferenceContext inspectionStatus="idle" replay={replay} result={null} />)
+    render(
+      <GeographyReferenceContext
+        inspectionStatus="idle"
+        recordGeography={{ status: 'idle' }}
+        replay={replay}
+        result={null}
+      />,
+    )
 
     expect(screen.getByText('Search candidate — not occurrence')).toBeInTheDocument()
     expect(screen.getByRole('img', { name: 'Candidate coordinate unavailable' })).toBeInTheDocument()

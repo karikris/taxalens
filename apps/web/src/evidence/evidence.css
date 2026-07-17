@@ -1462,6 +1462,72 @@
   font-size: var(--tl-text-sm);
 }
 
+.record-geographic-mini-map {
+  display: grid;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  background: var(--tl-surface-subtle);
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.record-geographic-mini-map svg {
+  display: block;
+  width: 100%;
+  min-height: 20rem;
+}
+
+.record-geographic-mini-map__ocean {
+  fill: #e8f2f4;
+}
+
+.record-geographic-mini-map__boundaries path {
+  fill: #d7e5df;
+  stroke: #50666e;
+  stroke-width: 1.25;
+  vector-effect: non-scaling-stroke;
+}
+
+.record-geographic-mini-map__distance {
+  stroke: #8a5c13;
+  stroke-width: 2;
+  stroke-dasharray: 7 5;
+  vector-effect: non-scaling-stroke;
+}
+
+.record-geographic-mini-map__baseline {
+  fill: #1769aa;
+  stroke: #f8fbfa;
+  stroke-width: 2;
+}
+
+.record-geographic-mini-map__candidate-halo {
+  fill: #f8fbfa;
+  stroke: #5b3a0a;
+  stroke-width: 2;
+}
+
+.record-geographic-mini-map__candidate {
+  fill: none;
+  stroke: #d58a16;
+  stroke-width: 5;
+}
+
+.record-geographic-mini-map figcaption {
+  display: grid;
+  gap: var(--tl-space-1);
+  padding: var(--tl-space-2);
+  background: var(--tl-surface-paper);
+  border-top: 1px solid var(--tl-line);
+}
+
+.record-geographic-mini-map figcaption span,
+.record-geographic-mini-map figcaption small {
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-sm);
+}
+
 .geography-reference__facts,
 .geography-reference__footer dl {
   display: grid;

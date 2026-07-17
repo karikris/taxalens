@@ -7,13 +7,17 @@ import {
   buildGeographyReferenceModel,
   type GeographyReferenceModel,
 } from './geographyReferenceModel'
+import { RecordGeographicMiniMap } from './RecordGeographicMiniMap'
+import type { RecordGeographicContextLoadState } from './recordGeographicContext'
 
 export function GeographyReferenceContext({
   inspectionStatus,
+  recordGeography,
   replay,
   result,
 }: {
   readonly inspectionStatus: GeographyReferenceModel['inspectionStatus']
+  readonly recordGeography: RecordGeographicContextLoadState
   readonly replay: ReplayEvidence
   readonly result: DiscoveryProvenanceResult | null
 }) {
@@ -59,7 +63,15 @@ export function GeographyReferenceContext({
       )}
 
       <div className="geography-reference__geography">
-        <CoordinatePlane model={model} />
+        {recordGeography.status === 'available' ? (
+          <RecordGeographicMiniMap context={recordGeography.context} />
+        ) : (
+          <CoordinatePlane
+            model={model}
+            status={recordGeography.status}
+            failureMessage={recordGeography.status === 'failure' ? recordGeography.message : null}
+          />
+        )}
         <dl className="geography-reference__facts">
           <Fact label="Candidate coordinate">
             {model.coordinate.status === 'metadata'
@@ -170,12 +182,24 @@ export function GeographyReferenceContext({
   )
 }
 
-function CoordinatePlane({ model }: { readonly model: GeographyReferenceModel }) {
+function CoordinatePlane({
+  failureMessage,
+  model,
+  status,
+}: {
+  readonly failureMessage: string | null
+  readonly model: GeographyReferenceModel
+  readonly status: RecordGeographicContextLoadState['status']
+}) {
   if (model.coordinate.status !== 'metadata') {
     return (
       <div className="coordinate-plane" role="img" aria-label="Candidate coordinate unavailable">
         <strong>Coordinate plane unavailable</strong>
-        <span>Run the local source inspection above.</span>
+        <span>
+          {status === 'failure'
+            ? `Record mini-map unavailable: ${failureMessage}`
+            : 'Run the local source inspection above.'}
+        </span>
       </div>
     )
   }
@@ -189,7 +213,7 @@ function CoordinatePlane({ model }: { readonly model: GeographyReferenceModel })
         <span aria-hidden="true" />
       </div>
       <figcaption id="coordinate-plane-caption">
-        <strong>Candidate coordinate plane</strong>
+        <strong>{status === 'loading' ? 'Loading record mini-map' : 'Candidate coordinate plane'}</strong>
         <span>
           {model.coordinate.latitude.toFixed(6)}, {model.coordinate.longitude.toFixed(6)} ·{' '}
           {model.coordinate.quality.replaceAll('_', ' ')} · Flickr accuracy level{' '}

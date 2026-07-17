@@ -19,6 +19,10 @@ import type { HumanVerificationEvidence } from './humanVerificationEvidence'
 import { PrototypeEvidencePanel } from './PrototypeEvidencePanel'
 import { SelectiveDecisionEvidence } from './SelectiveDecisionEvidence'
 import { YoloeRoutingEvidence } from './YoloeRoutingEvidence'
+import type {
+  RecordGeographicContext,
+  RecordGeographicContextLoadState,
+} from './recordGeographicContext'
 import './evidence.css'
 
 export type DiscoveryProvenanceExecutor = (
@@ -27,6 +31,11 @@ export type DiscoveryProvenanceExecutor = (
 
 export type HumanVerificationEvidenceLoader =
   () => Promise<HumanVerificationEvidence>
+
+export type RecordGeographicContextLoader = (
+  result: DiscoveryProvenanceResult,
+  signal: AbortSignal,
+) => Promise<RecordGeographicContext>
 
 const defaultDiscoveryProvenanceExecutor: DiscoveryProvenanceExecutor = async (input) => {
   const { executeDiscoveryProvenance } = await import('./discoveryProvenance')
@@ -41,6 +50,12 @@ const defaultHumanVerificationEvidenceLoader: HumanVerificationEvidenceLoader =
     return loadLocalHumanVerificationEvidence()
   }
 
+const defaultRecordGeographicContextLoader: RecordGeographicContextLoader =
+  async (result, signal) => {
+    const { loadRecordGeographicContext } = await import('./recordGeographicContext')
+    return loadRecordGeographicContext(result, signal)
+  }
+
 type InspectionState =
   | { readonly kind: 'idle' }
   | { readonly kind: 'running' }
@@ -51,11 +66,13 @@ export function EvidenceLensWorkspace({
   executeProvenance = defaultDiscoveryProvenanceExecutor,
   facade,
   loadHumanVerificationEvidence = defaultHumanVerificationEvidenceLoader,
+  loadRecordGeographicContext = defaultRecordGeographicContextLoader,
   replay,
 }: {
   readonly executeProvenance?: DiscoveryProvenanceExecutor
   readonly facade: EvidenceFacade
   readonly loadHumanVerificationEvidence?: HumanVerificationEvidenceLoader
+  readonly loadRecordGeographicContext?: RecordGeographicContextLoader
   readonly replay: ReplayEvidence
 }) {
   const [inspection, setInspection] = useState<InspectionState>({ kind: 'idle' })
@@ -63,6 +80,8 @@ export function EvidenceLensWorkspace({
     useState<HumanVerificationEvidence | null>(null)
   const [humanVerificationError, setHumanVerificationError] =
     useState<string | null>(null)
+  const [recordGeography, setRecordGeography] =
+    useState<RecordGeographicContextLoadState>({ status: 'idle' })
 
   useEffect(() => {
     let active = true
@@ -87,6 +106,34 @@ export function EvidenceLensWorkspace({
       active = false
     }
   }, [loadHumanVerificationEvidence])
+
+  useEffect(() => {
+    if (inspection.kind !== 'ready') {
+      setRecordGeography({ status: 'idle' })
+      return
+    }
+    const controller = new AbortController()
+    setRecordGeography({ status: 'loading' })
+    void loadRecordGeographicContext(inspection.result, controller.signal).then(
+      (context) => {
+        if (!controller.signal.aborted) {
+          setRecordGeography({ status: 'available', context })
+        }
+      },
+      (reason: unknown) => {
+        if (!controller.signal.aborted) {
+          setRecordGeography({
+            status: 'failure',
+            message:
+              reason instanceof Error
+                ? reason.message
+                : 'The record geographic context could not be loaded.',
+          })
+        }
+      },
+    )
+    return () => controller.abort()
+  }, [inspection, loadRecordGeographicContext])
 
   const inspectRecord = () => {
     setInspection({ kind: 'running' })
@@ -197,6 +244,7 @@ export function EvidenceLensWorkspace({
 
       <GeographyReferenceContext
         inspectionStatus={inspection.kind}
+        recordGeography={recordGeography}
         replay={replay}
         result={inspection.kind === 'ready' ? inspection.result : null}
       />
