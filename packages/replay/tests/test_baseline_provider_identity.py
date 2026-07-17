@@ -70,6 +70,81 @@ def test_verified_inaturalist_identity_bridges_gbif_and_direct_delivery() -> Non
     assert provider_relationship_id(via_gbif) != provider_relationship_id(direct)
 
 
+def test_resized_media_representation_does_not_change_observation_identity() -> None:
+    original = _record(
+        gbif_occurrence_key=None,
+        source_record_sha256=SHA_A,
+        stable_source_reference="https://example.org/observations/42#original-media",
+    )
+    resized = _record(
+        record_id="gbif:resized",
+        gbif_occurrence_key=None,
+        source_record_sha256=SHA_B,
+        stable_source_reference="https://example.org/observations/42#resized-media",
+    )
+
+    assert canonical_observation_id(identity_basis(original)) == canonical_observation_id(
+        identity_basis(resized)
+    )
+    assert provider_relationship_id(original) != provider_relationship_id(resized)
+
+
+def test_coincident_independent_provider_observations_remain_separate() -> None:
+    shared = {
+        "accepted_taxon_key": "gbif:1938069",
+        "observer_id": "observer-1",
+        "event_date": date(2026, 7, 1),
+        "latitude": -33.8,
+        "longitude": 151.2,
+        "country_code": "AU",
+    }
+    first = _record(provider_observation_id="100", **shared)
+    second = _record(
+        record_id="gbif:2",
+        source_record_sha256=SHA_B,
+        gbif_occurrence_key="2",
+        provider_observation_id="101",
+        **shared,
+    )
+
+    assert canonical_observation_id(identity_basis(first)) != canonical_observation_id(
+        identity_basis(second)
+    )
+    assert "provider_observation_id" in identity_contradictions(first, second)
+
+
+def test_ambiguous_weak_match_retains_both_singletons_in_unresolved_group() -> None:
+    shared = {
+        "gbif_occurrence_key": None,
+        "provider_observation_id": None,
+        "accepted_taxon_key": "gbif:1938069",
+        "event_date": date(2026, 7, 1),
+        "latitude": -33.8,
+        "longitude": 151.2,
+        "country_code": "AU",
+    }
+    first = _record(source_record_sha256=SHA_A, **shared)
+    second = _record(
+        record_id="gbif:weak-2",
+        source_record_sha256=SHA_B,
+        **shared,
+    )
+    first_id = canonical_observation_id(identity_basis(first))
+    second_id = canonical_observation_id(identity_basis(second))
+
+    assert identity_basis(first).method == identity_basis(second).method == "singleton"
+    assert first_id != second_id
+    group = unresolved_duplicate_group_id(
+        [first_id, second_id], reason_code="coincident_identity_incomplete"
+    )
+    assert group.startswith("unresolved-provider-group:v1:sha256:")
+
+
+def test_missing_source_fingerprint_fails_closed() -> None:
+    with pytest.raises(BaselineProviderIdentityError, match="source_record_sha256"):
+        _record(source_record_sha256="")
+
+
 def test_gbif_occurrence_key_is_namespaced_provider_identity() -> None:
     record = _record()
     basis = identity_basis(record)
