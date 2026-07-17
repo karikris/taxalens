@@ -18,8 +18,7 @@ import polars as pl
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MANIFEST = (
-    REPOSITORY_ROOT
-    / "demo/source/biominer_phase14/baseline_geography_import_manifest.json"
+    REPOSITORY_ROOT / "demo/source/biominer_phase14/baseline_geography_import_manifest.json"
 )
 DEFAULT_BIOMINER_ROOT = REPOSITORY_ROOT.parent / "BioMiner"
 IMPORT_SCHEMA_VERSION = "taxalens-biominer-baseline-geography-import:v1.0.0"
@@ -156,9 +155,7 @@ def _artifact_paths(entry: dict[str, Any], index: int) -> tuple[PurePosixPath | 
     location = f"artifacts[{index}]"
     source_value = entry.get("source_path")
     source_path = (
-        None
-        if source_value is None
-        else _safe_path(source_value, f"{location}.source_path")
+        None if source_value is None else _safe_path(source_value, f"{location}.source_path")
     )
     imported_path = _safe_path(entry.get("imported_path"), f"{location}.imported_path")
     if imported_path == IMPORT_ROOT or IMPORT_ROOT not in imported_path.parents:
