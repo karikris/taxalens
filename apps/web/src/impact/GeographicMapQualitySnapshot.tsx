@@ -60,6 +60,31 @@ function QualityCampaign({
           <dd>{quality.snapshot.availability}</dd>
         </div>
         <div>
+          <dt>Snapshot decisive sample</dt>
+          <dd>
+            {quality.snapshot.availability === 'available'
+              ? formatCount(quality.snapshot.snapshotDecisiveSampleCount)
+              : 'not retained'}
+          </dd>
+        </div>
+        <div>
+          <dt>Next review milestone</dt>
+          <dd>
+            {quality.snapshot.availability === 'available' &&
+            quality.snapshot.nextMilestone !== null
+              ? formatCount(quality.snapshot.nextMilestone)
+              : 'unavailable'}
+          </dd>
+        </div>
+        <div>
+          <dt>Milestone status</dt>
+          <dd>
+            {quality.snapshot.availability === 'available'
+              ? formatToken(quality.snapshot.milestoneStatus)
+              : 'not evaluated'}
+          </dd>
+        </div>
+        <div>
           <dt>Population inference</dt>
           <dd>
             {populationInferenceEligible ? 'sampling design eligible' : 'blocked'}
@@ -88,11 +113,29 @@ function QualityCampaign({
       {quality.snapshot.availability === 'unavailable' ? (
         <p role="status">{quality.snapshot.reason}</p>
       ) : (
-        <p>
-          Retained snapshot <code>{quality.snapshot.snapshotId}</code>, captured{' '}
-          <time dateTime={quality.snapshot.capturedAt}>{quality.snapshot.capturedAt}</time>.
-        </p>
+        <>
+          <p>
+            Retained snapshot <code>{quality.snapshot.snapshotId}</code>, captured{' '}
+            <time dateTime={quality.snapshot.capturedAt}>{quality.snapshot.capturedAt}</time>.
+          </p>
+          {quality.snapshot.releaseBlockers.length === 0 ? (
+            <p>Campaign quality release blockers: none retained.</p>
+          ) : (
+            <div>
+              <p>Campaign quality release blockers:</p>
+              <ul aria-label={`${quality.campaignTitle} release blockers`}>
+                {quality.snapshot.releaseBlockers.map((blocker) => (
+                  <li key={blocker}>{formatToken(blocker)}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </>
       )}
+      <p>
+        Campaign quality release status does not make an individual candidate release-ready;
+        every occurrence-release gate must still pass.
+      </p>
     </li>
   )
 }
