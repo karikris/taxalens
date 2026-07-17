@@ -8,6 +8,7 @@ import {
   type GeographyReferenceModel,
 } from './geographyReferenceModel'
 import { RecordGeographicMiniMap } from './RecordGeographicMiniMap'
+import { RecordGeographicFacts } from './RecordGeographicFacts'
 import type { RecordGeographicContextLoadState } from './recordGeographicContext'
 
 export function GeographyReferenceContext({
@@ -104,6 +105,10 @@ export function GeographyReferenceContext({
           </Fact>
         </dl>
       </div>
+
+      {recordGeography.status === 'available' ? (
+        <RecordGeographicFacts context={recordGeography.context} />
+      ) : null}
 
       <div className="geography-reference__evidence">
         <ReferenceCard

@@ -2,6 +2,10 @@ import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { RecordGeographicMiniMap } from './RecordGeographicMiniMap'
+import {
+  RecordGeographicFacts,
+  buildRecordGeographicFactsModel,
+} from './RecordGeographicFacts'
 import type { DiscoveryProvenanceResult } from './discoveryProvenance'
 import {
   buildNearbyBaselineCellsSql,
@@ -130,5 +134,40 @@ describe('record Geographic Impact context', () => {
       screen.getByLabelText(/1 range-inference-eligible baseline observations at cell 871968a00ffffff/u),
     ).toBeInTheDocument()
     expect(screen.getByText(/Fixed marker sizes show evidence role, not record count/u)).toBeInTheDocument()
+  })
+
+  it('explains exact cell evidence without promoting a candidate-only cell', () => {
+    expect(buildRecordGeographicFactsModel(context)).toMatchObject({
+      contributionState: 'potential_coverage_gap_cell',
+      contributionLabel: 'Potential coverage-gap cell',
+      reviewLabel: 'Not in committed public campaign',
+    })
+
+    render(<RecordGeographicFacts context={context} />)
+
+    expect(screen.getByText('Coordinate quality').parentElement).toHaveTextContent(
+      'flickr streetFlickr accuracy level 16',
+    )
+    expect(screen.getByText('Country and region').parentElement).toHaveTextContent(
+      'SwedenSE · Stockholm',
+    )
+    expect(screen.getByText('Supported comparison cell').parentElement).toHaveTextContent(
+      'H3 resolution 787088660cffffff',
+    )
+    expect(screen.getByText('Baseline records in cell').parentElement).toHaveTextContent(
+      '0 baseline union0 range-inference eligible',
+    )
+    expect(screen.getByText('Flickr candidates in cell').parentElement).toHaveTextContent(
+      '1 candidate evidence0 reviewed target positive · 0 release-ready',
+    )
+    expect(screen.getByText('Nearest baseline distance').parentElement).toHaveTextContent(
+      '1084.768 kmto same-resolution cell 871968a00ffffff',
+    )
+    expect(screen.getByText('Potential contribution').parentElement).toHaveTextContent(
+      'Potential coverage-gap cell',
+    )
+    expect(screen.getByText('Baseline data state').parentElement).toHaveTextContent(
+      'data deficientData deficiency is not a species-absence claim.',
+    )
   })
 })
