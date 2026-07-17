@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { GeographicImpactBrowserResult, GeographicImpactRollup } from '../impact/geographicImpactAnalytics'
 import { executeGeographicTool, type GeographicToolAnalyticalEvidence } from './geographicToolExecution'
-import { explainCountryGeographicContribution, recommendGeographicReviews } from './geographicAnalystWorkflow'
+import { compareCountryGeographicScopes, explainCountryGeographicContribution, recommendGeographicReviews } from './geographicAnalystWorkflow'
 import { createGeographicToolEvidence, GEOGRAPHIC_ARTIFACT_CITATION_VERSION, GEOGRAPHIC_ARTIFACT_KINDS } from './geographicTools'
 
 describe('deterministic geographic tools', () => {
@@ -103,6 +103,36 @@ describe('deterministic geographic tools', () => {
       'recommend_geographic_review_batch',
     ])
     expect(workflow.externalActionsExecuted).toBe(false)
+  })
+
+  it('ranks selected countries by human-reviewable potential from pairwise receipts', () => {
+    const source = analyticalEvidence()
+    const denmark = {
+      ...rollup('country:DK', 'Denmark'),
+      candidateOnlyCellCount: 3,
+    }
+    const analytical: GeographicToolAnalyticalEvidence = {
+      ...source,
+      result: {
+        ...source.result,
+        childRollups: [...source.result.childRollups, denmark],
+      },
+    }
+    const workflow = compareCountryGeographicScopes(
+      evidence,
+      analytical,
+      ['country:SE', 'country:DK'],
+    )
+
+    expect(workflow.ranking.map(({ scopeId }) => scopeId)).toEqual([
+      'country:DK',
+      'country:SE',
+    ])
+    expect(workflow.toolResults.map(({ tool }) => tool)).toEqual([
+      'compare_geographic_scopes',
+    ])
+    expect(workflow.answer).toContain('human-reviewable potential coverage contribution')
+    expect(workflow.answer).toContain('not reviewed evidence added')
   })
 })
 

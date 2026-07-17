@@ -10,10 +10,13 @@ export { AgentWorkspace } from './AgentWorkspace'
 export { AgentReplayWorkspace } from './AgentReplayWorkspace'
 export {
   explainCountryGeographicContribution,
+  compareCountryGeographicScopes,
   recommendGeographicReviews,
   GEOGRAPHIC_ANALYST_MODEL,
   GEOGRAPHIC_CONTRIBUTION_WORKFLOW_VERSION,
   type GeographicContributionWorkflowResult,
+  type GeographicCountryContributionRank,
+  type GeographicScopeComparisonWorkflowResult,
   type GeographicReviewRecommendationWorkflowResult,
 } from './geographicAnalystWorkflow'
 export {

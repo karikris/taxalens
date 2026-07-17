@@ -30,6 +30,22 @@ export interface GeographicReviewRecommendationWorkflowResult {
   readonly scientificClaimAllowed: false
 }
 
+export interface GeographicCountryContributionRank {
+  readonly scopeId: string
+  readonly scopeName: string
+  readonly candidateOnlyCellCount: number
+}
+
+export interface GeographicScopeComparisonWorkflowResult {
+  readonly schemaVersion: typeof GEOGRAPHIC_CONTRIBUTION_WORKFLOW_VERSION
+  readonly question: 'Which countries have the largest human-reviewable contribution?'
+  readonly ranking: readonly GeographicCountryContributionRank[]
+  readonly answer: string
+  readonly toolResults: readonly GeographicToolResult[]
+  readonly artifactIds: readonly string[]
+  readonly scientificClaimAllowed: false
+}
+
 export function explainCountryGeographicContribution(
   evidence: GeographicToolEvidence,
   analytical: GeographicToolAnalyticalEvidence,
@@ -134,6 +150,53 @@ export function recommendGeographicReviews(
     toolResults: Object.freeze([inspection, recommendation]),
     artifactIds: uniqueSorted([...inspection.artifactIds, ...recommendation.artifactIds]),
     externalActionsExecuted: false as const,
+    scientificClaimAllowed: false as const,
+  })
+}
+
+export function compareCountryGeographicScopes(
+  evidence: GeographicToolEvidence,
+  analytical: GeographicToolAnalyticalEvidence,
+  countryScopeIds: readonly string[],
+): GeographicScopeComparisonWorkflowResult {
+  const ids = [...new Set(countryScopeIds)]
+  if (ids.length < 2 || ids.length > 20) {
+    throw new Error('Country comparison requires 2 through 20 unique scope IDs')
+  }
+  const countries = ids.map((scopeId) => {
+    const rollup = [analytical.result.selectedRollup, ...analytical.result.childRollups]
+      .find((candidate) => candidate.scopeId === scopeId)
+    if (rollup?.scopeLevel !== 'country') throw new Error(`Country scope is unavailable: ${scopeId}`)
+    return rollup
+  })
+  const anchor = countries[0]!
+  const common = scopedArguments(evidence, analytical)
+  const scores = new Map<string, number>()
+  const results = countries.slice(1).map((country) => {
+    const result = executeGeographicTool('compare_geographic_scopes', {
+      ...common,
+      left_scope_level: 'country',
+      left_scope_id: anchor.scopeId,
+      right_scope_level: 'country',
+      right_scope_id: country.scopeId,
+      metric: 'candidate_only_cells',
+    }, evidence, analytical)
+    scores.set(anchor.scopeId, factNumber(result, 'left_candidate_only_cells'))
+    scores.set(country.scopeId, factNumber(result, 'right_candidate_only_cells'))
+    return result
+  })
+  const ranking = Object.freeze(countries.map((country) => Object.freeze({
+    scopeId: country.scopeId,
+    scopeName: country.scopeName,
+    candidateOnlyCellCount: scores.get(country.scopeId)!,
+  })).sort((left, right) => right.candidateOnlyCellCount - left.candidateOnlyCellCount || left.scopeId.localeCompare(right.scopeId)))
+  return Object.freeze({
+    schemaVersion: GEOGRAPHIC_CONTRIBUTION_WORKFLOW_VERSION,
+    question: 'Which countries have the largest human-reviewable contribution?' as const,
+    ranking,
+    answer: `${ranking[0]!.scopeName} ranks first among the ${formatCount(ranking.length)} selected countries with ${formatCount(ranking[0]!.candidateOnlyCellCount)} candidate-only spatial cells. This is human-reviewable potential coverage contribution, not reviewed evidence added.`,
+    toolResults: Object.freeze(results),
+    artifactIds: uniqueSorted(results.flatMap(({ artifactIds }) => artifactIds)),
     scientificClaimAllowed: false as const,
   })
 }
