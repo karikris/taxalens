@@ -49,6 +49,14 @@ export type GeographicProjectLoaderName =
 
 export type GeographicArtifactLoadStatus = 'available' | 'partial' | 'unavailable'
 
+export interface GeographicEvidenceScopeIdentity {
+  readonly projectId: string
+  readonly runId: string
+  readonly targetAcceptedTaxonKey: string
+  readonly baselineSnapshotId: string
+  readonly flickrSnapshotId: string
+}
+
 export interface GeographicSectionLoadState {
   readonly name: JudgeBundleGeographicSectionName
   readonly section: JudgeBundleSection
@@ -57,6 +65,7 @@ export interface GeographicSectionLoadState {
 
 export interface GeographicArtifactLoadResult {
   readonly loader: GeographicProjectLoaderName
+  readonly scope: GeographicEvidenceScopeIdentity
   readonly status: GeographicArtifactLoadStatus
   readonly sections: readonly GeographicSectionLoadState[]
   readonly artifacts: readonly VerifiedProjectArtifact[]
@@ -68,15 +77,22 @@ export interface GeographicArtifactLoadResult {
 /** Load the bounded artifacts needed to compare baseline and Flickr cells. */
 export function loadGeographicImpactInput(
   project: TaxaLensProjectFacade,
+  scope: GeographicEvidenceScopeIdentity,
 ): GeographicArtifactLoadResult {
-  return loadGeographicArtifacts(project, 'geographic_impact_input', GEOGRAPHIC_IMPACT_INPUT_SECTIONS)
+  return loadGeographicArtifacts(
+    project,
+    scope,
+    'geographic_impact_input',
+    GEOGRAPHIC_IMPACT_INPUT_SECTIONS,
+  )
 }
 
 /** Load materialized global-to-admin1 impact rollups. */
 export function loadGeographicImpactSummary(
   project: TaxaLensProjectFacade,
+  scope: GeographicEvidenceScopeIdentity,
 ): GeographicArtifactLoadResult {
-  return loadGeographicArtifacts(project, 'geographic_impact_summary', [
+  return loadGeographicArtifacts(project, scope, 'geographic_impact_summary', [
     'geographic_impact_summary',
   ])
 }
@@ -84,16 +100,19 @@ export function loadGeographicImpactSummary(
 /** Load the self-contained country and administrative hierarchy. */
 export function loadCountryHierarchy(
   project: TaxaLensProjectFacade,
+  scope: GeographicEvidenceScopeIdentity,
 ): GeographicArtifactLoadResult {
-  return loadGeographicArtifacts(project, 'country_hierarchy', ['country_hierarchy'])
+  return loadGeographicArtifacts(project, scope, 'country_hierarchy', ['country_hierarchy'])
 }
 
 /** Load the cell, source and boundary handles required for one record context query. */
 export function loadGeographicRecordContext(
   project: TaxaLensProjectFacade,
+  scope: GeographicEvidenceScopeIdentity,
 ): GeographicArtifactLoadResult {
   return loadGeographicArtifacts(
     project,
+    scope,
     'geographic_record_context',
     GEOGRAPHIC_RECORD_CONTEXT_SECTIONS,
   )
@@ -101,14 +120,27 @@ export function loadGeographicRecordContext(
 
 function loadGeographicArtifacts(
   project: TaxaLensProjectFacade,
+  requestedScope: GeographicEvidenceScopeIdentity,
   loader: GeographicProjectLoaderName,
   sectionNames: readonly JudgeBundleGeographicSectionName[],
 ): GeographicArtifactLoadResult {
+  const scope = Object.freeze({ ...requestedScope })
   const sectionStates: GeographicSectionLoadState[] = []
   const artifacts: VerifiedProjectArtifact[] = []
   const unavailableSections: JudgeBundleGeographicSectionName[] = []
-  const errors: string[] = []
+  const errors = new Set<string>()
   let hasPartialSection = false
+
+  const invalidScopeFields = geographicScopeFields().filter((field) => {
+    const value = scope[field]
+    return typeof value !== 'string' || value.length === 0 || value.trim() !== value
+  })
+  if (invalidScopeFields.length > 0) {
+    errors.add(`geographic scope has invalid fields: ${invalidScopeFields.join(', ')}`)
+  }
+  if (scope.targetAcceptedTaxonKey !== project.manifest.target.accepted_taxon_key) {
+    errors.add('geographic scope mismatch: targetAcceptedTaxonKey')
+  }
 
   for (const name of sectionNames) {
     const section = project.section(name)
@@ -122,11 +154,11 @@ function loadGeographicArtifacts(
     for (const artifactId of section.artifact_ids) {
       const artifact = project.artifact(artifactId)
       if (artifact === undefined) {
-        errors.push(`${name} references an unloaded artifact`)
+        errors.add(`${name} references an unloaded artifact`)
         continue
       }
       if (artifact.descriptor.role !== name) {
-        errors.push(`${name} contains an artifact with a different semantic role`)
+        errors.add(`${name} contains an artifact with a different semantic role`)
         continue
       }
       const schemaVersion = artifact.descriptor.schema_version
@@ -135,14 +167,14 @@ function loadGeographicArtifacts(
         schemaVersion === null ||
         !supportedSchemaVersions.includes(schemaVersion)
       ) {
-        errors.push(`${name} contains an unsupported schema version`)
+        errors.add(`${name} contains an unsupported schema version`)
         continue
       }
       sectionArtifacts.push(artifact)
       artifacts.push(artifact)
     }
     if (sectionArtifacts.length === 0) {
-      errors.push(`${name} has no supported artifact`)
+      errors.add(`${name} has no supported artifact`)
     }
     sectionStates.push(
       Object.freeze({ name, section, artifacts: Object.freeze(sectionArtifacts) }),
@@ -153,12 +185,13 @@ function loadGeographicArtifacts(
   if (declaredSectionCount === 0) {
     return freezeLoadResult({
       loader,
+      scope,
       status: 'unavailable',
       sections: sectionStates,
       artifacts: [],
       manifestArtifact: null,
       unavailableSections,
-      reason: unavailableReason(sectionStates),
+      reason: errors.size > 0 ? [...errors].join('; ') : unavailableReason(sectionStates),
     })
   }
 
@@ -169,18 +202,30 @@ function loadGeographicArtifacts(
     manifestArtifact.descriptor.schema_version !== GEOGRAPHIC_IMPACT_MANIFEST_SCHEMA_VERSION ||
     manifestArtifact.json === undefined
   ) {
-    errors.push('geographic impact manifest is missing, ambiguous or unsupported')
+    errors.add('geographic impact manifest is missing, ambiguous or unsupported')
+  } else {
+    const manifestScope = readManifestScope(manifestArtifact.json)
+    if (manifestScope === null) {
+      errors.add('geographic impact manifest scope is incomplete')
+    } else {
+      for (const field of geographicScopeFields()) {
+        if (scope[field] !== manifestScope[field]) {
+          errors.add(`geographic scope mismatch: ${field}`)
+        }
+      }
+    }
   }
 
-  if (errors.length > 0) {
+  if (errors.size > 0) {
     return freezeLoadResult({
       loader,
+      scope,
       status: 'unavailable',
       sections: sectionStates,
       artifacts: [],
       manifestArtifact: null,
       unavailableSections,
-      reason: errors.join('; '),
+      reason: [...errors].join('; '),
     })
   }
 
@@ -188,6 +233,7 @@ function loadGeographicArtifacts(
     unavailableSections.length > 0 || hasPartialSection ? ('partial' as const) : ('available' as const)
   return freezeLoadResult({
     loader,
+    scope,
     status,
     sections: sectionStates,
     artifacts,
@@ -195,6 +241,34 @@ function loadGeographicArtifacts(
     unavailableSections,
     reason: status === 'partial' ? unavailableReason(sectionStates) : null,
   })
+}
+
+function geographicScopeFields(): readonly (keyof GeographicEvidenceScopeIdentity)[] {
+  return [
+    'projectId',
+    'runId',
+    'targetAcceptedTaxonKey',
+    'baselineSnapshotId',
+    'flickrSnapshotId',
+  ]
+}
+
+function readManifestScope(value: unknown): GeographicEvidenceScopeIdentity | null {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return null
+  }
+  const manifest = value as Record<string, unknown>
+  const scope = {
+    projectId: manifest.project_id,
+    runId: manifest.run_id,
+    targetAcceptedTaxonKey: manifest.accepted_taxon_key,
+    baselineSnapshotId: manifest.baseline_snapshot_id,
+    flickrSnapshotId: manifest.flickr_snapshot_id,
+  }
+  if (Object.values(scope).some((field) => typeof field !== 'string' || field.length === 0)) {
+    return null
+  }
+  return Object.freeze(scope) as GeographicEvidenceScopeIdentity
 }
 
 function unavailableReason(states: readonly GeographicSectionLoadState[]): string {

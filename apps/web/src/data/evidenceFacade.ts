@@ -42,6 +42,7 @@ export {
   loadGeographicRecordContext,
   type GeographicArtifactLoadResult,
   type GeographicArtifactLoadStatus,
+  type GeographicEvidenceScopeIdentity,
   type GeographicProjectLoaderName,
   type GeographicSectionLoadState,
 } from './geographicProjectFacade'

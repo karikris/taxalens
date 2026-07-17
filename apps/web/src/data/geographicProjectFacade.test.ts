@@ -21,6 +21,7 @@ import {
   loadGeographicImpactInput,
   loadGeographicImpactSummary,
   loadGeographicRecordContext,
+  type GeographicEvidenceScopeIdentity,
 } from './geographicProjectFacade'
 import {
   TaxaLensProjectFacade,
@@ -44,14 +45,22 @@ const impactManifestDescriptor = descriptor(
   'application/json',
 )
 
+const geographicScope: GeographicEvidenceScopeIdentity = Object.freeze({
+  projectId: 'project:synthetic',
+  runId: 'run:synthetic',
+  targetAcceptedTaxonKey: 'gbif:synthetic',
+  baselineSnapshotId: 'baseline:synthetic',
+  flickrSnapshotId: 'flickr:synthetic',
+})
+
 describe('geographic project facade', () => {
   it('loads geographic artifacts by verified section role and schema, not artifact id', () => {
     const project = geographicProject()
 
-    const input = loadGeographicImpactInput(project)
-    const summary = loadGeographicImpactSummary(project)
-    const hierarchy = loadCountryHierarchy(project)
-    const record = loadGeographicRecordContext(project)
+    const input = loadGeographicImpactInput(project, geographicScope)
+    const summary = loadGeographicImpactSummary(project, geographicScope)
+    const hierarchy = loadCountryHierarchy(project, geographicScope)
+    const record = loadGeographicRecordContext(project, geographicScope)
 
     expect(input.status).toBe('available')
     expect(input.artifacts.map(({ descriptor: artifact }) => artifact.role)).toEqual([
@@ -76,6 +85,8 @@ describe('geographic project facade', () => {
       expect(result.manifestArtifact?.descriptor.role).toBe('geographic_impact_manifest')
       expect(result.reason).toBeNull()
       expect(result.unavailableSections).toEqual([])
+      expect(result.scope).toEqual(geographicScope)
+      expect(Object.isFrozen(result.scope)).toBe(true)
     }
   })
 
@@ -84,11 +95,15 @@ describe('geographic project facade', () => {
       structuredClone(committedJudgeBundle) as JsonValue,
     )
     const project = new TaxaLensProjectFacade(migration, new Map())
+    const migratedScope = {
+      ...geographicScope,
+      targetAcceptedTaxonKey: migration.manifest.target.accepted_taxon_key,
+    }
 
-    const input = loadGeographicImpactInput(project)
-    const summary = loadGeographicImpactSummary(project)
-    const hierarchy = loadCountryHierarchy(project)
-    const record = loadGeographicRecordContext(project)
+    const input = loadGeographicImpactInput(project, migratedScope)
+    const summary = loadGeographicImpactSummary(project, migratedScope)
+    const hierarchy = loadCountryHierarchy(project, migratedScope)
+    const record = loadGeographicRecordContext(project, migratedScope)
 
     for (const result of [input, summary, hierarchy, record]) {
       expect(result.status).toBe('unavailable')
@@ -101,11 +116,54 @@ describe('geographic project facade', () => {
   it('fails closed when a declared section has an unsupported schema', () => {
     const project = geographicProject({ role: 'geographic_impact_summary', schema: 'unknown:v9' })
 
-    expect(loadGeographicImpactSummary(project)).toMatchObject({
+    expect(loadGeographicImpactSummary(project, geographicScope)).toMatchObject({
       status: 'unavailable',
       artifacts: [],
       manifestArtifact: null,
       reason: 'geographic_impact_summary contains an unsupported schema version; geographic_impact_summary has no supported artifact',
+    })
+  })
+
+  it('fails every geographic read closed for every scope identity mismatch', () => {
+    const project = geographicProject()
+    const loaders = [
+      loadGeographicImpactInput,
+      loadGeographicImpactSummary,
+      loadCountryHierarchy,
+      loadGeographicRecordContext,
+    ] as const
+    const mismatches: readonly (readonly [keyof GeographicEvidenceScopeIdentity, string])[] = [
+      ['projectId', 'project:other'],
+      ['runId', 'run:other'],
+      ['targetAcceptedTaxonKey', 'gbif:other'],
+      ['baselineSnapshotId', 'baseline:other'],
+      ['flickrSnapshotId', 'flickr:other'],
+    ]
+
+    for (const [field, value] of mismatches) {
+      const scope = { ...geographicScope, [field]: value }
+      for (const load of loaders) {
+        expect(load(project, scope)).toMatchObject({
+          status: 'unavailable',
+          artifacts: [],
+          manifestArtifact: null,
+          reason: `geographic scope mismatch: ${field}`,
+        })
+      }
+    }
+  })
+
+  it('fails closed when any required scope identity is blank', () => {
+    const result = loadGeographicImpactInput(geographicProject(), {
+      ...geographicScope,
+      baselineSnapshotId: '',
+    })
+
+    expect(result).toMatchObject({
+      status: 'unavailable',
+      artifacts: [],
+      manifestArtifact: null,
+      reason: 'geographic scope has invalid fields: baselineSnapshotId; geographic scope mismatch: baselineSnapshotId',
     })
   })
 })
@@ -200,7 +258,18 @@ function geographicProject(
         Object.freeze({
           descriptor: Object.freeze(artifact),
           bytes: new Uint8Array(new ArrayBuffer(0)),
-          json: artifact.media_type === 'application/json' ? {} : undefined,
+          json:
+            artifact.role === 'geographic_impact_manifest'
+              ? {
+                  project_id: geographicScope.projectId,
+                  run_id: geographicScope.runId,
+                  accepted_taxon_key: geographicScope.targetAcceptedTaxonKey,
+                  baseline_snapshot_id: geographicScope.baselineSnapshotId,
+                  flickr_snapshot_id: geographicScope.flickrSnapshotId,
+                }
+              : artifact.media_type === 'application/json'
+                ? {}
+                : undefined,
         }) satisfies VerifiedProjectArtifact,
       ]),
     ),
