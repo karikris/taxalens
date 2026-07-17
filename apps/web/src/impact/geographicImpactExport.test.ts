@@ -3,7 +3,11 @@ import { resolve } from 'node:path'
 
 import { describe, expect, it } from 'vitest'
 
-import { prepareGeographicImpactCellExport } from './geographicImpactExport'
+import {
+  prepareGeographicImpactCellExport,
+  prepareGeographicImpactScopeSummary,
+} from './geographicImpactExport'
+import { TAXALENS_GEOGRAPHIC_SCOPE_INDEX } from './geographicScope'
 import {
   PUBLIC_GEOGRAPHIC_IMPACT_MAP_SOURCE,
   type PublicGeographicImpactMapCell,
@@ -71,16 +75,81 @@ describe('Geographic Impact cell export', () => {
       prepareGeographicImpactCellExport(data(), new Uint8Array([1, 2, 3, 4])),
     ).rejects.toThrow(/exact verified cells Parquet/u)
   })
+
+  it('exports an exact hierarchy-bound scope summary without coercing unavailable values', () => {
+    const summary = prepareGeographicImpactScopeSummary(
+      data(),
+      requiredScope('country:IN'),
+    )
+
+    expect(summary.payloads.map(({ role }) => role)).toEqual([
+      'scope_summary_json',
+      'scope_summary_csv',
+    ])
+    const json = JSON.parse(new TextDecoder().decode(summary.payloads[0]?.bytes))
+    expect(json.scope).toEqual({
+      level: 'country',
+      id: 'country:IN',
+      name: 'India',
+      parentId: 'continent:asia',
+      continent: 'Asia',
+      countryCode: 'IN',
+      country: 'India',
+      admin1: null,
+    })
+    expect(json.summary).toMatchObject({
+      cellCount: 2,
+      flickrCandidateCount: 2,
+      candidateOnlyCellCount: 1,
+      reviewedAdditionalCellCount: 0,
+      releaseReadyAdditionalCellCount: 0,
+      directInaturalistDeltaStatus: 'unavailable',
+      directInaturalistDeltaCount: null,
+      coverageUplift: {
+        status: 'available',
+        baselineOccupiedCellCount: 1,
+      },
+    })
+    const csv = new TextDecoder().decode(summary.payloads[1]?.bytes)
+    expect(csv).toContain('scope_id,country:IN\r\n')
+    expect(csv).toContain('direct_inaturalist_delta_status,unavailable\r\n')
+    expect(csv).toContain('direct_inaturalist_delta_count,\r\n')
+    expect(csv).toContain('candidate_only_cell_count,1\r\n')
+    expect(csv).toContain('scientific_claim_allowed,false\r\n')
+  })
+
+  it('rejects a summary whose hierarchy identity differs from the selected data', () => {
+    expect(() =>
+      prepareGeographicImpactScopeSummary(
+        data(),
+        TAXALENS_GEOGRAPHIC_SCOPE_INDEX.root,
+      ),
+    ).toThrow(/scope differs/u)
+  })
 })
 
 function data(): PublicGeographicImpactMapData {
   return {
-    cells: [cell('cell-b'), cell('cell-a', { candidateOnlyCell: true })],
+    cells: [
+      cell('cell-b', {
+        baselineUnionCount: 1,
+        baselineRangeInferenceEligibleCount: 1,
+        matchedCell: true,
+        nearestBaselineDistanceKm: null,
+      }),
+      cell('cell-a', { candidateOnlyCell: true }),
+    ],
     spatialResolution: 7,
     scopeId: 'country:IN',
     source: PUBLIC_GEOGRAPHIC_IMPACT_MAP_SOURCE,
     scientificClaimAllowed: false,
   }
+}
+
+function requiredScope(scopeId: string) {
+  const scope = TAXALENS_GEOGRAPHIC_SCOPE_INDEX.byId.get(scopeId)
+  if (scope === undefined) throw new Error(`Missing test scope: ${scopeId}`)
+  return scope
 }
 
 function cell(

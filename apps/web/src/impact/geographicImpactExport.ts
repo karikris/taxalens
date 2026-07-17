@@ -1,4 +1,6 @@
 import { canonicalExportJsonBytes, sha256Hex } from '../evidence/evidenceExport'
+import type { CountryHierarchyNode } from '../../../../packages/contracts/src/geographic_impact_contract'
+import { buildSelectedGeographyDetails } from './SelectedGeographyDetails'
 import type {
   PublicGeographicImpactMapCell,
   PublicGeographicImpactMapData,
@@ -11,6 +13,8 @@ export type GeographicImpactExportRole =
   | 'cells_json'
   | 'cells_csv'
   | 'source_cells_parquet'
+  | 'scope_summary_json'
+  | 'scope_summary_csv'
 
 export interface GeographicImpactExportPayload {
   readonly role: GeographicImpactExportRole
@@ -25,6 +29,13 @@ export interface GeographicImpactCellExport {
   readonly payloads: readonly GeographicImpactExportPayload[]
   readonly selectedCellCount: number
   readonly sourceParquetScope: 'full_target_all_supported_resolutions'
+  readonly scientificClaimAllowed: false
+}
+
+export interface GeographicImpactScopeSummaryExport {
+  readonly schemaVersion: typeof GEOGRAPHIC_IMPACT_EXPORT_SCHEMA_VERSION
+  readonly prefix: string
+  readonly payloads: readonly GeographicImpactExportPayload[]
   readonly scientificClaimAllowed: false
 }
 
@@ -133,12 +144,131 @@ export async function prepareGeographicImpactCellExport(
   })
 }
 
+export function prepareGeographicImpactScopeSummary(
+  data: PublicGeographicImpactMapData,
+  scope: CountryHierarchyNode,
+): GeographicImpactScopeSummaryExport {
+  if (scope.scope_id !== data.scopeId) {
+    throw new Error('Geographic Impact summary scope differs from the selected map scope')
+  }
+  const scopeSummary = prepareScopeSummaryValue(data, scope)
+  const prefix = exportPrefix(data)
+  const summary = Object.freeze({
+    schemaVersion: GEOGRAPHIC_IMPACT_EXPORT_SCHEMA_VERSION,
+    exportRole: 'selected_scope_summary',
+    source: data.source,
+    ...scopeSummary,
+    limitations: {
+      missingBaselineIsBiologicalAbsence: false,
+      flickrCandidatesAreOccurrences: false,
+      scientificClaimAllowed: false,
+    },
+  })
+  const payloads: GeographicImpactExportPayload[] = [
+    {
+      role: 'scope_summary_json',
+      filename: `${prefix}.scope-summary.json`,
+      mediaType: 'application/json',
+      bytes: canonicalExportJsonBytes(summary),
+    },
+    {
+      role: 'scope_summary_csv',
+      filename: `${prefix}.scope-summary.csv`,
+      mediaType: 'text/csv;charset=utf-8',
+      bytes: new TextEncoder().encode(scopeSummaryCsv(summary)),
+    },
+  ]
+  return Object.freeze({
+    schemaVersion: GEOGRAPHIC_IMPACT_EXPORT_SCHEMA_VERSION,
+    prefix,
+    payloads: Object.freeze(payloads.map((payload) => Object.freeze(payload))),
+    scientificClaimAllowed: false as const,
+  })
+}
+
 export function cellRowsCsv(rows: readonly GeographicCellExportRow[]): string {
   const lines = [
     CELL_COLUMNS.join(','),
     ...rows.map((row) => CELL_COLUMNS.map((column) => csvCell(row[column])).join(',')),
   ]
   return `${lines.join('\r\n')}\r\n`
+}
+
+function scopeSummaryCsv(
+  value: ReturnType<typeof prepareScopeSummaryValue>,
+): string {
+  const { scope, spatialResolution, summary } = value
+  const rows: readonly (readonly [string, boolean | number | string | null])[] = [
+    ['scope_level', scope.level],
+    ['scope_id', scope.id],
+    ['scope_name', scope.name],
+    ['parent_scope_id', scope.parentId],
+    ['continent', scope.continent],
+    ['country_code', scope.countryCode],
+    ['country', scope.country],
+    ['admin1', scope.admin1],
+    ['spatial_resolution', spatialResolution],
+    ['cell_count', summary.cellCount],
+    ['baseline_union_count', summary.baselineUnionCount],
+    ['baseline_range_inference_eligible_count', summary.baselineEligibleCount],
+    ['baseline_excluded_occurrence_count', summary.baselineExcludedCount],
+    ['gbif_only_count', summary.gbifOnlyCount],
+    ['inaturalist_origin_through_gbif_count', summary.inaturalistOriginThroughGbifCount],
+    ['direct_inaturalist_delta_status', summary.directInaturalistDeltaStatus],
+    ['direct_inaturalist_delta_count', summary.directInaturalistDeltaCount],
+    ['duplicates_removed_count', summary.duplicatesRemovedCount],
+    ['unresolved_provider_duplicate_group_count', summary.unresolvedProviderDuplicateGroupCount],
+    ['flickr_candidate_count', summary.flickrCandidateCount],
+    ['reviewed_positive_count', summary.reviewedPositiveCount],
+    ['reviewed_negative_count', summary.reviewedNegativeCount],
+    ['uncertain_count', summary.uncertainCount],
+    ['pending_count', summary.pendingCount],
+    ['release_ready_count', summary.releaseReadyCount],
+    ['candidate_only_cell_count', summary.candidateOnlyCellCount],
+    ['reviewed_additional_cell_count', summary.reviewedAdditionalCellCount],
+    ['release_ready_additional_cell_count', summary.releaseReadyAdditionalCellCount],
+    ['nearest_baseline_distance_km', summary.nearestBaselineDistanceKm],
+    ['latest_baseline_event_date', summary.latestBaselineEventDate],
+    ['latest_flickr_candidate_date', summary.latestFlickrCandidateDate],
+    ['data_deficient_cell_count', summary.dataDeficientCellCount],
+    ['unavailable_cell_count', summary.unavailableCellCount],
+    ['range_edge_potential_cell_count', summary.rangeEdgeStateCounts.potential],
+    ['range_edge_human_supported_cell_count', summary.rangeEdgeStateCounts.human_supported],
+    ['range_edge_release_ready_cell_count', summary.rangeEdgeStateCounts.release_ready],
+    ['range_edge_data_deficient_cell_count', summary.rangeEdgeStateCounts.data_deficient],
+    ['range_edge_unavailable_cell_count', summary.rangeEdgeStateCounts.unavailable],
+    ['coverage_uplift_status', summary.coverageUplift.status],
+    ['baseline_occupied_cell_denominator', summary.coverageUplift.baselineOccupiedCellCount],
+    ['candidate_uplift_additional_cells', summary.coverageUplift.potential.additionalCellCount],
+    ['candidate_uplift_percent', summary.coverageUplift.potential.percent],
+    ['human_supported_uplift_additional_cells', summary.coverageUplift.humanSupported.additionalCellCount],
+    ['human_supported_uplift_percent', summary.coverageUplift.humanSupported.percent],
+    ['release_ready_uplift_additional_cells', summary.coverageUplift.releaseReady.additionalCellCount],
+    ['release_ready_uplift_percent', summary.coverageUplift.releaseReady.percent],
+    ['temporal_contribution_description', summary.temporalContribution],
+    ['scientific_claim_allowed', false],
+  ]
+  return `metric,value\r\n${rows.map(([metric, cell]) => `${metric},${csvCell(cell)}`).join('\r\n')}\r\n`
+}
+
+function prepareScopeSummaryValue(
+  data: PublicGeographicImpactMapData,
+  scope: CountryHierarchyNode,
+) {
+  return {
+    scope: {
+      level: scope.scope_level,
+      id: scope.scope_id,
+      name: scope.scope_name,
+      parentId: scope.parent_scope_id,
+      continent: scope.continent,
+      countryCode: scope.country_code,
+      country: scope.country,
+      admin1: scope.admin1,
+    },
+    spatialResolution: data.spatialResolution,
+    summary: buildSelectedGeographyDetails(data.cells, scope, null),
+  }
 }
 
 function cellExportRow(cell: PublicGeographicImpactMapCell): GeographicCellExportRow {
