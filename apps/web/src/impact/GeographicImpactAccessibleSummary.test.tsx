@@ -16,27 +16,28 @@ describe('GeographicImpactAccessibleSummary', () => {
           baselineRangeInferenceEligibleCount: 7,
           flickrCandidateCount: 4,
           pendingCount: 4,
-          candidateOnlyCell: true,
+          candidateOnlyCell: false,
         }),
         cell('cell:b', {
-          baselineRangeInferenceEligibleCount: 3,
+          baselineRangeInferenceEligibleCount: 0,
           flickrCandidateCount: 2,
           reviewedPositiveCount: 1,
           reviewedNegativeCount: 1,
           uncertainCount: 0,
           releaseReadyCount: 0,
+          candidateOnlyCell: true,
           reviewedAdditionalCell: true,
         }),
       ],
       TAXALENS_GEOGRAPHIC_SCOPE_INDEX.root,
-      'cell:a',
+      'cell:b',
     )
 
     expect(summary).toMatchObject({
       scopeName: 'Global',
       spatialResolution: 3,
       cellCount: 2,
-      baselineEligibleCount: 10,
+      baselineEligibleCount: 7,
       flickrCandidateCount: 6,
       pendingCount: 4,
       reviewedPositiveCount: 1,
@@ -44,7 +45,7 @@ describe('GeographicImpactAccessibleSummary', () => {
       releaseReadyCount: 0,
       candidateOnlyCellCount: 1,
       reviewedAdditionalCellCount: 1,
-      selectedCellId: 'cell:a',
+      selectedCellId: 'cell:b',
     })
     expect(summary.announcement).toMatch(/0 release-ready/u)
     expect(summary.selectedCellSummary).toMatch(/not a biological absence claim/u)
@@ -53,7 +54,13 @@ describe('GeographicImpactAccessibleSummary', () => {
   it('renders non-color state descriptions and one atomic live summary', () => {
     const { rerender } = render(
       <GeographicImpactAccessibleSummary
-        cells={[cell('cell:a', { flickrCandidateCount: 3, pendingCount: 3 })]}
+        cells={[
+          cell('cell:a', {
+            flickrCandidateCount: 3,
+            pendingCount: 3,
+            candidateOnlyCell: true,
+          }),
+        ]}
         scope={TAXALENS_GEOGRAPHIC_SCOPE_INDEX.root}
         selectedCellId={null}
       />,
@@ -68,7 +75,13 @@ describe('GeographicImpactAccessibleSummary', () => {
 
     rerender(
       <GeographicImpactAccessibleSummary
-        cells={[cell('cell:a', { flickrCandidateCount: 3, pendingCount: 3 })]}
+        cells={[
+          cell('cell:a', {
+            flickrCandidateCount: 3,
+            pendingCount: 3,
+            candidateOnlyCell: true,
+          }),
+        ]}
         scope={TAXALENS_GEOGRAPHIC_SCOPE_INDEX.root}
         selectedCellId="cell:a"
       />,

@@ -11,9 +11,18 @@ describe('GeographicCountryRanking', () => {
   it('ranks exact candidate-only cells with deterministic country ties', () => {
     const ranking = buildGeographicCountryRanking(
       [
-        cell('au:a', 'AU', 'Australia', { candidateOnlyCell: true }),
-        cell('au:b', 'AU', 'Australia', { candidateOnlyCell: true }),
-        cell('in:a', 'IN', 'India', { candidateOnlyCell: true }),
+        cell('au:a', 'AU', 'Australia', {
+          flickrCandidateCount: 1,
+          candidateOnlyCell: true,
+        }),
+        cell('au:b', 'AU', 'Australia', {
+          flickrCandidateCount: 1,
+          candidateOnlyCell: true,
+        }),
+        cell('in:a', 'IN', 'India', {
+          flickrCandidateCount: 1,
+          candidateOnlyCell: true,
+        }),
         cell('nz:a', 'NZ', 'New Zealand'),
         cell('unknown', null, null),
       ],
@@ -31,9 +40,13 @@ describe('GeographicCountryRanking', () => {
         cell('au:baseline', 'AU', 'Australia', { nearestBaselineDistanceKm: 900 }),
         cell('au:candidate', 'AU', 'Australia', {
           flickrCandidateCount: 1,
+          candidateOnlyCell: true,
           nearestBaselineDistanceKm: 12.25,
         }),
-        cell('in:candidate', 'IN', 'India', { flickrCandidateCount: 2 }),
+        cell('in:candidate', 'IN', 'India', {
+          flickrCandidateCount: 2,
+          candidateOnlyCell: true,
+        }),
       ],
       'range_edge_distance',
     )

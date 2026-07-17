@@ -1,4 +1,5 @@
 import type { CountryHierarchyNode } from '../../../../packages/contracts/src/geographic_impact_contract'
+import { countPotentialCoverageGapCells } from './geographicContributionMetrics'
 import type { PublicGeographicImpactMapCell } from './publicGeographicImpactMapData'
 
 export interface SelectedGeographyDetailModel {
@@ -213,7 +214,7 @@ export function buildSelectedGeographyDetails(
     uncertainCount: sum(selectedCells, 'uncertainCount'),
     pendingCount: sum(selectedCells, 'pendingCount'),
     releaseReadyCount: sum(selectedCells, 'releaseReadyCount'),
-    candidateOnlyCellCount: countTrue(selectedCells, 'candidateOnlyCell'),
+    candidateOnlyCellCount: countPotentialCoverageGapCells(selectedCells),
     reviewedAdditionalCellCount: countTrue(selectedCells, 'reviewedAdditionalCell'),
     releaseReadyAdditionalCellCount: countTrue(
       selectedCells,

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import type { CountryHierarchyNode } from '../../../../packages/contracts/src/geographic_impact_contract'
+import { countPotentialCoverageGapCells } from './geographicContributionMetrics'
 import type { PublicGeographicImpactMapCell } from './publicGeographicImpactMapData'
 
 export interface GeographicImpactAccessibleSummaryModel {
@@ -101,7 +102,7 @@ export function buildGeographicImpactAccessibleSummary(
     reviewedNegativeCount: sum(cells, 'reviewedNegativeCount'),
     uncertainCount: sum(cells, 'uncertainCount'),
     releaseReadyCount: sum(cells, 'releaseReadyCount'),
-    candidateOnlyCellCount: countTrue(cells, 'candidateOnlyCell'),
+    candidateOnlyCellCount: countPotentialCoverageGapCells(cells),
     reviewedAdditionalCellCount: countTrue(cells, 'reviewedAdditionalCell'),
     releaseReadyAdditionalCellCount: countTrue(cells, 'releaseReadyAdditionalCell'),
     selectedCellId: selected?.spatialCellId ?? null,

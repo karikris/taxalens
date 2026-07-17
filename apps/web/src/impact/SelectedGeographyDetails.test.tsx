@@ -19,11 +19,11 @@ describe('SelectedGeographyDetails', () => {
         inaturalistOriginThroughGbifCount: 4,
         flickrCandidateCount: 5,
         pendingCount: 5,
-        candidateOnlyCell: true,
         nearestBaselineDistanceKm: 12.5,
         latestBaselineEventDate: '2020-01-01',
         latestFlickrCandidateDate: '2024-01-02',
         dataDeficientState: 'data_deficient',
+        candidateOnlyCell: false,
       }),
       cell('cell:b', {
         baselineUnionCount: 4,
@@ -33,6 +33,11 @@ describe('SelectedGeographyDetails', () => {
         pendingCount: 2,
         latestBaselineEventDate: '2021-01-01',
         latestFlickrCandidateDate: '2023-01-01',
+      }),
+      cell('cell:c', {
+        flickrCandidateCount: 1,
+        pendingCount: 1,
+        candidateOnlyCell: true,
       }),
     ]
 
@@ -45,7 +50,7 @@ describe('SelectedGeographyDetails', () => {
     expect(details).toMatchObject({
       title: 'Global',
       context: 'scope',
-      cellCount: 2,
+      cellCount: 3,
       baselineUnionCount: 14,
       baselineEligibleCount: 11,
       baselineExcludedCount: 3,
@@ -53,8 +58,8 @@ describe('SelectedGeographyDetails', () => {
       inaturalistOriginThroughGbifCount: 4,
       directInaturalistDeltaStatus: 'unavailable',
       directInaturalistDeltaCount: null,
-      flickrCandidateCount: 7,
-      pendingCount: 7,
+      flickrCandidateCount: 8,
+      pendingCount: 8,
       candidateOnlyCellCount: 1,
       nearestBaselineDistanceKm: 12.5,
       latestBaselineEventDate: '2021-01-01',
