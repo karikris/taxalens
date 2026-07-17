@@ -42,6 +42,58 @@ describe('geographic bubble scale', () => {
     expect(radii[3]).toBe(28)
   })
 
+  it('preserves the square-root count relationship above the visibility floor', () => {
+    const scale = createGeographicBubbleScale(
+      {
+        baselineCounts: [100, 10_000],
+        flickrCounts: [2_500],
+      },
+      { minimumVisibleRadius: 1, maximumRadius: 100 },
+    )
+
+    const smallRadius = scale.radiusForCount(100)
+    const mediumRadius = scale.radiusForCount(2_500)
+    const maximumRadius = scale.radiusForCount(10_000)
+    expect(smallRadius).toBe(10)
+    expect(mediumRadius).toBe(50)
+    expect(maximumRadius).toBe(100)
+    expect((mediumRadius / maximumRadius) ** 2).toBeCloseTo(2_500 / 10_000)
+    expect((smallRadius / maximumRadius) ** 2).toBeCloseTo(100 / 10_000)
+  })
+
+  it('uses one domain regardless of which evidence layer contains the maximum', () => {
+    const baselineMaximum = createGeographicBubbleScale({
+      baselineCounts: [64],
+      flickrCounts: [4],
+    })
+    const flickrMaximum = createGeographicBubbleScale({
+      baselineCounts: [4],
+      flickrCounts: [64],
+    })
+
+    expect(baselineMaximum.domainMaximum).toBe(64)
+    expect(flickrMaximum.domainMaximum).toBe(64)
+    expect(baselineMaximum.legendValues).toEqual([1, 8, 64])
+    expect(flickrMaximum.legendValues).toEqual([1, 8, 64])
+    expect(baselineMaximum.radiusForCount(4)).toBe(
+      flickrMaximum.radiusForCount(4),
+    )
+  })
+
+  it('documents and applies the visibility floor only to positive counts', () => {
+    const scale = createGeographicBubbleScale(
+      { baselineCounts: [0, 1_000_000], flickrCounts: [1] },
+      { minimumVisibleRadius: 4, maximumRadius: 32 },
+    )
+
+    expect(scale.radiusForCount(0)).toBe(0)
+    expect(scale.radiusForCount(1)).toBe(4)
+    expect(scale.zeroCountBehavior).toBe('hidden')
+    expect(GEOGRAPHIC_BUBBLE_SCALE_CAPTION).toContain(
+      'exact counts appear in the tooltip',
+    )
+  })
+
   it('supports explicit log-absolute scaling without changing the count domain', () => {
     const scale = createGeographicBubbleScale(
       {
@@ -91,5 +143,11 @@ describe('geographic bubble scale', () => {
     expect(() => scale.radiusForCount(1.5)).toThrow(
       'bubble counts must be non-negative safe integers',
     )
+    expect(() =>
+      createGeographicBubbleScale(
+        { baselineCounts: [1], flickrCounts: [] },
+        { maximumRadius: Number.POSITIVE_INFINITY },
+      ),
+    ).toThrow('maximumRadius must be a positive finite number')
   })
 })
