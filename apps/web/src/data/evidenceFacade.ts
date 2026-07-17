@@ -35,6 +35,16 @@ export type {
   JsonValue,
   VerifiedProjectArtifact,
 } from './projectFacade'
+export {
+  loadCountryHierarchy,
+  loadGeographicImpactInput,
+  loadGeographicImpactSummary,
+  loadGeographicRecordContext,
+  type GeographicArtifactLoadResult,
+  type GeographicArtifactLoadStatus,
+  type GeographicProjectLoaderName,
+  type GeographicSectionLoadState,
+} from './geographicProjectFacade'
 
 export interface StoredOpenAIReplayArtifact {
   readonly artifactId: string
