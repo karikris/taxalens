@@ -1,7 +1,7 @@
 {
   "bucket_alias": "taxalens-repository-fixture",
   "credentials_included": false,
-  "object_count": 84,
+  "object_count": 86,
   "objects": [
     {
       "bytes": 484,
@@ -409,6 +409,24 @@
       "sha256": "a240e9bf0c0a3d0a21c464953eb8dcff5d9cbe53a23400d0d733609cc5511850"
     },
     {
+      "bytes": 941398,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/vnd.apache.parquet",
+      "object_key": "taxalens/demo/source/biominer_phase14/flickr_geography/flickr_geography_verification.parquet",
+      "repository_path": "demo/source/biominer_phase14/flickr_geography/flickr_geography_verification.parquet",
+      "sha256": "c414d2db442acc372029a4cc6d0a02d57a7f4e8495efd93ef2faa2499c32084d"
+    },
+    {
+      "bytes": 5024,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase14/flickr_geography/flickr_geography_verification_manifest.json",
+      "repository_path": "demo/source/biominer_phase14/flickr_geography/flickr_geography_verification_manifest.json",
+      "sha256": "e9af7ef638da8afd6642d74cb1d4cae45cbe22881d5939aef6d2bf59fcc5ee0b"
+    },
+    {
       "bytes": 2803,
       "git_tracked_required": true,
       "immutable": true,
@@ -765,5 +783,5 @@
   "scientific_claim_allowed": false,
   "signed_urls_included": false,
   "storage_mode": "repository_mirror",
-  "total_bytes": 6979557
+  "total_bytes": 7925979
 }

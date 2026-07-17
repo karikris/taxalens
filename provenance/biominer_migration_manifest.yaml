@@ -44,6 +44,25 @@ scientific_claim_gate: "blocked-until-reviewed-references-leakage-safe-splits-ca
 handoff_contract: "storage-handoff-inventory-v1.0.0-with-explicit-uri-sha256-source-sha-and-receipt"
 recorded_at: "2026-07-17"
 components:
+  - component_id: taxalens_flickr_geography_verification_binding
+    source_repository: karikris/BioMiner
+    source_commit: 94fa1f634ee3c63917c05d78181dd3cf9ceff940
+    source_path: runs/papilio_demoleus_flickr_audit_20260716/flickr_audit_source.json
+    destination_path: demo/source/biominer_phase14/flickr_geography/flickr_geography_verification.parquet
+    migration_kind: adapted
+    reason: Bind normalized Flickr geography to the exact committed audit queue, source grouping, sampling and zero-outcome consensus identities without turning machine state or queue membership into human evidence.
+    build_week_scope: new
+    source_license: MIT
+    changes:
+      - Joined 49 Flickr audit photos to their campaign and item IDs across all three resolution rows.
+      - Preserved duplicate, observation, owner, geographic-cluster, dataset-split, stratum, probability, weight, and question identities.
+      - Bound repository assignment and consensus projections while retaining zero reviewer assignments and zero retained human outcomes.
+      - Distinguished 49 pending campaign photos from 13,452 candidates outside the committed campaign.
+      - Kept machine screening state separate from human review state.
+      - Produced zero human-supported and zero release-ready claims.
+    tests:
+      - scripts/build_flickr_geography_verification.py --check
+    status: migrated
   - component_id: taxalens_flickr_geography_long
     source_repository: karikris/BioMiner
     source_commit: 75461d9c065af0cd96b41cd1f845c2e920f7ae34

@@ -1,0 +1,133 @@
+{
+  "artifact": {
+    "byte_count": 941398,
+    "columns": [
+      "schema_version",
+      "project_id",
+      "run_id",
+      "target_accepted_taxon_key",
+      "scientific_name",
+      "flickr_snapshot_id",
+      "source",
+      "flickr_photo_id",
+      "source_record_hash",
+      "spatial_resolution",
+      "spatial_cell_id",
+      "cell_supported",
+      "cell_support_status",
+      "grid_name",
+      "grid_version",
+      "latitude",
+      "longitude",
+      "coordinate_accuracy",
+      "coordinate_source",
+      "geotag_available",
+      "country_code",
+      "admin1",
+      "coordinate_quality",
+      "geography_warning",
+      "geography_warnings",
+      "geography_config_fingerprint",
+      "origin_repository",
+      "origin_commit",
+      "source_artifact_sha256",
+      "candidate_semantics",
+      "verification_campaign_id",
+      "verification_item_id",
+      "verification_queue_state",
+      "duplicate_group_id",
+      "observation_group_id",
+      "owner_group_id",
+      "geographic_cluster_id",
+      "dataset_split",
+      "sampling_stratum_id",
+      "sampling_purpose",
+      "sampling_design",
+      "sampling_representative",
+      "inclusion_probability",
+      "sampling_weight",
+      "campaign_manifest_sha256",
+      "question_fingerprint",
+      "machine_screening_state",
+      "campaign_coordinate_latitude",
+      "campaign_coordinate_longitude",
+      "coordinate_outlier",
+      "reviewer_assignment_count",
+      "consensus_status",
+      "consensus_outcome",
+      "effective_review_count",
+      "decisive_review_count",
+      "human_review_state",
+      "human_reviewed",
+      "human_supported"
+    ],
+    "media_type": "application/vnd.apache.parquet",
+    "path": "demo/source/biominer_phase14/flickr_geography/flickr_geography_verification.parquet",
+    "row_count": 40503,
+    "schema_version": "taxalens-flickr-geography-verification:v1.0.0",
+    "sha256": "c414d2db442acc372029a4cc6d0a02d57a7f4e8495efd93ef2faa2499c32084d"
+  },
+  "build_id": "flickr-geography-verification:c2ebcd622ff9c67d6ed185a8",
+  "candidate_semantics": "flickr_candidate_evidence_not_taxonomic_identity_or_occurrence",
+  "counts": {
+    "campaign_long_row_count": 147,
+    "campaign_photo_count": 49,
+    "decisive_review_count": 0,
+    "final_test_campaign_photo_count": 49,
+    "human_reviewed_photo_count": 0,
+    "human_supported_photo_count": 0,
+    "long_row_count": 40503,
+    "not_in_campaign_photo_count": 13452,
+    "pending_photo_count": 49,
+    "photo_count": 13501,
+    "reviewer_assigned_photo_count": 0
+  },
+  "flickr_snapshot_id": "flickr:2026-07-15",
+  "input_sha256": {
+    "long_form_manifest": "a240e9bf0c0a3d0a21c464953eb8dcff5d9cbe53a23400d0d733609cc5511850",
+    "long_form_parquet": "a38002d884cf5f96ad2027f691852ee0199ff08cec82574d640d06777aae8837",
+    "verification_assignments": "e69fc957101e102e2bf802bc2654a49dccb255d79efe7ab6c57579602b54b869",
+    "verification_campaign": "c9efb76f6c576b217aa7fd7469f49d671d81e3b248b2ab735d4fb874be6b61bc",
+    "verification_consensus": "358afaf053c095b275e6189632fd22b4bd10b266953d57fd40e606163e194e0f"
+  },
+  "inputs": {
+    "long_form_manifest": {
+      "path": "demo/source/biominer_phase14/flickr_geography/flickr_geography_long_manifest.json",
+      "sha256": "a240e9bf0c0a3d0a21c464953eb8dcff5d9cbe53a23400d0d733609cc5511850"
+    },
+    "long_form_parquet": {
+      "path": "demo/source/biominer_phase14/flickr_geography/flickr_geography_long.parquet",
+      "sha256": "a38002d884cf5f96ad2027f691852ee0199ff08cec82574d640d06777aae8837"
+    },
+    "verification_assignments": {
+      "path": "demo/repository_storage/supabase/verification_assignments.json",
+      "sha256": "e69fc957101e102e2bf802bc2654a49dccb255d79efe7ab6c57579602b54b869"
+    },
+    "verification_campaign": {
+      "path": "demo/source/verification/papilio-demoleus-flickr-audit.campaign.json",
+      "sha256": "c9efb76f6c576b217aa7fd7469f49d671d81e3b248b2ab735d4fb874be6b61bc"
+    },
+    "verification_consensus": {
+      "path": "demo/repository_storage/supabase/verification_consensus.json",
+      "sha256": "358afaf053c095b275e6189632fd22b4bd10b266953d57fd40e606163e194e0f"
+    }
+  },
+  "origin_commit": "75461d9c065af0cd96b41cd1f845c2e920f7ae34",
+  "origin_repository": "karikris/BioMiner",
+  "project_id": "taxalens-papilio-demoleus-judge-replay",
+  "review_semantics": {
+    "campaign_membership_is_human_review": false,
+    "human_support_requires_decisive_yes_consensus": true,
+    "machine_screening_is_human_label": false,
+    "missing_consensus_for_campaign_item": "pending",
+    "non_campaign_consensus_state": "not_requested",
+    "release_ready_derived_here": false,
+    "skip_or_cant_view_is_human_support": false
+  },
+  "run_id": "papilio-demoleus-pilot-20260715",
+  "schema_version": "taxalens-flickr-geography-verification-build:v1.0.0",
+  "scientific_claim_allowed": false,
+  "scientific_name": "Papilio demoleus",
+  "source_build_id": "flickr-geography-long:5d23bb1a257d9ff945fed2f4",
+  "target_accepted_taxon_key": "gbif:1938069"
+}
