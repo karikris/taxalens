@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 
 import { RecordGeographicMiniMap } from './RecordGeographicMiniMap'
 import { RecordGeographicActions } from './RecordGeographicActions'
+import { RecordPrecisionBoundary } from './RecordPrecisionBoundary'
 import {
   RecordGeographicFacts,
   buildRecordGeographicFactsModel,
@@ -192,5 +193,52 @@ describe('record Geographic Impact context', () => {
     expect(provenance).toHaveTextContent('baseline:snapshot')
     expect(provenance).toHaveTextContent('871968a00ffffff')
     expect(provenance).toHaveTextContent(/does not prove biological absence/u)
+  })
+
+  it('discloses and enforces a coarse coordinate precision boundary', () => {
+    const coarseContext: RecordGeographicContext = {
+      ...context,
+      candidateCoordinate: { ...context.candidateCoordinate, quality: 'flickr_region' },
+      precisionCells: [
+        {
+          spatialResolution: 3,
+          spatialCellId: '830886fffffffff',
+          supported: true,
+          supportStatus: 'supported',
+        },
+        {
+          spatialResolution: 5,
+          spatialCellId: null,
+          supported: false,
+          supportStatus: 'unsupported_precision',
+        },
+        {
+          spatialResolution: 7,
+          spatialCellId: null,
+          supported: false,
+          supportStatus: 'unsupported_precision',
+        },
+      ],
+      selectedCell: {
+        ...context.selectedCell,
+        spatialResolution: 3,
+        spatialCellId: '830886fffffffff',
+      },
+    }
+    const { rerender } = render(<RecordPrecisionBoundary context={coarseContext} />)
+
+    expect(screen.getByRole('heading', { name: 'Finer geographic comparison blocked' }))
+      .toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('Blocked finer resolutions: 5, 7')
+    expect(screen.getByText('H3 resolution 5').closest('li')).toHaveAttribute('aria-disabled', 'true')
+    expect(screen.getByText('H3 resolution 7').closest('li')).toHaveAttribute('aria-disabled', 'true')
+    expect(screen.getByText(/Unsupported child cells are never inferred/u)).toBeInTheDocument()
+
+    rerender(<RecordGeographicActions context={coarseContext} />)
+    expect(screen.queryByRole('link', { name: 'Open Geographic Impact' })).not.toBeInTheDocument()
+    expect(screen.getByText('Geographic Impact link unavailable')).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
   })
 })

@@ -7,6 +7,7 @@ import {
 import { geographicMapResolutionForScope } from '../impact/publicGeographicImpactMapData'
 import { TAXALENS_GEOGRAPHIC_SCOPE_INDEX } from '../impact/geographicScope'
 import type { RecordGeographicContext } from './recordGeographicContext'
+import { resolveRecordPrecisionCell } from './recordPrecisionPolicy'
 
 export function RecordGeographicActions({
   context,
@@ -94,13 +95,11 @@ function recordGeographicMapTarget(
         )
   const scope = countryScope ?? TAXALENS_GEOGRAPHIC_SCOPE_INDEX.root
   const spatialResolution = geographicMapResolutionForScope(scope)
-  const precisionCell = context.precisionCells.find(
-    (cell) => cell.spatialResolution === spatialResolution && cell.supported,
-  )
-  if (precisionCell?.spatialCellId === null || precisionCell?.spatialCellId === undefined) return null
+  const decision = resolveRecordPrecisionCell(context.precisionCells, spatialResolution)
+  if (decision.status === 'blocked') return null
   return Object.freeze({
     scopeId: scope.scope_id,
-    spatialCellId: precisionCell.spatialCellId,
+    spatialCellId: decision.cell.spatialCellId,
     spatialResolution,
   })
 }

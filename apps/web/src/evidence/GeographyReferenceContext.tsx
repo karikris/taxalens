@@ -10,6 +10,7 @@ import {
 import { RecordGeographicMiniMap } from './RecordGeographicMiniMap'
 import { RecordGeographicFacts } from './RecordGeographicFacts'
 import { RecordGeographicActions } from './RecordGeographicActions'
+import { RecordPrecisionBoundary } from './RecordPrecisionBoundary'
 import type { RecordGeographicContextLoadState } from './recordGeographicContext'
 
 export function GeographyReferenceContext({
@@ -110,6 +111,7 @@ export function GeographyReferenceContext({
       {recordGeography.status === 'available' ? (
         <>
           <RecordGeographicFacts context={recordGeography.context} />
+          <RecordPrecisionBoundary context={recordGeography.context} />
           <RecordGeographicActions context={recordGeography.context} />
         </>
       ) : null}

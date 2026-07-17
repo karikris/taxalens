@@ -1586,6 +1586,54 @@
   border-radius: var(--tl-radius-sm);
 }
 
+.record-precision-boundary {
+  display: grid;
+  gap: var(--tl-space-3);
+  padding: var(--tl-space-3);
+  background: var(--tl-state-review-bg);
+  border: 1px solid var(--tl-state-review-line);
+  border-left: 4px solid var(--tl-amber-700);
+  border-radius: var(--tl-radius-sm);
+}
+
+.record-precision-boundary > div > p:last-child,
+.record-precision-boundary > p {
+  max-width: var(--tl-reading-width);
+  margin: var(--tl-space-1) 0 0;
+  color: var(--tl-ink-muted);
+}
+
+.record-precision-boundary ul {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--tl-space-2);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.record-precision-boundary li {
+  display: grid;
+  gap: var(--tl-space-1);
+  padding: var(--tl-space-2);
+  background: var(--tl-surface-paper);
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.record-precision-boundary li[data-current="true"] {
+  border: 2px solid var(--tl-brand-strong);
+}
+
+.record-precision-boundary li[aria-disabled="true"] {
+  border-style: dashed;
+}
+
+.record-precision-boundary li span {
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-sm);
+}
+
 .record-geographic-actions__links {
   display: flex;
   flex-wrap: wrap;
@@ -2128,6 +2176,7 @@
   .geography-reference__footer,
   .record-geographic-facts dl,
   .record-geographic-actions__provenance dl,
+  .record-precision-boundary ul,
   .evidence-ledger__timeline dl {
     grid-template-columns: 1fr;
   }

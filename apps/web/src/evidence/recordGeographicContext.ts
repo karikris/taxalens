@@ -10,6 +10,7 @@ import {
   loadLocalParquetExtension,
 } from '../data/duckdbRuntime'
 import type { DiscoveryProvenanceResult } from './discoveryProvenance'
+import { selectFinestSupportedPrecisionCell } from './recordPrecisionPolicy'
 
 const GEOGRAPHY_FILE_NAME = 'record_flickr_geography.parquet'
 const IMPACT_FILE_NAME = 'record_geographic_impact_cells.parquet'
@@ -152,8 +153,8 @@ export async function loadRecordGeographicContext(
       throw new Error('Record geography returned an invalid precision-cell set')
     }
     const decoded = decodePrecisionCells(cells, result)
-    const selected = decoded.find(({ supported }) => supported)
-    if (selected === undefined || selected.spatialCellId === null || selected.impact === null) {
+    const selected = selectFinestSupportedPrecisionCell(decoded)
+    if (selected === null || selected.spatialCellId === null || selected.impact === null) {
       throw new Error('Record geography has no supported Geographic Impact cell')
     }
     const nearby = await connection.query(
