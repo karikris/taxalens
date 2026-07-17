@@ -1,0 +1,31 @@
+{
+  "schema_version": "taxalens-primary-codex-session:v1.0.0",
+  "recorded_at": "2026-07-17T01:21:53Z",
+  "session": {
+    "id": "019f65d0-3ca9-7870-9eb2-37c14ed02517",
+    "role": "majority-core-build-session",
+    "source": "active Codex goal runtime",
+    "primary_model": "gpt-5.6-sol",
+    "reasoning_effort": "xhigh",
+    "reasoning_mode": "standard",
+    "supporting_models": []
+  },
+  "scope": {
+    "repository": "karikris/taxalens",
+    "branch": "main",
+    "starting_commit": "d728618fc2506054c71e726f943a845cdd2f61eb",
+    "pre_record_commit": "09b51c17df3284898a73d3ed2b8d8776ed7bac6f",
+    "objective": "Build and release the campaign-driven TaxaLens Verification workflow while preserving the BioMiner evidence and scientific-claim boundaries."
+  },
+  "feedback_command": {
+    "requested": true,
+    "executed": false,
+    "status": "unavailable-in-api-workspace",
+    "reason": "The /feedback slash command is not exposed by this API workspace. This record does not claim that it ran."
+  },
+  "claim_boundary": {
+    "build_time_engineering_identity_only": true,
+    "runtime_taxonomic_decision_maker": false,
+    "scientific_release_authority": false
+  }
+}
