@@ -11,7 +11,9 @@ from taxalens.product import (
     JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES,
     JUDGE_BUNDLE_SCHEMA_VERSION,
     JUDGE_BUNDLE_SECTION_NAMES,
+    JUDGE_BUNDLE_V1_SCHEMA_VERSION,
     JUDGE_BUNDLE_V1_SECTION_NAMES,
+    JUDGE_BUNDLE_V2_SCHEMA_VERSION,
     JUDGE_BUNDLE_V2_SECTION_NAMES,
     JudgeBundleError,
     compute_inventory_sha256,
@@ -23,6 +25,7 @@ from taxalens.product import (
 TAXALENS_SHA = "1" * 40
 BIOMINER_SHA = "2" * 40
 SCHEMA_PATH = Path("packages/contracts/schema/judge_bundle.schema.json")
+V1_SCHEMA_PATH = Path("packages/contracts/schema/judge_bundle_v1.schema.json")
 GEOGRAPHIC_SECTIONS_SCHEMA_PATH = Path(
     "packages/contracts/schema/judge_bundle_geographic_sections.schema.json"
 )
@@ -211,14 +214,40 @@ def _bundle(root: Path) -> dict[str, object]:
     return bundle
 
 
+def _project_v1_fixture_to_v2_shape() -> dict[str, object]:
+    bundle = json.loads(TRUTHFUL_FIXTURE_PATH.read_text(encoding="utf-8"))
+    bundle["schema_version"] = JUDGE_BUNDLE_SCHEMA_VERSION
+    sections = bundle["sections"]
+    section_records = bundle["expected_ui_counts"]["section_records"]
+    for name in JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES:
+        sections[name] = _unavailable(name)
+        section_records[name] = 0
+    bundle["expected_ui_counts"]["unavailable_section_count"] += len(
+        JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES
+    )
+    return bundle
+
+
 def test_schema_declares_every_required_judge_bundle_section() -> None:
     schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+    v1_schema = json.loads(V1_SCHEMA_PATH.read_text(encoding="utf-8"))
     typescript = TYPESCRIPT_PATH.read_text(encoding="utf-8")
 
+    Draft202012Validator.check_schema(schema)
+    Draft202012Validator.check_schema(v1_schema)
     assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
-    assert schema["properties"]["schema_version"]["const"] == (JUDGE_BUNDLE_SCHEMA_VERSION)
+    assert JUDGE_BUNDLE_SCHEMA_VERSION == JUDGE_BUNDLE_V2_SCHEMA_VERSION
+    assert schema["properties"]["schema_version"]["const"] == (
+        JUDGE_BUNDLE_V2_SCHEMA_VERSION
+    )
+    assert v1_schema["properties"]["schema_version"]["const"] == (
+        JUDGE_BUNDLE_V1_SCHEMA_VERSION
+    )
     assert set(schema["$defs"]["sections"]["required"]) == set(JUDGE_BUNDLE_SECTION_NAMES)
     assert set(schema["$defs"]["sectionRecords"]["required"]) == set(JUDGE_BUNDLE_SECTION_NAMES)
+    assert set(v1_schema["$defs"]["sections"]["required"]) == set(
+        JUDGE_BUNDLE_V1_SECTION_NAMES
+    )
     for section_name in JUDGE_BUNDLE_SECTION_NAMES:
         assert f"'{section_name}'," in typescript
 
@@ -250,7 +279,7 @@ def test_geographic_extension_preserves_v1_and_reserves_v2_sections() -> None:
         },
     }
 
-    assert JUDGE_BUNDLE_SECTION_NAMES == JUDGE_BUNDLE_V1_SECTION_NAMES
+    assert JUDGE_BUNDLE_SECTION_NAMES == JUDGE_BUNDLE_V2_SECTION_NAMES
     assert JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES == expected_geographic
     assert JUDGE_BUNDLE_V2_SECTION_NAMES == (
         *JUDGE_BUNDLE_V1_SECTION_NAMES,
@@ -276,8 +305,8 @@ def test_contract_validates_inventory_sections_rights_counts_and_files(
 
     assert result.bundle_id == "judge-contract-test-v1"
     assert result.artifact_count == 3
-    assert result.section_count == 25
-    assert result.unavailable_section_count == 22
+    assert result.section_count == len(JUDGE_BUNDLE_V2_SECTION_NAMES)
+    assert result.unavailable_section_count == len(JUDGE_BUNDLE_V2_SECTION_NAMES) - 3
     assert result.files_verified is True
 
 
@@ -342,7 +371,7 @@ def test_unavailable_and_partial_sections_fail_closed(tmp_path: Path) -> None:
 
 
 def test_contract_rejects_verification_relationship_gaps() -> None:
-    item_without_campaign = json.loads(TRUTHFUL_FIXTURE_PATH.read_text(encoding="utf-8"))
+    item_without_campaign = _project_v1_fixture_to_v2_shape()
     campaign = item_without_campaign["sections"]["verification_campaigns"]
     campaign.update(
         {
@@ -356,7 +385,7 @@ def test_contract_rejects_verification_relationship_gaps() -> None:
     with pytest.raises(JudgeBundleError, match="items cannot be displayed"):
         validate_judge_bundle(item_without_campaign)
 
-    media_without_items = json.loads(TRUTHFUL_FIXTURE_PATH.read_text(encoding="utf-8"))
+    media_without_items = _project_v1_fixture_to_v2_shape()
     items = media_without_items["sections"]["verification_items"]
     items.update(
         {
@@ -369,7 +398,7 @@ def test_contract_rejects_verification_relationship_gaps() -> None:
     with pytest.raises(JudgeBundleError, match="media cannot be displayed"):
         validate_judge_bundle(media_without_items)
 
-    non_image_media = json.loads(TRUTHFUL_FIXTURE_PATH.read_text(encoding="utf-8"))
+    non_image_media = _project_v1_fixture_to_v2_shape()
     artifact = next(
         row for row in non_image_media["artifact_inventory"] if row["role"] == "verification_media"
     )

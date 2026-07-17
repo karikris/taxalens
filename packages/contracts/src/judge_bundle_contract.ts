@@ -1,6 +1,10 @@
 type Nullable<T> = T | null;
 
-export const JUDGE_BUNDLE_SCHEMA_VERSION = 'taxalens-judge-bundle:v1.0.0';
+export const JUDGE_BUNDLE_V1_SCHEMA_VERSION =
+  'taxalens-judge-bundle:v1.0.0' as const;
+export const JUDGE_BUNDLE_V2_SCHEMA_VERSION =
+  'taxalens-judge-bundle:v2.0.0' as const;
+export const JUDGE_BUNDLE_SCHEMA_VERSION = JUDGE_BUNDLE_V2_SCHEMA_VERSION;
 
 export const JUDGE_BUNDLE_V1_SECTION_NAMES = [
   'run_summary',
@@ -44,8 +48,8 @@ export const JUDGE_BUNDLE_V2_SECTION_NAMES = [
   ...JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES,
 ] as const;
 
-/** Active section contract remains v1 until the explicit v2 schema bump. */
-export const JUDGE_BUNDLE_SECTION_NAMES = JUDGE_BUNDLE_V1_SECTION_NAMES;
+/** Current judge-bundle contract. V1 names remain exported for migration. */
+export const JUDGE_BUNDLE_SECTION_NAMES = JUDGE_BUNDLE_V2_SECTION_NAMES;
 
 export type JudgeBundleV1SectionName =
   (typeof JUDGE_BUNDLE_V1_SECTION_NAMES)[number];
@@ -53,7 +57,7 @@ export type JudgeBundleGeographicSectionName =
   (typeof JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES)[number];
 export type JudgeBundleV2SectionName =
   (typeof JUDGE_BUNDLE_V2_SECTION_NAMES)[number];
-export type JudgeBundleSectionName = JudgeBundleV1SectionName;
+export type JudgeBundleSectionName = JudgeBundleV2SectionName;
 export type JudgeBundleAvailability = 'available' | 'partial' | 'unavailable';
 export type CandidateSemantics =
   | 'not_applicable'

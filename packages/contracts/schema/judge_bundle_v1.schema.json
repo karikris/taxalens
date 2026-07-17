@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://taxalens.local/contracts/judge-bundle-v2.0.0.schema.json",
-  "title": "TaxaLens Judge Bundle v2",
-  "description": "Artifact-first, offline contract for the TaxaLens judge replay with required geographic-impact availability sections.",
+  "$id": "https://taxalens.local/contracts/judge-bundle-v1.0.0.schema.json",
+  "title": "TaxaLens Judge Bundle",
+  "description": "Artifact-first, offline contract for the four-screen TaxaLens judge replay.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -21,7 +21,7 @@
     "checksums"
   ],
   "properties": {
-    "schema_version": {"const": "taxalens-judge-bundle:v2.0.0"},
+    "schema_version": {"const": "taxalens-judge-bundle:v1.0.0"},
     "bundle_id": {"$ref": "#/$defs/identifier"},
     "title": {"$ref": "#/$defs/nonEmptyString"},
     "created_at": {"type": "string", "format": "date-time"},
@@ -97,13 +97,7 @@
         "verification_items",
         "verification_media",
         "verification_decisions",
-        "verification_quality",
-        "baseline_geographic_spread",
-        "baseline_provider_union",
-        "flickr_geography",
-        "geographic_impact_cells",
-        "geographic_impact_summary",
-        "country_hierarchy"
+        "verification_quality"
       ]
     },
     "artifact": {
@@ -156,12 +150,6 @@
             "verification_media",
             "verification_decisions",
             "verification_quality",
-            "baseline_geographic_spread",
-            "baseline_provider_union",
-            "flickr_geography",
-            "geographic_impact_cells",
-            "geographic_impact_summary",
-            "country_hierarchy",
             "rights",
             "attribution",
             "openai_replay_traces",
@@ -291,13 +279,7 @@
         "verification_items",
         "verification_media",
         "verification_decisions",
-        "verification_quality",
-        "baseline_geographic_spread",
-        "baseline_provider_union",
-        "flickr_geography",
-        "geographic_impact_cells",
-        "geographic_impact_summary",
-        "country_hierarchy"
+        "verification_quality"
       ],
       "properties": {
         "run_summary": {"$ref": "#/$defs/section"},
@@ -324,13 +306,7 @@
         "verification_items": {"$ref": "#/$defs/section"},
         "verification_media": {"$ref": "#/$defs/section"},
         "verification_decisions": {"$ref": "#/$defs/section"},
-        "verification_quality": {"$ref": "#/$defs/section"},
-        "baseline_geographic_spread": {"$ref": "#/$defs/section"},
-        "baseline_provider_union": {"$ref": "#/$defs/section"},
-        "flickr_geography": {"$ref": "#/$defs/section"},
-        "geographic_impact_cells": {"$ref": "#/$defs/section"},
-        "geographic_impact_summary": {"$ref": "#/$defs/section"},
-        "country_hierarchy": {"$ref": "#/$defs/section"}
+        "verification_quality": {"$ref": "#/$defs/section"}
       }
     },
     "rightsStatus": {
@@ -525,13 +501,7 @@
         "verification_items",
         "verification_media",
         "verification_decisions",
-        "verification_quality",
-        "baseline_geographic_spread",
-        "baseline_provider_union",
-        "flickr_geography",
-        "geographic_impact_cells",
-        "geographic_impact_summary",
-        "country_hierarchy"
+        "verification_quality"
       ],
       "properties": {
         "run_summary": {"$ref": "#/$defs/nonNegativeInteger"},
@@ -558,13 +528,7 @@
         "verification_items": {"$ref": "#/$defs/nonNegativeInteger"},
         "verification_media": {"$ref": "#/$defs/nonNegativeInteger"},
         "verification_decisions": {"$ref": "#/$defs/nonNegativeInteger"},
-        "verification_quality": {"$ref": "#/$defs/nonNegativeInteger"},
-        "baseline_geographic_spread": {"$ref": "#/$defs/nonNegativeInteger"},
-        "baseline_provider_union": {"$ref": "#/$defs/nonNegativeInteger"},
-        "flickr_geography": {"$ref": "#/$defs/nonNegativeInteger"},
-        "geographic_impact_cells": {"$ref": "#/$defs/nonNegativeInteger"},
-        "geographic_impact_summary": {"$ref": "#/$defs/nonNegativeInteger"},
-        "country_hierarchy": {"$ref": "#/$defs/nonNegativeInteger"}
+        "verification_quality": {"$ref": "#/$defs/nonNegativeInteger"}
       }
     },
     "expectedUiCounts": {

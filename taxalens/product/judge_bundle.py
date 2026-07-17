@@ -12,7 +12,9 @@ from pathlib import Path, PurePosixPath
 
 from taxalens.product.contracts import FrozenJson, freeze_json
 
-JUDGE_BUNDLE_SCHEMA_VERSION = "taxalens-judge-bundle:v1.0.0"
+JUDGE_BUNDLE_V1_SCHEMA_VERSION = "taxalens-judge-bundle:v1.0.0"
+JUDGE_BUNDLE_V2_SCHEMA_VERSION = "taxalens-judge-bundle:v2.0.0"
+JUDGE_BUNDLE_SCHEMA_VERSION = JUDGE_BUNDLE_V2_SCHEMA_VERSION
 JUDGE_BUNDLE_V1_SECTION_NAMES = (
     "run_summary",
     "pipeline_stages",
@@ -52,8 +54,8 @@ JUDGE_BUNDLE_V2_SECTION_NAMES = (
     *JUDGE_BUNDLE_V1_SECTION_NAMES,
     *JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES,
 )
-# The active validator remains v1 until the explicit v2 schema-version subtask.
-JUDGE_BUNDLE_SECTION_NAMES = JUDGE_BUNDLE_V1_SECTION_NAMES
+# Current validator contract. V1 names remain exported for migration.
+JUDGE_BUNDLE_SECTION_NAMES = JUDGE_BUNDLE_V2_SECTION_NAMES
 JUDGE_SCREEN_NAMES = (
     "research_mission",
     "evidence_observatory",
@@ -773,8 +775,13 @@ def _reject_non_json_constant(value: str) -> None:
 
 
 __all__ = [
+    "JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES",
     "JUDGE_BUNDLE_SCHEMA_VERSION",
     "JUDGE_BUNDLE_SECTION_NAMES",
+    "JUDGE_BUNDLE_V1_SCHEMA_VERSION",
+    "JUDGE_BUNDLE_V1_SECTION_NAMES",
+    "JUDGE_BUNDLE_V2_SCHEMA_VERSION",
+    "JUDGE_BUNDLE_V2_SECTION_NAMES",
     "JudgeBundleError",
     "JudgeBundleValidation",
     "LoadedJudgeBundle",
