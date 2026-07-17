@@ -1,5 +1,6 @@
 import { canonicalExportJsonBytes, sha256Hex } from '../evidence/evidenceExport'
 import type { CountryHierarchyNode } from '../../../../packages/contracts/src/geographic_impact_contract'
+import impactManifest from '../../../../demo/source/biominer_phase14/geographic_impact/geographic_impact_manifest.json'
 import { buildSelectedGeographyDetails } from './SelectedGeographyDetails'
 import type {
   PublicGeographicImpactMapCell,
@@ -15,6 +16,7 @@ export type GeographicImpactExportRole =
   | 'source_cells_parquet'
   | 'scope_summary_json'
   | 'scope_summary_csv'
+  | 'methodology_json'
 
 export interface GeographicImpactExportPayload {
   readonly role: GeographicImpactExportRole
@@ -36,6 +38,13 @@ export interface GeographicImpactScopeSummaryExport {
   readonly schemaVersion: typeof GEOGRAPHIC_IMPACT_EXPORT_SCHEMA_VERSION
   readonly prefix: string
   readonly payloads: readonly GeographicImpactExportPayload[]
+  readonly scientificClaimAllowed: false
+}
+
+export interface GeographicImpactMethodologyExport {
+  readonly schemaVersion: typeof GEOGRAPHIC_IMPACT_EXPORT_SCHEMA_VERSION
+  readonly prefix: string
+  readonly payload: GeographicImpactExportPayload
   readonly scientificClaimAllowed: false
 }
 
@@ -182,6 +191,146 @@ export function prepareGeographicImpactScopeSummary(
     schemaVersion: GEOGRAPHIC_IMPACT_EXPORT_SCHEMA_VERSION,
     prefix,
     payloads: Object.freeze(payloads.map((payload) => Object.freeze(payload))),
+    scientificClaimAllowed: false as const,
+  })
+}
+
+export function prepareGeographicImpactMethodology(
+  data: PublicGeographicImpactMapData,
+  scope: CountryHierarchyNode,
+): GeographicImpactMethodologyExport {
+  if (scope.scope_id !== data.scopeId) {
+    throw new Error('Geographic Impact methodology scope differs from the selected map scope')
+  }
+  const prefix = exportPrefix(data)
+  const bytes = canonicalExportJsonBytes({
+    schemaVersion: 'taxalens-geographic-impact-methodology:v1.0.0',
+    exportSchemaVersion: GEOGRAPHIC_IMPACT_EXPORT_SCHEMA_VERSION,
+    exportTimestamp: null,
+    exportTimestampReason:
+      'No export time is added so repeated preparation from identical evidence remains byte-deterministic.',
+    researchQuestion:
+      'Where does baseline occurrence evidence exist, where is Flickr candidate evidence present, and what potential, human-supported or release-ready contribution could it add?',
+    selectedScope: {
+      level: scope.scope_level,
+      id: scope.scope_id,
+      name: scope.scope_name,
+      parentId: scope.parent_scope_id,
+      spatialResolution: data.spatialResolution,
+    },
+    identities: {
+      geographicImpactManifestId: impactManifest.manifest_id,
+      geographicImpactBuildId: impactManifest.geographic_impact_build_id,
+      projectId: impactManifest.project_id,
+      runId: impactManifest.run_id,
+      registryVersion: impactManifest.registry_version,
+      acceptedTaxonKey: impactManifest.accepted_taxon_key,
+      scientificName: impactManifest.scientific_name,
+      baselineSnapshotId: impactManifest.baseline_snapshot_id,
+      flickrSnapshotId: impactManifest.flickr_snapshot_id,
+      countryHierarchyId: impactManifest.country_hierarchy_id,
+      sourceCommits: impactManifest.source_commits,
+    },
+    methods: {
+      cellComparison: {
+        operation: 'full_outer_join',
+        keys: ['accepted_taxon_key', 'spatial_resolution', 'spatial_cell_id'],
+        grid: 'hierarchical_global_grid',
+        supportedResolutions: impactManifest.spatial_resolutions,
+      },
+      baselineProviderUnion: {
+        policyVersion: impactManifest.provider_union_policy_version,
+        defaultCount: 'range-inference-eligible canonical observations',
+        crossProviderDoubleCountingAllowed: false,
+        unresolvedDuplicateGroupsPreserved: true,
+        directInaturalistDeltaStatus: impactManifest.direct_inaturalist_delta_status,
+      },
+      candidateOnlyCell:
+        'baseline range-inference-eligible count equals zero and Flickr candidate count is greater than zero',
+      reviewedAdditionalCell:
+        'candidate-only cell with at least one human-reviewed target-positive Flickr result',
+      releaseReadyAdditionalCell:
+        'candidate-only cell with positive consensus, valid coordinates, duplicate gate, quality gate, complete provenance and an occurrence-release decision',
+      nearestBaselineDistance: {
+        method: 'haversine_cell_centroid',
+        unit: 'kilometres',
+        sameResolutionRequired: true,
+        biologicalRangeBoundary: false,
+      },
+      temporalContribution: {
+        method: 'signed UTC day interval between exact full dates',
+        selectedScopeFlickrObservationDateAvailable: data.cells.some(
+          ({ latestFlickrCandidateDate }) => latestFlickrCandidateDate !== null,
+        ),
+        laterDateEstablishesNovelty: false,
+      },
+      dataDeficiency: {
+        missingBaselineMeansBiologicalAbsence: false,
+        reasonsAreAdditive: true,
+        unsupportedThresholdsInvented: false,
+      },
+    },
+    sourceArtifacts: impactManifest.artifacts.map((artifact) => ({
+      logicalName: artifact.logical_name,
+      availability: artifact.availability,
+      unavailableReason: artifact.unavailable_reason,
+      path: artifact.path,
+      mediaType: artifact.media_type,
+      schemaVersion: artifact.schema_version,
+      rowCount: artifact.row_count,
+      byteCount: artifact.byte_size,
+      sha256: artifact.sha256,
+      snapshotId: artifact.snapshot_id,
+      sourceRepository: artifact.source_repository,
+      sourceCommit: artifact.source_commit,
+      rightsId: artifact.rights_id,
+    })),
+    claims: {
+      allowed: [
+        'baseline occurrence evidence under the selected committed snapshot',
+        'Flickr candidate evidence',
+        'potential coverage contribution for candidate-only cells',
+        'human-supported additional cells only when target-positive review evidence exists',
+        'release-ready occurrence candidates only when every configured occurrence-release gate passes',
+      ],
+      blocked: [
+        'treating provider-labelled candidates as authority-endorsed records',
+        'presenting Flickr candidates as newly established occurrences',
+        'claiming established knowledge gain from candidates alone',
+        'claiming a biological range expansion from cell-centroid distance',
+        'interpreting a missing selected-baseline row as biological absence',
+        'claiming candidates have entered a scientific collection or data provider',
+        'making an occurrence-level verification claim before every configured release gate passes',
+      ],
+    },
+    limitations: [
+      'Flickr results remain hypotheses until review and occurrence-release gates pass.',
+      'A provider taxon label remains candidate evidence until independently reviewed.',
+      'Missing baseline evidence is unknown, not proof of biological absence.',
+      'The direct iNaturalist delta is unavailable and is not fabricated.',
+      'The public campaigns contain zero retained human outcomes.',
+      'SHA-256 verifies captured bytes and identity, not scientific truth, quality or source independence.',
+      'The source Parquet contains the full target across supported resolutions; selected-scope JSON and CSV contain the visible scoped projection.',
+    ],
+    deterministicPreparation: {
+      environment: 'browser',
+      externalNetworkRequestsRequired: 0,
+      canonicalJson: 'recursive sorted object keys, preserved array order, UTF-8, trailing newline',
+      digestAlgorithm: 'SHA-256',
+      signingStatus: 'unavailable',
+      signingReason: 'No signing key is committed inside the credential-free replay boundary.',
+    },
+    scientificClaimAllowed: false,
+  })
+  return Object.freeze({
+    schemaVersion: GEOGRAPHIC_IMPACT_EXPORT_SCHEMA_VERSION,
+    prefix,
+    payload: Object.freeze({
+      role: 'methodology_json' as const,
+      filename: `${prefix}.methodology.json`,
+      mediaType: 'application/json',
+      bytes,
+    }),
     scientificClaimAllowed: false as const,
   })
 }

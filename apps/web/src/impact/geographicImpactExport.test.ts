@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   prepareGeographicImpactCellExport,
+  prepareGeographicImpactMethodology,
   prepareGeographicImpactScopeSummary,
 } from './geographicImpactExport'
 import { TAXALENS_GEOGRAPHIC_SCOPE_INDEX } from './geographicScope'
@@ -125,6 +126,58 @@ describe('Geographic Impact cell export', () => {
         TAXALENS_GEOGRAPHIC_SCOPE_INDEX.root,
       ),
     ).toThrow(/scope differs/u)
+  })
+
+  it('exports artifact-bound methodology, provenance and claim boundaries', () => {
+    const prepared = prepareGeographicImpactMethodology(
+      data(),
+      requiredScope('country:IN'),
+    )
+    const text = new TextDecoder().decode(prepared.payload.bytes)
+    const methodology = JSON.parse(text)
+
+    expect(prepared.payload.role).toBe('methodology_json')
+    expect(methodology.exportTimestamp).toBeNull()
+    expect(methodology.identities).toMatchObject({
+      geographicImpactManifestId: 'geographic-impact-manifest:e3c532a1c6310d2a0906cacc',
+      baselineSnapshotId: 'gbif-occurrence-search-20260715',
+      flickrSnapshotId: 'flickr:2026-07-15',
+    })
+    expect(methodology.identities.sourceCommits).toEqual(
+      expect.arrayContaining([
+        {
+          repository: 'karikris/BioMiner',
+          commit_sha: '247b42f3206d48bb79e2dbf97c5a92e4f207ae71',
+        },
+        {
+          repository: 'karikris/BioMiner',
+          commit_sha: '75461d9c065af0cd96b41cd1f845c2e920f7ae34',
+        },
+      ]),
+    )
+    expect(
+      methodology.sourceArtifacts.find(
+        ({ logicalName }: { logicalName: string }) => logicalName === 'quality_snapshot',
+      ),
+    ).toMatchObject({ availability: 'unavailable', sha256: null })
+    expect(methodology.methods.nearestBaselineDistance).toMatchObject({
+      method: 'haversine_cell_centroid',
+      sameResolutionRequired: true,
+      biologicalRangeBoundary: false,
+    })
+    expect(methodology.limitations).toContain(
+      'The direct iNaturalist delta is unavailable and is not fabricated.',
+    )
+    for (const prohibited of [
+      'official records',
+      'new Flickr records',
+      'confirmed knowledge gain',
+      'new range',
+      'species absent from GBIF',
+      'records added to science',
+    ]) {
+      expect(text).not.toContain(prohibited)
+    }
   })
 })
 
