@@ -64,9 +64,14 @@ describe('TaxaLens scaffold', () => {
     expect(
       await screen.findByRole('heading', { name: 'Replayed analyst session' }),
     ).toBeInTheDocument()
-    expect(screen.getByText('Stored output · no live call')).toBeInTheDocument()
+    expect(screen.getAllByText('Stored output · no live call')).toHaveLength(2)
+    expect(
+      screen.getByRole('heading', { name: 'GPT-5.6 geographic analyst' }),
+    ).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'resolve_taxon' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Answer' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'Answer', level: 2 }),
+    ).toBeInTheDocument()
     expect(screen.getAllByText(/This target resolution is not an occurrence/u)).toHaveLength(2)
     expect(screen.queryByRole('heading', { name: 'No analyst session loaded' })).not.toBeInTheDocument()
     expect(screen.getByText(/chain-of-thought are neither collected/u)).toBeInTheDocument()
