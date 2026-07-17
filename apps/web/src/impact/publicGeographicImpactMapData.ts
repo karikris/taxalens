@@ -93,7 +93,7 @@ export async function loadPublicGeographicImpactMapData(
   signal: AbortSignal,
 ): Promise<PublicGeographicImpactMapData> {
   throwIfAborted(signal)
-  const bytes = await fetchVerifiedImpactBytes()
+  const bytes = await loadVerifiedGeographicImpactParquetBytes()
   throwIfAborted(signal)
   const { database } = await createDuckDbRuntime()
   let connection: AsyncDuckDBConnection | undefined
@@ -189,7 +189,7 @@ export function buildPublicGeographicImpactMapSql(
     LIMIT ${MAXIMUM_SCOPED_MAP_CELLS + 1}`
 }
 
-async function fetchVerifiedImpactBytes(): Promise<Uint8Array<ArrayBuffer>> {
+export async function loadVerifiedGeographicImpactParquetBytes(): Promise<Uint8Array<ArrayBuffer>> {
   const url = new URL(impactCellsUrl, window.location.href)
   if (url.origin !== window.location.origin) {
     throw new Error('Geographic Impact map data must load from the application origin')
