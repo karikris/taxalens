@@ -40,7 +40,93 @@ Stop the evaluation and record a replay failure if the product asks for a creden
 unexpected cross-origin scientific service, displays a scientific result after fixture verification
 fails, silently changes the target or counts, or presents unavailable evidence as a measured zero.
 
-## 90-second route
+## 90-second Geographic Impact route
+
+This is the primary map demonstration. Each amber result remains a hypothesis; completing the
+route does not create a human outcome or pass an occurrence-release gate.
+
+### 0–10 seconds — Open Geographic Impact
+
+1. Open **05 Dashboard**.
+2. Find **TaxaLens Geographic Impact Lens** and wait for **Baseline and Flickr evidence mapped**.
+
+Expected: a local MapLibre world map appears over bundled Natural Earth boundaries, alongside an
+exact table that remains usable without WebGL. No external tile, font, sprite, telemetry, analytics,
+scientific, or model request occurs.
+
+### 10–20 seconds — Compare blue and amber
+
+1. Read the legend.
+2. Compare blue filled bubbles with hollow amber rings.
+
+Expected: blue is deduplicated baseline occurrence evidence. Amber is Flickr candidate evidence.
+Stroke, fill, dash, and exclusion marks distinguish maturity without colour alone. Bubble radius
+uses the shared square-root count scale; exact counts appear in the tooltip and table.
+
+### 20–30 seconds — Inspect potential coverage gaps
+
+1. In **Selected geography**, find **Candidate-only spatial cells**.
+2. In the exact table, select a row whose baseline-eligible count is zero and Flickr count is
+   positive.
+
+Expected: the detail panel calls it a candidate-only spatial cell with potential coverage
+contribution. It does not claim biological absence, an occurrence, or a range extension.
+
+### 30–40 seconds — Drill into a continent
+
+1. Set **Continent** to **Europe**.
+2. Confirm the breadcrumb reads **Global › Europe** and the camera updates.
+
+Expected: map, table, ranking, metrics, and accessible summary share the same continent scope.
+
+### 40–50 seconds — Drill into a country
+
+1. Set **Country** to **Sweden**.
+2. Confirm **Global › Europe › Sweden** and select cell `87088660cffffff`.
+
+Expected: the selected-cell panel preserves zero baseline evidence as unknown, shows pending
+Flickr candidates, and keeps human-supported and release-ready contribution at zero.
+
+### 50–60 seconds — Open one candidate record
+
+1. Open **03 Evidence Lens**.
+2. Choose **Inspect verified discovery record** and find source `flickr:55081300254`.
+
+Expected: the record mini-map shows its supported coordinate, nearby same-resolution baseline
+cells, and distance context. The panel says **Candidate location, not occurrence**.
+
+### 60–70 seconds — Inspect the verification handoff
+
+1. Choose **Verify this result**.
+2. Confirm **Exact Flickr result cannot be viewed yet**.
+
+Expected: Yes, No, and Can’t tell remain unavailable for the exact source because no
+checksum-verified review image is committed. Can’t view and Skip are workflow outcomes and never
+count as human-supported geographic contribution.
+
+### 70–82 seconds — Ask GPT-5.6 what the evidence could add
+
+1. Open **06 Agent Trace**.
+2. Find **GPT-5.6 geographic analyst** and inspect the Sweden answer and tool receipts.
+
+Expected: the credential-free stored replay cites the baseline union, Flickr snapshot, impact
+cells, hierarchy, campaign, quality state, and source SHAs. It reports 12 candidate-only cells and
+529 Flickr candidates for the stored Sweden resolution-7 scope, with zero human-supported and
+release-ready additional cells. **Live request: No** and **Credential: Not required** remain visible.
+
+### 82–90 seconds — Export the selected scope
+
+1. Return to **05 Dashboard** and the Sweden scope.
+2. Choose **Prepare geographic export**.
+
+Expected: seven local files are prepared: JSON, CSV, Parquet, scope summary, methodology,
+provenance, and checksum manifest. The manifest remains unsigned and
+`scientificClaimAllowed: false`.
+
+Use **Reset replay** to restore the initial state. The exact map counts and source identities are
+listed below; the animated README journey shows the same fixed-time path.
+
+## Verification-first route
 
 ### 0–12 seconds — 1. Mission
 
