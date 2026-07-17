@@ -41,7 +41,7 @@ describe('verification route resolution', () => {
       itemId: target!.itemId,
       returnView: 'evidence-lens',
       errors: [],
-      section: 'flickr-results',
+      section: 'reference-images',
       flickrCandidate: target,
     })
   })

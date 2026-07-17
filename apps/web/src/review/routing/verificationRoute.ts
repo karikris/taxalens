@@ -36,7 +36,7 @@ export function resolveVerificationRoute(
       itemId: flickrCandidate.itemId,
       returnView: route?.returnView ?? null,
       errors: Object.freeze(errors),
-      section: 'flickr-results',
+      section: 'reference-images',
       flickrCandidate,
     })
   }

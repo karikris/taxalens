@@ -163,6 +163,19 @@ export function VerificationWorkspace({
         </a>
       )}
 
+      {resolvedRoute.flickrCandidate !== null && (
+        <EvidenceState
+          state="review"
+          title="Exact Flickr result cannot be viewed yet"
+        >
+          The routed source remains selected, but it has no committed,
+          checksum-verified review image. The separate Commons campaign is open
+          below so the judge can exercise Yes, No, Can’t tell, Can’t view, Skip,
+          and optional comments. Those decisions do not verify the routed
+          Flickr source; its provenance remains available in Flickr Results.
+        </EvidenceState>
+      )}
+
       <VerificationSections
         defaultSection={resolvedRoute.section}
         conflicts={

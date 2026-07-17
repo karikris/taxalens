@@ -135,13 +135,20 @@ describe('TaxaLens scaffold', () => {
     render(<App />)
 
     expect(
-      await screen.findByRole('heading', {
-        name: 'Papilio demoleus Flickr candidate intake',
-      }),
+      await screen.findByText('Exact Flickr result cannot be viewed yet'),
     ).toBeInTheDocument()
     expect(
       screen.getByRole('tab', { name: 'Flickr Results' }),
+    ).toHaveAttribute('aria-selected', 'false')
+    expect(
+      screen.getByRole('tab', { name: 'Reference Images' }),
     ).toHaveAttribute('aria-selected', 'true')
+    fireEvent.click(screen.getByRole('tab', { name: 'Flickr Results' }))
+    expect(
+      screen.getByRole('heading', {
+        name: 'Papilio demoleus Flickr candidate intake',
+      }),
+    ).toBeInTheDocument()
     expect(
       screen.getByText('Flickr candidate review media is unavailable'),
     ).toBeInTheDocument()
