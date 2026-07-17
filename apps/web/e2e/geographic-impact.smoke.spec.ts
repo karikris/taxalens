@@ -17,7 +17,7 @@ test('loads Geographic Impact evidence and its accessible alternative in every b
     name: /exact preaggregated cells in the selected scope/u,
   })
   await expect(table).toBeVisible()
-  await expect(table.getByRole('columnheader', { name: /Baseline occurrence evidence/u }))
+  await expect(table.getByRole('columnheader', { name: /Baseline eligible/u }))
     .toBeVisible()
   await expect(table.getByRole('columnheader', { name: /Flickr candidates/u })).toBeVisible()
   await expect(table.locator('tbody tr').first()).toBeVisible()
@@ -44,6 +44,6 @@ test('loads Geographic Impact evidence and its accessible alternative in every b
 
   await page.getByRole('combobox', { name: 'Continent' }).selectOption('continent:asia')
   await expect(page).toHaveURL(/geo=continent%3Aasia/u)
-  await expect(page.getByText('Geographic scope').locator('..')).toContainText('Asia')
+  await expect(page.locator('.geographic-impact-lens__scope')).toContainText('Asia')
   await expect(table.locator('tbody tr').first()).toBeVisible()
 })

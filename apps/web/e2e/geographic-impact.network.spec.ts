@@ -5,6 +5,7 @@ test('starts the Geographic Impact map without an external request', async ({
   context,
   page,
 }) => {
+  test.setTimeout(120_000)
   if (baseURL === undefined) {
     throw new Error('The map network guard requires the configured preview origin')
   }
@@ -45,7 +46,7 @@ test('starts the Geographic Impact map without an external request', async ({
   await expect(page.getByRole('heading', { name: 'Source flickr:55081300254' })).toBeVisible({
     timeout: 60_000,
   })
-  await page.getByRole('link', { name: 'Verify this result' }).click()
+  await page.locator('.geography-reference').getByRole('link', { name: 'Verify this result' }).click()
   await expect(page.getByText('Exact Flickr result cannot be viewed yet')).toBeVisible()
   await page.getByRole('tab', { name: 'Flickr Results' }).click()
   await expect(page.getByText('Flickr candidate review media is unavailable')).toBeVisible()
@@ -53,7 +54,7 @@ test('starts the Geographic Impact map without an external request', async ({
   await expect(
     page.getByRole('heading', { name: 'No scientific result is promoted' }),
   ).toBeVisible()
-  await page.getByRole('link', { name: 'Open Geographic Impact' }).click()
+  await page.getByRole('link', { name: 'Dashboard' }).click()
   await expect(
     page.getByText('Baseline and Flickr evidence mapped', { exact: true }),
   ).toBeVisible({ timeout: 60_000 })

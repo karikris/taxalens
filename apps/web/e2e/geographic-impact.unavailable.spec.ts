@@ -26,7 +26,13 @@ test('shows zero baseline and review evidence without fabricating provider avail
     'Missing baseline evidence is unknown, not proof of biological absence.',
   )
   await expect(
-    page.getByText(/This is a candidate-only spatial cell, not a biological absence claim/u),
+    page
+      .getByRole('region', { name: 'Geographic evidence at a glance' })
+      .locator('p')
+      .filter({
+        hasText: 'This is a candidate-only spatial cell, not a biological absence claim.',
+      })
+      .first(),
   ).toBeVisible()
 })
 

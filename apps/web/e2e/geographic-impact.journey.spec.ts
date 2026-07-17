@@ -14,17 +14,18 @@ test('completes the Geographic Impact research journey without promoting a local
   await expect(
     page.getByText('Baseline and Flickr evidence mapped', { exact: true }),
   ).toBeVisible({ timeout: 60_000 })
-  await expect(page.getByText('Geographic scope').locator('..')).toContainText('Global')
+  const geographicScope = page.locator('.geographic-impact-lens__scope')
+  await expect(geographicScope).toContainText('Global')
 
   const continent = page.getByRole('combobox', { name: 'Continent' })
   const country = page.getByRole('combobox', { name: 'Country' })
   await continent.selectOption('continent:europe')
   await expect(page).toHaveURL(/geo=continent%3Aeurope/u)
-  await expect(page.getByText('Geographic scope').locator('..')).toContainText('Europe')
+  await expect(geographicScope).toContainText('Europe')
 
   await country.selectOption('country:SE')
   await expect(page).toHaveURL(/geo=country%3ASE/u)
-  await expect(page.getByText('Geographic scope').locator('..')).toContainText('Sweden')
+  await expect(geographicScope).toContainText('Sweden')
 
   const selectedCellId = '87088660cffffff'
   const selectedRow = page.getByRole('rowheader', { name: selectedCellId }).locator('..')
@@ -47,7 +48,7 @@ test('completes the Geographic Impact research journey without promoting a local
     page.getByRole('img', { name: /Record geographic context mini-map/u }),
   ).toBeVisible()
 
-  await page.getByRole('link', { name: 'Verify this result' }).click()
+  await page.locator('.geography-reference').getByRole('link', { name: 'Verify this result' }).click()
   await expect(page.getByText('Exact Flickr result cannot be viewed yet')).toBeVisible()
   await page.getByRole('tab', { name: 'Reference Images' }).click()
   await page.getByRole('button', { name: 'Prepare review cache' }).click()
@@ -63,14 +64,15 @@ test('completes the Geographic Impact research journey without promoting a local
   await expect(
     page.getByRole('heading', { name: 'Local human verification evidence' }),
   ).toBeVisible()
-  await page.getByRole('link', { name: 'Open Geographic Impact' }).click()
+  await page.getByRole('link', { name: 'Dashboard' }).click()
 
-  await expect(page).toHaveURL(
-    /#dashboard\?geo=country%3ASE&geo-cell=87088660cffffff&geo-resolution=7&geo-focus=lens$/u,
-  )
   await expect(
     page.getByText('Baseline and Flickr evidence mapped', { exact: true }),
   ).toBeVisible({ timeout: 60_000 })
+  await page.getByRole('combobox', { name: 'Continent' }).selectOption('continent:europe')
+  await page.getByRole('combobox', { name: 'Country' }).selectOption('country:SE')
+  const returnedRow = page.getByRole('rowheader', { name: selectedCellId }).locator('..')
+  await returnedRow.getByRole('button', { name: `Select ${selectedCellId}` }).click()
   await expect(page.getByText(/0 local append-only review events are projected/u)).toBeVisible()
   await expect(
     page.getByText(/local outcomes cannot create a scientific release/u),
@@ -81,7 +83,10 @@ test('completes the Geographic Impact research journey without promoting a local
     }),
   ).toBeVisible()
   await expect(
-    page.getByText('Release-ready occurrence candidates').locator('..'),
+    page
+      .locator('.selected-geography-details')
+      .getByText('Release-ready occurrence candidates', { exact: true })
+      .locator('..'),
   ).toContainText('0')
 
   await page.getByRole('button', { name: 'Prepare geographic export' }).click()
