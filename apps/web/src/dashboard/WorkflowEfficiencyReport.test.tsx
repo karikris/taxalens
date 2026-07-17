@@ -47,9 +47,9 @@ describe('WorkflowEfficiencyReport', () => {
     expect(completeness).toHaveTextContent('30 of 30 artifacts verified')
     expect(completeness).toHaveTextContent('Available sections8')
     expect(completeness).toHaveTextContent('Partial sections9')
-    expect(completeness).toHaveTextContent('Unavailable sections8')
+    expect(completeness).toHaveTextContent('Unavailable sections14')
     expect(screen.getByText('Integrity is not scientific completeness').parentElement?.parentElement)
-      .toHaveTextContent('8 are available, 9 partial, and 8 unavailable')
+      .toHaveTextContent('8 are available, 9 partial, and 14 unavailable')
 
     fireEvent.click(screen.getByText('Read the complete efficiency ledger as a table'))
     expect(screen.getByRole('table').querySelectorAll('tbody tr')).toHaveLength(6)

@@ -338,9 +338,7 @@ def test_geographic_impact_manifest_rejects_review_without_evidence() -> None:
     )
 
     assert validation.valid is False
-    assert "review_evidence_required" in {
-        failure.keyword for failure in validation.failures
-    }
+    assert "review_evidence_required" in {failure.keyword for failure in validation.failures}
 
 
 def _baseline_row() -> dict[str, object]:
@@ -592,12 +590,8 @@ def _impact_manifest() -> dict[str, object]:
         _available_artifact(
             "baseline_geographic_spread", 5, baseline_snapshot, "karikris/BioMiner"
         ),
-        _available_artifact(
-            "baseline_occurrence_union", 7, baseline_snapshot, "karikris/taxalens"
-        ),
-        _available_artifact(
-            "flickr_geography", 2, flickr_snapshot, "karikris/BioMiner"
-        ),
+        _available_artifact("baseline_occurrence_union", 7, baseline_snapshot, "karikris/taxalens"),
+        _available_artifact("flickr_geography", 2, flickr_snapshot, "karikris/BioMiner"),
         _available_artifact("verification_consensus", 2),
         _available_artifact("quality_snapshot", 1),
         _available_artifact("release_decisions", 0),

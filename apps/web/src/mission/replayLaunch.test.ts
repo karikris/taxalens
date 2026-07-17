@@ -31,7 +31,7 @@ describe('provenance-bound replay launch', () => {
 
     const fingerprint = await fingerprintEvidencePlan(plan)
     expect(fingerprint).toBe(
-      'sha256:16f55f4ececdc25edb822d79487f41435d0c80ff236ee9fc6944a55de99822b5',
+      'sha256:b8d0da12fa1383a07b077563c433905522a075afe2d189730b4a8238747e48f8',
     )
     expect(await fingerprintEvidencePlan(clone)).toBe(fingerprint)
     expect(await fingerprintEvidencePlan(changed)).not.toBe(fingerprint)

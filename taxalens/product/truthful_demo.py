@@ -1417,9 +1417,7 @@ def build_truthful_demo_fixture(
         _VERIFICATION_ITEMS_ARTIFACT_ID,
         verification_media_ids,
     )
-    section_records = {
-        name: record_counts.get(name, 0) for name in JUDGE_BUNDLE_V1_SECTION_NAMES
-    }
+    section_records = {name: record_counts.get(name, 0) for name in JUDGE_BUNDLE_V1_SECTION_NAMES}
     all_ids = [row["artifact_id"] for row in inventory]
     request_descriptor = next(
         row for row in inventory if row["artifact_id"] == "stored-analyst-request"

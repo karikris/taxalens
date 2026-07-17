@@ -17,7 +17,7 @@ from packages.replay.src.biominer_flickr_reviewed_labels_v2 import (
     write_flickr_reviewed_labels_v2,
 )
 
-BIOMINER_SHA = "94fa1f634ee3c63917c05d78181dd3cf9ceff940"
+BIOMINER_SHA = "dcd494321abc0666ea692b5759f84bc4c7e08ba9"
 
 
 def test_builds_exact_typed_reviewed_label_schema() -> None:

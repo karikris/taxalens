@@ -46,9 +46,10 @@ def test_shared_negative_fixtures_fail_closed_in_python() -> None:
         validation = validate_geographic_contract(contract, document)
 
         assert validation.valid is False, case["fixture_id"]
-        assert case["expected_keyword"] in {
-            failure.keyword for failure in validation.failures
-        }, (case["fixture_id"], validation.failures)
+        assert case["expected_keyword"] in {failure.keyword for failure in validation.failures}, (
+            case["fixture_id"],
+            validation.failures,
+        )
 
 
 def _fixtures() -> dict[str, object]:

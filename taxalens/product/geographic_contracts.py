@@ -12,20 +12,12 @@ from jsonschema import FormatChecker
 from jsonschema.exceptions import ValidationError
 from jsonschema.validators import validator_for
 
-BASELINE_OCCURRENCE_UNION_SCHEMA_VERSION: Final = (
-    "taxalens-baseline-occurrence-union:v1.0.0"
-)
+BASELINE_OCCURRENCE_UNION_SCHEMA_VERSION: Final = "taxalens-baseline-occurrence-union:v1.0.0"
 BASELINE_PROVIDER_UNION_POLICY_VERSION: Final = "baseline-provider-union-policy-v1.0.0"
-GEOGRAPHIC_IMPACT_CELL_SCHEMA_VERSION: Final = (
-    "taxalens-geographic-impact-cell:v1.0.0"
-)
-GEOGRAPHIC_IMPACT_SUMMARY_SCHEMA_VERSION: Final = (
-    "taxalens-geographic-impact-summary:v1.0.0"
-)
+GEOGRAPHIC_IMPACT_CELL_SCHEMA_VERSION: Final = "taxalens-geographic-impact-cell:v1.0.0"
+GEOGRAPHIC_IMPACT_SUMMARY_SCHEMA_VERSION: Final = "taxalens-geographic-impact-summary:v1.0.0"
 COUNTRY_HIERARCHY_SCHEMA_VERSION: Final = "taxalens-country-hierarchy:v1.0.0"
-GEOGRAPHIC_IMPACT_MANIFEST_SCHEMA_VERSION: Final = (
-    "taxalens-geographic-impact-manifest:v1.0.0"
-)
+GEOGRAPHIC_IMPACT_MANIFEST_SCHEMA_VERSION: Final = "taxalens-geographic-impact-manifest:v1.0.0"
 
 GeographicContract: TypeAlias = Literal[
     "baseline_occurrence_union",
@@ -213,18 +205,14 @@ GEOGRAPHIC_IMPACT_CELL_PARQUET_COLUMNS: Final[tuple[ParquetColumnContract, ...]]
     ParquetColumnContract("baseline_evidence_status", "utf8", False),
     ParquetColumnContract("provider_input_row_count", "uint64", True),
     ParquetColumnContract("baseline_union_count", "uint64", True),
-    ParquetColumnContract(
-        "baseline_range_inference_eligible_count", "uint64", True
-    ),
+    ParquetColumnContract("baseline_range_inference_eligible_count", "uint64", True),
     ParquetColumnContract("baseline_excluded_occurrence_count", "uint64", True),
     ParquetColumnContract("gbif_only_count", "uint64", True),
     ParquetColumnContract("inaturalist_origin_through_gbif_count", "uint64", True),
     ParquetColumnContract("direct_inaturalist_delta_status", "utf8", False),
     ParquetColumnContract("direct_inaturalist_delta_count", "uint64", True),
     ParquetColumnContract("duplicates_removed_count", "uint64", True),
-    ParquetColumnContract(
-        "unresolved_provider_duplicate_group_count", "uint64", True
-    ),
+    ParquetColumnContract("unresolved_provider_duplicate_group_count", "uint64", True),
     ParquetColumnContract("flickr_candidate_count", "uint64", False),
     ParquetColumnContract("flickr_visually_eligible_count", "uint64", False),
     ParquetColumnContract("reviewed_positive_count", "uint64", False),
@@ -277,18 +265,14 @@ GEOGRAPHIC_IMPACT_SUMMARY_PARQUET_COLUMNS: Final[tuple[ParquetColumnContract, ..
     ParquetColumnContract("baseline_evidence_status", "utf8", False),
     ParquetColumnContract("provider_input_row_count", "uint64", True),
     ParquetColumnContract("baseline_union_count", "uint64", True),
-    ParquetColumnContract(
-        "baseline_range_inference_eligible_count", "uint64", True
-    ),
+    ParquetColumnContract("baseline_range_inference_eligible_count", "uint64", True),
     ParquetColumnContract("baseline_excluded_occurrence_count", "uint64", True),
     ParquetColumnContract("gbif_only_count", "uint64", True),
     ParquetColumnContract("inaturalist_origin_through_gbif_count", "uint64", True),
     ParquetColumnContract("direct_inaturalist_delta_status", "utf8", False),
     ParquetColumnContract("direct_inaturalist_delta_count", "uint64", True),
     ParquetColumnContract("duplicates_removed_count", "uint64", True),
-    ParquetColumnContract(
-        "unresolved_provider_duplicate_group_count", "uint64", True
-    ),
+    ParquetColumnContract("unresolved_provider_duplicate_group_count", "uint64", True),
     ParquetColumnContract("cell_count", "uint64", False),
     ParquetColumnContract("baseline_occupied_cell_count", "uint64", True),
     ParquetColumnContract("flickr_candidate_count", "uint64", False),
@@ -626,9 +610,7 @@ class CountryHierarchyDocument:
             "boundary_dataset_version": self.boundary_dataset_version,
             "created_at": self.created_at,
             "root_scope_id": self.root_scope_id,
-            "nodes": [
-                {**asdict(node), "bounds": list(node.bounds)} for node in self.nodes
-            ],
+            "nodes": [{**asdict(node), "bounds": list(node.bounds)} for node in self.nodes],
         }
 
 
@@ -704,9 +686,7 @@ class GeographicImpactManifestDocument:
     generated_by: str
 
     @classmethod
-    def from_mapping(
-        cls, value: Mapping[str, object]
-    ) -> GeographicImpactManifestDocument:
+    def from_mapping(cls, value: Mapping[str, object]) -> GeographicImpactManifestDocument:
         """Validate and freeze one manifest document."""
 
         materialized = dict(value)
@@ -758,8 +738,7 @@ class GeographicSchemaError(ValueError):
 
     def __init__(self, validation: GeographicSchemaValidation) -> None:
         details = ", ".join(
-            f"{failure.instance_path or '/'}:{failure.keyword}"
-            for failure in validation.failures
+            f"{failure.instance_path or '/'}:{failure.keyword}" for failure in validation.failures
         )
         super().__init__(f"{validation.contract} failed geographic schema validation: {details}")
         self.validation = validation
@@ -869,12 +848,7 @@ def _impact_cell_semantic_failures(
     release_ready = int(value["release_ready_count"])  # type: ignore[arg-type]
 
     review_total = (
-        reviewed_positive
-        + reviewed_negative
-        + uncertain
-        + pending
-        + media_failure
-        + skipped
+        reviewed_positive + reviewed_negative + uncertain + pending + media_failure + skipped
     )
     if review_total != flickr_count:
         fail("/flickr_candidate_count", "count_reconciliation")
@@ -1149,9 +1123,7 @@ def _impact_manifest_semantic_failures(
         fail("/summary_scope_levels", "scope_inventory_invariant")
 
     commit_repositories = {
-        str(item["repository"])
-        for item in commits_value
-        if isinstance(item, Mapping)
+        str(item["repository"]) for item in commits_value if isinstance(item, Mapping)
     }
     commits_by_repository = {
         str(item["repository"]): str(item["commit_sha"])
@@ -1205,9 +1177,7 @@ def _impact_manifest_semantic_failures(
         value["reviewed_positive_count"]  # type: ignore[arg-type]
     ):
         fail("/release_ready_count", "release_state_invariant")
-    verification_available = (
-        by_name["verification_consensus"]["availability"] == "available"
-    )
+    verification_available = by_name["verification_consensus"]["availability"] == "available"
     quality_available = by_name["quality_snapshot"]["availability"] == "available"
     if reviewed_or_attempted > 0 and not verification_available:
         fail("/artifacts/verification_consensus", "review_evidence_required")
@@ -1248,10 +1218,7 @@ def _impact_manifest_semantic_failures(
     }
     for name, expected_snapshot in snapshot_expectations.items():
         artifact = by_name[name]
-        if (
-            artifact["availability"] == "available"
-            and artifact["snapshot_id"] != expected_snapshot
-        ):
+        if artifact["availability"] == "available" and artifact["snapshot_id"] != expected_snapshot:
             fail(f"/artifacts/{name}/snapshot_id", "snapshot_identity_invariant")
 
     return failures

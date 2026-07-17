@@ -361,9 +361,7 @@ def _validate_geographic_bundle_evidence(
             )
         return
     if not verify_files or bundle_root is None:
-        raise JudgeBundleError(
-            "available geographic impact sections require verify_files=true"
-        )
+        raise JudgeBundleError("available geographic impact sections require verify_files=true")
     if len(manifest_descriptors) != 1:
         raise JudgeBundleError(
             "available geographic impact sections require exactly one geographic impact manifest"
@@ -386,10 +384,9 @@ def _validate_geographic_bundle_evidence(
         raise JudgeBundleError(str(error)) from error
 
     target = _mapping(bundle.get("target"), "target")
-    if (
-        manifest.accepted_taxon_key != target.get("accepted_taxon_key")
-        or manifest.scientific_name != target.get("scientific_name")
-    ):
+    if manifest.accepted_taxon_key != target.get(
+        "accepted_taxon_key"
+    ) or manifest.scientific_name != target.get("scientific_name"):
         raise JudgeBundleError("geographic impact manifest target identity mismatch")
     revisions = _mapping(bundle.get("source_revisions"), "source_revisions")
     expected_commits = {
@@ -478,9 +475,7 @@ def _reconcile_geographic_artifact_descriptor(
     descriptor: Mapping[str, object],
 ) -> None:
     if descriptor.get("required") is not True:
-        raise JudgeBundleError(
-            f"geographic impact artifact {logical_name} must be required"
-        )
+        raise JudgeBundleError(f"geographic impact artifact {logical_name} must be required")
     expected = {
         "media_type": entry.media_type,
         "schema_version": entry.schema_version,
@@ -491,12 +486,8 @@ def _reconcile_geographic_artifact_descriptor(
     }
     for field, value in expected.items():
         if descriptor.get(field) != value:
-            raise JudgeBundleError(
-                f"geographic impact artifact {logical_name} {field} mismatch"
-            )
-    if str(descriptor.get("source_repository")).lower() != str(
-        entry.source_repository
-    ).lower():
+            raise JudgeBundleError(f"geographic impact artifact {logical_name} {field} mismatch")
+    if str(descriptor.get("source_repository")).lower() != str(entry.source_repository).lower():
         raise JudgeBundleError(
             f"geographic impact artifact {logical_name} source_repository mismatch"
         )
@@ -550,9 +541,7 @@ def _validate_geographic_section_links(
             or descriptor.get("artifact_id") not in section.get("artifact_ids", [])
             or descriptor.get("role") != section_name
         ):
-            raise JudgeBundleError(
-                f"section {section_name} does not bind {logical_name} evidence"
-            )
+            raise JudgeBundleError(f"section {section_name} does not bind {logical_name} evidence")
 
 
 def _validate_provider_union_provenance(
@@ -562,9 +551,7 @@ def _validate_provider_union_provenance(
     provider_union = manifest_artifacts["baseline_occurrence_union"]
     if manifest.baseline_evidence_status == "unavailable":
         if provider_union.availability != "unavailable":
-            raise JudgeBundleError(
-                "unavailable baseline evidence cannot declare a provider union"
-            )
+            raise JudgeBundleError("unavailable baseline evidence cannot declare a provider union")
         return
     if (
         provider_union.availability != "available"
@@ -573,9 +560,7 @@ def _validate_provider_union_provenance(
         or provider_union.source_commit is None
         or provider_union.snapshot_id != manifest.baseline_snapshot_id
     ):
-        raise JudgeBundleError(
-            "baseline provider union lacks deduplication provenance"
-        )
+        raise JudgeBundleError("baseline provider union lacks deduplication provenance")
 
 
 def _validate_review_and_release_evidence(
@@ -605,9 +590,7 @@ def _validate_review_and_release_evidence(
         or not release.row_count
         or release.snapshot_id != manifest.release_policy_version
     ):
-        raise JudgeBundleError(
-            "release-ready geographic contribution lacks release-gate evidence"
-        )
+        raise JudgeBundleError("release-ready geographic contribution lacks release-gate evidence")
 
 
 def _validate_country_hierarchy_artifact(
@@ -747,9 +730,7 @@ def _v1_preservation_fingerprint(bundle: Mapping[str, object]) -> str:
             "checksums",
         )
     }
-    projection["sections"] = {
-        name: sections[name] for name in JUDGE_BUNDLE_V1_SECTION_NAMES
-    }
+    projection["sections"] = {name: sections[name] for name in JUDGE_BUNDLE_V1_SECTION_NAMES}
     projection["expected_ui_counts"] = {
         key: expected_counts[key]
         for key in (

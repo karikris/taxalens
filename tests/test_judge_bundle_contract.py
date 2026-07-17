@@ -254,10 +254,11 @@ def _geographic_bundle(root: Path) -> tuple[dict[str, object], dict[str, object]
     for entry in manifest["artifacts"]:
         logical_name = entry["logical_name"]
         row_count = entry["row_count"]
-        payload = hierarchy if logical_name == "country_hierarchy" else [
-            {"row": index, "logical_name": logical_name}
-            for index in range(row_count)
-        ]
+        payload = (
+            hierarchy
+            if logical_name == "country_hierarchy"
+            else [{"row": index, "logical_name": logical_name} for index in range(row_count)]
+        )
         descriptor = _artifact(
             root,
             artifact_id=f"geo-{logical_name.replace('_', '-')}",
@@ -269,9 +270,7 @@ def _geographic_bundle(root: Path) -> tuple[dict[str, object], dict[str, object]
         descriptor.update(
             {
                 "record_count": row_count,
-                "schema_version": schema_by_logical_name.get(
-                    logical_name, entry["schema_version"]
-                ),
+                "schema_version": schema_by_logical_name.get(logical_name, entry["schema_version"]),
                 "source_repository": repository,
                 "source_commit": (
                     TAXALENS_SHA if str(repository).lower() == "karikris/taxalens" else BIOMINER_SHA
@@ -328,8 +327,7 @@ def _geographic_bundle(root: Path) -> tuple[dict[str, object], dict[str, object]
         section["artifact_ids"] = artifact_ids
         sections[role] = section
         section_records[role] = sum(
-            int(descriptors_by_id[artifact_id]["record_count"])
-            for artifact_id in artifact_ids
+            int(descriptors_by_id[artifact_id]["record_count"]) for artifact_id in artifact_ids
         )
 
     rights = bundle["rights"]
@@ -379,9 +377,7 @@ def _set_manifest_artifact_row_count(
     logical_name: str,
     row_count: int,
 ) -> None:
-    entry = next(
-        item for item in manifest["artifacts"] if item["logical_name"] == logical_name
-    )
+    entry = next(item for item in manifest["artifacts"] if item["logical_name"] == logical_name)
     entry["row_count"] = row_count
     inventory = bundle["artifact_inventory"]
     expected = bundle["expected_ui_counts"]
@@ -413,17 +409,11 @@ def test_schema_declares_every_required_judge_bundle_section() -> None:
     Draft202012Validator.check_schema(v1_schema)
     assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
     assert JUDGE_BUNDLE_SCHEMA_VERSION == JUDGE_BUNDLE_V2_SCHEMA_VERSION
-    assert schema["properties"]["schema_version"]["const"] == (
-        JUDGE_BUNDLE_V2_SCHEMA_VERSION
-    )
-    assert v1_schema["properties"]["schema_version"]["const"] == (
-        JUDGE_BUNDLE_V1_SCHEMA_VERSION
-    )
+    assert schema["properties"]["schema_version"]["const"] == (JUDGE_BUNDLE_V2_SCHEMA_VERSION)
+    assert v1_schema["properties"]["schema_version"]["const"] == (JUDGE_BUNDLE_V1_SCHEMA_VERSION)
     assert set(schema["$defs"]["sections"]["required"]) == set(JUDGE_BUNDLE_SECTION_NAMES)
     assert set(schema["$defs"]["sectionRecords"]["required"]) == set(JUDGE_BUNDLE_SECTION_NAMES)
-    assert set(v1_schema["$defs"]["sections"]["required"]) == set(
-        JUDGE_BUNDLE_V1_SECTION_NAMES
-    )
+    assert set(v1_schema["$defs"]["sections"]["required"]) == set(JUDGE_BUNDLE_V1_SECTION_NAMES)
     for section_name in JUDGE_BUNDLE_SECTION_NAMES:
         assert f"'{section_name}'," in typescript
 
@@ -462,9 +452,7 @@ def test_geographic_extension_preserves_v1_and_reserves_v2_sections() -> None:
         *expected_geographic,
     )
     assert len(JUDGE_BUNDLE_V2_SECTION_NAMES) == len(set(JUDGE_BUNDLE_V2_SECTION_NAMES))
-    assert tuple(schema["$defs"]["geographicSections"]["required"]) == (
-        expected_geographic
-    )
+    assert tuple(schema["$defs"]["geographicSections"]["required"]) == (expected_geographic)
     assert list(Draft202012Validator(schema).iter_errors(projection)) == []
 
 
