@@ -1,0 +1,151 @@
+{
+  "claims": {
+    "causalProductImpactAllowed": false,
+    "humanTimeSavingsAllowed": false,
+    "humanUsabilityMeasured": false,
+    "studyObservationsAreReviewEvidence": false
+  },
+  "errors": {
+    "byCategory": {},
+    "total": 0
+  },
+  "humanStudyComplete": false,
+  "humanWorkRemaining": [
+    "Recruit and consent genuine participants.",
+    "Run the fixed five-task protocol against the recorded build.",
+    "Review and approve the raw packet before publication."
+  ],
+  "interpretation": {
+    "accuracy": null,
+    "answerCount": 0,
+    "correctAnswerCount": 0
+  },
+  "sample": {
+    "analysisEligibleSessionCount": 0,
+    "incompleteSessionCount": 0,
+    "retainedSessionCount": 0,
+    "withdrawnRetainedSessionCount": 0
+  },
+  "schemaVersion": "taxalens-geographic-usability-study-summary:v1.0.0",
+  "sources": {
+    "impactArtifactSha256": "a02927ffbb4dc09fca582c61e6ceab51af6d12f8998cf0f7762ebfe26a4ea1c9",
+    "rawStudySha256": "e4a9116afcb37f6a0a093bf11bdd530962c62537cf86cd58b32152d92dfda58f",
+    "schemaSha256": "b6e3c599d03f89d256ce8cd5b4115765ff4cb231a0706f8c004eb463f33015a1",
+    "targetTaxaLensSha": "1440596cf4403af61ba8d57481feacda7c4e3044"
+  },
+  "status": "pending_human_data",
+  "studyId": "taxalens-geographic-impact-usability-v1",
+  "summarySha256": "1e264d214b62b6ac4daa0e48716a9fe811c507910f9067125a3b0d8089912f75",
+  "taskMetrics": {
+    "begin_verification": {
+      "actionCount": {
+        "count": 0,
+        "maximum": null,
+        "median": null,
+        "minimum": null
+      },
+      "activeMilliseconds": {
+        "count": 0,
+        "maximum": null,
+        "median": null,
+        "minimum": null
+      },
+      "confidence": {
+        "count": 0,
+        "maximum": null,
+        "median": null,
+        "minimum": null
+      },
+      "eligibleSessionCount": 0,
+      "moderatorHelpCount": 0
+    },
+    "find_candidate_record": {
+      "actionCount": {
+        "count": 0,
+        "maximum": null,
+        "median": null,
+        "minimum": null
+      },
+      "activeMilliseconds": {
+        "count": 0,
+        "maximum": null,
+        "median": null,
+        "minimum": null
+      },
+      "confidence": {
+        "count": 0,
+        "maximum": null,
+        "median": null,
+        "minimum": null
+      },
+      "eligibleSessionCount": 0,
+      "moderatorHelpCount": 0
+    },
+    "identify_country_gap": {
+      "actionCount": {
+        "count": 0,
+        "maximum": null,
+        "median": null,
+        "minimum": null
+      },
+      "activeMilliseconds": {
+        "count": 0,
+        "maximum": null,
+        "median": null,
+        "minimum": null
+      },
+      "confidence": {
+        "count": 0,
+        "maximum": null,
+        "median": null,
+        "minimum": null
+      },
+      "eligibleSessionCount": 0,
+      "moderatorHelpCount": 0
+    },
+    "inspect_provenance": {
+      "actionCount": {
+        "count": 0,
+        "maximum": null,
+        "median": null,
+        "minimum": null
+      },
+      "activeMilliseconds": {
+        "count": 0,
+        "maximum": null,
+        "median": null,
+        "minimum": null
+      },
+      "confidence": {
+        "count": 0,
+        "maximum": null,
+        "median": null,
+        "minimum": null
+      },
+      "eligibleSessionCount": 0,
+      "moderatorHelpCount": 0
+    },
+    "interpret_evidence_state": {
+      "actionCount": {
+        "count": 0,
+        "maximum": null,
+        "median": null,
+        "minimum": null
+      },
+      "activeMilliseconds": {
+        "count": 0,
+        "maximum": null,
+        "median": null,
+        "minimum": null
+      },
+      "confidence": {
+        "count": 0,
+        "maximum": null,
+        "median": null,
+        "minimum": null
+      },
+      "eligibleSessionCount": 0,
+      "moderatorHelpCount": 0
+    }
+  }
+}
