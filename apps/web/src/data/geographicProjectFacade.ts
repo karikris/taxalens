@@ -20,6 +20,7 @@ const GEOGRAPHIC_SECTION_SCHEMA_VERSIONS = Object.freeze({
   baseline_provider_union: Object.freeze([BASELINE_OCCURRENCE_UNION_SCHEMA_VERSION]),
   flickr_geography: Object.freeze([
     'flickr-geography-v1.0.0',
+    'taxalens-flickr-geography-verification:v1.0.0',
     'flickr-workload-manifest-v1.1.0',
   ]),
   geographic_impact_cells: Object.freeze([GEOGRAPHIC_IMPACT_CELL_SCHEMA_VERSION]),
