@@ -240,6 +240,97 @@
   font-size: var(--tl-text-sm);
 }
 
+.geographic-country-ranking {
+  display: grid;
+  gap: var(--tl-space-2);
+  padding: var(--tl-space-3);
+  background: var(--tl-surface-subtle);
+  border: 1px solid var(--tl-line-strong);
+  border-radius: var(--tl-radius-sm);
+}
+
+.geographic-country-ranking h4,
+.geographic-country-ranking p,
+.geographic-country-ranking ol {
+  margin: 0;
+}
+
+.geographic-country-ranking__heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tl-space-2) var(--tl-space-4);
+  align-items: end;
+  justify-content: space-between;
+}
+
+.geographic-country-ranking__heading label {
+  display: grid;
+  gap: var(--tl-space-1);
+  min-width: min(100%, 20rem);
+  font-weight: 700;
+}
+
+.geographic-country-ranking select {
+  min-height: 2.75rem;
+  padding: var(--tl-space-2);
+  color: var(--tl-ink);
+  background: var(--tl-surface-paper);
+  border: 1px solid var(--tl-line-strong);
+  border-radius: var(--tl-radius-sm);
+}
+
+.geographic-country-ranking ol {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: var(--tl-space-1) var(--tl-space-3);
+  padding-left: 1.75rem;
+}
+
+.geographic-country-ranking li {
+  padding: var(--tl-space-1) 0;
+  border-bottom: 1px solid var(--tl-line);
+}
+
+.geographic-country-ranking li::marker {
+  color: var(--tl-ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.geographic-country-ranking li > div,
+.geographic-country-ranking button {
+  align-items: baseline;
+}
+
+.geographic-country-ranking li > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--tl-space-2);
+}
+
+.geographic-country-ranking button {
+  display: inline-flex;
+  gap: var(--tl-space-1);
+  padding: 0;
+  color: var(--tl-brand);
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.geographic-country-ranking output {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.geographic-country-ranking__disclosure,
+#country-ranking-description {
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-sm);
+}
+
 .geographic-impact-legend__swatch {
   position: relative;
   display: inline-block;

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { EvidenceState } from '../design-system'
+import { GeographicCountryRanking } from './GeographicCountryRanking'
 import { GeographicBreadcrumbs } from './GeographicBreadcrumbs'
 import { GeographicScopeSlicers } from './GeographicScopeSlicers'
 import { GeographicImpactLegend } from './GeographicImpactLegend'
@@ -8,6 +9,7 @@ import { SelectedGeographyDetails } from './SelectedGeographyDetails'
 import { useGeographicScopeState } from './geographicScope'
 import { OfflineWorldMap } from './OfflineWorldMap'
 import { buildBoundedGeographicImpactFeatures } from './geographicImpactFeatureCollection'
+import type { GeographicImpactMetric } from './geographicImpactQuery'
 import {
   loadPublicGeographicImpactMapData,
   PUBLIC_GEOGRAPHIC_IMPACT_MAP_SOURCE,
@@ -21,6 +23,8 @@ export function GeographicImpactLens({
 }) {
   const scope = useGeographicScopeState()
   const [selectedCellId, setSelectedCellId] = useState<string | null>(null)
+  const [rankingMetric, setRankingMetric] =
+    useState<GeographicImpactMetric>('candidate_only_cells')
   const mapData = useGeographicImpactMapData(
     scope.selected,
     webGlSupported !== false && typeof Worker !== 'undefined',
@@ -28,9 +32,9 @@ export function GeographicImpactLens({
   const impactFeatures = useMemo(
     () =>
       mapData.status === 'available'
-        ? buildBoundedGeographicImpactFeatures(mapData.data.cells, 'record_count')
+        ? buildBoundedGeographicImpactFeatures(mapData.data.cells, rankingMetric)
         : undefined,
-    [mapData],
+    [mapData, rankingMetric],
   )
   const selectCountry = useCallback(
     (countryCode: string) => {
@@ -78,11 +82,19 @@ export function GeographicImpactLens({
         <GeographicImpactLegend features={impactFeatures} />
       )}
       {mapData.status === 'available' ? (
-        <SelectedGeographyDetails
-          cells={mapData.data.cells}
-          scope={scope.selected}
-          selectedCellId={selectedCellId}
-        />
+        <>
+          <SelectedGeographyDetails
+            cells={mapData.data.cells}
+            scope={scope.selected}
+            selectedCellId={selectedCellId}
+          />
+          <GeographicCountryRanking
+            cells={mapData.data.cells}
+            metric={rankingMetric}
+            onCountrySelect={selectCountry}
+            onMetricChange={setRankingMetric}
+          />
+        </>
       ) : null}
       <OfflineWorldMap
         {...(impactFeatures === undefined ? {} : { impactFeatures })}
