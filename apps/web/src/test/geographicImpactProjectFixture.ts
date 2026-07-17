@@ -108,7 +108,7 @@ export function createSyntheticGeographicProject(
       COUNTRY_HIERARCHY_SCHEMA_VERSION,
       'application/json',
       8,
-      3,
+      4,
       'f',
     ),
   ] as const
@@ -378,7 +378,7 @@ function impactManifest(
     ],
     impact_cell_count: 7,
     summary_row_count: 3,
-    hierarchy_node_count: 3,
+    hierarchy_node_count: 4,
     baseline_evidence_status: 'available',
     baseline_union_count: unionAvailable ? 9 : null,
     direct_inaturalist_delta_status: 'unavailable',
@@ -465,6 +465,22 @@ function countryHierarchy(includeSelectedScope: boolean): CountryHierarchyDocume
             },
           ]
         : []),
+      {
+        scope_level: 'admin1',
+        scope_id: 'admin1:AU-NSW',
+        scope_name: 'New South Wales',
+        parent_scope_id: 'country:AU',
+        continent: 'Oceania',
+        country_code: 'AU',
+        country: 'Australia',
+        admin1_code: 'AU-NSW',
+        admin1: 'New South Wales',
+        geometry_feature_id: 'AU-NSW',
+        centroid_latitude: -32,
+        centroid_longitude: 147,
+        bounds: [141, -38, 154, -28],
+        sort_key: '300-AU-NSW',
+      },
     ],
   }
 }

@@ -10,8 +10,21 @@ const duckDb = vi.hoisted(() => {
       return { get: (index: number) => rows[index]?.[column] }
     },
   }
+  const rollupRows: Record<string, unknown>[] = []
+  const rollupTable = {
+    get numRows() {
+      return rollupRows.length
+    },
+    getChild(column: string) {
+      return { get: (index: number) => rollupRows[index]?.[column] }
+    },
+  }
   const query = vi.fn(async (sql: string) =>
-    sql.startsWith('WITH baseline_cells') ? table : undefined,
+    sql.startsWith('WITH baseline_cells')
+      ? table
+      : sql.startsWith('WITH selected_rollup')
+        ? rollupTable
+        : undefined,
   )
   const connection = { query, close: vi.fn(async () => undefined) }
   const database = {
@@ -23,6 +36,7 @@ const duckDb = vi.hoisted(() => {
   }
   return {
     rows,
+    rollupRows,
     query,
     connection,
     database,
@@ -46,6 +60,7 @@ import {
 } from '../test/geographicImpactProjectFixture'
 import {
   buildGeographicImpactSql,
+  buildGeographicRollupSql,
   queryGeographicImpact,
 } from './geographicImpactAnalytics'
 import { loadGeographicImpactQuerySources } from './geographicImpactSources'
@@ -73,6 +88,8 @@ describe('browser geographic impact full outer join', () => {
         materialized_baseline_eligible_count: 3n,
         flickr_candidate_count: 4n,
         materialized_flickr_candidate_count: 4n,
+        pending_count: 4n,
+        materialized_pending_count: 4n,
         matched_cell: true,
         materialized_matched_cell: true,
       }),
@@ -91,6 +108,16 @@ describe('browser geographic impact full outer join', () => {
         materialized_candidate_only_cell: true,
         materialized_reviewed_additional_cell: true,
         nearest_baseline_distance_km: 18.25,
+      }),
+    )
+    duckDb.rollupRows.splice(
+      0,
+      duckDb.rollupRows.length,
+      rollupRow({
+        scope_level: 'country',
+        scope_id: 'country:AU',
+        scope_name: 'Australia',
+        parent_scope_id: 'continent:Oceania',
       }),
     )
   })
@@ -112,6 +139,16 @@ describe('browser geographic impact full outer join', () => {
       releaseReadyAdditionalCellCount: 0,
       scientificClaimAllowed: false,
     })
+    expect(result.selectedRollup).toMatchObject({
+      scopeLevel: 'country',
+      scopeId: 'country:AU',
+      cellCount: 3,
+      baselineUnionCount: 5,
+      flickrCandidateCount: 9,
+      candidateOnlyCellCount: 1,
+      reviewedAdditionalCellCount: 1,
+    })
+    expect(result.childRollups).toEqual([])
     expect(result.joinKeys).toEqual([
       'project_id',
       'run_id',
@@ -154,6 +191,12 @@ describe('browser geographic impact full outer join', () => {
     expect(sql).toContain('baseline.spatial_resolution = flickr.spatial_resolution')
     expect(sql).toContain('baseline.spatial_cell_id = flickr.spatial_cell_id')
     expect(sql).toContain("impact.country_code = 'AU'")
+    const rollupSql = duckDb.query.mock.calls
+      .map(([statement]) => statement)
+      .find((statement) => statement.startsWith('WITH selected_rollup'))
+    expect(rollupSql).toContain("scope_level = 'country'")
+    expect(rollupSql).toContain("scope_level = 'admin1'")
+    expect(rollupSql).toContain("parent_scope_id = 'country:AU'")
   })
 
   it('fails closed when the source join differs from materialized impact', async () => {
@@ -182,6 +225,28 @@ describe('browser geographic impact full outer join', () => {
     expect(sql).toContain("source_snapshot_version = 'baseline:synthetic-geography'")
     expect(sql).toContain("'project:synthetic-geography'::VARCHAR AS project_id")
     expect(sql).toContain('FULL OUTER JOIN flickr_cells')
+  })
+
+  it.each([
+    ['global', 'global', "scope_level = 'continent'"],
+    ['continent', 'continent:Oceania', "scope_level = 'country'"],
+    ['country', 'country:AU', "scope_level = 'admin1'"],
+    ['admin1', 'admin1:AU-NSW', 'WHERE FALSE'],
+  ] as const)('queries the immediate %s hierarchy rollup', (level, id, childClause) => {
+    const query = {
+      ...syntheticGeographicQuery,
+      geographicScope: { level, id },
+    }
+    const sources = loadGeographicImpactQuerySources(
+      createSyntheticGeographicProject(),
+      query,
+    )
+
+    const sql = buildGeographicRollupSql(sources)
+
+    expect(sql).toContain(`scope_level = '${level}'`)
+    expect(sql).toContain(`scope_id = '${id}'`)
+    expect(sql).toContain(childClause)
   })
 })
 
@@ -229,6 +294,48 @@ function impactRow(overrides: Record<string, unknown> = {}): Record<string, unkn
     materialized_reviewed_additional_cell: false,
     materialized_release_ready_additional_cell: false,
     nearest_baseline_distance_km: null,
+    data_deficient_state: 'sufficient',
+    ...overrides,
+  }
+}
+
+function rollupRow(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    scope_level: 'country',
+    scope_id: 'country:AU',
+    scope_name: 'Australia',
+    parent_scope_id: 'continent:Oceania',
+    continent: 'Oceania',
+    country_code: 'AU',
+    country: 'Australia',
+    admin1: null,
+    baseline_evidence_status: 'available',
+    baseline_union_count: 5n,
+    baseline_range_inference_eligible_count: 5n,
+    gbif_only_count: 5n,
+    inaturalist_origin_through_gbif_count: 0n,
+    direct_inaturalist_delta_status: 'unavailable',
+    direct_inaturalist_delta_count: null,
+    duplicates_removed_count: 0n,
+    unresolved_provider_duplicate_group_count: 0n,
+    cell_count: 3n,
+    baseline_occupied_cell_count: 2n,
+    flickr_candidate_count: 9n,
+    flickr_visually_eligible_count: 4n,
+    reviewed_positive_count: 1n,
+    reviewed_negative_count: 0n,
+    uncertain_count: 0n,
+    pending_count: 8n,
+    media_failure_count: 0n,
+    skipped_count: 0n,
+    release_ready_count: 0n,
+    flickr_occupied_cell_count: 2n,
+    baseline_only_cell_count: 1n,
+    matched_cell_count: 1n,
+    candidate_only_cell_count: 1n,
+    reviewed_additional_cell_count: 1n,
+    release_ready_additional_cell_count: 0n,
+    maximum_nearest_baseline_distance_km: 18.25,
     data_deficient_state: 'sufficient',
     ...overrides,
   }

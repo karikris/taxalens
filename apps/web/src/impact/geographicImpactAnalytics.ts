@@ -1,4 +1,5 @@
 import type { AsyncDuckDBConnection } from '@duckdb/duckdb-wasm'
+import type { GeographicScopeLevel } from '../../../../packages/contracts/src/geographic_impact_contract'
 
 import {
   createDuckDbRuntime,
@@ -60,6 +61,8 @@ export interface GeographicImpactBrowserResult {
   readonly operation: 'full_outer_cell_comparison'
   readonly joinKeys: typeof GEOGRAPHIC_IMPACT_JOIN_KEYS
   readonly cells: readonly GeographicImpactBrowserCell[]
+  readonly selectedRollup: GeographicImpactRollup
+  readonly childRollups: readonly GeographicImpactRollup[]
   readonly baselineOnlyCellCount: number
   readonly matchedCellCount: number
   readonly candidateOnlyCellCount: number
@@ -67,6 +70,45 @@ export interface GeographicImpactBrowserResult {
   readonly releaseReadyAdditionalCellCount: number
   readonly registration: GeographicSourceRegistrationResult
   readonly scientificClaimAllowed: false
+}
+
+export interface GeographicImpactRollup {
+  readonly scopeLevel: GeographicScopeLevel
+  readonly scopeId: string
+  readonly scopeName: string
+  readonly parentScopeId: string | null
+  readonly continent: string | null
+  readonly countryCode: string | null
+  readonly country: string | null
+  readonly admin1: string | null
+  readonly baselineEvidenceStatus: 'available' | 'unavailable'
+  readonly baselineUnionCount: number | null
+  readonly baselineRangeInferenceEligibleCount: number | null
+  readonly gbifOnlyCount: number | null
+  readonly inaturalistOriginThroughGbifCount: number | null
+  readonly directInaturalistDeltaStatus: 'available' | 'unavailable'
+  readonly directInaturalistDeltaCount: number | null
+  readonly duplicatesRemovedCount: number | null
+  readonly unresolvedProviderDuplicateGroupCount: number | null
+  readonly cellCount: number
+  readonly baselineOccupiedCellCount: number | null
+  readonly flickrCandidateCount: number
+  readonly flickrVisuallyEligibleCount: number
+  readonly reviewedPositiveCount: number
+  readonly reviewedNegativeCount: number
+  readonly uncertainCount: number
+  readonly pendingCount: number
+  readonly mediaFailureCount: number
+  readonly skippedCount: number
+  readonly releaseReadyCount: number
+  readonly flickrOccupiedCellCount: number
+  readonly baselineOnlyCellCount: number | null
+  readonly matchedCellCount: number | null
+  readonly candidateOnlyCellCount: number | null
+  readonly reviewedAdditionalCellCount: number | null
+  readonly releaseReadyAdditionalCellCount: number | null
+  readonly maximumNearestBaselineDistanceKm: number | null
+  readonly dataDeficientState: 'sufficient' | 'data_deficient' | 'unavailable'
 }
 
 /** Execute the independently aggregated source comparison in the browser. */
@@ -94,6 +136,11 @@ export async function queryGeographicImpact(
     await createGeographicViews(connection, sources)
     const table = await connection.query(buildGeographicImpactSql(sources))
     const cells = decodeAndReconcileCells(table)
+    const rollupTable = await connection.query(buildGeographicRollupSql(sources))
+    const { selectedRollup, childRollups } = decodeGeographicRollups(rollupTable, sources)
+    if (sources.input.evidenceMode === 'comparison') {
+      reconcileSelectedRollup(cells, selectedRollup)
+    }
 
     return Object.freeze({
       backend: 'duckdb-wasm-parquet',
@@ -102,6 +149,8 @@ export async function queryGeographicImpact(
       operation: 'full_outer_cell_comparison',
       joinKeys: GEOGRAPHIC_IMPACT_JOIN_KEYS,
       cells,
+      selectedRollup,
+      childRollups,
       baselineOnlyCellCount: countCells(cells, 'baselineOnlyCell'),
       matchedCellCount: countCells(cells, 'matchedCell'),
       candidateOnlyCellCount: countCells(cells, 'candidateOnlyCell'),
@@ -117,6 +166,42 @@ export async function queryGeographicImpact(
     }
     await database.terminate()
   }
+}
+
+export function buildGeographicRollupSql(sources: GeographicImpactQuerySources): string {
+  const { input } = sources
+  const identity = input.evidenceScope
+  const filters = `project_id = ${sqlLiteral(identity.projectId)}
+      AND run_id = ${sqlLiteral(identity.runId)}
+      AND accepted_taxon_key = ${sqlLiteral(identity.targetAcceptedTaxonKey)}
+      AND baseline_snapshot_id = ${sqlLiteral(identity.baselineSnapshotId)}
+      AND flickr_snapshot_id = ${sqlLiteral(identity.flickrSnapshotId)}
+      AND spatial_resolution = ${input.spatialResolution}`
+  const childLevel = childScopeLevel(input.geographicScope.level)
+  const childSelection =
+    childLevel === null
+      ? 'WHERE FALSE'
+      : `WHERE ${filters}
+        AND scope_level = ${sqlLiteral(childLevel)}
+        AND parent_scope_id = ${sqlLiteral(input.geographicScope.id)}`
+  return `WITH selected_rollup AS (
+      SELECT 0::UTINYINT AS result_order, *
+      FROM materialized_geographic_summary
+      WHERE ${filters}
+        AND scope_level = ${sqlLiteral(input.geographicScope.level)}
+        AND scope_id = ${sqlLiteral(input.geographicScope.id)}
+    ), child_rollups AS (
+      SELECT 1::UTINYINT AS result_order, *
+      FROM materialized_geographic_summary
+      ${childSelection}
+    )
+    SELECT * FROM selected_rollup
+    UNION ALL BY NAME
+    SELECT * FROM child_rollups
+    ORDER BY result_order,
+      ${rollupOrderExpression(input.metric)} DESC NULLS LAST,
+      scope_name,
+      scope_id`
 }
 
 async function createGeographicViews(
@@ -371,6 +456,247 @@ function evidenceModePredicate(mode: GeographicImpactQuerySources['input']['evid
   }
 }
 
+function childScopeLevel(level: GeographicScopeLevel): GeographicScopeLevel | null {
+  switch (level) {
+    case 'global':
+      return 'continent'
+    case 'continent':
+      return 'country'
+    case 'country':
+      return 'admin1'
+    case 'admin1':
+      return null
+  }
+}
+
+function rollupOrderExpression(metric: GeographicImpactQuerySources['input']['metric']): string {
+  switch (metric) {
+    case 'record_count':
+      return 'greatest(coalesce(baseline_range_inference_eligible_count, 0), flickr_candidate_count)'
+    case 'candidate_only_cells':
+      return 'candidate_only_cell_count'
+    case 'reviewed_additional_cells':
+      return 'reviewed_additional_cell_count'
+    case 'release_ready_additional_cells':
+      return 'release_ready_additional_cell_count'
+    case 'range_edge_distance':
+      return 'maximum_nearest_baseline_distance_km'
+    case 'review_backlog':
+      return 'pending_count'
+  }
+}
+
+function decodeGeographicRollups(
+  table: Awaited<ReturnType<AsyncDuckDBConnection['query']>>,
+  sources: GeographicImpactQuerySources,
+): {
+  readonly selectedRollup: GeographicImpactRollup
+  readonly childRollups: readonly GeographicImpactRollup[]
+} {
+  const rows = Array.from({ length: table.numRows }, (_, index) => {
+    const scopeLevel = requiredString(table, 'scope_level', index)
+    if (!['global', 'continent', 'country', 'admin1'].includes(scopeLevel)) {
+      throw new Error('DuckDB geographic rollup returned an invalid scope level')
+    }
+    const baselineEvidenceStatus = requiredString(table, 'baseline_evidence_status', index)
+    const directDeltaStatus = requiredString(table, 'direct_inaturalist_delta_status', index)
+    if (!['available', 'unavailable'].includes(baselineEvidenceStatus)) {
+      throw new Error('DuckDB geographic rollup returned an invalid baseline availability')
+    }
+    if (!['available', 'unavailable'].includes(directDeltaStatus)) {
+      throw new Error('DuckDB geographic rollup returned an invalid provider-delta availability')
+    }
+    const dataDeficientState = requiredString(table, 'data_deficient_state', index)
+    if (!['sufficient', 'data_deficient', 'unavailable'].includes(dataDeficientState)) {
+      throw new Error('DuckDB geographic rollup returned an invalid data deficiency state')
+    }
+    return Object.freeze({
+      scopeLevel: scopeLevel as GeographicScopeLevel,
+      scopeId: requiredString(table, 'scope_id', index),
+      scopeName: requiredString(table, 'scope_name', index),
+      parentScopeId: nullableString(table, 'parent_scope_id', index),
+      continent: nullableString(table, 'continent', index),
+      countryCode: nullableString(table, 'country_code', index),
+      country: nullableString(table, 'country', index),
+      admin1: nullableString(table, 'admin1', index),
+      baselineEvidenceStatus: baselineEvidenceStatus as GeographicImpactRollup['baselineEvidenceStatus'],
+      baselineUnionCount: nullableCount(table, 'baseline_union_count', index),
+      baselineRangeInferenceEligibleCount: nullableCount(
+        table,
+        'baseline_range_inference_eligible_count',
+        index,
+      ),
+      gbifOnlyCount: nullableCount(table, 'gbif_only_count', index),
+      inaturalistOriginThroughGbifCount: nullableCount(
+        table,
+        'inaturalist_origin_through_gbif_count',
+        index,
+      ),
+      directInaturalistDeltaStatus:
+        directDeltaStatus as GeographicImpactRollup['directInaturalistDeltaStatus'],
+      directInaturalistDeltaCount: nullableCount(
+        table,
+        'direct_inaturalist_delta_count',
+        index,
+      ),
+      duplicatesRemovedCount: nullableCount(table, 'duplicates_removed_count', index),
+      unresolvedProviderDuplicateGroupCount: nullableCount(
+        table,
+        'unresolved_provider_duplicate_group_count',
+        index,
+      ),
+      cellCount: requiredCount(table, 'cell_count', index),
+      baselineOccupiedCellCount: nullableCount(
+        table,
+        'baseline_occupied_cell_count',
+        index,
+      ),
+      flickrCandidateCount: requiredCount(table, 'flickr_candidate_count', index),
+      flickrVisuallyEligibleCount: requiredCount(
+        table,
+        'flickr_visually_eligible_count',
+        index,
+      ),
+      reviewedPositiveCount: requiredCount(table, 'reviewed_positive_count', index),
+      reviewedNegativeCount: requiredCount(table, 'reviewed_negative_count', index),
+      uncertainCount: requiredCount(table, 'uncertain_count', index),
+      pendingCount: requiredCount(table, 'pending_count', index),
+      mediaFailureCount: requiredCount(table, 'media_failure_count', index),
+      skippedCount: requiredCount(table, 'skipped_count', index),
+      releaseReadyCount: requiredCount(table, 'release_ready_count', index),
+      flickrOccupiedCellCount: requiredCount(table, 'flickr_occupied_cell_count', index),
+      baselineOnlyCellCount: nullableCount(table, 'baseline_only_cell_count', index),
+      matchedCellCount: nullableCount(table, 'matched_cell_count', index),
+      candidateOnlyCellCount: nullableCount(table, 'candidate_only_cell_count', index),
+      reviewedAdditionalCellCount: nullableCount(
+        table,
+        'reviewed_additional_cell_count',
+        index,
+      ),
+      releaseReadyAdditionalCellCount: nullableCount(
+        table,
+        'release_ready_additional_cell_count',
+        index,
+      ),
+      maximumNearestBaselineDistanceKm: nullableFiniteNumber(
+        table,
+        'maximum_nearest_baseline_distance_km',
+        index,
+      ),
+      dataDeficientState: dataDeficientState as GeographicImpactRollup['dataDeficientState'],
+    })
+  })
+  const selected = rows.filter(
+    (row) =>
+      row.scopeLevel === sources.input.geographicScope.level &&
+      row.scopeId === sources.input.geographicScope.id,
+  )
+  if (selected.length !== 1) {
+    throw new Error('geographic rollup query did not return exactly one selected scope')
+  }
+  const expectedChildLevel = childScopeLevel(sources.input.geographicScope.level)
+  const children = rows.filter((row) => row !== selected[0])
+  if (
+    children.some(
+      (row) =>
+        row.scopeLevel !== expectedChildLevel ||
+        row.parentScopeId !== sources.input.geographicScope.id,
+    )
+  ) {
+    throw new Error('geographic rollup query returned a row outside the immediate hierarchy')
+  }
+  return Object.freeze({
+    selectedRollup: selected[0]!,
+    childRollups: Object.freeze(children),
+  })
+}
+
+function reconcileSelectedRollup(
+  cells: readonly GeographicImpactBrowserCell[],
+  rollup: GeographicImpactRollup,
+): void {
+  const expected: readonly (readonly [string, number | null, number])[] = [
+    ['cell_count', rollup.cellCount, cells.length],
+    [
+      'baseline_union_count',
+      rollup.baselineUnionCount,
+      sumCells(cells, 'baselineUnionCount'),
+    ],
+    [
+      'baseline_range_inference_eligible_count',
+      rollup.baselineRangeInferenceEligibleCount,
+      sumCells(cells, 'baselineRangeInferenceEligibleCount'),
+    ],
+    ['flickr_candidate_count', rollup.flickrCandidateCount, sumCells(cells, 'flickrCandidateCount')],
+    [
+      'flickr_visually_eligible_count',
+      rollup.flickrVisuallyEligibleCount,
+      sumCells(cells, 'flickrVisuallyEligibleCount'),
+    ],
+    [
+      'reviewed_positive_count',
+      rollup.reviewedPositiveCount,
+      sumCells(cells, 'reviewedPositiveCount'),
+    ],
+    [
+      'reviewed_negative_count',
+      rollup.reviewedNegativeCount,
+      sumCells(cells, 'reviewedNegativeCount'),
+    ],
+    ['uncertain_count', rollup.uncertainCount, sumCells(cells, 'uncertainCount')],
+    ['pending_count', rollup.pendingCount, sumCells(cells, 'pendingCount')],
+    ['media_failure_count', rollup.mediaFailureCount, sumCells(cells, 'mediaFailureCount')],
+    ['skipped_count', rollup.skippedCount, sumCells(cells, 'skippedCount')],
+    ['release_ready_count', rollup.releaseReadyCount, sumCells(cells, 'releaseReadyCount')],
+    [
+      'baseline_only_cell_count',
+      rollup.baselineOnlyCellCount,
+      countCells(cells, 'baselineOnlyCell'),
+    ],
+    ['matched_cell_count', rollup.matchedCellCount, countCells(cells, 'matchedCell')],
+    [
+      'candidate_only_cell_count',
+      rollup.candidateOnlyCellCount,
+      countCells(cells, 'candidateOnlyCell'),
+    ],
+    [
+      'reviewed_additional_cell_count',
+      rollup.reviewedAdditionalCellCount,
+      countCells(cells, 'reviewedAdditionalCell'),
+    ],
+    [
+      'release_ready_additional_cell_count',
+      rollup.releaseReadyAdditionalCellCount,
+      countCells(cells, 'releaseReadyAdditionalCell'),
+    ],
+  ]
+  for (const [field, summaryValue, cellValue] of expected) {
+    if (summaryValue !== cellValue) {
+      throw new Error(`selected geographic rollup differs from browser cells for ${field}`)
+    }
+  }
+}
+
+function sumCells(
+  cells: readonly GeographicImpactBrowserCell[],
+  field: keyof Pick<
+    GeographicImpactBrowserCell,
+    | 'baselineUnionCount'
+    | 'baselineRangeInferenceEligibleCount'
+    | 'flickrCandidateCount'
+    | 'flickrVisuallyEligibleCount'
+    | 'reviewedPositiveCount'
+    | 'reviewedNegativeCount'
+    | 'uncertainCount'
+    | 'pendingCount'
+    | 'mediaFailureCount'
+    | 'skippedCount'
+    | 'releaseReadyCount'
+  >,
+): number {
+  return cells.reduce((total, cell) => total + cell[field], 0)
+}
+
 function decodeAndReconcileCells(
   table: Awaited<ReturnType<AsyncDuckDBConnection['query']>>,
 ): readonly GeographicImpactBrowserCell[] {
@@ -527,6 +853,20 @@ function requiredCount(
   row: number,
 ): number {
   const value = table.getChild(column)?.get(row)
+  const count = typeof value === 'bigint' ? Number(value) : value
+  if (typeof count !== 'number' || !Number.isSafeInteger(count) || count < 0) {
+    throw new Error(`DuckDB geographic impact returned an invalid ${column}`)
+  }
+  return count
+}
+
+function nullableCount(
+  table: Awaited<ReturnType<AsyncDuckDBConnection['query']>>,
+  column: string,
+  row: number,
+): number | null {
+  const value = table.getChild(column)?.get(row)
+  if (value === null) return null
   const count = typeof value === 'bigint' ? Number(value) : value
   if (typeof count !== 'number' || !Number.isSafeInteger(count) || count < 0) {
     throw new Error(`DuckDB geographic impact returned an invalid ${column}`)
