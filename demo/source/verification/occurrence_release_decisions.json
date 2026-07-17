@@ -1,0 +1,7 @@
+{
+  "release_policy_version": "occurrence-release-policy:v1.0.0",
+  "rows": [],
+  "schema_version": "taxalens-occurrence-release-decisions:v1.0.0",
+  "scientific_claim_allowed": false,
+  "unavailable_reason": "No retained human consensus, quality snapshot, or occurrence-release decision exists."
+}

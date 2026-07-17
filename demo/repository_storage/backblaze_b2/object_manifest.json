@@ -1,7 +1,7 @@
 {
   "bucket_alias": "taxalens-repository-fixture",
   "credentials_included": false,
-  "object_count": 96,
+  "object_count": 97,
   "objects": [
     {
       "bytes": 484,
@@ -463,13 +463,13 @@
       "sha256": "dc58d485d6aee0233ab45c1a857f35ff52c242b5552e50d8a31367a7973ceb71"
     },
     {
-      "bytes": 558789,
+      "bytes": 559441,
       "git_tracked_required": true,
       "immutable": true,
       "media_type": "application/vnd.apache.parquet",
       "object_key": "taxalens/demo/source/biominer_phase14/geographic_impact/geographic_impact_cells.parquet",
       "repository_path": "demo/source/biominer_phase14/geographic_impact/geographic_impact_cells.parquet",
-      "sha256": "4b889b51507fe10e6942ff09b38baf25dcaa53084e7ccf731a5ddc5a6d00f2be"
+      "sha256": "97b2422657d79bc8e682c4e51358c0316f6c942a31fea9ed608ef2c4ba420d94"
     },
     {
       "bytes": 3144,
@@ -814,6 +814,15 @@
       "sha256": "bdf0209ba1e4a4645075e54c8a70d9954a3e733b693f45a77a0cff7929226e49"
     },
     {
+      "bytes": 299,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/verification/occurrence_release_decisions.json",
+      "repository_path": "demo/source/verification/occurrence_release_decisions.json",
+      "sha256": "3cc571646b54b66b301edb3427d925f7bcf3f330ece57021b945d430a5164c19"
+    },
+    {
       "bytes": 9748,
       "git_tracked_required": true,
       "immutable": true,
@@ -873,5 +882,5 @@
   "scientific_claim_allowed": false,
   "signed_urls_included": false,
   "storage_mode": "repository_mirror",
-  "total_bytes": 15393890
+  "total_bytes": 15394841
 }

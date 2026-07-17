@@ -19,6 +19,10 @@ from packages.replay.src.geographic_impact_materializer import (
     REPOSITORY_ROOT,
     build_committed_geographic_impact_cells,
 )
+from packages.replay.src.occurrence_release import (
+    DEFAULT_QUALITY_SNAPSHOTS,
+    DEFAULT_RELEASE_DECISIONS,
+)
 from packages.replay.src.offline_country_lookup import DEFAULT_COUNTRY_BOUNDARIES
 
 OUTPUT_ROOT = REPOSITORY_ROOT / "demo/source/biominer_phase14/geographic_impact"
@@ -52,6 +56,8 @@ def geographic_impact_build_id() -> str:
                 DEFAULT_FLICKR_GEOGRAPHY,
                 DEFAULT_COUNTRY_HIERARCHY,
                 DEFAULT_COUNTRY_BOUNDARIES,
+                DEFAULT_RELEASE_DECISIONS,
+                DEFAULT_QUALITY_SNAPSHOTS,
             )
         },
     }

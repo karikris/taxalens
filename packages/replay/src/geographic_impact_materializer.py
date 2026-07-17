@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from collections.abc import Mapping
 from dataclasses import dataclass
@@ -23,6 +24,12 @@ from packages.replay.src.flickr_geography_verification import (
     VERIFICATION_GEOGRAPHY_SCHEMA_VERSION,
     flickr_geography_verification_schema,
 )
+from packages.replay.src.occurrence_release import (
+    RELEASE_POLICY_VERSION,
+    load_occurrence_release_decisions,
+    load_quality_snapshot_ids,
+    validate_occurrence_release_decisions,
+)
 from packages.replay.src.offline_country_lookup import OfflineCountryLookup
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
@@ -37,7 +44,7 @@ DEFAULT_FLICKR_GEOGRAPHY = (
 DEFAULT_COUNTRY_HIERARCHY = REPOSITORY_ROOT / "demo/source/geography/country_hierarchy.json"
 
 GEOGRAPHIC_IMPACT_MATERIALIZATION_POLICY_VERSION = "geographic-impact-materialization-policy:v1.0.0"
-OCCURRENCE_RELEASE_POLICY_VERSION = "occurrence-release-policy:v1.0.0"
+OCCURRENCE_RELEASE_POLICY_VERSION = RELEASE_POLICY_VERSION
 
 _CELL_KEYS = ["spatial_resolution", "spatial_cell_id"]
 
@@ -85,6 +92,8 @@ def build_geographic_impact_cells(
     geographic_impact_build_id: str,
     country_lookup: OfflineCountryLookup,
     country_hierarchy: Mapping[str, Any],
+    release_decisions: pl.DataFrame,
+    quality_snapshot_ids: frozenset[str],
 ) -> pl.DataFrame:
     """Preaggregate and full-outer join one compatible baseline/Flickr scope."""
 
@@ -93,7 +102,12 @@ def build_geographic_impact_cells(
         raise TypeError("country_lookup must be OfflineCountryLookup")
     scope = _validate_inputs(baseline, flickr, country_hierarchy)
     baseline_cells = _aggregate_baseline(baseline)
-    flickr_cells = _aggregate_flickr(flickr)
+    flickr_cells = aggregate_flickr_review_states(
+        flickr,
+        release_decisions=release_decisions,
+        quality_snapshot_ids=quality_snapshot_ids,
+        scope=scope,
+    )
     joined = baseline_cells.join(
         flickr_cells,
         on=_CELL_KEYS,
@@ -115,6 +129,13 @@ def build_geographic_impact_cells(
         "unresolved_provider_duplicate_group_count",
         "flickr_candidate_count",
         "flickr_visually_eligible_count",
+        "reviewed_positive_count",
+        "reviewed_negative_count",
+        "uncertain_count",
+        "pending_count",
+        "media_failure_count",
+        "skipped_count",
+        "release_ready_count",
     ]
     joined = joined.with_columns([pl.col(column).fill_null(0) for column in count_columns])
     eligible = pl.col("baseline_range_inference_eligible_count")
@@ -133,6 +154,9 @@ def build_geographic_impact_cells(
         pl.when(pl.col("unresolved_provider_duplicate_group_count") > 0)
         .then(pl.lit("unresolved_provider_duplicates"))
         .otherwise(pl.lit(None, dtype=pl.String)),
+        pl.when((pl.col("reviewed_positive_count") > 0) & pl.col("quality_snapshot_id").is_null())
+        .then(pl.lit("reviewed_quality_snapshot_unavailable"))
+        .otherwise(pl.lit(None, dtype=pl.String)),
     ).list.drop_nulls()
 
     cells = (
@@ -149,27 +173,21 @@ def build_geographic_impact_cells(
             pl.lit(PROVIDER_UNION_POLICY_VERSION).alias("provider_union_policy_version"),
             pl.lit(VERIFICATION_GEOGRAPHY_SCHEMA_VERSION).alias("verification_projection_version"),
             pl.lit(OCCURRENCE_RELEASE_POLICY_VERSION).alias("release_policy_version"),
-            pl.lit(None, dtype=pl.String).alias("verification_campaign_id"),
-            pl.lit(None, dtype=pl.String).alias("quality_snapshot_id"),
-            pl.lit(None, dtype=pl.String).alias("release_decision_id"),
             pl.lit(scope.grid_name).alias("grid_name"),
             pl.lit(scope.grid_version).alias("grid_version"),
             pl.lit(scope.country_hierarchy_id).alias("country_hierarchy_id"),
             pl.lit("available").alias("baseline_evidence_status"),
             pl.lit("unavailable").alias("direct_inaturalist_delta_status"),
             pl.lit(None, dtype=pl.UInt64).alias("direct_inaturalist_delta_count"),
-            candidates.alias("pending_count"),
-            pl.lit(0, dtype=pl.UInt64).alias("reviewed_positive_count"),
-            pl.lit(0, dtype=pl.UInt64).alias("reviewed_negative_count"),
-            pl.lit(0, dtype=pl.UInt64).alias("uncertain_count"),
-            pl.lit(0, dtype=pl.UInt64).alias("media_failure_count"),
-            pl.lit(0, dtype=pl.UInt64).alias("skipped_count"),
-            pl.lit(0, dtype=pl.UInt64).alias("release_ready_count"),
             ((eligible > 0) & (candidates == 0)).alias("baseline_only_cell"),
             ((eligible > 0) & (candidates > 0)).alias("matched_cell"),
             ((eligible == 0) & (candidates > 0)).alias("candidate_only_cell"),
-            pl.lit(False).alias("reviewed_additional_cell"),
-            pl.lit(False).alias("release_ready_additional_cell"),
+            ((eligible == 0) & (pl.col("reviewed_positive_count") > 0)).alias(
+                "reviewed_additional_cell"
+            ),
+            ((eligible == 0) & (pl.col("release_ready_count") > 0)).alias(
+                "release_ready_additional_cell"
+            ),
             pl.when(eligible > 0)
             .then(pl.lit("not_applicable"))
             .otherwise(pl.lit("unavailable"))
@@ -178,8 +196,6 @@ def build_geographic_impact_cells(
             pl.lit(None, dtype=pl.String).alias("nearest_baseline_cell_id"),
             pl.lit(None, dtype=pl.String).alias("nearest_baseline_distance_method"),
             pl.lit(None, dtype=pl.Date).alias("latest_flickr_candidate_date"),
-            pl.lit(None, dtype=pl.Date).alias("latest_reviewed_positive_date"),
-            pl.lit(None, dtype=pl.Date).alias("latest_release_ready_date"),
             pl.lit("data_deficient").alias("data_deficient_state"),
             data_deficient_reasons.alias("data_deficient_reasons"),
         )
@@ -213,6 +229,8 @@ def build_committed_geographic_impact_cells(
         geographic_impact_build_id=geographic_impact_build_id,
         country_lookup=OfflineCountryLookup.from_path(),
         country_hierarchy=country_hierarchy,
+        release_decisions=load_occurrence_release_decisions(),
+        quality_snapshot_ids=load_quality_snapshot_ids(),
     )
 
 
@@ -269,17 +287,142 @@ def _aggregate_baseline(frame: pl.DataFrame) -> pl.DataFrame:
     )
 
 
-def _aggregate_flickr(frame: pl.DataFrame) -> pl.DataFrame:
-    supported = frame.filter(pl.col("cell_supported"))
+def aggregate_flickr_review_states(
+    frame: pl.DataFrame,
+    *,
+    release_decisions: pl.DataFrame,
+    quality_snapshot_ids: frozenset[str],
+    scope: GeographicImpactScope,
+) -> pl.DataFrame:
+    expected_scope = {
+        "project_id": scope.project_id,
+        "run_id": scope.run_id,
+        "accepted_taxon_key": scope.accepted_taxon_key,
+        "baseline_snapshot_id": scope.baseline_snapshot_id,
+        "flickr_snapshot_id": scope.flickr_snapshot_id,
+    }
+    validate_occurrence_release_decisions(
+        release_decisions,
+        quality_snapshot_ids=quality_snapshot_ids,
+        expected_scope=expected_scope,
+    )
+    allowed_states = {
+        "not_requested",
+        "pending",
+        "reviewed_target_positive",
+        "reviewed_non_target",
+        "uncertain",
+        "media_failure",
+        "deferred",
+    }
+    observed_states = set(frame.get_column("human_review_state").unique().to_list())
+    unknown_states = observed_states - allowed_states
+    if unknown_states:
+        raise GeographicImpactMaterializationError(
+            f"Flickr human review state is unsupported: {sorted(unknown_states)!r}"
+        )
+    release = release_decisions.rename(
+        {name: f"release_{name}" for name in release_decisions.columns if name != "flickr_photo_id"}
+    )
+    unknown_release_photos = set(release.get_column("flickr_photo_id").to_list()) - set(
+        frame.get_column("flickr_photo_id").unique().to_list()
+    )
+    if unknown_release_photos:
+        raise GeographicImpactMaterializationError("release decision names an unknown Flickr photo")
+    joined = frame.join(release, on="flickr_photo_id", how="left", validate="m:1")
+    ready = pl.col("release_decision_status") == "release_ready"
+    release_rows = joined.filter(ready)
+    if release_rows.height:
+        mismatch = release_rows.filter(
+            (pl.col("human_review_state") != "reviewed_target_positive")
+            | ~pl.col("human_supported")
+            | (pl.col("consensus_outcome") != "yes")
+            | (pl.col("decisive_review_count") == 0)
+            | (pl.col("verification_campaign_id") != pl.col("release_verification_campaign_id"))
+            | (pl.col("verification_item_id") != pl.col("release_verification_item_id"))
+        )
+        if mismatch.height:
+            raise GeographicImpactMaterializationError(
+                "release-ready decision differs from verification consensus"
+            )
+    supported = joined.filter(pl.col("cell_supported"))
     identity_columns = [*_CELL_KEYS, "flickr_photo_id"]
     if supported.select(pl.struct(identity_columns).n_unique()).item() != supported.height:
         raise GeographicImpactMaterializationError("Flickr cell/photo identity is duplicated")
-    return supported.group_by(_CELL_KEYS).agg(
+    grouped = supported.group_by(_CELL_KEYS).agg(
         pl.col("flickr_photo_id").n_unique().alias("flickr_candidate_count"),
         pl.col("flickr_photo_id")
         .filter(pl.col("machine_screening_state") == "target")
         .n_unique()
         .alias("flickr_visually_eligible_count"),
+        pl.col("flickr_photo_id")
+        .filter(pl.col("human_review_state") == "reviewed_target_positive")
+        .n_unique()
+        .alias("reviewed_positive_count"),
+        pl.col("flickr_photo_id")
+        .filter(pl.col("human_review_state") == "reviewed_non_target")
+        .n_unique()
+        .alias("reviewed_negative_count"),
+        pl.col("flickr_photo_id")
+        .filter(pl.col("human_review_state") == "uncertain")
+        .n_unique()
+        .alias("uncertain_count"),
+        pl.col("flickr_photo_id")
+        .filter(pl.col("human_review_state").is_in(["not_requested", "pending"]))
+        .n_unique()
+        .alias("pending_count"),
+        pl.col("flickr_photo_id")
+        .filter(pl.col("human_review_state") == "media_failure")
+        .n_unique()
+        .alias("media_failure_count"),
+        pl.col("flickr_photo_id")
+        .filter(pl.col("human_review_state") == "deferred")
+        .n_unique()
+        .alias("skipped_count"),
+        pl.col("flickr_photo_id").filter(ready).n_unique().alias("release_ready_count"),
+        pl.col("verification_campaign_id")
+        .drop_nulls()
+        .unique()
+        .sort()
+        .alias("_verification_campaign_ids"),
+        pl.col("release_quality_snapshot_id")
+        .filter(ready)
+        .drop_nulls()
+        .unique()
+        .sort()
+        .alias("_quality_snapshot_ids"),
+        pl.col("release_release_decision_id")
+        .filter(ready)
+        .drop_nulls()
+        .unique()
+        .sort()
+        .alias("_release_decision_ids"),
+        pl.col("release_event_date").filter(ready).max().alias("latest_reviewed_positive_date"),
+        pl.col("release_event_date").filter(ready).max().alias("latest_release_ready_date"),
+    )
+    return grouped.with_columns(
+        pl.col("_verification_campaign_ids")
+        .map_elements(
+            lambda values: _identity_set("verification-campaign", values),
+            return_dtype=pl.String,
+        )
+        .alias("verification_campaign_id"),
+        pl.col("_quality_snapshot_ids")
+        .map_elements(
+            lambda values: _identity_set("quality-snapshot", values),
+            return_dtype=pl.String,
+        )
+        .alias("quality_snapshot_id"),
+        pl.col("_release_decision_ids")
+        .map_elements(
+            lambda values: _identity_set("occurrence-release-decision", values),
+            return_dtype=pl.String,
+        )
+        .alias("release_decision_id"),
+    ).drop(
+        "_verification_campaign_ids",
+        "_quality_snapshot_ids",
+        "_release_decision_ids",
     )
 
 
@@ -448,6 +591,24 @@ def _json_row(row: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+def _identity_set(prefix: str, values: object) -> str | None:
+    if isinstance(values, pl.Series):
+        raw_values = values.to_list()
+    elif isinstance(values, list | tuple):
+        raw_values = list(values)
+    else:
+        raise GeographicImpactMaterializationError("identity set has an unsupported value")
+    items = sorted({_required_text(value, f"{prefix} identity") for value in raw_values})
+    if not items:
+        return None
+    if len(items) == 1:
+        return items[0]
+    digest = hashlib.sha256(
+        json.dumps(items, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    return f"{prefix}-set:v1:sha256:{digest}"
+
+
 def _required_text(value: object, label: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise GeographicImpactMaterializationError(f"{label} must be non-empty")
@@ -462,6 +623,7 @@ __all__ = [
     "OCCURRENCE_RELEASE_POLICY_VERSION",
     "GeographicImpactMaterializationError",
     "GeographicImpactScope",
+    "aggregate_flickr_review_states",
     "build_committed_geographic_impact_cells",
     "build_geographic_impact_cells",
     "geographic_impact_cell_schema",
