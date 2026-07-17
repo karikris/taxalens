@@ -25,8 +25,44 @@ with confident-looking output.
 
 ## Product preview
 
-> **Preview placeholder:** a final competition screenshot or short product clip will be placed
-> here. The hosted replay above is the current source of truth and can be reset at any time.
+![TaxaLens human-verification workflow: a checksum-verified butterfly image beside optional reviewer fields and Yes, No, Can’t tell, Can’t view, and Skip controls](docs/assets/taxalens-verification-workflow.png)
+
+The screenshot is an actual local production-build capture after preparing the three-image Commons
+cache. It is a workflow fixture, not a taxonomic result for the Flickr hero candidate.
+
+![Short TaxaLens journey from Mission planning through Evidence Lens, Verification, and quality coverage](docs/assets/taxalens-verification-journey.gif)
+
+### Verification workflow
+
+1. **Plan** a review budget, audit sample, reviewer count, precision objective, and reference gate in
+   Research Mission.
+2. **Inspect** one source and its unavailable evidence in Evidence Lens, then choose **Verify this
+   result**.
+3. **Prepare** the small rights-cleared local cache and review one displayed image and label at a
+   time.
+4. **Record** Yes, No, Can’t tell, Can’t view, or Skip with an optional comment. Events are
+   append-only in local IndexedDB until export.
+5. **Read** current campaign-policy consensus, event lineage, decisive coverage, conflicts,
+   reference readiness, and the next review milestone.
+
+The exact Flickr result currently has no committed review image. Its route therefore opens the
+separate actionable Commons workflow with an explicit warning: those fixture decisions do not
+verify the Flickr source.
+
+### Measured impact, tightly bounded
+
+One matched **scripted Chromium** pair over the same three-item task recorded 20 actions in the
+manual protocol and 10 in the TaxaLens-assisted protocol—a 50% reduction in scripted interaction
+count. The assisted browser run was slower in elapsed execution time (2,752 ms versus 753 ms).
+There were zero human participants, so human time saved, human productivity, scientific quality
+change, and population savings remain unavailable.
+
+### Honest quality state
+
+The target-precision interval is **unavailable**: zero inclusion-weighted decisive Flickr audit
+outcomes are committed. The first checkpoint is 20 decisive outcomes. BioMiner separately records
+81 / 81 provider-supported records as user-confirmed suitable for their assigned prototype roles;
+that is not independent human taxonomic verification and does not unlock reference readiness.
 
 ## Replay it locally
 
@@ -57,8 +93,9 @@ TaxaLens is research decision support for evidence-heavy review work:
 - **Explain without guessing:** the GPT-5.6 analyst reads the same verified evidence through bounded
   tools and is required to cite artifacts, disclose missing evidence, and reject unsupported claims.
 
-The pilot does not claim measured time saved, accuracy gained, or fieldwork avoided. It demonstrates
-how to make the work inspectable, repeatable, and safer to hand between researchers.
+The pilot does not claim measured human time saved, accuracy gained, or fieldwork avoided. It
+demonstrates a measured reduction in one scripted action count and shows how to make the work
+inspectable, repeatable, and safer to hand between researchers.
 
 ## What GPT-5.6 does
 
@@ -150,8 +187,8 @@ evidence with YOLOE, and screens eligible images with BioCLIP. Its model output 
 evidence, never taxonomic validation.
 
 TaxaLens is the product and audit surface over a bounded import of BioMiner contracts and committed
-pilot artifacts. The source repository is pinned at
-`74a7d648a562efa744e6502ef504a23b63b4e02f`; the judge replay never launches the BioMiner runtime.
+pilot artifacts. The current verification-planning source repository is pinned at
+`94fa1f634ee3c63917c05d78181dd3cf9ceff940`; the judge replay never launches the BioMiner runtime.
 The current GO decision authorizes only explicit prototype integration—not a production-default
 change, scientific release, calibrated accuracy claim, or public display of the reference images.
 The migration boundary and component-level provenance are documented in
