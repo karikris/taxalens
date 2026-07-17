@@ -189,8 +189,8 @@
     },
     {
       "if": {"properties": {"data_deficient_state": {"const": "sufficient"}}, "required": ["data_deficient_state"]},
-      "then": {"properties": {"data_deficient_reasons": {"maxItems": 0}}},
-      "else": {"properties": {"data_deficient_reasons": {"minItems": 1}}}
+      "then": {"properties": {"data_deficient_reasons": {"type": "array", "maxItems": 0}}},
+      "else": {"properties": {"data_deficient_reasons": {"type": "array", "minItems": 1}}}
     },
     {
       "if": {"properties": {"scope_level": {"const": "global"}}, "required": ["scope_level"]},
