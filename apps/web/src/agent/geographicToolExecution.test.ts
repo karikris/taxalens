@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { GeographicImpactBrowserResult, GeographicImpactRollup } from '../impact/geographicImpactAnalytics'
 import { executeGeographicTool, type GeographicToolAnalyticalEvidence } from './geographicToolExecution'
+import { explainCountryGeographicContribution } from './geographicAnalystWorkflow'
 import { createGeographicToolEvidence, GEOGRAPHIC_ARTIFACT_CITATION_VERSION, GEOGRAPHIC_ARTIFACT_KINDS } from './geographicTools'
 
 describe('deterministic geographic tools', () => {
@@ -46,6 +47,35 @@ describe('deterministic geographic tools', () => {
     expect(() => executeGeographicTool('inspect_geographic_impact', { ...common, flickr_snapshot_id: 'flickr:other', scope_level: 'global', scope_id: 'global', evidence_mode: 'comparison', metric: 'record_count' }, evidence, analytical)).toThrow('differ from the immutable evidence scope')
     const result = executeGeographicTool('recommend_geographic_review_batch', { ...common, scope_level: 'global', scope_id: 'global', review_objective: 'conflict_adjudication', batch_size: 10 }, evidence, analytical)
     expect(result).toMatchObject({ status: 'unavailable', records: [] })
+  })
+
+  it('explains one country using the required deterministic tool receipts', () => {
+    const source = analyticalEvidence()
+    const country: GeographicToolAnalyticalEvidence = {
+      ...source,
+      queryInput: {
+        ...source.queryInput,
+        geographicScope: { level: 'country', id: 'country:SE' },
+      },
+      result: {
+        ...source.result,
+        selectedRollup: source.result.childRollups[0]!,
+        childRollups: [],
+      },
+    }
+    const workflow = explainCountryGeographicContribution(evidence, country)
+
+    expect(workflow.toolResults.map(({ tool }) => tool)).toEqual([
+      'inspect_geographic_impact',
+      'list_candidate_gap_cells',
+    ])
+    expect(workflow.answer).toContain('potential coverage-gap cells')
+    expect(workflow.answer).toContain('not biological absence or new occurrences')
+    expect(workflow).toMatchObject({
+      externalActionsExecuted: false,
+      unsupportedClaimsRejected: true,
+      scientificClaimAllowed: false,
+    })
   })
 })
 
