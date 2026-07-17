@@ -11,6 +11,7 @@ export interface StoredGeographicAnalystReplay {
   readonly model: typeof GEOGRAPHIC_ANALYST_MODEL
   readonly reasoningEffort: 'xhigh'
   readonly mode: 'stored_credential_free'
+  readonly request: string
   readonly scope: Readonly<Record<string, unknown>>
   readonly sourceFingerprintSha256: string
   readonly sources: readonly Readonly<Record<string, unknown>>[]

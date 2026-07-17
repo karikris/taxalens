@@ -9,6 +9,8 @@ import {
 import type { PublicAgentTrace } from './agentTraceModel'
 import { loadStoredAnalystReplay } from './storedAnalystReplay'
 import { loadStoredVerificationAnalystReplay } from './storedVerificationAnalystReplay'
+import { loadStoredGeographicAnalystReplay } from './storedGeographicAnalystReplay'
+import { GeographicAnalystReplayPanel, type GeographicAnalystReplayState } from './GeographicAnalystReplayPanel'
 import { createVerificationAgentEvidenceFixture } from './verificationAgentEvidenceFixture'
 
 type StoredTraceState =
@@ -20,6 +22,8 @@ export function AgentReplayWorkspace({ facade }: { readonly facade: EvidenceFaca
   const [state, setState] = useState<StoredTraceState>({ kind: 'loading' })
   const [verificationState, setVerificationState] =
     useState<VerificationRecommendationState>({ kind: 'loading' })
+  const [geographicState, setGeographicState] =
+    useState<GeographicAnalystReplayState>({ kind: 'loading' })
 
   useEffect(() => {
     let active = true
@@ -72,6 +76,18 @@ export function AgentReplayWorkspace({ facade }: { readonly facade: EvidenceFaca
     }
   }, [])
 
+  useEffect(() => {
+    let active = true
+    setGeographicState({ kind: 'loading' })
+    void loadStoredGeographicAnalystReplay().then(
+      (replay) => { if (active) setGeographicState({ kind: 'ready', replay }) },
+      (reason: unknown) => {
+        if (active) setGeographicState({ kind: 'error', message: reason instanceof Error ? reason.message : 'The stored geographic replay could not be validated.' })
+      },
+    )
+    return () => { active = false }
+  }, [])
+
   const workspace =
     state.kind === 'loading' ? (
       <AgentWorkspace replay={facade.replay} traceState={{ kind: 'loading' }} />
@@ -90,6 +106,7 @@ export function AgentReplayWorkspace({ facade }: { readonly facade: EvidenceFaca
     <div className="agent-replay-workspaces">
       {workspace}
       <VerificationRecommendationPanel state={verificationState} />
+      <GeographicAnalystReplayPanel state={geographicState} />
     </div>
   )
 }
