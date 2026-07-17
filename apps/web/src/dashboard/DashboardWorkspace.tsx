@@ -1,6 +1,7 @@
 import type { EvidenceFacade, ReplayEvidence } from '../data/evidenceFacade'
 import { EvidenceState } from '../design-system'
 import { PrototypeEvidencePanel } from '../evidence/PrototypeEvidencePanel'
+import { GeographicImpactLens } from '../impact/GeographicImpactLens'
 import { EvidenceFunnel } from './EvidenceFunnel'
 import { FlickrWorkloadMap } from './FlickrWorkloadMap'
 import { QueryYieldAnalysis } from './QueryYieldAnalysis'
@@ -53,6 +54,8 @@ export function DashboardWorkspace({
       <EvidenceFunnel replay={replay} />
 
       <FlickrWorkloadMap facade={facade} replay={replay} />
+
+      <GeographicImpactLens />
 
       <ReviewPriorityWorklist replay={replay} />
 

@@ -1,6 +1,7 @@
 export { DashboardWorkspace } from './DashboardWorkspace'
 export { EvidenceFunnel } from './EvidenceFunnel'
 export { FlickrWorkloadMap } from './FlickrWorkloadMap'
+export { GeographicImpactLens } from '../impact/GeographicImpactLens'
 export { QueryYieldAnalysis } from './QueryYieldAnalysis'
 export { ResearchOutputsPanel } from './ResearchOutputsPanel'
 export { ReviewedEvaluationState } from './ReviewedEvaluationState'

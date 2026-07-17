@@ -1,0 +1,104 @@
+.geographic-impact-lens {
+  display: grid;
+  gap: var(--tl-space-3);
+  padding: clamp(var(--tl-space-3), 3vw, var(--tl-space-4));
+  background: var(--tl-surface-paper);
+  border: 1px solid var(--tl-line);
+  border-top: 4px solid var(--tl-brand);
+  border-radius: var(--tl-radius-sm);
+}
+
+.geographic-impact-lens__heading {
+  max-width: var(--tl-reading-width);
+}
+
+.geographic-impact-lens__heading h3,
+.geographic-impact-lens__heading p {
+  margin: 0;
+}
+
+.geographic-impact-lens__heading p:last-child {
+  margin-top: var(--tl-space-2);
+  color: var(--tl-ink-muted);
+}
+
+.taxalens-world-map {
+  display: grid;
+  gap: var(--tl-space-2);
+  margin: 0;
+}
+
+.taxalens-world-map__canvas,
+.taxalens-world-map--fallback > div {
+  min-height: clamp(20rem, 52vw, 34rem);
+  overflow: hidden;
+  background: #e8f2f4;
+  border: 1px solid var(--tl-line-strong);
+  border-radius: var(--tl-radius-sm);
+}
+
+.taxalens-world-map__canvas > div,
+.taxalens-world-map__canvas .maplibregl-map {
+  width: 100%;
+  height: clamp(20rem, 52vw, 34rem);
+}
+
+.taxalens-world-map .maplibregl-map {
+  font: inherit;
+}
+
+.taxalens-world-map .maplibregl-canvas:focus-visible,
+.taxalens-world-map .maplibregl-ctrl button:focus-visible {
+  outline: 3px solid var(--tl-focus);
+  outline-offset: 2px;
+}
+
+.taxalens-world-map .maplibregl-ctrl-group,
+.taxalens-world-map .maplibregl-ctrl-scale {
+  color: var(--tl-ink);
+  background: color-mix(in srgb, var(--tl-surface-paper) 92%, transparent);
+  border-color: var(--tl-ink);
+}
+
+.taxalens-world-map figcaption {
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-sm);
+}
+
+.taxalens-world-map--fallback > div {
+  display: grid;
+  place-content: center;
+  padding: var(--tl-space-4);
+  text-align: center;
+}
+
+.taxalens-world-map--fallback h4,
+.taxalens-world-map--fallback p {
+  max-width: var(--tl-reading-width);
+  margin: 0;
+}
+
+.taxalens-world-map--fallback h4 {
+  margin-bottom: var(--tl-space-2);
+  font-family: var(--tl-font-editorial);
+  font-size: var(--tl-text-lg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .taxalens-world-map *,
+  .taxalens-world-map *::before,
+  .taxalens-world-map *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .taxalens-world-map__canvas,
+  .taxalens-world-map--fallback > div {
+    background: Canvas;
+    border-color: CanvasText;
+  }
+}
