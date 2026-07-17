@@ -1,0 +1,529 @@
+{
+  "omission_reason": "Supabase Auth identity and server timestamps do not exist in the credential-free repository mirror.",
+  "omitted_database_owned_columns": [
+    "created_by",
+    "created_at",
+    "updated_at"
+  ],
+  "row_count": 4,
+  "rows": [
+    {
+      "biominer_sha": "94fa1f634ee3c63917c05d78181dd3cf9ceff940",
+      "campaign_id": "flickr-audit-fa3dbbb5e5a678f38eb7e7cd",
+      "description": "A 49-owner, rights-verified blind audit of machine-screened Flickr search hypotheses. Human outcomes are not pre-populated.",
+      "disclosure_policy": {
+        "hiddenBeforeDecision": [
+          "target_score_band",
+          "competitor_margin_band",
+          "decision_state",
+          "top_competitors",
+          "flickr_comments",
+          "query_term",
+          "provider_supplied_identity",
+          "query_trust_tier",
+          "priority_signals"
+        ],
+        "mode": "blind",
+        "revealAfterDecision": true
+      },
+      "kind": "flickr_target_verification",
+      "manifest_sha256": "fa3dbbb5e5a678f38eb7e7cd210f2b6773670ca033303dcf8be55a0fd7360809",
+      "public_replay": false,
+      "question_sha256": "5f2ac5b8adf1fabea38dea31a7092a974d4d39c476f977c8e05536953c64b42c",
+      "review_requirement": {
+        "adjudicationRequiredOnConflict": true,
+        "decisiveOutcomes": [
+          "yes",
+          "no"
+        ],
+        "mediaRequiredOutcomes": [
+          "yes",
+          "no",
+          "cant_tell"
+        ],
+        "nonScientificOutcomes": [
+          "cant_view",
+          "skipped"
+        ],
+        "requiredIndependentReviewers": 2,
+        "secondReviewPolicy": "on_conflict_or_uncertain"
+      },
+      "sampling_plan": {
+        "blindReview": true,
+        "design": "stratified_random",
+        "groupingKeys": [
+          "duplicate_group",
+          "observation_group",
+          "owner_group",
+          "geographic_cluster"
+        ],
+        "inclusionProbabilityRequired": true,
+        "independentUnit": "owner_group",
+        "leakagePolicy": "final_test_only",
+        "planId": "flickr-audit-fa3dbbb5e5a678f38eb7e7cd-owner-stratified-sample",
+        "purpose": "quality_estimation",
+        "qualityEstimationAllowed": true,
+        "qualityEstimationBlockedReason": null,
+        "representative": true,
+        "selectionSeed": "taxalens-papilio-demoleus-flickr-audit-v1",
+        "strata": [
+          {
+            "label": "Flickr owner audit · abstention · other geo",
+            "populationCount": 1,
+            "populationWeight": 0.006896551724137931,
+            "selectionNotes": "Seeded equal-probability owner-group sample; one media observation per photographer. Zero-take strata are outside this bounded campaign and authorize no estimate.",
+            "stratumId": "abstention--other_geo",
+            "targetSampleCount": 1
+          },
+          {
+            "label": "Flickr owner audit · competitor · other geo",
+            "populationCount": 63,
+            "populationWeight": 0.43448275862068964,
+            "selectionNotes": "Seeded equal-probability owner-group sample; one media observation per photographer. Zero-take strata are outside this bounded campaign and authorize no estimate.",
+            "stratumId": "competitor--other_geo",
+            "targetSampleCount": 11
+          },
+          {
+            "label": "Flickr owner audit · competitor · south asia",
+            "populationCount": 2,
+            "populationWeight": 0.013793103448275862,
+            "selectionNotes": "Seeded equal-probability owner-group sample; one media observation per photographer. Zero-take strata are outside this bounded campaign and authorize no estimate.",
+            "stratumId": "competitor--south_asia",
+            "targetSampleCount": 2
+          },
+          {
+            "label": "Flickr owner audit · competitor · southeast asia",
+            "populationCount": 3,
+            "populationWeight": 0.020689655172413793,
+            "selectionNotes": "Seeded equal-probability owner-group sample; one media observation per photographer. Zero-take strata are outside this bounded campaign and authorize no estimate.",
+            "stratumId": "competitor--southeast_asia",
+            "targetSampleCount": 3
+          },
+          {
+            "label": "Flickr owner audit · negative · no usable geo",
+            "populationCount": 1,
+            "populationWeight": 0.006896551724137931,
+            "selectionNotes": "Seeded equal-probability owner-group sample; one media observation per photographer. Zero-take strata are outside this bounded campaign and authorize no estimate.",
+            "stratumId": "negative--no_usable_geo",
+            "targetSampleCount": 1
+          },
+          {
+            "label": "Flickr owner audit · negative · other geo",
+            "populationCount": 24,
+            "populationWeight": 0.16551724137931034,
+            "selectionNotes": "Seeded equal-probability owner-group sample; one media observation per photographer. Zero-take strata are outside this bounded campaign and authorize no estimate.",
+            "stratumId": "negative--other_geo",
+            "targetSampleCount": 9
+          },
+          {
+            "label": "Flickr owner audit · negative · south asia",
+            "populationCount": 3,
+            "populationWeight": 0.020689655172413793,
+            "selectionNotes": "Seeded equal-probability owner-group sample; one media observation per photographer. Zero-take strata are outside this bounded campaign and authorize no estimate.",
+            "stratumId": "negative--south_asia",
+            "targetSampleCount": 3
+          },
+          {
+            "label": "Flickr owner audit · negative · southeast asia",
+            "populationCount": 2,
+            "populationWeight": 0.013793103448275862,
+            "selectionNotes": "Seeded equal-probability owner-group sample; one media observation per photographer. Zero-take strata are outside this bounded campaign and authorize no estimate.",
+            "stratumId": "negative--southeast_asia",
+            "targetSampleCount": 2
+          },
+          {
+            "label": "Flickr owner audit · target candidate · other geo",
+            "populationCount": 37,
+            "populationWeight": 0.25517241379310346,
+            "selectionNotes": "Seeded equal-probability owner-group sample; one media observation per photographer. Zero-take strata are outside this bounded campaign and authorize no estimate.",
+            "stratumId": "target_candidate--other_geo",
+            "targetSampleCount": 10
+          },
+          {
+            "label": "Flickr owner audit · target candidate · south asia",
+            "populationCount": 6,
+            "populationWeight": 0.041379310344827586,
+            "selectionNotes": "Seeded equal-probability owner-group sample; one media observation per photographer. Zero-take strata are outside this bounded campaign and authorize no estimate.",
+            "stratumId": "target_candidate--south_asia",
+            "targetSampleCount": 4
+          },
+          {
+            "label": "Flickr owner audit · target candidate · southeast asia",
+            "populationCount": 3,
+            "populationWeight": 0.020689655172413793,
+            "selectionNotes": "Seeded equal-probability owner-group sample; one media observation per photographer. Zero-take strata are outside this bounded campaign and authorize no estimate.",
+            "stratumId": "target_candidate--southeast_asia",
+            "targetSampleCount": 3
+          }
+        ],
+        "targetSampleSize": 49
+      },
+      "schema_version": "taxalens-verification-campaign:v1.0.0",
+      "scientific_claim_allowed": false,
+      "source_providers": [
+        "flickr"
+      ],
+      "status": "ready",
+      "target_taxon": {
+        "acceptedTaxonKey": "gbif:1938069",
+        "authority": "Linnaeus, 1758",
+        "commonName": "lime swallowtail",
+        "rank": "species",
+        "scientificName": "Papilio demoleus"
+      },
+      "taxalens_sha": "873beb6b2b58b28d4b144e03bb75f1c05b5d321c",
+      "title": "Papilio demoleus blind Flickr audit"
+    },
+    {
+      "biominer_sha": null,
+      "campaign_id": "papilio-demoleus-commons-review-v1",
+      "description": "Credential-free local verification of three rights-cleared Wikimedia Commons images.",
+      "disclosure_policy": {
+        "hiddenBeforeDecision": [],
+        "mode": "unblinded",
+        "revealAfterDecision": false
+      },
+      "kind": "reference_identity_verification",
+      "manifest_sha256": "37bc1dcc781409a5adbd5c4882c71ad7dcf8862b1e8da7040e8ea399c5c6dd81",
+      "public_replay": true,
+      "question_sha256": "b46873f4c98f4e4af72c29b7b6ab9689d535ca6614469de45147fe3ab426bece",
+      "review_requirement": {
+        "adjudicationRequiredOnConflict": false,
+        "decisiveOutcomes": [
+          "yes",
+          "no"
+        ],
+        "mediaRequiredOutcomes": [
+          "yes",
+          "no",
+          "cant_tell"
+        ],
+        "nonScientificOutcomes": [
+          "cant_view",
+          "skipped"
+        ],
+        "requiredIndependentReviewers": 1,
+        "secondReviewPolicy": "never"
+      },
+      "sampling_plan": {
+        "blindReview": false,
+        "design": "fixed_fixture",
+        "groupingKeys": [
+          "duplicate_group",
+          "observation_group",
+          "owner_group"
+        ],
+        "inclusionProbabilityRequired": false,
+        "independentUnit": "media",
+        "leakagePolicy": "support_only",
+        "planId": "papilio-demoleus-commons-fixed-fixture-v1",
+        "purpose": "credential_free_fixture",
+        "qualityEstimationAllowed": false,
+        "qualityEstimationBlockedReason": "A fixed three-image fixture cannot estimate population quality.",
+        "representative": false,
+        "selectionSeed": null,
+        "strata": [
+          {
+            "label": "Rights-cleared Commons fixture",
+            "populationCount": null,
+            "populationWeight": null,
+            "selectionNotes": "Curated credential-free fixture; not a probability sample.",
+            "stratumId": "commons-credential-free",
+            "targetSampleCount": 3
+          }
+        ],
+        "targetSampleSize": 3
+      },
+      "schema_version": "taxalens-verification-campaign:v1.0.0",
+      "scientific_claim_allowed": false,
+      "source_providers": [
+        "wikimedia_commons"
+      ],
+      "status": "active",
+      "target_taxon": {
+        "acceptedTaxonKey": "gbif:1938069",
+        "authority": "Linnaeus, 1758",
+        "commonName": "lime swallowtail",
+        "rank": "species",
+        "scientificName": "Papilio demoleus"
+      },
+      "taxalens_sha": "23d72be1a102c80fd56f96fdb327b2f71f5c61a0",
+      "title": "Papilio demoleus Commons verification"
+    },
+    {
+      "biominer_sha": "94fa1f634ee3c63917c05d78181dd3cf9ceff940",
+      "campaign_id": "reference-audit-8adc6d35657a54fac32a536d",
+      "description": "A targeted 24-image GBIF and iNaturalist pilot for independent taxonomic identity and reference-role review.",
+      "disclosure_policy": {
+        "hiddenBeforeDecision": [],
+        "mode": "unblinded",
+        "revealAfterDecision": false
+      },
+      "kind": "reference_identity_verification",
+      "manifest_sha256": "8adc6d35657a54fac32a536d6a487c36de343bd27cc2d3905048e4e4817ae6ab",
+      "public_replay": false,
+      "question_sha256": "5d821e9e2368446531f4d1ba20742207efd25164a2b8d181218a0d200bb9dc3d",
+      "review_requirement": {
+        "adjudicationRequiredOnConflict": true,
+        "decisiveOutcomes": [
+          "yes",
+          "no"
+        ],
+        "mediaRequiredOutcomes": [
+          "yes",
+          "no",
+          "cant_tell"
+        ],
+        "nonScientificOutcomes": [
+          "cant_view",
+          "skipped"
+        ],
+        "requiredIndependentReviewers": 2,
+        "secondReviewPolicy": "always"
+      },
+      "sampling_plan": {
+        "blindReview": false,
+        "design": "targeted_priority",
+        "groupingKeys": [
+          "duplicate_group",
+          "observation_group",
+          "owner_group",
+          "geographic_cluster"
+        ],
+        "inclusionProbabilityRequired": false,
+        "independentUnit": "observation_group",
+        "leakagePolicy": "support_only",
+        "planId": "reference-audit-8adc6d35657a54fac32a536d-targeted-reference-pilot",
+        "purpose": "reference_readiness",
+        "qualityEstimationAllowed": false,
+        "qualityEstimationBlockedReason": "Targeted reference-readiness pilots cannot estimate population accuracy.",
+        "representative": false,
+        "selectionSeed": "taxalens-papilio-demoleus-reference-audit-v1",
+        "strata": [
+          {
+            "label": "Reference audit · likely conflict fallback competitor",
+            "populationCount": 3142,
+            "populationWeight": null,
+            "selectionNotes": "Seeded targeted-priority pilot; intentionally non-representative and not valid for population accuracy.",
+            "stratumId": "likely_conflict_fallback_competitor",
+            "targetSampleCount": 1
+          },
+          {
+            "label": "Reference audit · target larva",
+            "populationCount": 1287,
+            "populationWeight": null,
+            "selectionNotes": "Seeded targeted-priority pilot; intentionally non-representative and not valid for population accuracy.",
+            "stratumId": "target_larva",
+            "targetSampleCount": 1
+          },
+          {
+            "label": "Reference audit · target pupa",
+            "populationCount": 119,
+            "populationWeight": null,
+            "selectionNotes": "Seeded targeted-priority pilot; intentionally non-representative and not valid for population accuracy.",
+            "stratumId": "target_pupa",
+            "targetSampleCount": 1
+          },
+          {
+            "label": "Reference audit · target egg",
+            "populationCount": 52,
+            "populationWeight": null,
+            "selectionNotes": "Seeded targeted-priority pilot; intentionally non-representative and not valid for population accuracy.",
+            "stratumId": "target_egg",
+            "targetSampleCount": 1
+          },
+          {
+            "label": "Reference audit · specimen or pinned",
+            "populationCount": 10194,
+            "populationWeight": null,
+            "selectionNotes": "Seeded targeted-priority pilot; intentionally non-representative and not valid for population accuracy.",
+            "stratumId": "specimen_or_pinned",
+            "targetSampleCount": 1
+          },
+          {
+            "label": "Reference audit · unsuitable basis",
+            "populationCount": 10194,
+            "populationWeight": null,
+            "selectionNotes": "Seeded targeted-priority pilot; intentionally non-representative and not valid for population accuracy.",
+            "stratumId": "unsuitable_basis",
+            "targetSampleCount": 1
+          },
+          {
+            "label": "Reference audit · target adult gbif",
+            "populationCount": 24,
+            "populationWeight": null,
+            "selectionNotes": "Seeded targeted-priority pilot; intentionally non-representative and not valid for population accuracy.",
+            "stratumId": "target_adult_gbif",
+            "targetSampleCount": 5
+          },
+          {
+            "label": "Reference audit · target adult inaturalist",
+            "populationCount": 5462,
+            "populationWeight": null,
+            "selectionNotes": "Seeded targeted-priority pilot; intentionally non-representative and not valid for population accuracy.",
+            "stratumId": "target_adult_inaturalist",
+            "targetSampleCount": 5
+          },
+          {
+            "label": "Reference audit · competitor adult gbif",
+            "populationCount": 54,
+            "populationWeight": null,
+            "selectionNotes": "Seeded targeted-priority pilot; intentionally non-representative and not valid for population accuracy.",
+            "stratumId": "competitor_adult_gbif",
+            "targetSampleCount": 4
+          },
+          {
+            "label": "Reference audit · competitor adult inaturalist",
+            "populationCount": 18120,
+            "populationWeight": null,
+            "selectionNotes": "Seeded targeted-priority pilot; intentionally non-representative and not valid for population accuracy.",
+            "stratumId": "competitor_adult_inaturalist",
+            "targetSampleCount": 4
+          }
+        ],
+        "targetSampleSize": 24
+      },
+      "schema_version": "taxalens-verification-campaign:v1.0.0",
+      "scientific_claim_allowed": false,
+      "source_providers": [
+        "gbif",
+        "inaturalist"
+      ],
+      "status": "ready",
+      "target_taxon": {
+        "acceptedTaxonKey": "gbif:1938069",
+        "authority": "Linnaeus, 1758",
+        "commonName": "lime swallowtail",
+        "rank": "species",
+        "scientificName": "Papilio demoleus"
+      },
+      "taxalens_sha": "f50a501617025f8fed2878be4ed632ab9b7584bc",
+      "title": "Papilio demoleus reference identity audit"
+    },
+    {
+      "biominer_sha": null,
+      "campaign_id": "reviewer-controls-a9083d4e8f683545a2991bfa",
+      "description": "A private six-item workflow-control packet for positive, negative, ambiguity, duplicate, media-failure, and adjudication behavior.",
+      "disclosure_policy": {
+        "hiddenBeforeDecision": [
+          "controlScenario",
+          "controlTruth",
+          "expectedWorkflow"
+        ],
+        "mode": "blind",
+        "revealAfterDecision": true
+      },
+      "kind": "quality_control",
+      "manifest_sha256": "a9083d4e8f683545a2991bfa39aaa584a15177f8384a3a0e07707f2986783d1f",
+      "public_replay": false,
+      "question_sha256": "a763d1bc582fca3c75a936b1fd5b1d8a4f0356d491732544f7ff6dd3c27aba9b",
+      "review_requirement": {
+        "adjudicationRequiredOnConflict": true,
+        "decisiveOutcomes": [
+          "yes",
+          "no"
+        ],
+        "mediaRequiredOutcomes": [
+          "yes",
+          "no",
+          "cant_tell"
+        ],
+        "nonScientificOutcomes": [
+          "cant_view",
+          "skipped"
+        ],
+        "requiredIndependentReviewers": 2,
+        "secondReviewPolicy": "on_conflict_or_uncertain"
+      },
+      "sampling_plan": {
+        "blindReview": true,
+        "design": "control_items",
+        "groupingKeys": [
+          "duplicate_group",
+          "observation_group",
+          "owner_group"
+        ],
+        "inclusionProbabilityRequired": false,
+        "independentUnit": "duplicate_group",
+        "leakagePolicy": "not_applicable",
+        "planId": "reviewer-controls-a9083d4e8f683545a2991bfa-fixed-control-design",
+        "purpose": "reviewer_quality_control",
+        "qualityEstimationAllowed": false,
+        "qualityEstimationBlockedReason": "Workflow controls may assess reviewer handling but cannot estimate biological population quality.",
+        "representative": false,
+        "selectionSeed": "taxalens-papilio-demoleus-reviewer-controls-v1",
+        "strata": [
+          {
+            "label": "Reviewer control · known target",
+            "populationCount": 1,
+            "populationWeight": null,
+            "selectionNotes": "Fixed workflow-control case; not a probability sample and not valid for scientific quality estimation.",
+            "stratumId": "known_target",
+            "targetSampleCount": 1
+          },
+          {
+            "label": "Reviewer control · known negative",
+            "populationCount": 1,
+            "populationWeight": null,
+            "selectionNotes": "Fixed workflow-control case; not a probability sample and not valid for scientific quality estimation.",
+            "stratumId": "known_negative",
+            "targetSampleCount": 1
+          },
+          {
+            "label": "Reviewer control · ambiguous",
+            "populationCount": 1,
+            "populationWeight": null,
+            "selectionNotes": "Fixed workflow-control case; not a probability sample and not valid for scientific quality estimation.",
+            "stratumId": "ambiguous",
+            "targetSampleCount": 1
+          },
+          {
+            "label": "Reviewer control · duplicate",
+            "populationCount": 1,
+            "populationWeight": null,
+            "selectionNotes": "Fixed workflow-control case; not a probability sample and not valid for scientific quality estimation.",
+            "stratumId": "duplicate",
+            "targetSampleCount": 1
+          },
+          {
+            "label": "Reviewer control · media failure",
+            "populationCount": 1,
+            "populationWeight": null,
+            "selectionNotes": "Fixed workflow-control case; not a probability sample and not valid for scientific quality estimation.",
+            "stratumId": "media_failure",
+            "targetSampleCount": 1
+          },
+          {
+            "label": "Reviewer control · adjudication example",
+            "populationCount": 1,
+            "populationWeight": null,
+            "selectionNotes": "Fixed workflow-control case; not a probability sample and not valid for scientific quality estimation.",
+            "stratumId": "adjudication_example",
+            "targetSampleCount": 1
+          }
+        ],
+        "targetSampleSize": 6
+      },
+      "schema_version": "taxalens-verification-campaign:v1.0.0",
+      "scientific_claim_allowed": false,
+      "source_providers": [
+        "wikimedia_commons",
+        "taxalens_fixture"
+      ],
+      "status": "ready",
+      "target_taxon": {
+        "acceptedTaxonKey": "gbif:1938069",
+        "authority": "Linnaeus, 1758",
+        "commonName": "lime swallowtail",
+        "rank": "species",
+        "scientificName": "Papilio demoleus"
+      },
+      "taxalens_sha": "adb202a9b28f28dd0cb6702945296cb714062236",
+      "title": "Papilio demoleus reviewer workflow controls"
+    }
+  ],
+  "schema_version": "taxalens-repository-supabase-table:v1.0.0",
+  "scientific_claim_allowed": false,
+  "storage_mode": "repository_mirror",
+  "table": "verification_campaigns"
+}

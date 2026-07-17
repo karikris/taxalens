@@ -186,6 +186,21 @@ Then run:
 uv run --locked python scripts/verify_provenance.py
 ```
 
+### 2.5 Inspect the repository storage mirror
+
+Run:
+
+```bash
+uv run --locked python scripts/build_repository_storage.py --check
+```
+
+The mirror contains six Supabase table files with four campaigns, 82 items,
+and zero fabricated assignments, events, consensus rows, or quality snapshots.
+Its Backblaze B2-style manifest re-hashes every committed `demo/source` and
+judge-fixture object. The separate external-media ledger records the 49 Flickr
+and 24 GBIF/iNaturalist source candidates as metadata-only; their source-image
+collections and all credentials remain outside the repository.
+
 ### 3. Execute the real browser analytics
 
 In Observatory select **Run verified analytics**. The browser loads DuckDB-Wasm locally and performs

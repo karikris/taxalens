@@ -113,6 +113,14 @@ adapters:
 - private B2/S3-compatible signed previews for rights-restricted media;
 - idempotent sync by event ID and fail-closed source fingerprint validation.
 
+The credential-free repository mirror materializes the cloud-shaped baseline
+without claiming a live cloud export: six Supabase table snapshots retain four
+campaigns and 82 items, while empty mutable tables preserve the truthful zero
+human-outcome state. A B2-style checksum manifest points to the immutable bytes
+already committed under `demo/source/` and the judge fixture. Restricted
+external source collections remain metadata-only, with no credentials or
+signed URLs in Git.
+
 Offline and server repositories must pass the same repository contract tests.
 Changing an adapter must not change campaign, event, consensus, or quality
 semantics.

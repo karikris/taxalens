@@ -75,6 +75,13 @@ serves it on loopback, waits for readiness, prints the TaxaLens and BioMiner SHA
 and opens the browser. It uses no Flickr, OpenAI, database, object-storage, model-download, GPU, or
 cloud credential.
 
+The optional cloud data boundary is also committed as a deterministic
+[`repository storage mirror`](demo/repository_storage/README.md): six Supabase table snapshots
+cover four campaigns and 82 items, while a checksum-addressed Backblaze B2 object manifest covers
+every committed source and judge-fixture object. Mutable reviewer tables remain empty rather than
+inventing users or decisions, and Flickr/GBIF/iNaturalist source-image collections remain
+metadata-only under the repository rights policy.
+
 ## Work and Productivity
 
 TaxaLens is research decision support for evidence-heavy review work:
@@ -212,6 +219,7 @@ The principal verification commands are:
 uv run --locked pytest
 uv run --locked python scripts/import_biominer_prototype_artifacts.py --check
 uv run --locked python scripts/import_biominer_analytics.py --check
+uv run --locked python scripts/build_repository_storage.py --check
 uv run --locked python scripts/verify_demo.py
 uv run --locked python scripts/verify_provenance.py
 cd apps/web && npm test
@@ -233,6 +241,7 @@ other deployed file. The truthful fixture entry point is
 | `taxalens/` | Python CLI, product facade, verification, and local replay server |
 | `apps/web/` | Static React judge product, tests, and deployment builder |
 | `demo/fixture/papilio_pilot/` | Closed checksum-verified judge fixture |
+| `demo/repository_storage/` | Credential-free Supabase snapshots and B2 object inventory |
 | `packages/replay/` | Compact replay contracts imported from pinned BioMiner provenance |
 | `provenance/` | Migration, GitHits, source-boundary, and repository-state evidence |
 | `docs/reports/` | Immutable phase decisions, tests, limitations, and handoffs |

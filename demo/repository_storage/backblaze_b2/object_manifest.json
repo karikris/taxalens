@@ -1,0 +1,679 @@
+{
+  "bucket_alias": "taxalens-repository-fixture",
+  "credentials_included": false,
+  "object_count": 74,
+  "objects": [
+    {
+      "bytes": 484,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/agent/stored_analyst_request.json",
+      "repository_path": "demo/fixture/papilio_pilot/agent/stored_analyst_request.json",
+      "sha256": "2f157b29f5aed3b09580c329115836c1fc3af806e1c4332885974c257b4a9331"
+    },
+    {
+      "bytes": 3371,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/agent/stored_analyst_run.json",
+      "repository_path": "demo/fixture/papilio_pilot/agent/stored_analyst_run.json",
+      "sha256": "ab7b2a80e52bfd7ba11e5d1e7253e7cd0e69bab2e66db567f5a76c0f0bfb9281"
+    },
+    {
+      "bytes": 633625,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/vnd.apache.parquet",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/analytics/flickr_geo_assignments.parquet",
+      "repository_path": "demo/fixture/papilio_pilot/analytics/flickr_geo_assignments.parquet",
+      "sha256": "e12f6ef9582bf707c952c3974c91e9a8f226ca7ce8034cab8ea8c293b70b6f74"
+    },
+    {
+      "bytes": 22573,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/vnd.apache.parquet",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/analytics/flickr_geo_clusters.parquet",
+      "repository_path": "demo/fixture/papilio_pilot/analytics/flickr_geo_clusters.parquet",
+      "sha256": "cba4651b967fae15f586e760859fb11ff608a603f792e338c7661d5563130b35"
+    },
+    {
+      "bytes": 769162,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/vnd.apache.parquet",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/analytics/flickr_geography.parquet",
+      "repository_path": "demo/fixture/papilio_pilot/analytics/flickr_geography.parquet",
+      "sha256": "a3c47a6f213191634f76655d859cdd8555a9b11a4e33a9041209eb23ba7c2bbf"
+    },
+    {
+      "bytes": 222190,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/vnd.apache.parquet",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/analytics/flickr_query_hits.parquet",
+      "repository_path": "demo/fixture/papilio_pilot/analytics/flickr_query_hits.parquet",
+      "sha256": "95448f3145d903f7f042fe41d74561475ef050f8df21b318ebacb252484e4f0b"
+    },
+    {
+      "bytes": 3926,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/attribution_manifest.json",
+      "repository_path": "demo/fixture/papilio_pilot/attribution_manifest.json",
+      "sha256": "bb95ce41af7f39fac40d1928270611f5a254fa32b796ada91589fa6a68c4ecf9"
+    },
+    {
+      "bytes": 6241,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/data/biological_negatives.json",
+      "repository_path": "demo/fixture/papilio_pilot/data/biological_negatives.json",
+      "sha256": "e852579b22ea630f5ddf3e977f6d5493160a26841cc6617cea1d8838752494d9"
+    },
+    {
+      "bytes": 2280,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/data/candidate_sets.json",
+      "repository_path": "demo/fixture/papilio_pilot/data/candidate_sets.json",
+      "sha256": "cd36c310150c0ca9c63e0adf690519a0afb5428b68c7eb064f8b4e6749cb0791"
+    },
+    {
+      "bytes": 935,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/data/duplicate_summaries.json",
+      "repository_path": "demo/fixture/papilio_pilot/data/duplicate_summaries.json",
+      "sha256": "70483b208a037e8f3061406337d098990f08249f0a7a2ca3a3e15ba4b9a52718"
+    },
+    {
+      "bytes": 1514,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/data/flickr_candidate_summaries.json",
+      "repository_path": "demo/fixture/papilio_pilot/data/flickr_candidate_summaries.json",
+      "sha256": "4bd6264afa013f13130490289c8b35789e8bf45708952aded741b92513c40062"
+    },
+    {
+      "bytes": 1564,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/data/geographic_clusters.json",
+      "repository_path": "demo/fixture/papilio_pilot/data/geographic_clusters.json",
+      "sha256": "7e66e5979100d7a4565d51498f9d60ba1b0eb9ca7daab047ec0dd60a0220e4d3"
+    },
+    {
+      "bytes": 7950,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/data/logical_associations.json",
+      "repository_path": "demo/fixture/papilio_pilot/data/logical_associations.json",
+      "sha256": "31052ae652d9550e6bb698fab6acf63c0bb31878855c7b3d6e7053785caf709c"
+    },
+    {
+      "bytes": 1845,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/data/pipeline_stages.json",
+      "repository_path": "demo/fixture/papilio_pilot/data/pipeline_stages.json",
+      "sha256": "82b51bfe2fc5776ddb97659d4622bf7d2585a2c4ecc8128ff783ce9fa68b69ad"
+    },
+    {
+      "bytes": 8281,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/data/query_definitions.json",
+      "repository_path": "demo/fixture/papilio_pilot/data/query_definitions.json",
+      "sha256": "68e416b6bb48c095ccfc7ea244f1af9666c622a09b0841b46a36427d4f57e5a5"
+    },
+    {
+      "bytes": 2145,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/data/reference_readiness.json",
+      "repository_path": "demo/fixture/papilio_pilot/data/reference_readiness.json",
+      "sha256": "4669e0454b4cd8227775c8aed96e34a68f413c9a15e3e4f198d8c549413aea4a"
+    },
+    {
+      "bytes": 1312,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/data/reference_shortfalls.json",
+      "repository_path": "demo/fixture/papilio_pilot/data/reference_shortfalls.json",
+      "sha256": "fa69d6a8c12dfdbd002c9bcaefadf092df5b857a25fcc2859cd5aa0aa3cae0ae"
+    },
+    {
+      "bytes": 1896,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/data/run_summary.json",
+      "repository_path": "demo/fixture/papilio_pilot/data/run_summary.json",
+      "sha256": "58691803bd5e82197ac080fff5009fb3bd5d91ea28874fc0d3008426390ab3bf"
+    },
+    {
+      "bytes": 1963,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/data/selective_decision_metadata.json",
+      "repository_path": "demo/fixture/papilio_pilot/data/selective_decision_metadata.json",
+      "sha256": "6906410a5715674987df35b92bfc7836779d5514e3a52b68cb61437b07581743"
+    },
+    {
+      "bytes": 861,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/data/stage_metrics.json",
+      "repository_path": "demo/fixture/papilio_pilot/data/stage_metrics.json",
+      "sha256": "04f083e24f9aa994aa549d4312dc4a1c4acf59c65d6244fd772fff9b92e0dd2d"
+    },
+    {
+      "bytes": 1074,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/data/visual_domain_negatives.json",
+      "repository_path": "demo/fixture/papilio_pilot/data/visual_domain_negatives.json",
+      "sha256": "7241cfdcc50d4a4316acc85214237f299c2b5cf974b4de34720baaa9725df778"
+    },
+    {
+      "bytes": 37191,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/judge_bundle.json",
+      "repository_path": "demo/fixture/papilio_pilot/judge_bundle.json",
+      "sha256": "54211d3f5e69f7edcc117b878ce79b993b06c09964687dbccb2e5c4dd777bd7a"
+    },
+    {
+      "bytes": 6529,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/rights_manifest.json",
+      "repository_path": "demo/fixture/papilio_pilot/rights_manifest.json",
+      "sha256": "633f38db680ee1310d25ed5ea77fe71ac2911043381a7ea77e086bd2112026d5"
+    },
+    {
+      "bytes": 4371,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/source/analytics_import_receipt.json",
+      "repository_path": "demo/fixture/papilio_pilot/source/analytics_import_receipt.json",
+      "sha256": "ad4f57815f7e37e703569d31f73d98000c14f1d9484015ad8cda4c3b1017b4a7"
+    },
+    {
+      "bytes": 45059,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/source/pilot_metadata_snapshot.json",
+      "repository_path": "demo/fixture/papilio_pilot/source/pilot_metadata_snapshot.json",
+      "sha256": "24078d02358e3339cfe4986eb8409a7f4b7dc4ff4479c2a5a3402ed47b44740b"
+    },
+    {
+      "bytes": 75819,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/source/prototype_evidence_snapshot.json",
+      "repository_path": "demo/fixture/papilio_pilot/source/prototype_evidence_snapshot.json",
+      "sha256": "4d82bd0c070d85ebc323d089b4767ef5dbfa7c800ff3841bb6d1adca60849c22"
+    },
+    {
+      "bytes": 9748,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/verification/campaign_manifest.json",
+      "repository_path": "demo/fixture/papilio_pilot/verification/campaign_manifest.json",
+      "sha256": "00087bce738f5098893eea7b8fce238d3c88f85a7ee643eceddfb22466d6087d"
+    },
+    {
+      "bytes": 7280,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/verification/items.json",
+      "repository_path": "demo/fixture/papilio_pilot/verification/items.json",
+      "sha256": "27c248f2853177a563764ac4d322ad8f85d689644c05c510c88ce5099b8f6c18"
+    },
+    {
+      "bytes": 159332,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "image/jpeg",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/verification/media/papilio-demoleus-closed-wing.jpg",
+      "repository_path": "demo/fixture/papilio_pilot/verification/media/papilio-demoleus-closed-wing.jpg",
+      "sha256": "3bd3248347c3b82a977b0890f192f2f0c93253eff13d38b4b54dedb08b39627b"
+    },
+    {
+      "bytes": 130460,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "image/jpeg",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/verification/media/papilio-demoleus-lime-swallowtail.jpg",
+      "repository_path": "demo/fixture/papilio_pilot/verification/media/papilio-demoleus-lime-swallowtail.jpg",
+      "sha256": "9ceb5c0e354627441ba7be5a8e75a8eed7c278948e606e4892ae47387ee1bbea"
+    },
+    {
+      "bytes": 180698,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "image/jpeg",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/verification/media/papilio-demoleus-open-wing.jpg",
+      "repository_path": "demo/fixture/papilio_pilot/verification/media/papilio-demoleus-open-wing.jpg",
+      "sha256": "47248e36944cf91256c906e8454adcad99121da049260745d57f4cbffae65a78"
+    },
+    {
+      "bytes": 633625,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/vnd.apache.parquet",
+      "object_key": "taxalens/demo/source/biominer_phase14/analytics/flickr_geo_assignments.parquet",
+      "repository_path": "demo/source/biominer_phase14/analytics/flickr_geo_assignments.parquet",
+      "sha256": "e12f6ef9582bf707c952c3974c91e9a8f226ca7ce8034cab8ea8c293b70b6f74"
+    },
+    {
+      "bytes": 22573,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/vnd.apache.parquet",
+      "object_key": "taxalens/demo/source/biominer_phase14/analytics/flickr_geo_clusters.parquet",
+      "repository_path": "demo/source/biominer_phase14/analytics/flickr_geo_clusters.parquet",
+      "sha256": "cba4651b967fae15f586e760859fb11ff608a603f792e338c7661d5563130b35"
+    },
+    {
+      "bytes": 769162,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/vnd.apache.parquet",
+      "object_key": "taxalens/demo/source/biominer_phase14/analytics/flickr_geography.parquet",
+      "repository_path": "demo/source/biominer_phase14/analytics/flickr_geography.parquet",
+      "sha256": "a3c47a6f213191634f76655d859cdd8555a9b11a4e33a9041209eb23ba7c2bbf"
+    },
+    {
+      "bytes": 222190,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/vnd.apache.parquet",
+      "object_key": "taxalens/demo/source/biominer_phase14/analytics/flickr_query_hits.parquet",
+      "repository_path": "demo/source/biominer_phase14/analytics/flickr_query_hits.parquet",
+      "sha256": "95448f3145d903f7f042fe41d74561475ef050f8df21b318ebacb252484e4f0b"
+    },
+    {
+      "bytes": 4371,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase14/analytics_import_manifest.json",
+      "repository_path": "demo/source/biominer_phase14/analytics_import_manifest.json",
+      "sha256": "ad4f57815f7e37e703569d31f73d98000c14f1d9484015ad8cda4c3b1017b4a7"
+    },
+    {
+      "bytes": 3144,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase14/import_manifest.json",
+      "repository_path": "demo/source/biominer_phase14/import_manifest.json",
+      "sha256": "400d457daa148cfa59e0a38c3ec17dfce70160af6115afe1ed543ae5c12a742f"
+    },
+    {
+      "bytes": 3424,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase14/papilio_demoleus_competitor_relationships.json",
+      "repository_path": "demo/source/biominer_phase14/papilio_demoleus_competitor_relationships.json",
+      "sha256": "bc71f57add07935c8fb90aaf3f4efcf28b9d5dcee172f8253532409cd47ba4a5"
+    },
+    {
+      "bytes": 4734,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase14/papilio_demoleus_geographic_workload.json",
+      "repository_path": "demo/source/biominer_phase14/papilio_demoleus_geographic_workload.json",
+      "sha256": "c3196ca753090d6062edad6b524c0fd662fb3202070a7c05b61f3e6f4334c7e2"
+    },
+    {
+      "bytes": 9562,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase14/papilio_demoleus_phase14_experiment_matrix.json",
+      "repository_path": "demo/source/biominer_phase14/papilio_demoleus_phase14_experiment_matrix.json",
+      "sha256": "5911e367ba1e3d0d0db81f939b9f37fccff07cef86a172842e1d6bb7f124c283"
+    },
+    {
+      "bytes": 3083,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase14/papilio_demoleus_range_seed.json",
+      "repository_path": "demo/source/biominer_phase14/papilio_demoleus_range_seed.json",
+      "sha256": "712dcb2b32eec87798a527c0299aa8d635a9bd3ef58a44cebf587c82e9293cf1"
+    },
+    {
+      "bytes": 8623,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase14/papilio_demoleus_reference_source_queries.json",
+      "repository_path": "demo/source/biominer_phase14/papilio_demoleus_reference_source_queries.json",
+      "sha256": "a94c81070b3a223fc84830e1f3cc0f04d52d47e00fdecc9713f84bea654d7520"
+    },
+    {
+      "bytes": 4024,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase14/pilot_geographic_workload_manifest.json",
+      "repository_path": "demo/source/biominer_phase14/pilot_geographic_workload_manifest.json",
+      "sha256": "a62abef7cbac8638da219e53e08ab6760bedcd4f49d6396bfa0d1891d96e5cf2"
+    },
+    {
+      "bytes": 4025,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase14/pilot_reference_source_manifest.json",
+      "repository_path": "demo/source/biominer_phase14/pilot_reference_source_manifest.json",
+      "sha256": "c5b6e809b194c3325735a97a60bbb804059f957b894d73a4c4597c3c66c4ae29"
+    },
+    {
+      "bytes": 3241,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase15/artifacts/manifests/pilot_build_week_prototype_mode_manifest.json",
+      "repository_path": "demo/source/biominer_phase15/artifacts/manifests/pilot_build_week_prototype_mode_manifest.json",
+      "sha256": "a4c01875ce819ac5854e6cab5ae830a07dc0c982b7def49433d549cf89b8d5e1"
+    },
+    {
+      "bytes": 3048,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase15/artifacts/manifests/pilot_build_week_prototype_report_manifest.json",
+      "repository_path": "demo/source/biominer_phase15/artifacts/manifests/pilot_build_week_prototype_report_manifest.json",
+      "sha256": "f3c17355c2121311a12e6c1adf3043f621baa80b2cc51d017cf1686d6856c48c"
+    },
+    {
+      "bytes": 2805,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase15/artifacts/manifests/pilot_metadata_qualified_support_manifest.json",
+      "repository_path": "demo/source/biominer_phase15/artifacts/manifests/pilot_metadata_qualified_support_manifest.json",
+      "sha256": "8cbff1e1de89de9189226e582045adee56e1a603a4ba69090b37ebd25b616164"
+    },
+    {
+      "bytes": 7652,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase15/artifacts/manifests/pilot_prototype_acquisition_manifest.json",
+      "repository_path": "demo/source/biominer_phase15/artifacts/manifests/pilot_prototype_acquisition_manifest.json",
+      "sha256": "25657c73fe0c3b41340b416510daf623d664c3362f271070fe9843de45829f1e"
+    },
+    {
+      "bytes": 4847,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase15/artifacts/manifests/pilot_prototype_b0_b16_manifest.json",
+      "repository_path": "demo/source/biominer_phase15/artifacts/manifests/pilot_prototype_b0_b16_manifest.json",
+      "sha256": "dfe21afbc8998ae5fc8eb4aa0157afc4f17ede336635f62af7cb888f141d3bf0"
+    },
+    {
+      "bytes": 6277,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase15/artifacts/manifests/pilot_prototype_download_manifest.json",
+      "repository_path": "demo/source/biominer_phase15/artifacts/manifests/pilot_prototype_download_manifest.json",
+      "sha256": "44b0d5a882595e964a2f417ad9d1976926583296ea1c834cbbd5d5968a8d8758"
+    },
+    {
+      "bytes": 6113,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase15/artifacts/manifests/pilot_prototype_duplicate_resolution_manifest.json",
+      "repository_path": "demo/source/biominer_phase15/artifacts/manifests/pilot_prototype_duplicate_resolution_manifest.json",
+      "sha256": "95ea99bc075798d13ee2a9ea42435c67e1a23d26369a1b75c31e885c82ce6920"
+    },
+    {
+      "bytes": 5638,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase15/artifacts/manifests/pilot_prototype_embeddings_manifest.json",
+      "repository_path": "demo/source/biominer_phase15/artifacts/manifests/pilot_prototype_embeddings_manifest.json",
+      "sha256": "381cc9a1266c30e744c12b320de4d4f3b11119c4c80b9136c25f6a0b9d9ecb0b"
+    },
+    {
+      "bytes": 2273,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase15/artifacts/manifests/pilot_prototype_evidence_manifest.json",
+      "repository_path": "demo/source/biominer_phase15/artifacts/manifests/pilot_prototype_evidence_manifest.json",
+      "sha256": "c5885d6ec9973343c9d81ed55b2a455fef964d88a4ea7c45fd80f1d67dec1c74"
+    },
+    {
+      "bytes": 6722,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase15/artifacts/manifests/pilot_prototype_policy_manifest.json",
+      "repository_path": "demo/source/biominer_phase15/artifacts/manifests/pilot_prototype_policy_manifest.json",
+      "sha256": "d60f7b685366df619063df09d114f77d056ca2324f988e5707ae383cb3024f71"
+    },
+    {
+      "bytes": 3885,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase15/artifacts/manifests/pilot_prototype_qa_manifest.json",
+      "repository_path": "demo/source/biominer_phase15/artifacts/manifests/pilot_prototype_qa_manifest.json",
+      "sha256": "b3a8029eb706a98ec7bfd493ff74544edb867e6c124b67d5a40e648dea4ceff2"
+    },
+    {
+      "bytes": 2855,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase15/artifacts/manifests/pilot_prototype_selection_manifest.json",
+      "repository_path": "demo/source/biominer_phase15/artifacts/manifests/pilot_prototype_selection_manifest.json",
+      "sha256": "e5d3d5496969f9f8d5efbfa71a18f4cfd4bb99baaccc1268cc9637de82e22116"
+    },
+    {
+      "bytes": 4026,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase15/artifacts/manifests/pilot_prototype_support_bank_manifest.json",
+      "repository_path": "demo/source/biominer_phase15/artifacts/manifests/pilot_prototype_support_bank_manifest.json",
+      "sha256": "da558c04ac9b9c93941ee627532e3da657398415b707ad94757c903e0e51f76c"
+    },
+    {
+      "bytes": 3980,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase15/artifacts/manifests/pilot_prototype_vision_smoke_manifest.json",
+      "repository_path": "demo/source/biominer_phase15/artifacts/manifests/pilot_prototype_vision_smoke_manifest.json",
+      "sha256": "3a807046570a06de1f7588a71c394a3efa828c2fbef467968a16b4e301b4af65"
+    },
+    {
+      "bytes": 1221,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase15/artifacts/manifests/pilot_provider_support_goal_verification.json",
+      "repository_path": "demo/source/biominer_phase15/artifacts/manifests/pilot_provider_support_goal_verification.json",
+      "sha256": "fc96f8ecce5353629d601235aa43221df3e844ebdfa85e1efa49fe10dd52059c"
+    },
+    {
+      "bytes": 7703,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase15/artifacts/manifests/pilot_staged_flickr_manifest.json",
+      "repository_path": "demo/source/biominer_phase15/artifacts/manifests/pilot_staged_flickr_manifest.json",
+      "sha256": "4f4aeeadb559e962eb11802301c3b2d691be674094c7449aab0ab061a4b362e3"
+    },
+    {
+      "bytes": 23486,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase15/artifacts/reports/phase14/papilio_demoleus_build_week_prototype_report.json",
+      "repository_path": "demo/source/biominer_phase15/artifacts/reports/phase14/papilio_demoleus_build_week_prototype_report.json",
+      "sha256": "88bce2ca8838fff5a74dc616ccbb6fe951dcc61d64f23d57deba604248785469"
+    },
+    {
+      "bytes": 4542,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase15/artifacts/reports/phase15/post_build_week_backlog.json",
+      "repository_path": "demo/source/biominer_phase15/artifacts/reports/phase15/post_build_week_backlog.json",
+      "sha256": "3984ad9a1080833085bd5357ecd7600523cae875936f6f74650d7a45e7c2b400"
+    },
+    {
+      "bytes": 5481,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase15/artifacts/reports/phase15/prototype_final_verification.json",
+      "repository_path": "demo/source/biominer_phase15/artifacts/reports/phase15/prototype_final_verification.json",
+      "sha256": "1f5a6f0d9746defc1b24628f190b78107b6cc763672d8c0ad1e392c4f111c1f2"
+    },
+    {
+      "bytes": 12819,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase15/artifacts/reports/phase15/prototype_go_no_go.json",
+      "repository_path": "demo/source/biominer_phase15/artifacts/reports/phase15/prototype_go_no_go.json",
+      "sha256": "74d72bd4e5556f0f72fb077aba89b54b6a4afa42fe8c608b15cd0a2d8b1c1f92"
+    },
+    {
+      "bytes": 11375,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase15/artifacts/reports/phase15/prototype_release_acceptance.json",
+      "repository_path": "demo/source/biominer_phase15/artifacts/reports/phase15/prototype_release_acceptance.json",
+      "sha256": "ed348b6b60a734505ece37540af130709301ef15f1c9b840f823ce50095df123"
+    },
+    {
+      "bytes": 11573,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase15/import_manifest.json",
+      "repository_path": "demo/source/biominer_phase15/import_manifest.json",
+      "sha256": "3e66b79b1fa188be3aec36db621f6ae71476942ca01e23226bd8c52c3e07fa4e"
+    },
+    {
+      "bytes": 17063,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/impact/verification-impact-study.raw.json",
+      "repository_path": "demo/source/impact/verification-impact-study.raw.json",
+      "sha256": "0be376bba0c2e2aef99d031a148bbfe61686da47e6bf9663f1373efc44496618"
+    },
+    {
+      "bytes": 5252,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/impact/verification-impact-summary.json",
+      "repository_path": "demo/source/impact/verification-impact-summary.json",
+      "sha256": "bdf0209ba1e4a4645075e54c8a70d9954a3e733b693f45a77a0cff7929226e49"
+    },
+    {
+      "bytes": 9748,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/verification/papilio-demoleus-commons.campaign.json",
+      "repository_path": "demo/source/verification/papilio-demoleus-commons.campaign.json",
+      "sha256": "00087bce738f5098893eea7b8fce238d3c88f85a7ee643eceddfb22466d6087d"
+    },
+    {
+      "bytes": 293048,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/verification/papilio-demoleus-flickr-audit.campaign.json",
+      "repository_path": "demo/source/verification/papilio-demoleus-flickr-audit.campaign.json",
+      "sha256": "c9efb76f6c576b217aa7fd7469f49d671d81e3b248b2ab735d4fb874be6b61bc"
+    },
+    {
+      "bytes": 112356,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/verification/papilio-demoleus-reference-audit.campaign.json",
+      "repository_path": "demo/source/verification/papilio-demoleus-reference-audit.campaign.json",
+      "sha256": "1ca1571c905aa37b654de9a88b675a2d8c77745b1feef400b7e0f68cc85b83b5"
+    },
+    {
+      "bytes": 25188,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/verification/papilio-demoleus-reviewer-controls.campaign.json",
+      "repository_path": "demo/source/verification/papilio-demoleus-reviewer-controls.campaign.json",
+      "sha256": "4a0cbaac879ef43902b61410712c7cc0530256d79b51fd7258f04d4a1ab3e437"
+    },
+    {
+      "bytes": 641,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/verification/target-precision-reference.json",
+      "repository_path": "demo/source/verification/target-precision-reference.json",
+      "sha256": "e0e1c1b6373ac0ca87984f8326b479f09b27abb6c2721001487993ce1a5fe16c"
+    },
+    {
+      "bytes": 1833,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/verification/verification-evidence-availability.json",
+      "repository_path": "demo/source/verification/verification-evidence-availability.json",
+      "sha256": "6a74f67ff544c4608780f70166d8591e76745a261ce17b14d818b4dff4f79c59"
+    }
+  ],
+  "provider_contract": "backblaze_b2_s3_compatible",
+  "schema_version": "taxalens-repository-b2-object-manifest:v1.0.0",
+  "scientific_claim_allowed": false,
+  "signed_urls_included": false,
+  "storage_mode": "repository_mirror",
+  "total_bytes": 4650910
+}

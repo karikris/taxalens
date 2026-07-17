@@ -1,0 +1,62 @@
+{
+  "backblaze_b2": {
+    "external_source_media_path": "demo/repository_storage/backblaze_b2/external_source_media.json",
+    "object_manifest_path": "demo/repository_storage/backblaze_b2/object_manifest.json"
+  },
+  "credentials_included": false,
+  "files": [
+    {
+      "bytes": 73438,
+      "path": "demo/repository_storage/backblaze_b2/external_source_media.json",
+      "sha256": "12bdea477ada9f6b4452f406df70ad441ea7576134e8fd1b950e2ead6f8049b4"
+    },
+    {
+      "bytes": 31460,
+      "path": "demo/repository_storage/backblaze_b2/object_manifest.json",
+      "sha256": "944a8bd6eeb9c7a7b5e1c220f43294046f697213a9be50482f90042cea7eaa07"
+    },
+    {
+      "bytes": 293,
+      "path": "demo/repository_storage/supabase/verification_assignments.json",
+      "sha256": "e69fc957101e102e2bf802bc2654a49dccb255d79efe7ab6c57579602b54b869"
+    },
+    {
+      "bytes": 22150,
+      "path": "demo/repository_storage/supabase/verification_campaigns.json",
+      "sha256": "71d331bedc219daaf222d91304424fc787a2635a0e9b8c5f668d011e52fcb5f4"
+    },
+    {
+      "bytes": 313,
+      "path": "demo/repository_storage/supabase/verification_consensus.json",
+      "sha256": "358afaf053c095b275e6189632fd22b4bd10b266953d57fd40e606163e194e0f"
+    },
+    {
+      "bytes": 286,
+      "path": "demo/repository_storage/supabase/verification_events.json",
+      "sha256": "2f87e232c9721c6d38ff2da7974bd468cd7c9048e2064ebcadc221663b612d67"
+    },
+    {
+      "bytes": 494033,
+      "path": "demo/repository_storage/supabase/verification_items.json",
+      "sha256": "ccfa8f6efd8eb27b139551ceba7da294e5c3f8859c87bceb1c1d7a8b1a34015f"
+    },
+    {
+      "bytes": 328,
+      "path": "demo/repository_storage/supabase/verification_quality_snapshots.json",
+      "sha256": "0a347f008a2b625a7d7dc112f6a6e32acc0dcb54a9beb870a3fc8beb2b72c325"
+    }
+  ],
+  "retained_human_outcomes": 0,
+  "schema_version": "taxalens-repository-storage-manifest:v1.0.0",
+  "scientific_claim_allowed": false,
+  "storage_mode": "credential_free_repository_mirror",
+  "supabase": {
+    "assignment_count": 0,
+    "campaign_count": 4,
+    "consensus_row_count": 0,
+    "event_count": 0,
+    "item_count": 82,
+    "quality_snapshot_count": 0,
+    "table_count": 6
+  }
+}
