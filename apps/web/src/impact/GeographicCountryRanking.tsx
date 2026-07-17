@@ -1,5 +1,8 @@
 import type { GeographicImpactMetric } from './geographicImpactQuery'
-import { countPotentialCoverageGapCells } from './geographicContributionMetrics'
+import {
+  countHumanSupportedAdditionalCells,
+  countPotentialCoverageGapCells,
+} from './geographicContributionMetrics'
 import type { PublicGeographicImpactMapCell } from './publicGeographicImpactMapData'
 
 export const GEOGRAPHIC_COUNTRY_RANKING_METRICS = Object.freeze([
@@ -165,7 +168,7 @@ function countryRankingRow(
     country: cells[0]?.country ?? countryCode,
     sourceCellCount: cells.length,
     candidateOnlyCellCount: countPotentialCoverageGapCells(cells),
-    reviewedAdditionalCellCount: countTrue(cells, 'reviewedAdditionalCell'),
+    reviewedAdditionalCellCount: countHumanSupportedAdditionalCells(cells),
     releaseReadyAdditionalCellCount: countTrue(cells, 'releaseReadyAdditionalCell'),
     maximumRangeEdgeDistanceKm:
       candidateDistances.length === 0 ? null : Math.max(...candidateDistances),
