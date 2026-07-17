@@ -79,8 +79,11 @@ from taxalens.product.geographic_contracts import (
     validate_geographic_contract,
 )
 from taxalens.product.judge_bundle import (
+    JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES,
     JUDGE_BUNDLE_SCHEMA_VERSION,
     JUDGE_BUNDLE_SECTION_NAMES,
+    JUDGE_BUNDLE_V1_SECTION_NAMES,
+    JUDGE_BUNDLE_V2_SECTION_NAMES,
     JudgeBundleError,
     JudgeBundleValidation,
     LoadedJudgeBundle,
@@ -193,6 +196,9 @@ __all__ = [
     "VerificationSchemaValidation",
     "JUDGE_BUNDLE_SCHEMA_VERSION",
     "JUDGE_BUNDLE_SECTION_NAMES",
+    "JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES",
+    "JUDGE_BUNDLE_V1_SECTION_NAMES",
+    "JUDGE_BUNDLE_V2_SECTION_NAMES",
     "JudgeBundleError",
     "JudgeBundleValidation",
     "compute_inventory_sha256",

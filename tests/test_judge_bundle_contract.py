@@ -6,9 +6,13 @@ from dataclasses import FrozenInstanceError
 from pathlib import Path
 
 import pytest
+from jsonschema import Draft202012Validator
 from taxalens.product import (
+    JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES,
     JUDGE_BUNDLE_SCHEMA_VERSION,
     JUDGE_BUNDLE_SECTION_NAMES,
+    JUDGE_BUNDLE_V1_SECTION_NAMES,
+    JUDGE_BUNDLE_V2_SECTION_NAMES,
     JudgeBundleError,
     compute_inventory_sha256,
     compute_payload_root_sha256,
@@ -19,6 +23,9 @@ from taxalens.product import (
 TAXALENS_SHA = "1" * 40
 BIOMINER_SHA = "2" * 40
 SCHEMA_PATH = Path("packages/contracts/schema/judge_bundle.schema.json")
+GEOGRAPHIC_SECTIONS_SCHEMA_PATH = Path(
+    "packages/contracts/schema/judge_bundle_geographic_sections.schema.json"
+)
 TYPESCRIPT_PATH = Path("packages/contracts/src/judge_bundle_contract.ts")
 TRUTHFUL_FIXTURE_PATH = Path("demo/fixture/papilio_pilot/judge_bundle.json")
 
@@ -214,6 +221,46 @@ def test_schema_declares_every_required_judge_bundle_section() -> None:
     assert set(schema["$defs"]["sectionRecords"]["required"]) == set(JUDGE_BUNDLE_SECTION_NAMES)
     for section_name in JUDGE_BUNDLE_SECTION_NAMES:
         assert f"'{section_name}'," in typescript
+
+
+def test_geographic_extension_preserves_v1_and_reserves_v2_sections() -> None:
+    expected_geographic = (
+        "baseline_geographic_spread",
+        "baseline_provider_union",
+        "flickr_geography",
+        "geographic_impact_cells",
+        "geographic_impact_summary",
+        "country_hierarchy",
+    )
+    schema = json.loads(GEOGRAPHIC_SECTIONS_SCHEMA_PATH.read_text(encoding="utf-8"))
+    Draft202012Validator.check_schema(schema)
+    projection = {
+        "schema_version": "taxalens-judge-bundle-geographic-sections:v1.0.0",
+        "sections": {
+            name: {
+                "status": "unavailable",
+                "artifact_ids": [],
+                "reason": f"{name} is not present in the v1 bundle",
+                "candidate_semantics": "not_applicable",
+                "verification_status": "unavailable",
+                "human_review_required": True,
+                "scientific_claim_allowed": False,
+            }
+            for name in expected_geographic
+        },
+    }
+
+    assert JUDGE_BUNDLE_SECTION_NAMES == JUDGE_BUNDLE_V1_SECTION_NAMES
+    assert JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES == expected_geographic
+    assert JUDGE_BUNDLE_V2_SECTION_NAMES == (
+        *JUDGE_BUNDLE_V1_SECTION_NAMES,
+        *expected_geographic,
+    )
+    assert len(JUDGE_BUNDLE_V2_SECTION_NAMES) == len(set(JUDGE_BUNDLE_V2_SECTION_NAMES))
+    assert tuple(schema["$defs"]["geographicSections"]["required"]) == (
+        expected_geographic
+    )
+    assert list(Draft202012Validator(schema).iter_errors(projection)) == []
 
 
 def test_contract_validates_inventory_sections_rights_counts_and_files(

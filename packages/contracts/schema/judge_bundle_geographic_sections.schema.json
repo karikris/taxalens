@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://taxalens.local/contracts/judge-bundle-geographic-sections-v1.0.0.schema.json",
+  "title": "TaxaLens judge-bundle geographic sections",
+  "description": "The ordered geographic extension reserved for judge bundle v2 without changing the active v1 contract.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "sections"],
+  "properties": {
+    "schema_version": {"const": "taxalens-judge-bundle-geographic-sections:v1.0.0"},
+    "sections": {"$ref": "#/$defs/geographicSections"}
+  },
+  "$defs": {
+    "nonEmptyString": {"type": "string", "minLength": 1},
+    "nullableString": {
+      "anyOf": [{"$ref": "#/$defs/nonEmptyString"}, {"type": "null"}]
+    },
+    "identifier": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "section": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "artifact_ids",
+        "reason",
+        "candidate_semantics",
+        "verification_status",
+        "human_review_required",
+        "scientific_claim_allowed"
+      ],
+      "properties": {
+        "status": {"enum": ["available", "partial", "unavailable"]},
+        "artifact_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/identifier"}
+        },
+        "reason": {"$ref": "#/$defs/nullableString"},
+        "candidate_semantics": {
+          "enum": [
+            "not_applicable",
+            "hypothesis_not_occurrence",
+            "candidate_reference_not_verified_support",
+            "reviewed_evidence",
+            "diagnostic_only"
+          ]
+        },
+        "verification_status": {
+          "enum": [
+            "metadata_only",
+            "unreviewed",
+            "human_review_pending",
+            "human_verified",
+            "machine_verified_contract",
+            "unavailable"
+          ]
+        },
+        "human_review_required": {"type": "boolean"},
+        "scientific_claim_allowed": {"type": "boolean"}
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"status": {"const": "unavailable"}},
+            "required": ["status"]
+          },
+          "then": {
+            "properties": {
+              "artifact_ids": {"type": "array", "maxItems": 0},
+              "reason": {"$ref": "#/$defs/nonEmptyString"},
+              "verification_status": {"const": "unavailable"},
+              "human_review_required": {"const": true},
+              "scientific_claim_allowed": {"const": false}
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {"status": {"const": "partial"}},
+            "required": ["status"]
+          },
+          "then": {
+            "properties": {
+              "artifact_ids": {"type": "array", "minItems": 1},
+              "human_review_required": {"const": true},
+              "scientific_claim_allowed": {"const": false}
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {"status": {"const": "available"}},
+            "required": ["status"]
+          },
+          "then": {
+            "properties": {"artifact_ids": {"type": "array", "minItems": 1}}
+          }
+        },
+        {
+          "if": {
+            "properties": {"scientific_claim_allowed": {"const": true}},
+            "required": ["scientific_claim_allowed"]
+          },
+          "then": {
+            "properties": {
+              "status": {"const": "available"},
+              "verification_status": {"const": "human_verified"},
+              "human_review_required": {"const": false}
+            }
+          }
+        }
+      ]
+    },
+    "geographicSections": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "baseline_geographic_spread",
+        "baseline_provider_union",
+        "flickr_geography",
+        "geographic_impact_cells",
+        "geographic_impact_summary",
+        "country_hierarchy"
+      ],
+      "properties": {
+        "baseline_geographic_spread": {"$ref": "#/$defs/section"},
+        "baseline_provider_union": {"$ref": "#/$defs/section"},
+        "flickr_geography": {"$ref": "#/$defs/section"},
+        "geographic_impact_cells": {"$ref": "#/$defs/section"},
+        "geographic_impact_summary": {"$ref": "#/$defs/section"},
+        "country_hierarchy": {"$ref": "#/$defs/section"}
+      }
+    }
+  }
+}

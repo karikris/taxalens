@@ -13,7 +13,7 @@ from pathlib import Path, PurePosixPath
 from taxalens.product.contracts import FrozenJson, freeze_json
 
 JUDGE_BUNDLE_SCHEMA_VERSION = "taxalens-judge-bundle:v1.0.0"
-JUDGE_BUNDLE_SECTION_NAMES = (
+JUDGE_BUNDLE_V1_SECTION_NAMES = (
     "run_summary",
     "pipeline_stages",
     "stage_metrics",
@@ -40,6 +40,20 @@ JUDGE_BUNDLE_SECTION_NAMES = (
     "verification_decisions",
     "verification_quality",
 )
+JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES = (
+    "baseline_geographic_spread",
+    "baseline_provider_union",
+    "flickr_geography",
+    "geographic_impact_cells",
+    "geographic_impact_summary",
+    "country_hierarchy",
+)
+JUDGE_BUNDLE_V2_SECTION_NAMES = (
+    *JUDGE_BUNDLE_V1_SECTION_NAMES,
+    *JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES,
+)
+# The active validator remains v1 until the explicit v2 schema-version subtask.
+JUDGE_BUNDLE_SECTION_NAMES = JUDGE_BUNDLE_V1_SECTION_NAMES
 JUDGE_SCREEN_NAMES = (
     "research_mission",
     "evidence_observatory",
