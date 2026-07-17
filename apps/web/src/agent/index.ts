@@ -9,6 +9,11 @@ export {
 export { AgentWorkspace } from './AgentWorkspace'
 export { AgentReplayWorkspace } from './AgentReplayWorkspace'
 export {
+  loadStoredGeographicAnalystReplay,
+  STORED_GEOGRAPHIC_ANALYST_REPLAY_VERSION,
+  type StoredGeographicAnalystReplay,
+} from './storedGeographicAnalystReplay'
+export {
   explainCountryGeographicContribution,
   compareCountryGeographicScopes,
   recommendGeographicReviews,

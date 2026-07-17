@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "taxalens-geographic-analyst-stored-replay:v1.0.0",
+  "model": "gpt-5.6-sol",
+  "reasoningEffort": "xhigh",
+  "mode": "stored_credential_free",
+  "capturedAt": "2026-07-17T19:58:49Z",
+  "request": "What evidence could Flickr add to this country?",
+  "scope": {
+    "projectId": "taxalens-papilio-demoleus-judge-replay",
+    "runId": "papilio-demoleus-pilot-20260715",
+    "acceptedTaxonKey": "gbif:1938069",
+    "baselineSnapshotId": "gbif-occurrence-search-20260715",
+    "flickrSnapshotId": "flickr:2026-07-15",
+    "spatialResolution": 7,
+    "scopeLevel": "country",
+    "scopeId": "country:SE",
+    "scopeName": "Sweden"
+  },
+  "sourceFingerprintSha256": "e3c532a1c6310d2a0906cacc20c51318b8f379eab37f4cd5f4e234ab694946d2",
+  "sources": [
+    {"artifactId":"baseline_occurrence_union","availability":"available","sha256":"242e280b78a75b79dffb2012d24163d7ce62d07eeac908a31f55510afc486445","sourceCommit":"cdee00c9e16e349d722733cd951709abce8d0fee"},
+    {"artifactId":"flickr_geography","availability":"available","sha256":"c414d2db442acc372029a4cc6d0a02d57a7f4e8495efd93ef2faa2499c32084d","sourceCommit":"75461d9c065af0cd96b41cd1f845c2e920f7ae34"},
+    {"artifactId":"geographic_impact_cells","availability":"available","sha256":"a02927ffbb4dc09fca582c61e6ceab51af6d12f8998cf0f7762ebfe26a4ea1c9","sourceCommit":"ffef38ec4abc289d31011f8c74b762524c0caeec"},
+    {"artifactId":"geographic_impact_summary","availability":"available","sha256":"526d1b9d1acec52226d1fbff7af6941267fcc31cb32af73c46e92d4f8f97a8b2","sourceCommit":"b399cd4fe92640ad9a219142f8a77ac2122e632e"},
+    {"artifactId":"quality_snapshot","availability":"unavailable","sha256":null,"sourceCommit":null},
+    {"artifactId":"verification_campaign","availability":"available","sha256":"c9efb76f6c576b217aa7fd7469f49d671d81e3b248b2ab735d4fb874be6b61bc","sourceCommit":"e85b0d225cfdad4932de95d745b936ae85a61097"}
+  ],
+  "toolReceipts": [
+    {
+      "sequence": 1,
+      "tool": "inspect_geographic_impact",
+      "status": "available",
+      "facts": {
+        "baseline_union_count": 0,
+        "flickr_candidate_count": 529,
+        "candidate_only_cells": 12,
+        "reviewed_additional_cells": 0,
+        "release_ready_additional_cells": 0,
+        "data_deficient_state": "data_deficient"
+      }
+    },
+    {
+      "sequence": 2,
+      "tool": "list_candidate_gap_cells",
+      "status": "available",
+      "records": [
+        {"spatialCellId":"87088660cffffff","flickrCandidateCount":414},
+        {"spatialCellId":"8708a820affffff","flickrCandidateCount":100},
+        {"spatialCellId":"871f25048ffffff","flickrCandidateCount":3},
+        {"spatialCellId":"8708a820bffffff","flickrCandidateCount":2},
+        {"spatialCellId":"8708a8252ffffff","flickrCandidateCount":2},
+        {"spatialCellId":"871f2e915ffffff","flickrCandidateCount":2},
+        {"spatialCellId":"87081b75cffffff","flickrCandidateCount":1},
+        {"spatialCellId":"87081e019ffffff","flickrCandidateCount":1},
+        {"spatialCellId":"870895b4cffffff","flickrCandidateCount":1},
+        {"spatialCellId":"8708a344affffff","flickrCandidateCount":1},
+        {"spatialCellId":"871f25055ffffff","flickrCandidateCount":1},
+        {"spatialCellId":"871f25ad4ffffff","flickrCandidateCount":1}
+      ]
+    }
+  ],
+  "answer": "Sweden has zero baseline occurrence-evidence rows and 529 Flickr candidate-evidence rows at H3 resolution 7 in the selected snapshots. Twelve spatial cells are potential coverage-gap cells. Zero cells are human-supported additional cells and zero are release-ready additional cells. Candidate-only cells describe potential coverage contribution, not biological absence or new occurrences.",
+  "limitations": [
+    "No retained human review outcome or quality snapshot is available.",
+    "Direct iNaturalist delta is unavailable.",
+    "This stored replay demonstrates deterministic GPT-5.6 interpretation; it is not a live API call."
+  ],
+  "externalActionsExecuted": false,
+  "scientificClaimAllowed": false,
+  "replaySha256": "090c21029302d95e0a8eb7af22e8ee93ed6b27be0f021c72547bc654fe5f2628"
+}
