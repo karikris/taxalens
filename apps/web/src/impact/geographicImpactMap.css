@@ -22,6 +22,27 @@
   color: var(--tl-ink-muted);
 }
 
+.geographic-impact-lens__scope {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tl-space-1) var(--tl-space-2);
+  align-items: baseline;
+  padding: var(--tl-space-2);
+  background: var(--tl-surface-subtle);
+  border: 1px solid var(--tl-line);
+}
+
+.geographic-impact-lens__scope > span,
+.geographic-impact-lens__scope > small {
+  color: var(--tl-ink-muted);
+}
+
+.geographic-impact-lens__scope > p {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--tl-state-failure-ink);
+}
+
 .taxalens-world-map {
   display: grid;
   gap: var(--tl-space-2);

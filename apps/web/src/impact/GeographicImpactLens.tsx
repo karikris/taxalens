@@ -1,4 +1,5 @@
 import { EvidenceState } from '../design-system'
+import { useGeographicScopeState } from './geographicScope'
 import { OfflineWorldMap } from './OfflineWorldMap'
 
 export function GeographicImpactLens({
@@ -6,6 +7,8 @@ export function GeographicImpactLens({
 }: {
   readonly webGlSupported?: boolean
 }) {
+  const scope = useGeographicScopeState()
+
   return (
     <section
       id="geographic-impact-lens"
@@ -30,6 +33,15 @@ export function GeographicImpactLens({
         are visible for orientation, but blue baseline and amber Flickr layers remain unavailable
         here until their verified bundle inputs are connected.
       </EvidenceState>
+      <div className="geographic-impact-lens__scope" role="status" aria-live="polite">
+        <span>Geographic scope</span>
+        <strong>{scope.selected.scope_name}</strong>
+        <small>
+          {scope.selected.scope_level} · verified hierarchy identity{' '}
+          <code>{scope.selected.scope_id}</code>
+        </small>
+        {scope.urlError === null ? null : <p>{scope.urlError}</p>}
+      </div>
       <OfflineWorldMap {...(webGlSupported === undefined ? {} : { webGlSupported })} />
     </section>
   )
