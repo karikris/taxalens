@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import hashlib
+import io
 import json
+import os
 import subprocess
+import tarfile
 from pathlib import Path
 from typing import Any
 
@@ -111,13 +114,15 @@ def test_generated_parquet_passes_pinned_biominer_validation(
     biominer_root = Path(__file__).resolve().parents[3].parent / "BioMiner"
     if not biominer_root.is_dir():
         pytest.skip("committed sibling BioMiner checkout is unavailable")
-    head = subprocess.run(
-        ["git", "-C", str(biominer_root), "rev-parse", "HEAD"],
+    archive = subprocess.run(
+        ["git", "-C", str(biominer_root), "archive", "--format=tar", BIOMINER_SHA],
         check=True,
         capture_output=True,
-        text=True,
-    ).stdout.strip()
-    assert head == BIOMINER_SHA
+    ).stdout
+    pinned_root = tmp_path / "pinned-biominer"
+    pinned_root.mkdir()
+    with tarfile.open(fileobj=io.BytesIO(archive), mode="r:") as source:
+        source.extractall(pinned_root, filter="data")
 
     output = tmp_path / FLICKR_REVIEWED_LABELS_V2_FILE
     write_flickr_reviewed_labels_v2(rows=[_row()], output_path=output)
@@ -139,18 +144,20 @@ print(json.dumps({
     "ledger": normalized["taxalens_decision_ledger_sha256"].item(),
 }))
 """
+    interpreter = biominer_root / ".venv/bin/python"
+    if not interpreter.is_file():
+        pytest.skip("BioMiner validation environment is unavailable")
+    environment = os.environ.copy()
+    environment["PYTHONPATH"] = str(pinned_root / "src")
     completed = subprocess.run(
         [
-            "uv",
-            "run",
-            "--project",
-            str(biominer_root),
-            "--frozen",
-            "python",
+            str(interpreter),
             "-c",
             validation_script,
             str(output),
         ],
+        cwd=pinned_root,
+        env=environment,
         check=True,
         capture_output=True,
         text=True,

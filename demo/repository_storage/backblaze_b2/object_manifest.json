@@ -1,7 +1,7 @@
 {
   "bucket_alias": "taxalens-repository-fixture",
   "credentials_included": false,
-  "object_count": 74,
+  "object_count": 81,
   "objects": [
     {
       "bytes": 484,
@@ -326,6 +326,69 @@
       "object_key": "taxalens/demo/source/biominer_phase14/analytics_import_manifest.json",
       "repository_path": "demo/source/biominer_phase14/analytics_import_manifest.json",
       "sha256": "ad4f57815f7e37e703569d31f73d98000c14f1d9484015ad8cda4c3b1017b4a7"
+    },
+    {
+      "bytes": 867794,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/vnd.apache.parquet",
+      "object_key": "taxalens/demo/source/biominer_phase14/baseline_geography/geographic_occurrence_evidence.parquet",
+      "repository_path": "demo/source/biominer_phase14/baseline_geography/geographic_occurrence_evidence.parquet",
+      "sha256": "1387f3c9967d322e537e9f2079b58641543707db863d2057c1caa4408d208a47"
+    },
+    {
+      "bytes": 1508,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/vnd.apache.parquet",
+      "object_key": "taxalens/demo/source/biominer_phase14/baseline_geography/geographic_qa_findings.parquet",
+      "repository_path": "demo/source/biominer_phase14/baseline_geography/geographic_qa_findings.parquet",
+      "sha256": "5424aef1f921e67049da8484ee99b303701cf783ede76ede8e5af68767c5dce2"
+    },
+    {
+      "bytes": 1416,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase14/baseline_geography/geographic_spread_manifest.json",
+      "repository_path": "demo/source/biominer_phase14/baseline_geography/geographic_spread_manifest.json",
+      "sha256": "875f8560d588e24f47bf15018401cb2c5210060a9b66a9b67e2f84a524509213"
+    },
+    {
+      "bytes": 1121,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase14/baseline_geography/geographic_summary_manifest.json",
+      "repository_path": "demo/source/biominer_phase14/baseline_geography/geographic_summary_manifest.json",
+      "sha256": "4b5236f2857a8f9143f4d039e8414b1bcd5bf324568dbc68e982aff3670dc06d"
+    },
+    {
+      "bytes": 513562,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/vnd.apache.parquet",
+      "object_key": "taxalens/demo/source/biominer_phase14/baseline_geography/taxon_geographic_spread.parquet",
+      "repository_path": "demo/source/biominer_phase14/baseline_geography/taxon_geographic_spread.parquet",
+      "sha256": "46f38228cb5e7ba58f5f38f79a38dd87ae8fab80cf987e916f620d5cc4b9e83c"
+    },
+    {
+      "bytes": 15030,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/vnd.apache.parquet",
+      "object_key": "taxalens/demo/source/biominer_phase14/baseline_geography/taxon_geographic_summary.parquet",
+      "repository_path": "demo/source/biominer_phase14/baseline_geography/taxon_geographic_summary.parquet",
+      "sha256": "838d8eef1c88757822b850a0f24ffc306818e1d90bf4ca18f6d78924d6c96176"
+    },
+    {
+      "bytes": 5320,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase14/baseline_geography_import_manifest.json",
+      "repository_path": "demo/source/biominer_phase14/baseline_geography_import_manifest.json",
+      "sha256": "46ba1f71c0537dab862f18e589fd3ea48f2b661bda402d22f6f6e3a6ff92ea0c"
     },
     {
       "bytes": 3144,
@@ -675,5 +738,5 @@
   "scientific_claim_allowed": false,
   "signed_urls_included": false,
   "storage_mode": "repository_mirror",
-  "total_bytes": 4650910
+  "total_bytes": 6056661
 }
