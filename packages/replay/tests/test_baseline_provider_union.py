@@ -6,13 +6,13 @@ from pathlib import Path
 
 import polars as pl
 import pytest
+from packages.replay.src.baseline_provider_identity import INATURALIST_GBIF_DATASET_KEY
 from packages.replay.src.baseline_provider_union import (
     BaselineProviderUnionError,
     baseline_occurrence_union_schema,
     build_baseline_provider_union,
     build_committed_baseline_provider_union,
 )
-from packages.replay.src.baseline_provider_identity import INATURALIST_GBIF_DATASET_KEY
 from packages.replay.src.biominer_baseline_geography_adapter import (
     adapt_biominer_baseline_geography,
 )
@@ -77,13 +77,10 @@ def test_provider_composition_is_a_disjoint_canonical_partition(
     assert inaturalist_via_gbif.select(
         "delivery_provider", "provider_relationship_kind", "match_method"
     ).unique().rows() == [("gbif", "inaturalist_via_gbif", "inaturalist_via_gbif")]
-    assert (
-        inaturalist_via_gbif.get_column("source_dataset_key").unique().to_list()
-        == [INATURALIST_GBIF_DATASET_KEY]
-    )
-    assert gbif_only.filter(
-        pl.col("source_dataset_key") == INATURALIST_GBIF_DATASET_KEY
-    ).is_empty()
+    assert inaturalist_via_gbif.get_column("source_dataset_key").unique().to_list() == [
+        INATURALIST_GBIF_DATASET_KEY
+    ]
+    assert gbif_only.filter(pl.col("source_dataset_key") == INATURALIST_GBIF_DATASET_KEY).is_empty()
 
     gbif_ids = set(gbif_only.get_column("canonical_observation_id"))
     inaturalist_ids = set(inaturalist_via_gbif.get_column("canonical_observation_id"))

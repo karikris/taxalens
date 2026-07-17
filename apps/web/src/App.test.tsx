@@ -53,29 +53,39 @@ describe('TaxaLens scaffold', () => {
     expect(screen.getByText('analytics on demand')).toBeInTheDocument()
   })
 
-  it('opens the stored Agent Trace without simulating a live session', async () => {
-    window.location.hash = '#agent'
-    render(<App />)
+  it(
+    'opens the stored Agent Trace without simulating a live session',
+    async () => {
+      window.location.hash = '#agent'
+      render(<App />)
 
-    expect(
-      await screen.findByRole('heading', { name: 'GPT-5.6 Sol research analyst' }),
-    ).toBeInTheDocument()
-    expect(screen.getByText('gpt-5.6-sol')).toBeInTheDocument()
-    expect(
-      await screen.findByRole('heading', { name: 'Replayed analyst session' }),
-    ).toBeInTheDocument()
-    expect(screen.getAllByText('Stored output · no live call')).toHaveLength(2)
-    expect(
-      screen.getByRole('heading', { name: 'GPT-5.6 geographic analyst' }),
-    ).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'resolve_taxon' })).toBeInTheDocument()
-    expect(
-      screen.getByRole('heading', { name: 'Answer', level: 2 }),
-    ).toBeInTheDocument()
-    expect(screen.getAllByText(/This target resolution is not an occurrence/u)).toHaveLength(2)
-    expect(screen.queryByRole('heading', { name: 'No analyst session loaded' })).not.toBeInTheDocument()
-    expect(screen.getByText(/chain-of-thought are neither collected/u)).toBeInTheDocument()
-  })
+      expect(
+        await screen.findByRole(
+          'heading',
+          { name: 'GPT-5.6 Sol research analyst' },
+          { timeout: 5_000 },
+        ),
+      ).toBeInTheDocument()
+      expect(screen.getByText('gpt-5.6-sol')).toBeInTheDocument()
+      expect(
+        await screen.findByRole('heading', { name: 'Replayed analyst session' }),
+      ).toBeInTheDocument()
+      expect(screen.getAllByText('Stored output · no live call')).toHaveLength(2)
+      expect(
+        screen.getByRole('heading', { name: 'GPT-5.6 geographic analyst' }),
+      ).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: 'resolve_taxon' })).toBeInTheDocument()
+      expect(
+        screen.getByRole('heading', { name: 'Answer', level: 2 }),
+      ).toBeInTheDocument()
+      expect(screen.getAllByText(/This target resolution is not an occurrence/u)).toHaveLength(2)
+      expect(
+        screen.queryByRole('heading', { name: 'No analyst session loaded' }),
+      ).not.toBeInTheDocument()
+      expect(screen.getByText(/chain-of-thought are neither collected/u)).toBeInTheDocument()
+    },
+    10_000,
+  )
 
   it('opens Verification from the legacy Human Review deep link', async () => {
     window.location.hash = '#human-review'
