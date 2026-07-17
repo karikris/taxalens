@@ -153,17 +153,94 @@ def test_no_usable_geo_is_explicit_and_not_fabricated(
     assert packet["semantics"]["noUsableGeoMeansNoLocalGeographicEvidence"] is True
 
 
+def test_geographic_audit_strata_preserve_primary_sampling_and_reconcile(
+    packet: dict[str, Any],
+) -> None:
+    selection = packet["selection"]
+    items = packet["items"]
+    audit = selection["geographicAuditStrata"]
+
+    assert audit["schemaVersion"] == "taxalens-flickr-geographic-audit-strata:v1.0.0"
+    assert audit["primarySamplingDesignUnchanged"] is True
+    assert audit["reportingDimensionsDoNotAlterInclusionProbability"] is True
+    assert audit["reviewerDisclosureAllowedBeforeDecision"] is False
+    assert all(audit["representationRequirements"].values())
+    assert audit["impactArtifact"] == {
+        "path": (
+            "demo/source/biominer_phase14/geographic_impact/"
+            "geographic_impact_cells.parquet"
+        ),
+        "sha256": "a02927ffbb4dc09fca582c61e6ceab51af6d12f8998cf0f7762ebfe26a4ea1c9",
+        "byteCount": 639_681,
+    }
+
+    bindings = {row["itemId"]: row for row in audit["itemBindings"]}
+    assert len(bindings) == len(items) == 49
+    for item in items:
+        binding = bindings[item["itemId"]]
+        assert binding["ownerPhotographerGroupId"] == item["ownerPhotographerGroupId"]
+        assert binding["primarySamplingStratumId"] == item["samplingStratumId"]
+        assert binding["inclusionProbability"] == item["inclusionProbability"]
+
+    assert set(audit["dimensions"]) == {
+        "continent",
+        "country",
+        "coordinate_support",
+        "coverage",
+        "raw_screening_score_band",
+        "query_trust_tier",
+    }
+    for receipts in audit["dimensions"].values():
+        assert sum(row["populationOwnerGroupCount"] for row in receipts) == selection[
+            "sourceRecordCount"
+        ]
+        assert sum(row["selectedOwnerGroupCount"] for row in receipts) == len(items)
+        assert all(
+            row["zeroTake"] is (row["selectedOwnerGroupCount"] == 0) for row in receipts
+        )
+
+
+def test_geographic_audit_represents_required_dimensions_without_overclaim(
+    packet: dict[str, Any],
+) -> None:
+    audit = packet["selection"]["geographicAuditStrata"]
+    selected_values = {
+        dimension: {
+            row["value"] for row in receipts if row["selectedOwnerGroupCount"] > 0
+        }
+        for dimension, receipts in audit["dimensions"].items()
+    }
+
+    assert {"Asia", "Europe", "North America", "Oceania"}.issubset(
+        selected_values["continent"]
+    )
+    assert len(selected_values["country"] - {"unavailable"}) >= 2
+    assert "no_usable_geo" in selected_values["coordinate_support"]
+    assert {"baseline_covered_cell", "candidate_only_cell"}.issubset(
+        selected_values["coverage"]
+    )
+    assert {"low", "middle", "high"}.issubset(selected_values["raw_screening_score_band"])
+    assert len(selected_values["query_trust_tier"]) >= 2
+    assert (
+        audit["dimensionSemantics"]["raw_screening_score_band"]
+        == "Bands the historical raw top-1 model similarity at <0.6, 0.6–<0.8 and >=0.8; "
+        "it is not a probability or human label."
+    )
+    assert "not biological absence" in audit["dimensionSemantics"]["coverage"]
+
+
 def test_provenance_discloses_historical_cache_and_live_rights_checks(
     packet: dict[str, Any],
 ) -> None:
     provenance = packet["provenance"]
     inputs = provenance["inputArtifacts"]
     assert provenance["biominerSha"] == ("94fa1f634ee3c63917c05d78181dd3cf9ceff940")
-    assert provenance["gitTrackedInputCount"] == 3
+    assert provenance["gitTrackedInputCount"] == 4
     assert provenance["historicalCacheInputCount"] == 3
     assert "not content at BioMiner HEAD" in provenance["historicalCacheDisclosure"]
     assert {row["role"] for row in inputs} == {
         "committed_population_contract",
+        "geographic_audit_reporting",
         "historical_screening_cache",
     }
     assert all(len(row["sha256"]) == 64 for row in inputs)

@@ -5941,10 +5941,1091 @@
     "scientificClaimAllowed": false,
     "estimand": "The rights-eligible, successfully joined, owner-canonical Flickr hypotheses in the pinned BioMiner pilot population. It is not all Flickr, all butterflies, or an occurrence set.",
     "ownerPartitionRule": "Assign each owner first to no-usable-geo when present, then historical machine abstention when present, otherwise to the seed-ranked screening/geography record; select one record per owner and owner groups within declared strata.",
-    "zeroTakeStrataAuthorizeEstimate": false
+    "zeroTakeStrataAuthorizeEstimate": false,
+    "geographicAuditStrata": {
+      "schemaVersion": "taxalens-flickr-geographic-audit-strata:v1.0.0",
+      "impactArtifact": {
+        "path": "demo/source/biominer_phase14/geographic_impact/geographic_impact_cells.parquet",
+        "sha256": "a02927ffbb4dc09fca582c61e6ceab51af6d12f8998cf0f7762ebfe26a4ea1c9",
+        "byteCount": 639681
+      },
+      "primarySamplingDesignUnchanged": true,
+      "reportingDimensionsDoNotAlterInclusionProbability": true,
+      "reviewerDisclosureAllowedBeforeDecision": false,
+      "dimensionSemantics": {
+        "raw_screening_score_band": "Bands the historical raw top-1 model similarity at <0.6, 0.6–<0.8 and >=0.8; it is not a probability or human label.",
+        "coverage": "Compares the precision-supported Flickr cell with the selected baseline snapshot; unavailable comparison is not biological absence.",
+        "zeroTake": "A population dimension value received no selected owner group and authorizes no dimension-specific estimate."
+      },
+      "dimensions": {
+        "continent": [
+          {
+            "value": "Africa",
+            "populationOwnerGroupCount": 2,
+            "selectedOwnerGroupCount": 0,
+            "zeroTake": true
+          },
+          {
+            "value": "Asia",
+            "populationOwnerGroupCount": 24,
+            "selectedOwnerGroupCount": 17,
+            "zeroTake": false
+          },
+          {
+            "value": "Europe",
+            "populationOwnerGroupCount": 46,
+            "selectedOwnerGroupCount": 15,
+            "zeroTake": false
+          },
+          {
+            "value": "North America",
+            "populationOwnerGroupCount": 45,
+            "selectedOwnerGroupCount": 11,
+            "zeroTake": false
+          },
+          {
+            "value": "Oceania",
+            "populationOwnerGroupCount": 14,
+            "selectedOwnerGroupCount": 4,
+            "zeroTake": false
+          },
+          {
+            "value": "South America",
+            "populationOwnerGroupCount": 2,
+            "selectedOwnerGroupCount": 0,
+            "zeroTake": true
+          },
+          {
+            "value": "unavailable",
+            "populationOwnerGroupCount": 12,
+            "selectedOwnerGroupCount": 2,
+            "zeroTake": false
+          }
+        ],
+        "country": [
+          {
+            "value": "AT",
+            "populationOwnerGroupCount": 1,
+            "selectedOwnerGroupCount": 0,
+            "zeroTake": true
+          },
+          {
+            "value": "AU",
+            "populationOwnerGroupCount": 12,
+            "selectedOwnerGroupCount": 3,
+            "zeroTake": false
+          },
+          {
+            "value": "BG",
+            "populationOwnerGroupCount": 1,
+            "selectedOwnerGroupCount": 0,
+            "zeroTake": true
+          },
+          {
+            "value": "BJ",
+            "populationOwnerGroupCount": 1,
+            "selectedOwnerGroupCount": 0,
+            "zeroTake": true
+          },
+          {
+            "value": "BO",
+            "populationOwnerGroupCount": 1,
+            "selectedOwnerGroupCount": 0,
+            "zeroTake": true
+          },
+          {
+            "value": "CA",
+            "populationOwnerGroupCount": 3,
+            "selectedOwnerGroupCount": 0,
+            "zeroTake": true
+          },
+          {
+            "value": "CN",
+            "populationOwnerGroupCount": 1,
+            "selectedOwnerGroupCount": 1,
+            "zeroTake": false
+          },
+          {
+            "value": "CY",
+            "populationOwnerGroupCount": 1,
+            "selectedOwnerGroupCount": 0,
+            "zeroTake": true
+          },
+          {
+            "value": "CZ",
+            "populationOwnerGroupCount": 2,
+            "selectedOwnerGroupCount": 1,
+            "zeroTake": false
+          },
+          {
+            "value": "DE",
+            "populationOwnerGroupCount": 5,
+            "selectedOwnerGroupCount": 4,
+            "zeroTake": false
+          },
+          {
+            "value": "ES",
+            "populationOwnerGroupCount": 3,
+            "selectedOwnerGroupCount": 0,
+            "zeroTake": true
+          },
+          {
+            "value": "FI",
+            "populationOwnerGroupCount": 1,
+            "selectedOwnerGroupCount": 0,
+            "zeroTake": true
+          },
+          {
+            "value": "FR",
+            "populationOwnerGroupCount": 12,
+            "selectedOwnerGroupCount": 4,
+            "zeroTake": false
+          },
+          {
+            "value": "GB",
+            "populationOwnerGroupCount": 9,
+            "selectedOwnerGroupCount": 4,
+            "zeroTake": false
+          },
+          {
+            "value": "GR",
+            "populationOwnerGroupCount": 1,
+            "selectedOwnerGroupCount": 0,
+            "zeroTake": true
+          },
+          {
+            "value": "GT",
+            "populationOwnerGroupCount": 1,
+            "selectedOwnerGroupCount": 1,
+            "zeroTake": false
+          },
+          {
+            "value": "IN",
+            "populationOwnerGroupCount": 8,
+            "selectedOwnerGroupCount": 7,
+            "zeroTake": false
+          },
+          {
+            "value": "IT",
+            "populationOwnerGroupCount": 6,
+            "selectedOwnerGroupCount": 0,
+            "zeroTake": true
+          },
+          {
+            "value": "JP",
+            "populationOwnerGroupCount": 2,
+            "selectedOwnerGroupCount": 0,
+            "zeroTake": true
+          },
+          {
+            "value": "KH",
+            "populationOwnerGroupCount": 1,
+            "selectedOwnerGroupCount": 1,
+            "zeroTake": false
+          },
+          {
+            "value": "LK",
+            "populationOwnerGroupCount": 1,
+            "selectedOwnerGroupCount": 0,
+            "zeroTake": true
+          },
+          {
+            "value": "LT",
+            "populationOwnerGroupCount": 1,
+            "selectedOwnerGroupCount": 1,
+            "zeroTake": false
+          },
+          {
+            "value": "MX",
+            "populationOwnerGroupCount": 1,
+            "selectedOwnerGroupCount": 0,
+            "zeroTake": true
+          },
+          {
+            "value": "MY",
+            "populationOwnerGroupCount": 2,
+            "selectedOwnerGroupCount": 2,
+            "zeroTake": false
+          },
+          {
+            "value": "NL",
+            "populationOwnerGroupCount": 1,
+            "selectedOwnerGroupCount": 0,
+            "zeroTake": true
+          },
+          {
+            "value": "NP",
+            "populationOwnerGroupCount": 1,
+            "selectedOwnerGroupCount": 1,
+            "zeroTake": false
+          },
+          {
+            "value": "NZ",
+            "populationOwnerGroupCount": 2,
+            "selectedOwnerGroupCount": 1,
+            "zeroTake": false
+          },
+          {
+            "value": "OM",
+            "populationOwnerGroupCount": 1,
+            "selectedOwnerGroupCount": 1,
+            "zeroTake": false
+          },
+          {
+            "value": "PH",
+            "populationOwnerGroupCount": 1,
+            "selectedOwnerGroupCount": 1,
+            "zeroTake": false
+          },
+          {
+            "value": "PY",
+            "populationOwnerGroupCount": 1,
+            "selectedOwnerGroupCount": 0,
+            "zeroTake": true
+          },
+          {
+            "value": "RO",
+            "populationOwnerGroupCount": 1,
+            "selectedOwnerGroupCount": 1,
+            "zeroTake": false
+          },
+          {
+            "value": "RU",
+            "populationOwnerGroupCount": 2,
+            "selectedOwnerGroupCount": 0,
+            "zeroTake": true
+          },
+          {
+            "value": "SN",
+            "populationOwnerGroupCount": 1,
+            "selectedOwnerGroupCount": 0,
+            "zeroTake": true
+          },
+          {
+            "value": "TH",
+            "populationOwnerGroupCount": 2,
+            "selectedOwnerGroupCount": 2,
+            "zeroTake": false
+          },
+          {
+            "value": "TR",
+            "populationOwnerGroupCount": 2,
+            "selectedOwnerGroupCount": 0,
+            "zeroTake": true
+          },
+          {
+            "value": "US",
+            "populationOwnerGroupCount": 40,
+            "selectedOwnerGroupCount": 10,
+            "zeroTake": false
+          },
+          {
+            "value": "VN",
+            "populationOwnerGroupCount": 1,
+            "selectedOwnerGroupCount": 1,
+            "zeroTake": false
+          },
+          {
+            "value": "unavailable",
+            "populationOwnerGroupCount": 12,
+            "selectedOwnerGroupCount": 2,
+            "zeroTake": false
+          }
+        ],
+        "coordinate_support": [
+          {
+            "value": "country_precision_only",
+            "populationOwnerGroupCount": 3,
+            "selectedOwnerGroupCount": 1,
+            "zeroTake": false
+          },
+          {
+            "value": "no_usable_geo",
+            "populationOwnerGroupCount": 1,
+            "selectedOwnerGroupCount": 1,
+            "zeroTake": false
+          },
+          {
+            "value": "spatial_cell_supported",
+            "populationOwnerGroupCount": 141,
+            "selectedOwnerGroupCount": 47,
+            "zeroTake": false
+          }
+        ],
+        "coverage": [
+          {
+            "value": "baseline_covered_cell",
+            "populationOwnerGroupCount": 1,
+            "selectedOwnerGroupCount": 1,
+            "zeroTake": false
+          },
+          {
+            "value": "candidate_only_cell",
+            "populationOwnerGroupCount": 140,
+            "selectedOwnerGroupCount": 46,
+            "zeroTake": false
+          },
+          {
+            "value": "comparison_unavailable",
+            "populationOwnerGroupCount": 4,
+            "selectedOwnerGroupCount": 2,
+            "zeroTake": false
+          }
+        ],
+        "raw_screening_score_band": [
+          {
+            "value": "high",
+            "populationOwnerGroupCount": 61,
+            "selectedOwnerGroupCount": 17,
+            "zeroTake": false
+          },
+          {
+            "value": "low",
+            "populationOwnerGroupCount": 62,
+            "selectedOwnerGroupCount": 20,
+            "zeroTake": false
+          },
+          {
+            "value": "middle",
+            "populationOwnerGroupCount": 22,
+            "selectedOwnerGroupCount": 12,
+            "zeroTake": false
+          }
+        ],
+        "query_trust_tier": [
+          {
+            "value": "T1",
+            "populationOwnerGroupCount": 3,
+            "selectedOwnerGroupCount": 0,
+            "zeroTake": true
+          },
+          {
+            "value": "T2",
+            "populationOwnerGroupCount": 125,
+            "selectedOwnerGroupCount": 41,
+            "zeroTake": false
+          },
+          {
+            "value": "T3",
+            "populationOwnerGroupCount": 16,
+            "selectedOwnerGroupCount": 7,
+            "zeroTake": false
+          },
+          {
+            "value": "T4",
+            "populationOwnerGroupCount": 1,
+            "selectedOwnerGroupCount": 1,
+            "zeroTake": false
+          }
+        ]
+      },
+      "representationRequirements": {
+        "multipleContinents": true,
+        "multipleCountries": true,
+        "noUsableGeo": true,
+        "baselineCoveredCells": true,
+        "candidateOnlyCells": true,
+        "allObservedRawScoreBands": true,
+        "multipleQueryTiers": true,
+        "independentOwnerGroups": true
+      },
+      "ownerGroupIndependence": {
+        "populationOwnerGroupCount": 145,
+        "selectedOwnerGroupCount": 49,
+        "repeatedSelectedOwnerGroupCount": 0
+      },
+      "itemBindings": [
+        {
+          "itemId": "flickr-review-item:09380d81bce3d21d04446df61c425dfbb2571aa2331146562f3b58209805d4b4",
+          "ownerPhotographerGroupId": "flickr-owner:91701539@N03",
+          "primarySamplingStratumId": "competitor--other_geo",
+          "inclusionProbability": 0.1746031746031746,
+          "dimensions": {
+            "continent": "North America",
+            "country": "GT",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "middle",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:0d79298a9177bfaae5dfc3071bbaa193c5dbfd8c80d938dc33b6867c19440c4d",
+          "ownerPhotographerGroupId": "flickr-owner:86124626@N00",
+          "primarySamplingStratumId": "target_candidate--south_asia",
+          "inclusionProbability": 0.6666666666666666,
+          "dimensions": {
+            "continent": "unavailable",
+            "country": "unavailable",
+            "coordinate_support": "country_precision_only",
+            "coverage": "comparison_unavailable",
+            "raw_screening_score_band": "high",
+            "query_trust_tier": "T4"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:12b00987c6b359f5331c5d33137aa34696e359f03a2b1c5bcab199203a2388ae",
+          "ownerPhotographerGroupId": "flickr-owner:59161444@N05",
+          "primarySamplingStratumId": "target_candidate--other_geo",
+          "inclusionProbability": 0.2702702702702703,
+          "dimensions": {
+            "continent": "Europe",
+            "country": "RO",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "high",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:1a1fcba0228a5077b41a64f1ab2ef7a73d3e5aebe92688156b79adfad9b1e2ce",
+          "ownerPhotographerGroupId": "flickr-owner:40948266@N04",
+          "primarySamplingStratumId": "negative--other_geo",
+          "inclusionProbability": 0.375,
+          "dimensions": {
+            "continent": "Europe",
+            "country": "DE",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "low",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:1aaf79e84537d399d05b3b82a272670915bdc2d849fbd6536fcb3d49485414d6",
+          "ownerPhotographerGroupId": "flickr-owner:88083695@N07",
+          "primarySamplingStratumId": "competitor--other_geo",
+          "inclusionProbability": 0.1746031746031746,
+          "dimensions": {
+            "continent": "North America",
+            "country": "US",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "middle",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:1c35915089556ee7dedc2faa0774443683f46b5d407c82d8cd5421123ca34ab7",
+          "ownerPhotographerGroupId": "flickr-owner:98642374@N07",
+          "primarySamplingStratumId": "target_candidate--other_geo",
+          "inclusionProbability": 0.2702702702702703,
+          "dimensions": {
+            "continent": "North America",
+            "country": "US",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "low",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:228dd0fa2781723dfb2921162e26d34bc38318ef338c7197133ad4b80417c24b",
+          "ownerPhotographerGroupId": "flickr-owner:88123769@N02",
+          "primarySamplingStratumId": "competitor--other_geo",
+          "inclusionProbability": 0.1746031746031746,
+          "dimensions": {
+            "continent": "Oceania",
+            "country": "NZ",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "low",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:3088843417890a484d0e4c06f1cd9376065f65885a6aa9dad492acb4e0945203",
+          "ownerPhotographerGroupId": "flickr-owner:133200397@N03",
+          "primarySamplingStratumId": "negative--other_geo",
+          "inclusionProbability": 0.375,
+          "dimensions": {
+            "continent": "Europe",
+            "country": "LT",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "middle",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:32f0dd03fca8cbde5b13ba45e518ad3e1865544fb557e2d69770cf13efb7ff09",
+          "ownerPhotographerGroupId": "flickr-owner:48950414@N07",
+          "primarySamplingStratumId": "competitor--other_geo",
+          "inclusionProbability": 0.1746031746031746,
+          "dimensions": {
+            "continent": "Europe",
+            "country": "FR",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "low",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:432c047b952cbc44fb3b045755ee466e45aafe4661dc80c485167cd790c8cf68",
+          "ownerPhotographerGroupId": "flickr-owner:37406777@N07",
+          "primarySamplingStratumId": "negative--other_geo",
+          "inclusionProbability": 0.375,
+          "dimensions": {
+            "continent": "North America",
+            "country": "US",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "low",
+            "query_trust_tier": "T3"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:4c6b4c7ccb9cbd2b2539d0b371ac40565e7f0ed4003a11dcdeb923bcf4e4620c",
+          "ownerPhotographerGroupId": "flickr-owner:29320962@N07",
+          "primarySamplingStratumId": "negative--other_geo",
+          "inclusionProbability": 0.375,
+          "dimensions": {
+            "continent": "Europe",
+            "country": "GB",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "middle",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:4fb86acbb8f469ab6630e8ac9bd87e622d72c3fd02167fb6b7b9bc612b2d3add",
+          "ownerPhotographerGroupId": "flickr-owner:87805257@N00",
+          "primarySamplingStratumId": "competitor--other_geo",
+          "inclusionProbability": 0.1746031746031746,
+          "dimensions": {
+            "continent": "Europe",
+            "country": "FR",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "middle",
+            "query_trust_tier": "T3"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:562d0d4c850a491d671b9a0cc221ec9bd6a54e101e6d0278c28856f00bbc1517",
+          "ownerPhotographerGroupId": "flickr-owner:42244964@N03",
+          "primarySamplingStratumId": "target_candidate--other_geo",
+          "inclusionProbability": 0.2702702702702703,
+          "dimensions": {
+            "continent": "Europe",
+            "country": "DE",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "high",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:5b57ce9630035c22513d1d78eab017b49561915a62874395fc2f234cc47ce007",
+          "ownerPhotographerGroupId": "flickr-owner:10222491@N06",
+          "primarySamplingStratumId": "negative--south_asia",
+          "inclusionProbability": 1.0,
+          "dimensions": {
+            "continent": "Asia",
+            "country": "IN",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "high",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:5fb3791c2df5264642a7c991c406478ac7f746ca5d4d6ed4781213b34bdee8ee",
+          "ownerPhotographerGroupId": "flickr-owner:69573851@N06",
+          "primarySamplingStratumId": "competitor--other_geo",
+          "inclusionProbability": 0.1746031746031746,
+          "dimensions": {
+            "continent": "North America",
+            "country": "US",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "middle",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:639c61689c8ce7b6a11d544defd5e60ebd616b2aa4e7190148aecadf08d58656",
+          "ownerPhotographerGroupId": "flickr-owner:33212211@N00",
+          "primarySamplingStratumId": "target_candidate--southeast_asia",
+          "inclusionProbability": 1.0,
+          "dimensions": {
+            "continent": "Asia",
+            "country": "KH",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "high",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:67b7b4d61091a075c4a09ef53afd14521d22aed245577de4647f43c9f5da335e",
+          "ownerPhotographerGroupId": "flickr-owner:27578890@N07",
+          "primarySamplingStratumId": "competitor--southeast_asia",
+          "inclusionProbability": 1.0,
+          "dimensions": {
+            "continent": "Asia",
+            "country": "TH",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "high",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:6b72e2e648c8bc29e02dc116f9b949d19fb307b7127eb3bc301282176a004ab7",
+          "ownerPhotographerGroupId": "flickr-owner:49296659@N00",
+          "primarySamplingStratumId": "competitor--southeast_asia",
+          "inclusionProbability": 1.0,
+          "dimensions": {
+            "continent": "Asia",
+            "country": "CN",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "low",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:6cb7ae5653866b810a122a48bc85815d72f3055d1c5bae17eee26ae991806820",
+          "ownerPhotographerGroupId": "flickr-owner:42914481@N00",
+          "primarySamplingStratumId": "competitor--other_geo",
+          "inclusionProbability": 0.1746031746031746,
+          "dimensions": {
+            "continent": "North America",
+            "country": "US",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "middle",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:71ad0f7d14cdd3293bbd3a55aae1d49a3a00dbacc79deb5534bf522e14ced1d3",
+          "ownerPhotographerGroupId": "flickr-owner:41284017@N08",
+          "primarySamplingStratumId": "negative--other_geo",
+          "inclusionProbability": 0.375,
+          "dimensions": {
+            "continent": "North America",
+            "country": "US",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "low",
+            "query_trust_tier": "T3"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:72237b55576cc20089cf6a7366f65fa0cd66060ce6fb19efd9306273ff8c8f92",
+          "ownerPhotographerGroupId": "flickr-owner:43272765@N04",
+          "primarySamplingStratumId": "competitor--south_asia",
+          "inclusionProbability": 1.0,
+          "dimensions": {
+            "continent": "Asia",
+            "country": "IN",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "low",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:73eae09de12e8c608807f25e2a9b553bb2b391ccebc6559fe86e6e1f5de1887d",
+          "ownerPhotographerGroupId": "flickr-owner:49301670@N08",
+          "primarySamplingStratumId": "negative--southeast_asia",
+          "inclusionProbability": 1.0,
+          "dimensions": {
+            "continent": "Asia",
+            "country": "MY",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "low",
+            "query_trust_tier": "T3"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:74faf1d620bfba0131476013714ad1b185e253053f4b901647f8eefb141a89e9",
+          "ownerPhotographerGroupId": "flickr-owner:8997331@N04",
+          "primarySamplingStratumId": "target_candidate--south_asia",
+          "inclusionProbability": 0.6666666666666666,
+          "dimensions": {
+            "continent": "Asia",
+            "country": "IN",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "baseline_covered_cell",
+            "raw_screening_score_band": "high",
+            "query_trust_tier": "T3"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:7c095ee581d58c95b3464fdfa95763de700bc1b49c9bedf22ee767fd551ddb26",
+          "ownerPhotographerGroupId": "flickr-owner:101430615@N03",
+          "primarySamplingStratumId": "target_candidate--other_geo",
+          "inclusionProbability": 0.2702702702702703,
+          "dimensions": {
+            "continent": "Europe",
+            "country": "FR",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "high",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:7e930468abcdd8c6b807eaeab15f6cb38eeba3d215f09ca484d7ba9eb9031081",
+          "ownerPhotographerGroupId": "flickr-owner:91314344@N00",
+          "primarySamplingStratumId": "negative--south_asia",
+          "inclusionProbability": 1.0,
+          "dimensions": {
+            "continent": "Asia",
+            "country": "IN",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "low",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:7f39e0199d856e84605e4ae7ff1aadaba827fa4f00bd127c7b230e560f4b805d",
+          "ownerPhotographerGroupId": "flickr-owner:65334251@N06",
+          "primarySamplingStratumId": "target_candidate--other_geo",
+          "inclusionProbability": 0.2702702702702703,
+          "dimensions": {
+            "continent": "Europe",
+            "country": "DE",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "high",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:812c9cca2681c7162248147f80630e5322043bcd4e8ea277476d377e51af8343",
+          "ownerPhotographerGroupId": "flickr-owner:78707632@N07",
+          "primarySamplingStratumId": "target_candidate--other_geo",
+          "inclusionProbability": 0.2702702702702703,
+          "dimensions": {
+            "continent": "Europe",
+            "country": "DE",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "high",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:828ad61e7546d50405416db2faeaa250b36f04741017e10555a88466088bcf47",
+          "ownerPhotographerGroupId": "flickr-owner:55832862@N04",
+          "primarySamplingStratumId": "competitor--other_geo",
+          "inclusionProbability": 0.1746031746031746,
+          "dimensions": {
+            "continent": "Oceania",
+            "country": "AU",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "middle",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:8a2a1cbeaa41a5700bd34aa1ce353b182edd082100ca58051c10a14153a5e9d2",
+          "ownerPhotographerGroupId": "flickr-owner:30628571@N04",
+          "primarySamplingStratumId": "target_candidate--southeast_asia",
+          "inclusionProbability": 1.0,
+          "dimensions": {
+            "continent": "Asia",
+            "country": "MY",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "high",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:9d42315a2eaca0d604659c1d442039bd9663712dcc707c229aab2c181d61edae",
+          "ownerPhotographerGroupId": "flickr-owner:72767520@N08",
+          "primarySamplingStratumId": "negative--no_usable_geo",
+          "inclusionProbability": 1.0,
+          "dimensions": {
+            "continent": "unavailable",
+            "country": "unavailable",
+            "coordinate_support": "no_usable_geo",
+            "coverage": "comparison_unavailable",
+            "raw_screening_score_band": "low",
+            "query_trust_tier": "T3"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:a061234df99580617c159341b7e162d786b09b926ca95a12de54fe5cff1bdc59",
+          "ownerPhotographerGroupId": "flickr-owner:33497841@N02",
+          "primarySamplingStratumId": "target_candidate--other_geo",
+          "inclusionProbability": 0.2702702702702703,
+          "dimensions": {
+            "continent": "North America",
+            "country": "US",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "high",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:a5d2893ebd9216116a11d10c8b8e0aaee45508d1df61449a2936bf9d4ea8c7ae",
+          "ownerPhotographerGroupId": "flickr-owner:28705377@N04",
+          "primarySamplingStratumId": "negative--south_asia",
+          "inclusionProbability": 1.0,
+          "dimensions": {
+            "continent": "Asia",
+            "country": "NP",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "low",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:a5d5b3c8780647c16527b1363d6dd7eff3047721b4334d139c2f2117c7692088",
+          "ownerPhotographerGroupId": "flickr-owner:51869361@N05",
+          "primarySamplingStratumId": "negative--other_geo",
+          "inclusionProbability": 0.375,
+          "dimensions": {
+            "continent": "North America",
+            "country": "US",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "low",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:ab9e64d8e8cc696e4b1cb88327c51691f75363c5b4c919f39f7447173971261f",
+          "ownerPhotographerGroupId": "flickr-owner:7549347@N03",
+          "primarySamplingStratumId": "target_candidate--southeast_asia",
+          "inclusionProbability": 1.0,
+          "dimensions": {
+            "continent": "Asia",
+            "country": "PH",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "low",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:b4db2ab207ff6406b4a80ffee88e53491d70bd081a5430c177042cf170cca47a",
+          "ownerPhotographerGroupId": "flickr-owner:86548370@N00",
+          "primarySamplingStratumId": "competitor--other_geo",
+          "inclusionProbability": 0.1746031746031746,
+          "dimensions": {
+            "continent": "North America",
+            "country": "US",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "low",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:b61bc0ed479f41f61878daf5741ee148c5df896ab1796af2fecefa4226640711",
+          "ownerPhotographerGroupId": "flickr-owner:68932647@N00",
+          "primarySamplingStratumId": "target_candidate--other_geo",
+          "inclusionProbability": 0.2702702702702703,
+          "dimensions": {
+            "continent": "Europe",
+            "country": "GB",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "high",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:b97c12c1e7ce1b8ccb172c877370e51f9dda306df8b00c1d85c230471dd273d2",
+          "ownerPhotographerGroupId": "flickr-owner:65695019@N07",
+          "primarySamplingStratumId": "competitor--other_geo",
+          "inclusionProbability": 0.1746031746031746,
+          "dimensions": {
+            "continent": "Europe",
+            "country": "FR",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "low",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:cc215a876de8e5918664d3a59287d32c2f3a91d7dafa924ef3d8a156bfaa00af",
+          "ownerPhotographerGroupId": "flickr-owner:25027666@N02",
+          "primarySamplingStratumId": "negative--other_geo",
+          "inclusionProbability": 0.375,
+          "dimensions": {
+            "continent": "Oceania",
+            "country": "AU",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "high",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:d756c339d0d8aa22330c1b262756f903e25f31d84cbb1991b5798014317c834d",
+          "ownerPhotographerGroupId": "flickr-owner:34176693@N06",
+          "primarySamplingStratumId": "competitor--south_asia",
+          "inclusionProbability": 1.0,
+          "dimensions": {
+            "continent": "Asia",
+            "country": "IN",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "low",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:de05e68c943110a785b3fe13be232fcf359a388180d488de9dd194856cc25cf9",
+          "ownerPhotographerGroupId": "flickr-owner:14583963@N00",
+          "primarySamplingStratumId": "negative--other_geo",
+          "inclusionProbability": 0.375,
+          "dimensions": {
+            "continent": "Europe",
+            "country": "CZ",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "middle",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:df36c2ff8f2c8add6da5a168de2e9274c5e8f6a01ba06a28d122e5e2eae5df66",
+          "ownerPhotographerGroupId": "flickr-owner:30661871@N03",
+          "primarySamplingStratumId": "abstention--other_geo",
+          "inclusionProbability": 1.0,
+          "dimensions": {
+            "continent": "Europe",
+            "country": "GB",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "low",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:e5918bd04262f4bec96d60673fc078ce036bd7be6399718d511cce63963a99af",
+          "ownerPhotographerGroupId": "flickr-owner:70939559@N02",
+          "primarySamplingStratumId": "target_candidate--other_geo",
+          "inclusionProbability": 0.2702702702702703,
+          "dimensions": {
+            "continent": "Asia",
+            "country": "OM",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "middle",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:e6b69ffcde44dfd6f142d1572a28ecc56b14f41201c00b2a6d92f2bcab4d6cb3",
+          "ownerPhotographerGroupId": "flickr-owner:19937098@N00",
+          "primarySamplingStratumId": "competitor--other_geo",
+          "inclusionProbability": 0.1746031746031746,
+          "dimensions": {
+            "continent": "North America",
+            "country": "US",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "low",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:ead6cb11616e6431e463980c0f0eec0c6e8b9ff4dd400bd8b2929d1e3cdeabc5",
+          "ownerPhotographerGroupId": "flickr-owner:25925793@N00",
+          "primarySamplingStratumId": "negative--other_geo",
+          "inclusionProbability": 0.375,
+          "dimensions": {
+            "continent": "Oceania",
+            "country": "AU",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "middle",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:ed45d42793d84bf72eb0c696a81610a1586495b25928205318523dc860d9cd65",
+          "ownerPhotographerGroupId": "flickr-owner:26782864@N00",
+          "primarySamplingStratumId": "target_candidate--other_geo",
+          "inclusionProbability": 0.2702702702702703,
+          "dimensions": {
+            "continent": "Europe",
+            "country": "GB",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "high",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:ee5f3084a78f2a1c6130b86b235315fb9afd3bdac7c8cbcb48968c161d64dc88",
+          "ownerPhotographerGroupId": "flickr-owner:79476731@N00",
+          "primarySamplingStratumId": "target_candidate--south_asia",
+          "inclusionProbability": 0.6666666666666666,
+          "dimensions": {
+            "continent": "Asia",
+            "country": "IN",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "high",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:f3d54eb4bbbce0876d2f9940e47e20b1da1ab8d40e0067707f02d6070df70113",
+          "ownerPhotographerGroupId": "flickr-owner:60678622@N04",
+          "primarySamplingStratumId": "negative--southeast_asia",
+          "inclusionProbability": 1.0,
+          "dimensions": {
+            "continent": "Asia",
+            "country": "TH",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "middle",
+            "query_trust_tier": "T2"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:ff8b10daeb8bd0a26dae13ca6419f4882b47e30bd1530d22f00d708a56a0d33b",
+          "ownerPhotographerGroupId": "flickr-owner:84861363@N00",
+          "primarySamplingStratumId": "target_candidate--south_asia",
+          "inclusionProbability": 0.6666666666666666,
+          "dimensions": {
+            "continent": "Asia",
+            "country": "IN",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "high",
+            "query_trust_tier": "T3"
+          }
+        },
+        {
+          "itemId": "flickr-review-item:ffaacdb5088298fc045dfaf6bf370b297cf393dfc306f0d6905d0a4f19016bcb",
+          "ownerPhotographerGroupId": "flickr-owner:74834643@N07",
+          "primarySamplingStratumId": "competitor--southeast_asia",
+          "inclusionProbability": 1.0,
+          "dimensions": {
+            "continent": "Asia",
+            "country": "VN",
+            "coordinate_support": "spatial_cell_supported",
+            "coverage": "candidate_only_cell",
+            "raw_screening_score_band": "low",
+            "query_trust_tier": "T2"
+          }
+        }
+      ]
+    }
   },
   "provenance": {
-    "generatedAt": "2026-07-16T23:08:52Z",
+    "generatedAt": "2026-07-17T22:05:41Z",
     "generator": "scripts/build_flickr_audit_campaign.py",
     "taxalensBaseSha": "873beb6b2b58b28d4b144e03bb75f1c05b5d321c",
     "biominerRepository": "karikris/BioMiner",
@@ -5997,15 +7078,23 @@
         "byteCount": 5026317,
         "gitTracked": false,
         "role": "historical_screening_cache"
+      },
+      {
+        "artifactId": "committed_geographic_impact_cells",
+        "declaredPath": "demo/source/biominer_phase14/geographic_impact/geographic_impact_cells.parquet",
+        "sha256": "a02927ffbb4dc09fca582c61e6ceab51af6d12f8998cf0f7762ebfe26a4ea1c9",
+        "byteCount": 639681,
+        "gitTracked": true,
+        "role": "geographic_audit_reporting"
       }
     ],
-    "gitTrackedInputCount": 3,
+    "gitTrackedInputCount": 4,
     "historicalCacheInputCount": 3,
     "historicalCacheDisclosure": "The three historical screening inputs are local run outputs, not content at BioMiner HEAD. Their exact hashes are pinned; they assign review strata only and are not human truth.",
     "flickrRightsRegistry": {
       "method": "flickr.photos.licenses.getInfo",
       "documentationUri": "https://www.flickr.com/services/api/flickr.photos.licenses.getInfo.html",
-      "checkedAt": "2026-07-16T23:08:52Z",
+      "checkedAt": "2026-07-17T22:05:41Z",
       "allowedLicenseIds": [
         "10",
         "11",
@@ -6035,7 +7124,7 @@
         "byteCount": 227675,
         "decodedWidth": 1024,
         "decodedHeight": 682,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "4785844493",
@@ -6049,7 +7138,7 @@
         "byteCount": 192073,
         "decodedWidth": 1024,
         "decodedHeight": 819,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "55209377557",
@@ -6063,7 +7152,7 @@
         "byteCount": 160468,
         "decodedWidth": 1023,
         "decodedHeight": 731,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "49677006387",
@@ -6077,7 +7166,7 @@
         "byteCount": 144777,
         "decodedWidth": 1024,
         "decodedHeight": 768,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "5525576270",
@@ -6091,7 +7180,7 @@
         "byteCount": 174830,
         "decodedWidth": 758,
         "decodedHeight": 1023,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "41481402931",
@@ -6105,7 +7194,7 @@
         "byteCount": 172612,
         "decodedWidth": 1023,
         "decodedHeight": 576,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "9364410281",
@@ -6119,7 +7208,7 @@
         "byteCount": 99463,
         "decodedWidth": 1024,
         "decodedHeight": 686,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "20877312702",
@@ -6133,7 +7222,7 @@
         "byteCount": 191000,
         "decodedWidth": 1024,
         "decodedHeight": 768,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "42518330315",
@@ -6147,7 +7236,7 @@
         "byteCount": 150148,
         "decodedWidth": 1024,
         "decodedHeight": 683,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "42660324100",
@@ -6161,7 +7250,7 @@
         "byteCount": 377957,
         "decodedWidth": 1024,
         "decodedHeight": 768,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "23702152854",
@@ -6175,7 +7264,7 @@
         "byteCount": 185056,
         "decodedWidth": 1024,
         "decodedHeight": 716,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "52860529561",
@@ -6189,7 +7278,7 @@
         "byteCount": 193424,
         "decodedWidth": 1023,
         "decodedHeight": 484,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "48955053013",
@@ -6203,7 +7292,7 @@
         "byteCount": 218140,
         "decodedWidth": 1024,
         "decodedHeight": 683,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "8245256190",
@@ -6217,7 +7306,7 @@
         "byteCount": 272965,
         "decodedWidth": 1024,
         "decodedHeight": 875,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "8310047530",
@@ -6231,7 +7320,7 @@
         "byteCount": 172823,
         "decodedWidth": 1024,
         "decodedHeight": 838,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "255478419",
@@ -6245,7 +7334,7 @@
         "byteCount": 182012,
         "decodedWidth": 1024,
         "decodedHeight": 768,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "49679795123",
@@ -6259,7 +7348,7 @@
         "byteCount": 276439,
         "decodedWidth": 1024,
         "decodedHeight": 678,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "9633203948",
@@ -6273,7 +7362,7 @@
         "byteCount": 301776,
         "decodedWidth": 1024,
         "decodedHeight": 559,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "54225056088",
@@ -6287,7 +7376,7 @@
         "byteCount": 163840,
         "decodedWidth": 1024,
         "decodedHeight": 768,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "14326585927",
@@ -6301,7 +7390,7 @@
         "byteCount": 275768,
         "decodedWidth": 945,
         "decodedHeight": 630,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "5311761433",
@@ -6315,7 +7404,7 @@
         "byteCount": 176765,
         "decodedWidth": 1024,
         "decodedHeight": 768,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "4252924653",
@@ -6329,7 +7418,7 @@
         "byteCount": 182906,
         "decodedWidth": 768,
         "decodedHeight": 1024,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "3331449300",
@@ -6343,7 +7432,7 @@
         "byteCount": 93466,
         "decodedWidth": 768,
         "decodedHeight": 1024,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "8680958736",
@@ -6357,7 +7446,7 @@
         "byteCount": 353044,
         "decodedWidth": 1024,
         "decodedHeight": 768,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "37616696701",
@@ -6371,7 +7460,7 @@
         "byteCount": 195818,
         "decodedWidth": 1024,
         "decodedHeight": 683,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "50707364321",
@@ -6385,7 +7474,7 @@
         "byteCount": 319185,
         "decodedWidth": 768,
         "decodedHeight": 1024,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "4877480464",
@@ -6399,7 +7488,7 @@
         "byteCount": 87918,
         "decodedWidth": 1024,
         "decodedHeight": 680,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "33617480795",
@@ -6413,7 +7502,7 @@
         "byteCount": 209630,
         "decodedWidth": 1023,
         "decodedHeight": 702,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "3821718627",
@@ -6427,7 +7516,7 @@
         "byteCount": 143702,
         "decodedWidth": 768,
         "decodedHeight": 1024,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "312643740",
@@ -6441,7 +7530,7 @@
         "byteCount": 115150,
         "decodedWidth": 1024,
         "decodedHeight": 576,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "8126046253",
@@ -6455,7 +7544,7 @@
         "byteCount": 696562,
         "decodedWidth": 1024,
         "decodedHeight": 683,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "15625533673",
@@ -6469,7 +7558,7 @@
         "byteCount": 228754,
         "decodedWidth": 1024,
         "decodedHeight": 1005,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "50249064656",
@@ -6483,7 +7572,7 @@
         "byteCount": 270011,
         "decodedWidth": 900,
         "decodedHeight": 1600,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "42833192061",
@@ -6497,7 +7586,7 @@
         "byteCount": 196669,
         "decodedWidth": 1024,
         "decodedHeight": 792,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "6274329594",
@@ -6511,7 +7600,7 @@
         "byteCount": 178155,
         "decodedWidth": 1023,
         "decodedHeight": 705,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "4865936940",
@@ -6525,7 +7614,7 @@
         "byteCount": 138937,
         "decodedWidth": 1024,
         "decodedHeight": 768,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "9487969492",
@@ -6539,7 +7628,7 @@
         "byteCount": 196157,
         "decodedWidth": 1023,
         "decodedHeight": 680,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "53062797224",
@@ -6553,7 +7642,7 @@
         "byteCount": 184874,
         "decodedWidth": 1024,
         "decodedHeight": 768,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "53852248004",
@@ -6567,7 +7656,7 @@
         "byteCount": 107883,
         "decodedWidth": 1024,
         "decodedHeight": 768,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "7960468190",
@@ -6581,7 +7670,7 @@
         "byteCount": 133637,
         "decodedWidth": 1024,
         "decodedHeight": 679,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "52176890861",
@@ -6595,7 +7684,7 @@
         "byteCount": 160794,
         "decodedWidth": 1024,
         "decodedHeight": 683,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "51108181091",
@@ -6609,7 +7698,7 @@
         "byteCount": 132206,
         "decodedWidth": 1024,
         "decodedHeight": 683,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "8243103525",
@@ -6623,7 +7712,7 @@
         "byteCount": 195385,
         "decodedWidth": 800,
         "decodedHeight": 564,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "422524555",
@@ -6637,7 +7726,7 @@
         "byteCount": 87712,
         "decodedWidth": 748,
         "decodedHeight": 544,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "3254436151",
@@ -6651,7 +7740,7 @@
         "byteCount": 249814,
         "decodedWidth": 1024,
         "decodedHeight": 1024,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "4545686039",
@@ -6665,7 +7754,7 @@
         "byteCount": 156803,
         "decodedWidth": 1024,
         "decodedHeight": 683,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "52790415462",
@@ -6679,7 +7768,7 @@
         "byteCount": 357785,
         "decodedWidth": 1024,
         "decodedHeight": 683,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "49711723587",
@@ -6693,7 +7782,7 @@
         "byteCount": 273885,
         "decodedWidth": 900,
         "decodedHeight": 675,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       },
       {
         "flickrPhotoId": "9111053967",
@@ -6707,7 +7796,7 @@
         "byteCount": 205139,
         "decodedWidth": 482,
         "decodedHeight": 559,
-        "verifiedAt": "2026-07-16T23:08:52Z"
+        "verifiedAt": "2026-07-17T22:05:41Z"
       }
     ]
   },

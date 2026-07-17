@@ -23,7 +23,7 @@ import os
 import sys
 import urllib.parse
 import urllib.request
-from collections import defaultdict
+from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -37,6 +37,7 @@ SCHEMA_VERSION = "taxalens-flickr-audit-campaign-packet:v1.0.0"
 CAMPAIGN_SCHEMA_VERSION = "taxalens-verification-campaign:v1.0.0"
 SOURCE_SCHEMA_VERSION = "taxalens-flickr-verification-source:v1.1.0"
 SELECTION_SCHEMA_VERSION = "taxalens-flickr-audit-selection:v1.0.0"
+GEOGRAPHIC_AUDIT_SCHEMA_VERSION = "taxalens-flickr-geographic-audit-strata:v1.0.0"
 SELECTION_SEED = "taxalens-papilio-demoleus-flickr-audit-v1"
 TAXALENS_BASE_SHA = "873beb6b2b58b28d4b144e03bb75f1c05b5d321c"
 BIOMINER_SHA = "94fa1f634ee3c63917c05d78181dd3cf9ceff940"
@@ -124,6 +125,11 @@ EXPECTED_INPUTS = {
     ),
 }
 
+GEOGRAPHIC_AUDIT_INPUT = (
+    "demo/source/biominer_phase14/geographic_impact/geographic_impact_cells.parquet",
+    "a02927ffbb4dc09fca582c61e6ceab51af6d12f8998cf0f7762ebfe26a4ea1c9",
+)
+
 
 @dataclass(frozen=True)
 class InputArtifact:
@@ -210,7 +216,52 @@ def load_inputs(repo_root: Path, biominer_root: Path) -> dict[str, InputArtifact
     return inputs
 
 
-def load_population(inputs: dict[str, InputArtifact]) -> list[dict[str, Any]]:
+def load_geographic_audit_context(
+    repo_root: Path,
+) -> tuple[InputArtifact, dict[tuple[int, str], dict[str, Any]]]:
+    declared_path, expected_sha = GEOGRAPHIC_AUDIT_INPUT
+    path = repo_root / declared_path
+    if not path.is_file():
+        raise RuntimeError(f"Required geographic audit input is unavailable: {path}")
+    actual_sha = sha256_path(path)
+    if actual_sha != expected_sha:
+        raise RuntimeError(
+            "Geographic audit input digest mismatch: "
+            f"expected {expected_sha}, observed {actual_sha}"
+        )
+    artifact = InputArtifact(
+        artifact_id="committed_geographic_impact_cells",
+        path=path,
+        declared_path=declared_path,
+        sha256=actual_sha,
+        byte_count=path.stat().st_size,
+        git_tracked=True,
+    )
+    rows = (
+        pl.read_parquet(path)
+        .select(
+            "spatial_resolution",
+            "spatial_cell_id",
+            "continent",
+            "country_code",
+            "baseline_union_count",
+            "candidate_only_cell",
+        )
+        .to_dicts()
+    )
+    lookup: dict[tuple[int, str], dict[str, Any]] = {}
+    for row in rows:
+        key = (int(row["spatial_resolution"]), str(row["spatial_cell_id"]))
+        if key in lookup:
+            raise RuntimeError(f"Geographic impact cells repeat audit key {key}.")
+        lookup[key] = row
+    return artifact, lookup
+
+
+def load_population(
+    inputs: dict[str, InputArtifact],
+    geographic_impact_cells: dict[tuple[int, str], dict[str, Any]],
+) -> list[dict[str, Any]]:
     metadata = (
         pl.scan_ndjson(
             inputs["historical_flickr_metadata"].path,
@@ -256,6 +307,10 @@ def load_population(inputs: dict[str, InputArtifact]) -> list[dict[str, Any]]:
         "coordinate_quality",
         "geography_warning",
         "geography_config_fingerprint",
+        "country_code",
+        "coarse_cell_id",
+        "regional_cell_id",
+        "local_cell_id",
     )
     assignments = pl.scan_parquet(inputs["committed_assignments"].path).select(
         "flickr_photo_id",
@@ -283,7 +338,77 @@ def load_population(inputs: dict[str, InputArtifact]) -> list[dict[str, Any]]:
         row["screening_class"] = screening_class(row)
         row["geography_stratum"] = geography_stratum(row)
         row["sampling_stratum_id"] = f"{row['screening_class']}--{row['geography_stratum']}"
+        row["geographic_audit_dimensions"] = geographic_audit_dimensions(
+            row,
+            geographic_impact_cells,
+        )
     return canonical_owner_population(rows)
+
+
+def geographic_audit_dimensions(
+    row: dict[str, Any],
+    geographic_impact_cells: dict[tuple[int, str], dict[str, Any]],
+) -> dict[str, str]:
+    coordinate_quality = str(row["coordinate_quality"])
+    warning = row["geography_warning"]
+    no_usable_geo = coordinate_quality in {"flickr_world", "unknown_precision"} or warning == (
+        "coordinate_at_null_island"
+    )
+    spatial_resolution: int | None = None
+    spatial_cell_id: str | None = None
+    if coordinate_quality == "flickr_street" and row["local_cell_id"] is not None:
+        spatial_resolution = 7
+        spatial_cell_id = str(row["local_cell_id"])
+    elif coordinate_quality == "flickr_city" and row["regional_cell_id"] is not None:
+        spatial_resolution = 5
+        spatial_cell_id = str(row["regional_cell_id"])
+    elif coordinate_quality == "flickr_region" and row["coarse_cell_id"] is not None:
+        spatial_resolution = 3
+        spatial_cell_id = str(row["coarse_cell_id"])
+
+    impact = (
+        geographic_impact_cells.get((spatial_resolution, spatial_cell_id))
+        if spatial_resolution is not None and spatial_cell_id is not None
+        else None
+    )
+    if spatial_resolution is not None and impact is None:
+        raise RuntimeError(
+            f"Flickr audit cell {spatial_cell_id} at resolution {spatial_resolution} "
+            "is absent from committed geographic impact evidence."
+        )
+    if impact is None:
+        coverage = "comparison_unavailable"
+    elif bool(impact["candidate_only_cell"]):
+        coverage = "candidate_only_cell"
+    elif int(impact["baseline_union_count"]) > 0:
+        coverage = "baseline_covered_cell"
+    else:
+        raise RuntimeError("Geographic audit impact cell has unresolved coverage semantics.")
+
+    score = row["species_top1_score"]
+    if score is None:
+        score_band = "unavailable"
+    elif float(score) < 0.6:
+        score_band = "low"
+    elif float(score) < 0.8:
+        score_band = "middle"
+    else:
+        score_band = "high"
+    coordinate_support = (
+        "no_usable_geo"
+        if no_usable_geo
+        else "spatial_cell_supported"
+        if impact is not None
+        else "country_precision_only"
+    )
+    return {
+        "continent": str(impact["continent"] or "unavailable") if impact else "unavailable",
+        "country": str(impact["country_code"] or "unavailable") if impact else "unavailable",
+        "coordinate_support": coordinate_support,
+        "coverage": coverage,
+        "raw_screening_score_band": score_band,
+        "query_trust_tier": "unassigned",
+    }
 
 
 def screening_class(row: dict[str, Any]) -> str:
@@ -468,6 +593,141 @@ def query_trust_tier(rank: str, confidence: str) -> str:
     if confidence == "broad":
         return "T4"
     return "T5"
+
+
+def build_geographic_audit_strata(
+    population: list[dict[str, Any]],
+    selected: list[dict[str, Any]],
+    item_id_by_photo: dict[str, str],
+    impact_artifact: InputArtifact,
+) -> dict[str, Any]:
+    dimension_names = (
+        "continent",
+        "country",
+        "coordinate_support",
+        "coverage",
+        "raw_screening_score_band",
+        "query_trust_tier",
+    )
+    dimensions: dict[str, list[dict[str, Any]]] = {}
+    for dimension in dimension_names:
+        population_counts = Counter(
+            str(row["geographic_audit_dimensions"][dimension]) for row in population
+        )
+        selected_counts = Counter(
+            str(row["geographic_audit_dimensions"][dimension]) for row in selected
+        )
+        dimensions[dimension] = [
+            {
+                "value": value,
+                "populationOwnerGroupCount": population_counts[value],
+                "selectedOwnerGroupCount": selected_counts[value],
+                "zeroTake": selected_counts[value] == 0,
+            }
+            for value in sorted(population_counts)
+        ]
+
+    selected_owner_groups = [str(row["owner_id"]) for row in selected]
+    requirements = {
+        "multipleContinents": len(
+            {
+                row["geographic_audit_dimensions"]["continent"]
+                for row in selected
+                if row["geographic_audit_dimensions"]["continent"] != "unavailable"
+            }
+        )
+        >= 2,
+        "multipleCountries": len(
+            {
+                row["geographic_audit_dimensions"]["country"]
+                for row in selected
+                if row["geographic_audit_dimensions"]["country"] != "unavailable"
+            }
+        )
+        >= 2,
+        "noUsableGeo": any(
+            row["geographic_audit_dimensions"]["coordinate_support"] == "no_usable_geo"
+            for row in selected
+        ),
+        "baselineCoveredCells": any(
+            row["geographic_audit_dimensions"]["coverage"] == "baseline_covered_cell"
+            for row in selected
+        ),
+        "candidateOnlyCells": any(
+            row["geographic_audit_dimensions"]["coverage"] == "candidate_only_cell"
+            for row in selected
+        ),
+        "allObservedRawScoreBands": {
+            row["geographic_audit_dimensions"]["raw_screening_score_band"]
+            for row in population
+        }.issubset(
+            {
+                row["geographic_audit_dimensions"]["raw_screening_score_band"]
+                for row in selected
+            }
+        ),
+        "multipleQueryTiers": len(
+            {
+                row["geographic_audit_dimensions"]["query_trust_tier"] for row in selected
+            }
+        )
+        >= 2,
+        "independentOwnerGroups": len(selected_owner_groups) == len(set(selected_owner_groups)),
+    }
+    if not all(requirements.values()):
+        failed = sorted(name for name, met in requirements.items() if not met)
+        raise RuntimeError(f"Geographic audit representation requirements failed: {failed}")
+
+    bindings = []
+    for row in selected:
+        photo_id = str(row["flickr_photo_id"])
+        item_id = item_id_by_photo.get(photo_id)
+        if item_id is None:
+            raise RuntimeError(f"Geographic audit selected photo {photo_id} has no review item.")
+        bindings.append(
+            {
+                "itemId": item_id,
+                "ownerPhotographerGroupId": f"flickr-owner:{row['owner_id']}",
+                "primarySamplingStratumId": str(row["sampling_stratum_id"]),
+                "inclusionProbability": float(row["inclusion_probability"]),
+                "dimensions": row["geographic_audit_dimensions"],
+            }
+        )
+    bindings.sort(key=lambda value: value["itemId"])
+    return {
+        "schemaVersion": GEOGRAPHIC_AUDIT_SCHEMA_VERSION,
+        "impactArtifact": {
+            "path": impact_artifact.declared_path,
+            "sha256": impact_artifact.sha256,
+            "byteCount": impact_artifact.byte_count,
+        },
+        "primarySamplingDesignUnchanged": True,
+        "reportingDimensionsDoNotAlterInclusionProbability": True,
+        "reviewerDisclosureAllowedBeforeDecision": False,
+        "dimensionSemantics": {
+            "raw_screening_score_band": (
+                "Bands the historical raw top-1 model similarity at <0.6, 0.6–<0.8 and "
+                ">=0.8; it is not a probability or human label."
+            ),
+            "coverage": (
+                "Compares the precision-supported Flickr cell with the selected baseline "
+                "snapshot; unavailable comparison is not biological absence."
+            ),
+            "zeroTake": (
+                "A population dimension value received no selected owner group and authorizes "
+                "no dimension-specific estimate."
+            ),
+        },
+        "dimensions": dimensions,
+        "representationRequirements": requirements,
+        "ownerGroupIndependence": {
+            "populationOwnerGroupCount": len(population),
+            "selectedOwnerGroupCount": len(selected),
+            "repeatedSelectedOwnerGroupCount": len(selected_owner_groups)
+            - len(set(selected_owner_groups)),
+        },
+        "itemBindings": bindings,
+    }
 
 
 def flickr_api(api_key: str, method: str, **arguments: str) -> dict[str, Any]:
@@ -751,9 +1011,13 @@ def build_packet(
     workers: int,
 ) -> dict[str, Any]:
     inputs = load_inputs(repo_root, biominer_root)
-    population = load_population(inputs)
-    selected, strata_receipts = select_owner_sample(population)
+    impact_artifact, geographic_impact_cells = load_geographic_audit_context(repo_root)
+    population = load_population(inputs, geographic_impact_cells)
     query_hits = load_query_hits(inputs)
+    for row in population:
+        query = choose_query(str(row["flickr_photo_id"]), query_hits)
+        row["geographic_audit_dimensions"]["query_trust_tier"] = query["trustTier"]
+    selected, strata_receipts = select_owner_sample(population)
     media_by_photo = fetch_selected_media(selected, api_key, workers)
     generated_at = datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
     input_fingerprints = {
@@ -887,6 +1151,7 @@ def build_packet(
 
     items: list[dict[str, Any]] = []
     sampling_weights: dict[str, float] = {}
+    item_id_by_photo: dict[str, str] = {}
     source_by_id = {source["flickrRecordId"]: source for source in source_rows}
     probability_by_stratum = {
         receipt["stratumId"]: receipt["inclusionProbability"] for receipt in strata_receipts
@@ -935,9 +1200,17 @@ def build_packet(
             "questionFingerprint": question_fingerprint,
         }
         items.append(item)
+        item_id_by_photo[str(source["flickrPhotoId"])] = item_id
         sampling_weights[item_id] = 1 / probability
 
-    git_tracked_input_count = sum(artifact.git_tracked for artifact in inputs.values())
+    geographic_audit_strata = build_geographic_audit_strata(
+        population,
+        selected,
+        item_id_by_photo,
+        impact_artifact,
+    )
+
+    git_tracked_input_count = sum(artifact.git_tracked for artifact in inputs.values()) + 1
     packet = {
         "schemaVersion": SCHEMA_VERSION,
         "campaign": campaign,
@@ -966,6 +1239,7 @@ def build_packet(
                 "owner and owner groups within declared strata."
             ),
             "zeroTakeStrataAuthorizeEstimate": False,
+            "geographicAuditStrata": geographic_audit_strata,
         },
         "provenance": {
             "generatedAt": generated_at,
@@ -981,15 +1255,20 @@ def build_packet(
                     "byteCount": artifact.byte_count,
                     "gitTracked": artifact.git_tracked,
                     "role": (
+                        "geographic_audit_reporting"
+                        if artifact.artifact_id == "committed_geographic_impact_cells"
+                        else
                         "committed_population_contract"
                         if artifact.git_tracked
                         else "historical_screening_cache"
                     ),
                 }
-                for artifact in inputs.values()
+                for artifact in [*inputs.values(), impact_artifact]
             ],
             "gitTrackedInputCount": git_tracked_input_count,
-            "historicalCacheInputCount": len(inputs) - git_tracked_input_count,
+            "historicalCacheInputCount": sum(
+                not artifact.git_tracked for artifact in inputs.values()
+            ),
             "historicalCacheDisclosure": (
                 "The three historical screening inputs are local run outputs, "
                 "not content at BioMiner HEAD. Their exact hashes are pinned; "
@@ -1079,6 +1358,59 @@ def validate_packet(packet: dict[str, Any]) -> None:
     ]
     if any(not math.isfinite(value) for value in numeric_values):
         raise RuntimeError("Selection receipt contains non-finite probabilities.")
+    validate_geographic_audit(packet)
+
+
+def validate_geographic_audit(packet: dict[str, Any]) -> None:
+    audit = packet["selection"]["geographicAuditStrata"]
+    items = packet["items"]
+    selection = packet["selection"]
+    if audit["schemaVersion"] != GEOGRAPHIC_AUDIT_SCHEMA_VERSION:
+        raise RuntimeError("Geographic audit strata schema changed.")
+    if not audit["primarySamplingDesignUnchanged"]:
+        raise RuntimeError("Geographic audit altered the primary sampling design.")
+    if not audit["reportingDimensionsDoNotAlterInclusionProbability"]:
+        raise RuntimeError("Geographic reporting dimensions altered inclusion probability.")
+    if audit["reviewerDisclosureAllowedBeforeDecision"]:
+        raise RuntimeError("Blind geographic audit dimensions became reviewer-visible.")
+    if not all(audit["representationRequirements"].values()):
+        raise RuntimeError("Geographic audit representation requirement is incomplete.")
+
+    bindings = audit["itemBindings"]
+    if len(bindings) != len(items):
+        raise RuntimeError("Geographic audit binding count differs from campaign items.")
+    item_by_id = {item["itemId"]: item for item in items}
+    if len(item_by_id) != len(items) or {row["itemId"] for row in bindings} != set(item_by_id):
+        raise RuntimeError("Geographic audit bindings do not cover each item exactly once.")
+    for binding in bindings:
+        item = item_by_id[binding["itemId"]]
+        if binding["ownerPhotographerGroupId"] != item["ownerPhotographerGroupId"]:
+            raise RuntimeError("Geographic audit owner binding changed.")
+        if binding["primarySamplingStratumId"] != item["samplingStratumId"]:
+            raise RuntimeError("Geographic audit primary stratum binding changed.")
+        if binding["inclusionProbability"] != item["inclusionProbability"]:
+            raise RuntimeError("Geographic audit inclusion probability changed.")
+
+    dimensions = audit["dimensions"]
+    expected_dimensions = {
+        "continent",
+        "country",
+        "coordinate_support",
+        "coverage",
+        "raw_screening_score_band",
+        "query_trust_tier",
+    }
+    if set(dimensions) != expected_dimensions:
+        raise RuntimeError("Geographic audit reporting dimensions changed.")
+    for dimension, receipts in dimensions.items():
+        if sum(row["populationOwnerGroupCount"] for row in receipts) != selection[
+            "sourceRecordCount"
+        ]:
+            raise RuntimeError(f"Geographic audit {dimension} population does not reconcile.")
+        if sum(row["selectedOwnerGroupCount"] for row in receipts) != len(items):
+            raise RuntimeError(f"Geographic audit {dimension} selection does not reconcile.")
+        if any(row["zeroTake"] != (row["selectedOwnerGroupCount"] == 0) for row in receipts):
+            raise RuntimeError(f"Geographic audit {dimension} zero-take state is invalid.")
 
 
 def parse_args() -> argparse.Namespace:
