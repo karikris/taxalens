@@ -220,11 +220,14 @@ available as a slower orientation route.
 | Observatory stages | 13 |
 | DuckDB-Wasm replay operations | 8 |
 | Regional candidate plans | 5 |
-| Stored GPT-5.6 traces | 2 |
+| Stored GPT-5.6 traces | 3 |
 | Research replay response turns / tool calls | 2 / 1 |
 | Verification replay response turns / tool calls | 6 / 5 |
-| Deterministic evaluation cases / named checks | 31 / 247 |
+| Core deterministic evaluation cases / named checks | 31 / 247 |
+| Geographic analyst evaluation cases | 24 |
 | Local research outputs | 6 |
+| Geographic export files | 7 |
+| External map, tile, font, sprite, telemetry, or analytics origins | 0 |
 | Committed reviewed scientific metrics | 0 |
 | Prototype-entry gates passed / required | 14 / 14 |
 | Prototype support rows / independently human-verified | 81 / 0 |
@@ -234,6 +237,31 @@ The main workload counts are 76,485 many-to-many Flickr query-hit associations, 
 source-photo records, 838 eligible source-media candidates, and zero human-verified source media.
 These are discovery and review-workload facts, not biological occurrence or classifier-accuracy
 facts.
+
+### Geographic replay identities and counts
+
+| Geographic evidence | Expected value |
+| --- | --- |
+| Stored judge bundle | `papilio-demoleus-prototype-74a7d648-v3`; raw schema `taxalens-judge-bundle:v1.0.0` |
+| Canonical bundle contract | `taxalens-judge-bundle:v2.0.0`; the v1 fixture is migrated in memory with six unavailable geographic descriptors and no invented rows |
+| Geographic Impact manifest | `geographic-impact-manifest:e3c532a1c6310d2a0906cacc`; build `geographic-impact:84b8d1b69c3dae1e329a3f6b` |
+| Baseline snapshot | `gbif-occurrence-search-20260715` |
+| Flickr snapshot | `flickr:2026-07-15` |
+| BioMiner source commits | baseline `247b42f3206d48bb79e2dbf97c5a92e4f207ae71`; Flickr `75461d9c065af0cd96b41cd1f845c2e920f7ae34` |
+| Provider union | 19,201 canonical observations: 4,017 GBIF-only and 15,184 iNaturalist-origin through GBIF |
+| Direct iNaturalist delta | Unavailable; no direct snapshot is committed |
+| Provider duplicate state | 0 exact cross-provider duplicates removed and 0 unresolved groups in this snapshot |
+| Global resolution 3 | 2,155 cells; 19,201 baseline observations; 13,416 Flickr candidates; 1,221 candidate-only cells |
+| Global resolution 5 | 7,163 cells; 19,201 baseline observations; 13,026 Flickr candidates; 3,075 candidate-only cells |
+| Global resolution 7 | 10,919 cells; 19,201 baseline observations; 7,932 Flickr candidates; 2,468 candidate-only cells |
+| Sweden stored replay, resolution 7 | 0 baseline rows; 529 Flickr candidates; 12 candidate-only cells |
+| Human-supported state | 0 retained human outcomes; 0 human-supported additional cells |
+| Release state | 0 release-ready occurrence candidates; 0 release-ready additional cells; quality snapshot unavailable |
+| Offline hierarchy | `country-hierarchy:natural-earth-v5.1.2-110m`; 183 country/continent nodes |
+
+Resolution rows are projections of the same observations and must not be summed. Candidate-only
+means absent from the selected baseline snapshot at that cell and resolution; it is not proof of
+biological absence. The direct iNaturalist delta is unavailable rather than a fabricated zero.
 
 ## Technical route
 
@@ -259,7 +287,8 @@ substitute another fixture.
 Open [`demo/fixture/papilio_pilot/judge_bundle.json`](demo/fixture/papilio_pilot/judge_bundle.json)
 and verify:
 
-- schema `taxalens-judge-bundle:v1.0.0`;
+- stored schema `taxalens-judge-bundle:v1.0.0`, validated before its canonical in-memory v2
+  migration;
 - inventory checksum `7bbb1c9f28d23e5b87abc8c6139182fff683c2ae4873f5bc2a17fe91b0784acc`;
 - payload root `9e6b4660d7d6ea885c0a231cca63e7237bf59cc8a8c4eae84a2f3fd701124974`;
 - all 30 artifacts are rights-covered and attribution-complete;
@@ -313,6 +342,9 @@ Open **Agent Trace** and confirm:
 - the research trace contains two stored response turns, one `resolve_taxon` tool call, and a
   citation to `query-definitions`;
 - the verification trace contains six stored response turns and five read-only tool calls;
+- the geographic trace uses two deterministic tool receipts for Sweden at resolution 7 and cites
+  every baseline, Flickr, impact, hierarchy, campaign, quality-state, and source-commit identity;
+- the geographic trace reports zero retained human outcomes and no release-ready contribution;
 - the verification recommendation is adjudication for an intentionally conflicted synthetic
   control item;
 - the verification card says **Synthetic evaluation evidence · not current browser state**;
