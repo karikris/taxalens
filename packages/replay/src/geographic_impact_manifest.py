@@ -66,9 +66,7 @@ def build_geographic_impact_manifest(
     if not cells.height or not summaries.height:
         raise GeographicImpactManifestError("impact outputs are empty")
     hierarchy = _read_json(DEFAULT_COUNTRY_HIERARCHY)
-    global_rows = summaries.filter(pl.col("scope_level") == "global").sort(
-        "spatial_resolution"
-    )
+    global_rows = summaries.filter(pl.col("scope_level") == "global").sort("spatial_resolution")
     if global_rows.height != cells.get_column("spatial_resolution").n_unique():
         raise GeographicImpactManifestError("global summary coverage differs")
     canonical_global = global_rows.row(0, named=True)
@@ -170,12 +168,8 @@ def build_geographic_impact_manifest(
         "scientific_name": str(canonical_global["scientific_name"]),
         "baseline_snapshot_id": str(canonical_global["baseline_snapshot_id"]),
         "flickr_snapshot_id": str(canonical_global["flickr_snapshot_id"]),
-        "provider_union_policy_version": str(
-            canonical_global["provider_union_policy_version"]
-        ),
-        "verification_projection_version": str(
-            canonical_global["verification_projection_version"]
-        ),
+        "provider_union_policy_version": str(canonical_global["provider_union_policy_version"]),
+        "verification_projection_version": str(canonical_global["verification_projection_version"]),
         "release_policy_version": str(canonical_global["release_policy_version"]),
         "country_hierarchy_id": str(canonical_global["country_hierarchy_id"]),
         "spatial_resolutions": sorted(
@@ -189,9 +183,7 @@ def build_geographic_impact_manifest(
         "hierarchy_node_count": len(hierarchy_nodes),
         "baseline_evidence_status": str(canonical_global["baseline_evidence_status"]),
         "baseline_union_count": int(canonical_global["baseline_union_count"]),
-        "direct_inaturalist_delta_status": str(
-            canonical_global["direct_inaturalist_delta_status"]
-        ),
+        "direct_inaturalist_delta_status": str(canonical_global["direct_inaturalist_delta_status"]),
         "direct_inaturalist_delta_count": canonical_global["direct_inaturalist_delta_count"],
         "flickr_candidate_count": flickr_totals["flickr_candidate_count"],
         "geographically_supported_flickr_candidate_count": flickr_totals[
@@ -210,15 +202,11 @@ def build_geographic_impact_manifest(
         "baseline_only_cell_count": int(cells.get_column("baseline_only_cell").sum()),
         "matched_cell_count": int(cells.get_column("matched_cell").sum()),
         "candidate_only_cell_count": int(cells.get_column("candidate_only_cell").sum()),
-        "reviewed_additional_cell_count": int(
-            cells.get_column("reviewed_additional_cell").sum()
-        ),
+        "reviewed_additional_cell_count": int(cells.get_column("reviewed_additional_cell").sum()),
         "release_ready_additional_cell_count": int(
             cells.get_column("release_ready_additional_cell").sum()
         ),
-        "unassigned_cartographic_cell_count": cells.filter(
-            pl.col("country_code").is_null()
-        ).height,
+        "unassigned_cartographic_cell_count": cells.filter(pl.col("country_code").is_null()).height,
         "generated_by": MANIFEST_GENERATOR,
     }
     fingerprint = _sha256(_canonical_json_bytes(base))
@@ -340,8 +328,7 @@ def _source_commits(artifacts: list[dict[str, object]]) -> list[dict[str, str]]:
         if artifact["source_repository"] is not None
     }
     return [
-        {"repository": repository, "commit_sha": commit}
-        for repository, commit in sorted(pairs)
+        {"repository": repository, "commit_sha": commit} for repository, commit in sorted(pairs)
     ]
 
 

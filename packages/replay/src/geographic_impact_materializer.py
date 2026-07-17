@@ -294,9 +294,7 @@ def build_geographic_impact_summaries(
                     "cell continent is absent from country hierarchy"
                 )
             rows.append(
-                _summarize_scope(
-                    resolution_cells.filter(pl.col("continent") == continent), node
-                )
+                _summarize_scope(resolution_cells.filter(pl.col("continent") == continent), node)
             )
         for country_code in sorted(
             resolution_cells.get_column("country_code").drop_nulls().unique().to_list()
@@ -308,9 +306,7 @@ def build_geographic_impact_summaries(
                     "cell country is absent from country hierarchy"
                 )
             rows.append(
-                _summarize_scope(
-                    resolution_cells.filter(pl.col("country_code") == code), node
-                )
+                _summarize_scope(resolution_cells.filter(pl.col("country_code") == code), node)
             )
         admin1_pairs = (
             resolution_cells.filter(pl.col("admin1").is_not_null())
@@ -338,10 +334,7 @@ def build_geographic_impact_summaries(
             )
 
     summaries = pl.DataFrame(rows).select(
-        [
-            pl.col(name).cast(dtype)
-            for name, dtype in geographic_impact_summary_schema().items()
-        ]
+        [pl.col(name).cast(dtype) for name, dtype in geographic_impact_summary_schema().items()]
     )
     level_order = pl.Enum(["global", "continent", "country", "admin1"])
     summaries = (
@@ -396,9 +389,7 @@ def _summarize_scope(
     for column in single_columns:
         values = cells.get_column(column).unique().to_list()
         if len(values) != 1:
-            raise GeographicImpactMaterializationError(
-                f"summary {column} is not single-scope"
-            )
+            raise GeographicImpactMaterializationError(f"summary {column} is not single-scope")
         identity[column] = values[0]
 
     summed_columns = (
@@ -468,15 +459,11 @@ def _summarize_scope(
         "baseline_occupied_cell_count": int(
             cells.get_column("baseline_range_inference_eligible_count").gt(0).sum()
         ),
-        "flickr_occupied_cell_count": int(
-            cells.get_column("flickr_candidate_count").gt(0).sum()
-        ),
+        "flickr_occupied_cell_count": int(cells.get_column("flickr_candidate_count").gt(0).sum()),
         "baseline_only_cell_count": int(cells.get_column("baseline_only_cell").sum()),
         "matched_cell_count": int(cells.get_column("matched_cell").sum()),
         "candidate_only_cell_count": candidate_only.height,
-        "reviewed_additional_cell_count": int(
-            cells.get_column("reviewed_additional_cell").sum()
-        ),
+        "reviewed_additional_cell_count": int(cells.get_column("reviewed_additional_cell").sum()),
         "release_ready_additional_cell_count": int(
             cells.get_column("release_ready_additional_cell").sum()
         ),
@@ -484,9 +471,7 @@ def _summarize_scope(
         "maximum_nearest_baseline_distance_km": maximum_distance,
         "latest_baseline_event_date": cells.get_column("latest_baseline_event_date").max(),
         "latest_flickr_candidate_date": cells.get_column("latest_flickr_candidate_date").max(),
-        "latest_reviewed_positive_date": cells.get_column(
-            "latest_reviewed_positive_date"
-        ).max(),
+        "latest_reviewed_positive_date": cells.get_column("latest_reviewed_positive_date").max(),
         "latest_release_ready_date": cells.get_column("latest_release_ready_date").max(),
         "data_deficient_state": deficiency_state,
         "data_deficient_reasons": reasons,

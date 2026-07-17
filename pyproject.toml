@@ -45,6 +45,7 @@ demo = [
 ]
 test = [
   { include-group = "demo" },
+  "duckdb>=1.2,<2",
   "pytest>=8,<10",
 ]
 dev = [
