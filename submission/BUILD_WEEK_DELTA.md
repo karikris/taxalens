@@ -1,8 +1,9 @@
 # TaxaLens Build Week delta
 
 This disclosure separates the pre-existing TaxaLens/BioMiner research prototype
-from the Verification product work delivered in the current goal. It is a Git
-change ledger, not an authorship estimate or scientific-result claim.
+from the Verification product work and the subsequent Geographic Impact Lens.
+It is a Git change ledger, not an authorship estimate, productivity measure or
+scientific-result claim.
 
 ## Comparison boundary
 
@@ -11,8 +12,13 @@ change ledger, not an authorship estimate or scientific-result claim.
 | Pre-existing TaxaLens product at goal start | `d728618fc2506054c71e726f943a845cdd2f61eb` |
 | Completed Verification implementation | `94158393c9d3886143b432ecc4fbc5f783829c3b` |
 | Completion report measurement endpoint | `30a4994` |
-| Current BioMiner implementation context | `94fa1f634ee3c63917c05d78181dd3cf9ceff940` |
+| Geographic Impact starting SHA | `e85b0d225cfdad4932de95d745b936ae85a61097` |
+| Geographic Impact implementation endpoint | `6444a5af8acd0b1f6803f704f43e76d6af3a7c43` |
+| Geographic Impact report commit | `e4edc55` |
+| BioMiner implementation context for Verification | `94fa1f634ee3c63917c05d78181dd3cf9ceff940` |
 | Immutable BioMiner judge-evidence pin | `74a7d648a562efa744e6502ef504a23b63b4e02f` |
+| BioMiner baseline-geography artifact pin | `247b42f3206d48bb79e2dbf97c5a92e4f207ae71` |
+| BioMiner Flickr-geography artifact pin | `75461d9c065af0cd96b41cd1f845c2e920f7ae34` |
 
 The non-self-referential Git range from `d728618…` through `30a4994` contains
 133 commits and changes 366 files: 76,141 physical text-line insertions, 2,409
@@ -20,6 +26,14 @@ physical text-line deletions, and 21 binary-file changes. These are Git diff
 statistics, not effective lines of code, unique authored lines or a model
 attribution. They include tests, schemas, fixtures, campaign packets, reports
 and generated/checksummed artifacts.
+
+The separate non-self-referential Geographic Impact range from `e85b0d2…`
+through `6444a5a…` contains 166 commits and changes 331 files: 56,560 physical
+text-line insertions, 679 physical text-line deletions and 26 binary-file
+changes. The same limitations apply: these are Git diff statistics that include
+contracts, tests, Parquet and map artifacts, screenshots, reports and
+checksummed receipts. They are not effective code, unique authorship, effort or
+scientific impact.
 
 ## What existed at the starting SHA
 
@@ -39,7 +53,7 @@ and generated/checksummed artifacts.
 - Baseline verification was 668 Python passes with 3 provenance failures and
   114 frontend tests.
 
-## What this goal added
+## What the Verification goal added
 
 ### Human evidence integrity
 
@@ -107,6 +121,66 @@ and generated/checksummed artifacts.
 - A repeatable fresh-context hosted verifier for public access, media hashes,
   Can’t view, Skip, export, reset, fallback and source fingerprint.
 
+## What the Geographic Impact goal added
+
+### Evidence architecture
+
+- A v2 judge-bundle contract with baseline spread, provider union, Flickr
+  geography, impact cells, impact summaries and country hierarchy sections;
+  the stored v1 fixture remains byte-preserved and migrates fail-closed in
+  memory.
+- A 19,201-observation canonical baseline union that separates 4,017 GBIF-only
+  observations from 15,184 iNaturalist-origin observations delivered through
+  GBIF. Direct iNaturalist delta remains unavailable because no committed
+  direct snapshot exists.
+- Precision-aware Flickr cell evidence for 13,501 candidates, with 13,416
+  geographically supported and 85 lacking usable comparison geography.
+- Deterministic full-outer cell joins, global/continent/country/admin1 rollups,
+  distance, temporal contribution and explicit data-deficiency states.
+
+### Geographic product
+
+- The operational Flickr Workload Map remains separate and unchanged in
+  scientific meaning.
+- A self-contained Natural Earth and MapLibre Geographic Impact Lens compares
+  blue baseline occurrence evidence with amber Flickr candidate evidence.
+- Global-to-continent-to-country drilldown, slicers, breadcrumbs, camera
+  synchronization, exact tooltips, a color-independent legend and a sortable
+  synchronized accessible table.
+- Shared tested square-root bubble scaling, candidate-only cells,
+  human-supported and release-ready states, country ranking and deterministic
+  JSON/CSV/Parquet exports.
+- A record mini-map in Evidence Lens with precision limits, nearest baseline
+  context, Geographic Impact and Verification deep links.
+- Explicit no-WebGL, no-WASM, unavailable-baseline, unavailable-provider and
+  invalid-artifact states. Runtime map startup makes no external request.
+
+### Human and AI evidence boundaries
+
+- The map projects pending, positive, negative, uncertain, media-failure,
+  skipped and release-ready maturity without treating local review as release.
+- A representative 49-owner geographic audit, quality-snapshot readiness and a
+  genuine-human usability protocol are committed, but both retain zero human
+  results.
+- Six deterministic geographic analyst tools, a stored credential-free
+  `gpt-5.6-sol`/`xhigh` country explanation and 24-case safety/grounding
+  evaluation.
+- Candidate-only cells remain potential coverage contribution. Human-supported
+  and release-ready contribution remain zero until genuine review and release
+  gates pass.
+
+### Competition and release evidence
+
+- Real Geographic Impact screenshots, a global-to-country GIF, README preview,
+  90-second judge route, presentation deck, 32-second video hero plan and
+  Devpost wording.
+- 914 Python tests and 544 frontend tests pass at final reporting; Chromium,
+  Firefox and WebKit browser coverage, 20 visual checks, dedicated performance
+  checks and the no-external-map network guard pass.
+- The hosted verifier now exercises global → Europe → Sweden, a selected cell,
+  record mini-map, Verification deep link and scientifically blocked export in
+  a fresh credential-free browser context.
+
 ## What BioMiner contributed
 
 BioMiner remains the upstream research engine and authority for reference
@@ -127,12 +201,18 @@ lineage.
   agreement or release-quality result.
 - No verified occurrence or independently verified reference bank.
 - No human productivity or time-savings study.
+- No genuine Geographic Impact usability participant or timing result.
+- No human-supported or release-ready additional geographic cell.
+- No direct iNaturalist delta or provider comparison beyond iNaturalist-origin
+  rows already delivered through GBIF.
 - No live Supabase project, private B2 campaign or production collaboration
   credential.
 - No live GPT-5.6 quality evaluation or model-authorised scientific decision.
 
 The exact current tests, hosted receipt, rights state, review counts and blocked
 claims are in
-[`taxalens_verification_workflow_report.md`](../docs/reports/taxalens_verification_workflow_report.md).
+[`taxalens_verification_workflow_report.md`](../docs/reports/taxalens_verification_workflow_report.md)
+and
+[`taxalens_geographic_impact_report.md`](../docs/reports/taxalens_geographic_impact_report.md).
 The separate AI code-provenance report retains its own dated source snapshot
 and should not be silently treated as this Git-range delta.
