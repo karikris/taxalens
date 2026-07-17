@@ -89,9 +89,45 @@ export interface GeographicReviewCellProjection {
   readonly scientificClaimAllowed: false
 }
 
+export interface GeographicReviewQualityProjection {
+  readonly campaignId: string
+  readonly campaignTitle: string
+  readonly samplingPurpose: VerificationCampaign['samplingPlan']['purpose']
+  readonly samplingDesign: VerificationCampaign['samplingPlan']['design']
+  readonly samplingRepresentative: boolean
+  readonly qualityEstimationAllowed: boolean
+  readonly qualityEstimationBlockedReason: string | null
+  readonly currentDecisivelyReviewedCount: number
+  readonly snapshot:
+    | {
+        readonly availability: 'unavailable'
+        readonly reason: string
+      }
+    | {
+        readonly availability: 'available'
+        readonly snapshotId: string
+        readonly capturedAt: string
+        readonly snapshotDecisiveSampleCount: number
+        readonly precisionAvailability: VerificationQualitySnapshot['precision']['availability']
+        readonly pointEstimate: number | null
+        readonly intervalAvailability: VerificationQualitySnapshot['precision']['intervalAvailability']
+        readonly confidenceLevel: number | null
+        readonly interval: VerificationQualitySnapshot['precision']['interval']
+        readonly effectiveSampleSize: number | null
+        readonly milestoneStatus: VerificationQualitySnapshot['milestone']['status']
+        readonly currentMilestone: number | null
+        readonly nextMilestone: number | null
+        readonly releaseStatus: VerificationQualitySnapshot['release']['status']
+        readonly releaseEvaluatedAtMilestone: number | null
+        readonly releaseBlockers: readonly string[]
+      }
+  readonly scientificClaimAllowed: false
+}
+
 export interface GeographicReviewProjection {
   readonly items: readonly GeographicReviewItemProjection[]
   readonly cells: readonly GeographicReviewCellProjection[]
+  readonly quality: readonly GeographicReviewQualityProjection[]
   readonly scientificClaimAllowed: false
 }
 
@@ -109,6 +145,7 @@ export function projectGeographicHumanReviewState(input: {
   const campaignIds = new Set<string>()
   const itemKeys = new Set<string>()
   const itemByKey = new Map<string, GeographicReviewItemProjection>()
+  const quality: GeographicReviewQualityProjection[] = []
 
   for (const ledger of input.campaigns) {
     const campaignId = ledger.campaign.campaignId
@@ -122,6 +159,7 @@ export function projectGeographicHumanReviewState(input: {
       ledger.items,
       ledger.events,
     )
+    quality.push(projectCampaignQuality(ledger, consensus, latestQuality))
     for (const itemConsensus of consensus) {
       const key = reviewItemKey(campaignId, itemConsensus.itemId)
       if (itemKeys.has(key)) {
@@ -191,7 +229,62 @@ export function projectGeographicHumanReviewState(input: {
       ),
     ),
     cells: projectCells(input.bindings, itemByKey),
+    quality: Object.freeze(
+      quality.sort((left, right) => left.campaignId.localeCompare(right.campaignId)),
+    ),
     scientificClaimAllowed: false as const,
+  })
+}
+
+function projectCampaignQuality(
+  ledger: GeographicReviewCampaignLedger,
+  consensus: ReturnType<typeof projectVerificationConsensus>,
+  latestQuality: VerificationQualitySnapshot | null,
+): GeographicReviewQualityProjection {
+  const currentDecisivelyReviewedCount = consensus.filter(({ status }) =>
+    status === 'complete_agreement' || status === 'adjudicated',
+  ).length
+  const base = {
+    campaignId: ledger.campaign.campaignId,
+    campaignTitle: ledger.campaign.title,
+    samplingPurpose: ledger.campaign.samplingPlan.purpose,
+    samplingDesign: ledger.campaign.samplingPlan.design,
+    samplingRepresentative: ledger.campaign.samplingPlan.representative,
+    qualityEstimationAllowed: ledger.campaign.samplingPlan.qualityEstimationAllowed,
+    qualityEstimationBlockedReason:
+      ledger.campaign.samplingPlan.qualityEstimationBlockedReason,
+    currentDecisivelyReviewedCount,
+    scientificClaimAllowed: false as const,
+  }
+  if (latestQuality === null) {
+    return Object.freeze({
+      ...base,
+      snapshot: Object.freeze({
+        availability: 'unavailable' as const,
+        reason: 'No retained quality snapshot is attached to this campaign ledger.',
+      }),
+    })
+  }
+  return Object.freeze({
+    ...base,
+    snapshot: Object.freeze({
+      availability: 'available' as const,
+      snapshotId: latestQuality.snapshotSha256,
+      capturedAt: latestQuality.capturedAt,
+      snapshotDecisiveSampleCount: latestQuality.precision.decisiveSampleCount,
+      precisionAvailability: latestQuality.precision.availability,
+      pointEstimate: latestQuality.precision.pointEstimate,
+      intervalAvailability: latestQuality.precision.intervalAvailability,
+      confidenceLevel: latestQuality.precision.confidenceLevel,
+      interval: latestQuality.precision.interval,
+      effectiveSampleSize: latestQuality.precision.effectiveSampleSize,
+      milestoneStatus: latestQuality.milestone.status,
+      currentMilestone: latestQuality.milestone.currentMilestone,
+      nextMilestone: latestQuality.milestone.nextMilestone,
+      releaseStatus: latestQuality.release.status,
+      releaseEvaluatedAtMilestone: latestQuality.release.evaluatedAtMilestone,
+      releaseBlockers: Object.freeze([...latestQuality.release.blockers]),
+    }),
   })
 }
 

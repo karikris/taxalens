@@ -87,6 +87,7 @@ function projection(
         ...overrides,
       },
     ],
+    quality: [],
     scientificClaimAllowed: false,
   }
 }

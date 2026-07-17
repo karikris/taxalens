@@ -44,6 +44,18 @@ describe('geographic human-review projection', () => {
       pendingCount: 0,
       releaseReadyCount: 0,
     })
+    expect(projection.quality).toEqual([
+      expect.objectContaining({
+        campaignId: HUMAN_REVIEW_CAMPAIGN.campaignId,
+        samplingPurpose: HUMAN_REVIEW_CAMPAIGN.samplingPlan.purpose,
+        samplingRepresentative: HUMAN_REVIEW_CAMPAIGN.samplingPlan.representative,
+        currentDecisivelyReviewedCount: 1,
+        snapshot: {
+          availability: 'unavailable',
+          reason: 'No retained quality snapshot is attached to this campaign ledger.',
+        },
+      }),
+    ])
   })
 
   it.each([
@@ -119,6 +131,26 @@ describe('geographic human-review projection', () => {
       qualityValidReviewedCount: 1,
       populationQualityEligibleCount: 0,
       targetedFailureDiscoveryReviewedCount: 1,
+    })
+    expect(projection.quality[0]).toMatchObject({
+      campaignId: campaign.campaignId,
+      samplingPurpose: 'failure_discovery',
+      samplingDesign: 'targeted_priority',
+      samplingRepresentative: false,
+      qualityEstimationAllowed: false,
+      qualityEstimationBlockedReason:
+        'Targeted failure discovery is not representative.',
+      currentDecisivelyReviewedCount: 1,
+      snapshot: {
+        availability: 'available',
+        snapshotId: quality.snapshotSha256,
+        snapshotDecisiveSampleCount: 60,
+        intervalAvailability: 'available',
+        milestoneStatus: 'evaluation_due',
+        currentMilestone: 60,
+        nextMilestone: 100,
+        releaseStatus: 'release_ready',
+      },
     })
   })
 

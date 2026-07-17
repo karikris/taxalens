@@ -27,6 +27,7 @@ describe('public geographic review projection', () => {
       projection: {
         items: [],
         cells: [],
+        quality: [],
         scientificClaimAllowed: false,
       },
       campaignId: 'campaign:test',

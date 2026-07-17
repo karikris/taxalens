@@ -9,6 +9,7 @@ import {
   filterGeographicImpactCells,
 } from './GeographicEvidenceMaturityFilter'
 import { GeographicReviewProgress } from './GeographicReviewProgress'
+import { GeographicMapQualitySnapshot } from './GeographicMapQualitySnapshot'
 import { applyLocalGeographicReviewProjection } from './geographicReviewOverlay'
 import type { GeographicReviewProjection } from './geographicReviewProjection'
 import {
@@ -189,10 +190,13 @@ export function GeographicImpactLens({
       {mapData.status === 'available' && visibleData !== undefined ? (
         <>
           {scopedReviewProjection === undefined ? null : (
-            <GeographicReviewProgress
-              projection={scopedReviewProjection}
-              spatialResolution={(evidenceData ?? mapData.data).spatialResolution}
-            />
+            <>
+              <GeographicReviewProgress
+                projection={scopedReviewProjection}
+                spatialResolution={(evidenceData ?? mapData.data).spatialResolution}
+              />
+              <GeographicMapQualitySnapshot projection={scopedReviewProjection} />
+            </>
           )}
           <GeographicImpactAccessibleSummary
             cells={visibleData.cells}

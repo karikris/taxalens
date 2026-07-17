@@ -104,6 +104,7 @@ function projection(
   return {
     items: [],
     cells,
+    quality: [],
     scientificClaimAllowed: false,
   }
 }
