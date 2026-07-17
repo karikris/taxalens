@@ -16,6 +16,7 @@
     "test:agent": "vitest run src/agent/agentEvaluation.test.ts src/agent/verificationAgentEvaluation.test.ts src/agent/storedVerificationAnalystReplay.test.ts",
     "test:agent-live": "vitest run src/agent/verificationAgentLiveEvaluation.test.ts",
     "test:deployment": "node --test scripts/static-deployment.test.mjs",
+    "test:hosted": "node scripts/verify-hosted-replay.mjs",
     "test:media-static": "node --test scripts/public-review-media.test.mjs",
     "test:supabase": "node scripts/verify-supabase-migrations.mjs",
     "test:visual": "playwright test e2e/verification.visual.spec.ts e2e/judge-layout.visual.spec.ts e2e/reduced-motion.visual.spec.ts --project=chromium --workers=1",
