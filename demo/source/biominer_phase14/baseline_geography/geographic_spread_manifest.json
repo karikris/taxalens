@@ -1,0 +1,42 @@
+{
+  "accepted_taxon_key": "gbif:1938069",
+  "checkpoint_part_count": 65,
+  "completed_occurrence_count": 19201,
+  "evidence_confidence_method": "eligible-occurrence-fraction-v1",
+  "evidence_row_count": 57603,
+  "files": {
+    "geographic_occurrence_evidence": {
+      "byte_count": 867794,
+      "file": "geographic_occurrence_evidence.parquet",
+      "row_count": 57603,
+      "sha256": "sha256:1387f3c9967d322e537e9f2079b58641543707db863d2057c1caa4408d208a47"
+    },
+    "taxon_geographic_spread": {
+      "byte_count": 513562,
+      "file": "taxon_geographic_spread.parquet",
+      "row_count": 16678,
+      "sha256": "sha256:46f38228cb5e7ba58f5f38f79a38dd87ae8fab80cf987e916f620d5cc4b9e83c"
+    }
+  },
+  "grid_name": "hierarchical_global_grid",
+  "grid_version": "h3:4.5.0",
+  "invalid_coordinate_count": 0,
+  "range_inference_eligible_occurrence_count": 630,
+  "registry_version": "butterflies-v2-20260712",
+  "resolutions": [
+    3,
+    5,
+    7
+  ],
+  "resumed": false,
+  "retrieved_at": "2026-07-15T00:00:00Z",
+  "schema_version": "geographic-spread-build-v1.0.0",
+  "scientific_name": "Papilio demoleus",
+  "source": "GBIF",
+  "source_query_hash": "sha256:6d79b8d123343dfd2bc2d8801ac6a9d046265dc4ce1a59ca3fa62fba49b25c76",
+  "source_snapshot_version": "gbif-occurrence-search-20260715",
+  "source_total_records": 19201,
+  "spread_row_count": 16678,
+  "status": "complete",
+  "taxon_key_mismatch_count": 0
+}

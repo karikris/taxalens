@@ -1,7 +1,8 @@
 upstream_repository: "karikris/BioMiner"
 pinned_biominer_sha: "74a7d648a562efa744e6502ef504a23b63b4e02f"
-observed_biominer_main_sha: "dcd494321abc0666ea692b5759f84bc4c7e08ba9"
-observed_biominer_main_at: "2026-07-17T07:52:44Z"
+observed_biominer_main_sha: "247b42f3206d48bb79e2dbf97c5a92e4f207ae71"
+observed_biominer_main_at: "2026-07-17T10:21:55Z"
+geographic_handoff_biominer_sha: "247b42f3206d48bb79e2dbf97c5a92e4f207ae71"
 biominer_five_image_cap_removal_sha: "a5bf11d74fb6a5a7eec7dc567197fabe18e8b171"
 biominer_five_image_cap_status: "removed-from-combined-yoloe-bioclip-prototype-smoke-command"
 historical_five_image_manifests: "retained-as-immutable-prior-run-evidence"
@@ -43,6 +44,25 @@ scientific_claim_gate: "blocked-until-reviewed-references-leakage-safe-splits-ca
 handoff_contract: "storage-handoff-inventory-v1.0.0-with-explicit-uri-sha256-source-sha-and-receipt"
 recorded_at: "2026-07-17"
 components:
+  - component_id: biominer_baseline_geographic_handoff
+    source_repository: karikris/BioMiner
+    source_commit: 247b42f3206d48bb79e2dbf97c5a92e4f207ae71
+    source_path: runs/papilio_demoleus_pilot_target_geographic_spread_20260715
+    destination_path: demo/source/biominer_phase14/baseline_geography
+    migration_kind: imported_and_derived
+    reason: Commit the exact baseline occurrence spread and evidence bytes required by the credential-free Geographic Impact replay, and derive the required summary through the pinned upstream builder.
+    build_week_scope: new
+    source_license: MIT
+    changes:
+      - Imported the BioMiner spread, occurrence-evidence, and spread-manifest runtime artifacts after exact checksum validation.
+      - Recorded that the runtime artifacts were ignored upstream rather than misrepresenting them as committed BioMiner Git objects.
+      - Generated the missing summary, QA findings, and summary manifest with the exact committed BioMiner geographic-summary builder.
+      - Committed all handoff bytes in TaxaLens so the public replay needs neither Supabase nor Backblaze B2.
+      - Preserved target, registry, baseline snapshot, grid, resolution, provider, quality, uncertainty, date, and range-role provenance.
+      - Copied no BioMiner engine code and made no biological-absence or Flickr-occurrence claim.
+    tests:
+      - scripts/import_biominer_baseline_geography.py --check
+    status: migrated
   - component_id: biominer_phase14_phase15_prototype_agent_boundary
     source_repository: karikris/BioMiner
     source_commit: 74a7d648a562efa744e6502ef504a23b63b4e02f

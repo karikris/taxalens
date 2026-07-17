@@ -1,0 +1,117 @@
+{
+  "schema_version": "taxalens-biominer-baseline-geography-import:v1.0.0",
+  "origin_repository": "karikris/BioMiner",
+  "origin_commit": "247b42f3206d48bb79e2dbf97c5a92e4f207ae71",
+  "source_license": "MIT",
+  "source_run_id": "papilio_demoleus_pilot_target_geographic_spread_20260715",
+  "project_id": "taxalens-papilio-demoleus-judge-replay",
+  "run_id": "papilio-demoleus-pilot-20260715",
+  "accepted_taxon_key": "gbif:1938069",
+  "scientific_name": "Papilio demoleus",
+  "registry_version": "butterflies-v2-20260712",
+  "baseline_snapshot_id": "gbif-occurrence-search-20260715",
+  "grid_name": "hierarchical_global_grid",
+  "grid_version": "h3:4.5.0",
+  "spatial_resolutions": [3, 5, 7],
+  "import_policy": {
+    "origin_code_commit_pinned": true,
+    "source_runtime_artifacts_tracked_upstream": false,
+    "source_runtime_artifacts_checksum_verified": true,
+    "imported_artifacts_committed_in_taxalens": true,
+    "summary_built_with_pinned_upstream_code": true,
+    "engine_code_copied": false,
+    "external_storage_required": false,
+    "baseline_absence_proves_biological_absence": false
+  },
+  "summary_build": {
+    "builder": "biominer.registry.geographic_summary.build_geographic_summary",
+    "created_at": "2026-07-15T00:00:00Z",
+    "input_artifact_ids": [
+      "biominer-geographic-occurrence-evidence-parquet",
+      "biominer-taxon-geographic-spread-parquet"
+    ],
+    "policy": {
+      "policy_version": "geographic-summary-policy-v1.0.0",
+      "component_resolution": null,
+      "min_eligible_occurrences": 5,
+      "min_occupied_cells": 2,
+      "outlier_max_eligible_occurrences": 1,
+      "outlier_neighbour_distance": 3,
+      "current_window_years": 20
+    }
+  },
+  "artifacts": [
+    {
+      "artifact_id": "biominer-geographic-occurrence-evidence-parquet",
+      "role": "baseline_occurrence_evidence",
+      "source_kind": "biominer_runtime_output",
+      "source_path": "runs/papilio_demoleus_pilot_target_geographic_spread_20260715/geographic_occurrence_evidence.parquet",
+      "imported_path": "demo/source/biominer_phase14/baseline_geography/geographic_occurrence_evidence.parquet",
+      "media_type": "application/vnd.apache.parquet",
+      "schema_version": "geographic-occurrence-evidence-v1.0.0",
+      "row_count": 57603,
+      "byte_count": 867794,
+      "sha256": "1387f3c9967d322e537e9f2079b58641543707db863d2057c1caa4408d208a47"
+    },
+    {
+      "artifact_id": "biominer-geographic-qa-findings-parquet",
+      "role": "baseline_geographic_summary_qa",
+      "source_kind": "generated_by_pinned_builder",
+      "source_path": null,
+      "imported_path": "demo/source/biominer_phase14/baseline_geography/geographic_qa_findings.parquet",
+      "media_type": "application/vnd.apache.parquet",
+      "schema_version": "geographic-qa-findings-v1.0.0",
+      "row_count": 1,
+      "byte_count": 1508,
+      "sha256": "5424aef1f921e67049da8484ee99b303701cf783ede76ede8e5af68767c5dce2"
+    },
+    {
+      "artifact_id": "biominer-geographic-spread-manifest",
+      "role": "baseline_geographic_spread_manifest",
+      "source_kind": "biominer_runtime_output",
+      "source_path": "runs/papilio_demoleus_pilot_target_geographic_spread_20260715/geographic_spread_manifest.json",
+      "imported_path": "demo/source/biominer_phase14/baseline_geography/geographic_spread_manifest.json",
+      "media_type": "application/json",
+      "schema_version": "geographic-spread-build-v1.0.0",
+      "row_count": null,
+      "byte_count": 1416,
+      "sha256": "875f8560d588e24f47bf15018401cb2c5210060a9b66a9b67e2f84a524509213"
+    },
+    {
+      "artifact_id": "biominer-geographic-summary-manifest",
+      "role": "baseline_geographic_summary_manifest",
+      "source_kind": "generated_by_pinned_builder",
+      "source_path": null,
+      "imported_path": "demo/source/biominer_phase14/baseline_geography/geographic_summary_manifest.json",
+      "media_type": "application/json",
+      "schema_version": "geographic-summary-build-v1.0.0",
+      "row_count": null,
+      "byte_count": 1121,
+      "sha256": "4b5236f2857a8f9143f4d039e8414b1bcd5bf324568dbc68e982aff3670dc06d"
+    },
+    {
+      "artifact_id": "biominer-taxon-geographic-spread-parquet",
+      "role": "baseline_geographic_spread",
+      "source_kind": "biominer_runtime_output",
+      "source_path": "runs/papilio_demoleus_pilot_target_geographic_spread_20260715/taxon_geographic_spread.parquet",
+      "imported_path": "demo/source/biominer_phase14/baseline_geography/taxon_geographic_spread.parquet",
+      "media_type": "application/vnd.apache.parquet",
+      "schema_version": "taxon-geographic-spread-v1.0.0",
+      "row_count": 16678,
+      "byte_count": 513562,
+      "sha256": "46f38228cb5e7ba58f5f38f79a38dd87ae8fab80cf987e916f620d5cc4b9e83c"
+    },
+    {
+      "artifact_id": "biominer-taxon-geographic-summary-parquet",
+      "role": "baseline_geographic_summary",
+      "source_kind": "generated_by_pinned_builder",
+      "source_path": null,
+      "imported_path": "demo/source/biominer_phase14/baseline_geography/taxon_geographic_summary.parquet",
+      "media_type": "application/vnd.apache.parquet",
+      "schema_version": "taxon-geographic-summary-v1.0.0",
+      "row_count": 1,
+      "byte_count": 15030,
+      "sha256": "838d8eef1c88757822b850a0f24ffc306818e1d90bf4ca18f6d78924d6c96176"
+    }
+  ]
+}
