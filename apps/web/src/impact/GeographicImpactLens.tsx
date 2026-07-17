@@ -4,6 +4,10 @@ import { EvidenceState } from '../design-system'
 import { GeographicCountryRanking } from './GeographicCountryRanking'
 import { GeographicImpactAccessibleSummary } from './GeographicImpactAccessibleSummary'
 import { GeographicImpactExport } from './GeographicImpactExport'
+import {
+  GeographicEvidenceMaturityFilter,
+  filterGeographicImpactCells,
+} from './GeographicEvidenceMaturityFilter'
 import { GeographicReviewProgress } from './GeographicReviewProgress'
 import { GeographicBreadcrumbs } from './GeographicBreadcrumbs'
 import { GeographicScopeSlicers } from './GeographicScopeSlicers'
@@ -13,7 +17,10 @@ import { SelectedGeographyDetails } from './SelectedGeographyDetails'
 import { useGeographicScopeState } from './geographicScope'
 import { OfflineWorldMap } from './OfflineWorldMap'
 import { buildBoundedGeographicImpactFeatures } from './geographicImpactFeatureCollection'
-import type { GeographicImpactMetric } from './geographicImpactQuery'
+import type {
+  GeographicEvidenceMode,
+  GeographicImpactMetric,
+} from './geographicImpactQuery'
 import {
   loadPublicGeographicImpactMapData,
   PUBLIC_GEOGRAPHIC_IMPACT_MAP_SOURCE,
@@ -31,16 +38,32 @@ export function GeographicImpactLens({
   const [selectedCellId, setSelectedCellId] = useState<string | null>(null)
   const [rankingMetric, setRankingMetric] =
     useState<GeographicImpactMetric>('candidate_only_cells')
+  const [evidenceMode, setEvidenceMode] =
+    useState<GeographicEvidenceMode>('comparison')
   const mapData = useGeographicImpactMapData(
     scope.selected,
     typeof Worker !== 'undefined',
   )
-  const impactFeatures = useMemo(
+  const visibleCells = useMemo(
     () =>
       mapData.status === 'available'
-        ? buildBoundedGeographicImpactFeatures(mapData.data.cells, rankingMetric)
+        ? filterGeographicImpactCells(mapData.data.cells, evidenceMode)
         : undefined,
-    [mapData, rankingMetric],
+    [evidenceMode, mapData],
+  )
+  const visibleData = useMemo(
+    () =>
+      mapData.status === 'available' && visibleCells !== undefined
+        ? Object.freeze({ ...mapData.data, cells: visibleCells })
+        : undefined,
+    [mapData, visibleCells],
+  )
+  const impactFeatures = useMemo(
+    () =>
+      visibleCells === undefined
+        ? undefined
+        : buildBoundedGeographicImpactFeatures(visibleCells, rankingMetric),
+    [rankingMetric, visibleCells],
   )
   const selectCountry = useCallback(
     (countryCode: string) => {
@@ -51,7 +74,10 @@ export function GeographicImpactLens({
     },
     [scope.index, scope.selectScope],
   )
-  useEffect(() => setSelectedCellId(null), [scope.selected.scope_id])
+  useEffect(
+    () => setSelectedCellId(null),
+    [evidenceMode, scope.selected.scope_id],
+  )
 
   return (
     <section
@@ -84,10 +110,18 @@ export function GeographicImpactLens({
       </div>
       <GeographicBreadcrumbs controller={scope} />
       <GeographicScopeSlicers controller={scope} />
+      {mapData.status === 'available' && visibleCells !== undefined ? (
+        <GeographicEvidenceMaturityFilter
+          mode={evidenceMode}
+          onChange={setEvidenceMode}
+          sourceCellCount={mapData.data.cells.length}
+          visibleCellCount={visibleCells.length}
+        />
+      ) : null}
       {impactFeatures === undefined ? null : (
         <GeographicImpactLegend features={impactFeatures} />
       )}
-      {mapData.status === 'available' ? (
+      {mapData.status === 'available' && visibleData !== undefined ? (
         <>
           {reviewProjection === undefined ? null : (
             <GeographicReviewProgress
@@ -96,23 +130,23 @@ export function GeographicImpactLens({
             />
           )}
           <GeographicImpactAccessibleSummary
-            cells={mapData.data.cells}
+            cells={visibleData.cells}
             scope={scope.selected}
             selectedCellId={selectedCellId}
           />
           <SelectedGeographyDetails
-            cells={mapData.data.cells}
+            cells={visibleData.cells}
             scope={scope.selected}
             selectedCellId={selectedCellId}
           />
           <GeographicCountryRanking
-            cells={mapData.data.cells}
+            cells={visibleData.cells}
             metric={rankingMetric}
             onCountrySelect={selectCountry}
             onMetricChange={setRankingMetric}
           />
           <GeographicImpactTable
-            cells={mapData.data.cells}
+            cells={visibleData.cells}
             selectedCellId={selectedCellId}
             onCellSelect={setSelectedCellId}
           />

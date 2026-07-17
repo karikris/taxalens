@@ -71,6 +71,52 @@
   font-weight: 700;
 }
 
+.geographic-evidence-filter {
+  display: grid;
+  gap: var(--tl-space-2);
+  padding: var(--tl-space-3);
+  background: var(--tl-surface-subtle);
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.geographic-evidence-filter fieldset,
+.geographic-evidence-filter p {
+  margin: 0;
+}
+
+.geographic-evidence-filter fieldset {
+  padding: 0;
+  border: 0;
+}
+
+.geographic-evidence-filter legend {
+  font-weight: 800;
+}
+
+.geographic-evidence-filter fieldset > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tl-space-2);
+  margin-top: var(--tl-space-2);
+}
+
+.geographic-evidence-filter label {
+  display: inline-flex;
+  gap: var(--tl-space-1);
+  align-items: center;
+  padding: var(--tl-space-1) var(--tl-space-2);
+  background: var(--tl-surface-paper);
+  border: 1px solid var(--tl-line);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.geographic-evidence-filter label:has(input:checked) {
+  border-color: var(--tl-brand);
+  box-shadow: inset 0 0 0 1px var(--tl-brand);
+}
+
 .geographic-impact-lens__scope > span,
 .geographic-impact-lens__scope > small {
   color: var(--tl-ink-muted);

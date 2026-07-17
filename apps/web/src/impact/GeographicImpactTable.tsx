@@ -96,6 +96,8 @@ export function GeographicImpactTable({
               <SortableHeader label="Reviewed positive" column="reviewedPositive" sort={sort} onSort={changeSort} />
               <th scope="col">Reviewed non-target</th>
               <th scope="col">Uncertain</th>
+              <th scope="col">Media failure</th>
+              <th scope="col">Skipped</th>
               <SortableHeader label="Release-ready" column="releaseReady" sort={sort} onSort={changeSort} />
               <SortableHeader label="Nearest baseline" column="nearestBaselineDistance" sort={sort} onSort={changeSort} />
               <SortableHeader label="Baseline state" column="dataDeficiency" sort={sort} onSort={changeSort} />
@@ -124,6 +126,8 @@ export function GeographicImpactTable({
                   <NumericCell value={cell.reviewedPositiveCount} />
                   <NumericCell value={cell.reviewedNegativeCount} />
                   <NumericCell value={cell.uncertainCount} />
+                  <NumericCell value={cell.mediaFailureCount} />
+                  <NumericCell value={cell.skippedCount} />
                   <NumericCell value={cell.releaseReadyCount} />
                   <td className="numeric">
                     {cell.nearestBaselineDistanceKm === null
