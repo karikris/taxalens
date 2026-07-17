@@ -107,7 +107,9 @@ export interface GeographicImpactEngineeringMetrics {
   readonly releaseReadyAdditionalCellCount: number
   readonly sourceOnlyCellCount: 0
   readonly materializedOnlyCellCount: 0
-  readonly cacheState: 'fresh_duckdb_worker_memory_no_persistent_cache'
+  readonly cacheState:
+    | 'fresh_duckdb_worker_memory_no_persistent_cache'
+    | 'scoped_memory_cache_hit'
   readonly sourceArtifacts: readonly RegisteredGeographicArtifact[]
 }
 

@@ -3,6 +3,12 @@ import {
   queryGeographicImpact,
   type GeographicImpactBrowserResult,
 } from './geographicImpactAnalytics'
+import { validateGeographicImpactQueryInput } from './geographicImpactQuery'
+import {
+  GeographicImpactQueryCache,
+  geographicImpactQueryCacheKey,
+  type GeographicImpactQueryCacheStats,
+} from './geographicImpactQueryCache'
 
 export type GeographicImpactQueryExecutor = (
   project: TaxaLensProjectFacade,
@@ -13,11 +19,16 @@ export type GeographicImpactQueryExecutor = (
 /** Own exactly one latest interactive query and cancel it on replacement/disposal. */
 export class GeographicImpactQueryController {
   readonly #execute: GeographicImpactQueryExecutor
+  readonly #cache: GeographicImpactQueryCache
   #active: AbortController | null = null
   #disposed = false
 
-  constructor(execute: GeographicImpactQueryExecutor = queryGeographicImpact) {
+  constructor(
+    execute: GeographicImpactQueryExecutor = queryGeographicImpact,
+    cache: GeographicImpactQueryCache = new GeographicImpactQueryCache(),
+  ) {
     this.#execute = execute
+    this.#cache = cache
   }
 
   async run(
@@ -28,13 +39,18 @@ export class GeographicImpactQueryController {
       throw new Error('Geographic Impact query controller is disposed.')
     }
     this.cancel()
+    const input = validateGeographicImpactQueryInput(candidate)
+    const cacheKey = geographicImpactQueryCacheKey(project.manifest.bundle_id, input)
+    const cached = this.#cache.get(cacheKey)
+    if (cached !== undefined) return cached
     const controller = new AbortController()
     this.#active = controller
     try {
-      const result = await this.#execute(project, candidate, controller.signal)
+      const result = await this.#execute(project, input, controller.signal)
       if (controller.signal.aborted || this.#active !== controller) {
         throw new DOMException('Geographic Impact query was superseded.', 'AbortError')
       }
+      this.#cache.set(cacheKey, result)
       return result
     } finally {
       if (this.#active === controller) {
@@ -56,5 +72,13 @@ export class GeographicImpactQueryController {
 
   get active(): boolean {
     return this.#active !== null
+  }
+
+  cacheStats(): GeographicImpactQueryCacheStats {
+    return this.#cache.stats()
+  }
+
+  clearCache(): void {
+    this.#cache.clear()
   }
 }
