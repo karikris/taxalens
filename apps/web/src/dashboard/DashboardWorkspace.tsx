@@ -8,6 +8,7 @@ import { ResearchOutputsPanel } from './ResearchOutputsPanel'
 import { ReviewedEvaluationState } from './ReviewedEvaluationState'
 import { ReviewPriorityWorklist } from './ReviewPriorityWorklist'
 import { WorkflowEfficiencyReport } from './WorkflowEfficiencyReport'
+import { VerificationQualityOverview } from './VerificationQualityOverview'
 import './dashboard.css'
 
 export function DashboardWorkspace({
@@ -44,6 +45,8 @@ export function DashboardWorkspace({
           <dd>{replay.scientificClaimAllowed ? 'Allowed' : 'Not allowed'}</dd>
         </div>
       </dl>
+
+      <VerificationQualityOverview />
 
       <PrototypeEvidencePanel prototype={replay.prototype} />
 
