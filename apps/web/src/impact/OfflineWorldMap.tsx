@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   Layer,
   Map,
   NavigationControl,
   ScaleControl,
   Source,
+  type MapLayerMouseEvent,
+  type MapRef,
 } from '@vis.gl/react-maplibre'
 import 'maplibre-gl/dist/maplibre-gl.css'
 
@@ -17,19 +19,35 @@ import {
   TAXALENS_SELECTABLE_COUNTRY_LAYER,
   TAXALENS_SELECTABLE_COUNTRY_LAYER_ID,
 } from './offlineMapStyle'
+import type { CountryHierarchyNode } from '../../../../packages/contracts/src/geographic_impact_contract'
+import { TAXALENS_GEOGRAPHIC_SCOPE_INDEX } from './geographicScope'
+import { moveMapToGeographicScope } from './geographicMapCamera'
 import './geographicImpactMap.css'
 
 export const TAXALENS_MAP_ACCESSIBLE_NAME =
   'TaxaLens Geographic Impact world map' as const
 
 export function OfflineWorldMap({
+  onCountrySelect,
+  selectedScope = TAXALENS_GEOGRAPHIC_SCOPE_INDEX.root,
   webGlSupported,
 }: {
+  readonly onCountrySelect?: (countryCode: string) => void
+  readonly selectedScope?: CountryHierarchyNode
   readonly webGlSupported?: boolean
 }) {
   const supported = webGlSupported ?? browserSupportsWebGl()
+  const mapRef = useRef<MapRef>(null)
+  const pendingCameraScope = useRef<string | null>(null)
   const [runtimeError, setRuntimeError] = useState<string | null>(null)
   const [loaded, setLoaded] = useState(false)
+  const [cameraScopeId, setCameraScopeId] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!loaded || mapRef.current === null) return
+    pendingCameraScope.current = selectedScope.scope_id
+    moveMapToGeographicScope(mapRef.current, selectedScope)
+  }, [loaded, selectedScope])
 
   if (!supported || runtimeError !== null) {
     return (
@@ -50,8 +68,14 @@ export function OfflineWorldMap({
 
   return (
     <figure className="taxalens-world-map" aria-labelledby="taxalens-world-map-caption">
-      <div className="taxalens-world-map__canvas" data-map-loaded={loaded ? 'true' : 'false'}>
+      <div
+        className="taxalens-world-map__canvas"
+        data-camera-scope={cameraScopeId ?? 'pending'}
+        data-map-loaded={loaded ? 'true' : 'false'}
+        data-selected-scope={selectedScope.scope_id}
+      >
         <Map
+          ref={mapRef}
           initialViewState={{
             longitude: 0,
             latitude: 12,
@@ -74,6 +98,13 @@ export function OfflineWorldMap({
           locale={{ 'Map.Title': TAXALENS_MAP_ACCESSIBLE_NAME }}
           onLoad={() => setLoaded(true)}
           onError={({ error }) => setRuntimeError(error.message)}
+          onClick={(event) => selectCountryFromMapEvent(event, onCountrySelect)}
+          onMoveEnd={() => {
+            if (pendingCameraScope.current !== null) {
+              setCameraScopeId(pendingCameraScope.current)
+              pendingCameraScope.current = null
+            }
+          }}
         >
           <Source
             id={TAXALENS_COUNTRY_SOURCE_ID}
@@ -88,12 +119,24 @@ export function OfflineWorldMap({
           <ScaleControl position="bottom-left" unit="metric" maxWidth={120} />
         </Map>
         <span className="sr-only" role="status" aria-live="polite">
-          {loaded ? 'Offline world map ready.' : 'Opening offline world map.'}
+          {loaded
+            ? `Offline world map ready for ${selectedScope.scope_name}.`
+            : 'Opening offline world map.'}
         </span>
       </div>
       <MapCaption />
     </figure>
   )
+}
+
+function selectCountryFromMapEvent(
+  event: MapLayerMouseEvent,
+  onCountrySelect: ((countryCode: string) => void) | undefined,
+): void {
+  const countryCode = event.features?.[0]?.properties.country_code
+  if (typeof countryCode === 'string' && countryCode !== '') {
+    onCountrySelect?.(countryCode)
+  }
 }
 
 export function browserSupportsWebGl(): boolean {

@@ -1,3 +1,5 @@
+import { useCallback } from 'react'
+
 import { EvidenceState } from '../design-system'
 import { GeographicBreadcrumbs } from './GeographicBreadcrumbs'
 import { GeographicScopeSlicers } from './GeographicScopeSlicers'
@@ -10,6 +12,15 @@ export function GeographicImpactLens({
   readonly webGlSupported?: boolean
 }) {
   const scope = useGeographicScopeState()
+  const selectCountry = useCallback(
+    (countryCode: string) => {
+      const country = scope.index.byLevel.country.find(
+        (node) => node.country_code === countryCode,
+      )
+      if (country !== undefined) scope.selectScope(country.scope_id)
+    },
+    [scope.index, scope.selectScope],
+  )
 
   return (
     <section
@@ -46,7 +57,11 @@ export function GeographicImpactLens({
       </div>
       <GeographicBreadcrumbs controller={scope} />
       <GeographicScopeSlicers controller={scope} />
-      <OfflineWorldMap {...(webGlSupported === undefined ? {} : { webGlSupported })} />
+      <OfflineWorldMap
+        onCountrySelect={selectCountry}
+        selectedScope={scope.selected}
+        {...(webGlSupported === undefined ? {} : { webGlSupported })}
+      />
     </section>
   )
 }

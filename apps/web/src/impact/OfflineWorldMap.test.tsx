@@ -1,13 +1,26 @@
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mapMocks = vi.hoisted(() => ({
+  camera: {
+    fitBounds: vi.fn(),
+    flyTo: vi.fn(),
+    jumpTo: vi.fn(),
+  },
   mapProps: [] as Array<Record<string, unknown>>,
 }))
 
 vi.mock('@vis.gl/react-maplibre', () => ({
-  Map: ({ children, ...props }: { readonly children: ReactNode }) => {
+  Map: ({
+    children,
+    ref,
+    ...props
+  }: {
+    readonly children: ReactNode
+    readonly ref?: { current: unknown }
+  }) => {
+    if (ref !== undefined) ref.current = mapMocks.camera
     mapMocks.mapProps.push(props)
     return <div data-testid="maplibre-map">{children}</div>
   },
@@ -25,6 +38,14 @@ import { GeographicImpactLens } from './GeographicImpactLens'
 import { OfflineWorldMap, TAXALENS_MAP_ACCESSIBLE_NAME } from './OfflineWorldMap'
 
 describe('OfflineWorldMap', () => {
+  beforeEach(() => {
+    window.history.replaceState(null, '', '/#dashboard')
+    mapMocks.mapProps.length = 0
+    mapMocks.camera.fitBounds.mockReset()
+    mapMocks.camera.flyTo.mockReset()
+    mapMocks.camera.jumpTo.mockReset()
+  })
+
   it('passes only local style and GeoJSON objects to the renderer', () => {
     render(<OfflineWorldMap webGlSupported />)
 
@@ -64,5 +85,32 @@ describe('OfflineWorldMap', () => {
     ).toBeInTheDocument()
     expect(screen.getByText(/does not yet display an impact claim/u)).toBeInTheDocument()
     expect(screen.getByText(/hosted v1 replay does not publish/u)).toBeInTheDocument()
+  })
+
+  it('synchronizes an exact selectable map feature with scope controls and camera', () => {
+    render(<GeographicImpactLens webGlSupported />)
+    const initialProps = mapMocks.mapProps.at(-1)
+
+    act(() => (initialProps?.onLoad as () => void)())
+    expect(mapMocks.camera.jumpTo).toHaveBeenCalledWith(
+      expect.objectContaining({ center: [0, 0], zoom: 0 }),
+    )
+
+    act(() => {
+      ;(initialProps?.onClick as (event: unknown) => void)({
+        features: [{ properties: { country_code: null } }],
+      })
+    })
+    expect(window.location.hash).toBe('#dashboard')
+
+    act(() => {
+      ;(initialProps?.onClick as (event: unknown) => void)({
+        features: [{ properties: { country_code: 'IN' } }],
+      })
+    })
+    expect(window.location.hash).toBe('#dashboard?geo=country%3AIN')
+    expect(screen.getByRole('combobox', { name: 'Continent' })).toHaveValue('continent:asia')
+    expect(screen.getByRole('combobox', { name: 'Country' })).toHaveValue('country:IN')
+    expect(mapMocks.camera.fitBounds).toHaveBeenCalled()
   })
 })
