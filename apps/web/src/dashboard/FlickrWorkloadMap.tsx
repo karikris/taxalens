@@ -57,7 +57,13 @@ export function FlickrWorkloadMap({
     result?.clusters.find(({ id }) => id === selectedClusterId) ?? result?.clusters[0] ?? null
 
   return (
-    <section className="geographic-workload" aria-labelledby="geographic-workload-title">
+    <section
+      className="geographic-workload"
+      aria-labelledby="geographic-workload-title"
+      data-map-purpose="flickr-operational-workload"
+      data-evidence-semantics="candidate-distribution-only"
+      data-scientific-claim-allowed="false"
+    >
       <div className="geographic-workload__heading">
         <div>
           <p className="eyebrow">Candidate acquisition geography</p>

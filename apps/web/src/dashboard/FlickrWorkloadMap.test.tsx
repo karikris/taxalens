@@ -82,6 +82,10 @@ describe('FlickrWorkloadMap', () => {
     )
 
     expect(execute).not.toHaveBeenCalled()
+    const mapSection = document.querySelector('.geographic-workload')
+    expect(mapSection).toHaveAttribute('data-map-purpose', 'flickr-operational-workload')
+    expect(mapSection).toHaveAttribute('data-evidence-semantics', 'candidate-distribution-only')
+    expect(mapSection).toHaveAttribute('data-scientific-claim-allowed', 'false')
     expect(screen.getByText('Cluster payload not yet queried')).toBeInTheDocument()
     expect(screen.getByText('Candidate distribution only')).toBeInTheDocument()
     expect(screen.getByText('Candidate clusters').parentElement).toHaveTextContent('76')
@@ -96,7 +100,14 @@ describe('FlickrWorkloadMap', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Load verified workload map' }))
     expect(await screen.findByText('Candidate workload plotted locally')).toBeInTheDocument()
     expect(execute).toHaveBeenCalledTimes(1)
-    expect(execute.mock.calls[0]?.[0].artifacts).toHaveLength(2)
+    expect(
+      execute.mock.calls[0]?.[0].artifacts.map(
+        (artifact: { readonly artifactId: string }) => artifact.artifactId,
+      ),
+    ).toEqual([
+      'biominer-flickr-geo-assignments-parquet',
+      'biominer-flickr-geo-clusters-parquet',
+    ])
     expect(screen.getByText('No-geo').parentElement).toHaveTextContent('0')
   })
 
@@ -115,6 +126,9 @@ describe('FlickrWorkloadMap', () => {
     })
     expect(map.querySelectorAll('circle[data-cluster="candidate-workload"]')).toHaveLength(2)
     expect(map.querySelectorAll('circle[data-selected="true"]')).toHaveLength(1)
+    expect(screen.getByText(/Marker area encodes candidate-record workload/)).toHaveTextContent(
+      'selected outline is not an uncertainty ring',
+    )
     const selector = screen.getByLabelText('Inspect candidate cluster')
     expect(within(selector).getAllByRole('option')).toHaveLength(2)
     fireEvent.change(selector, { target: { value: 'geo:second' } })
@@ -124,6 +138,9 @@ describe('FlickrWorkloadMap', () => {
     expect(inspection).toHaveTextContent('25 records')
     expect(inspection).toHaveTextContent('8.250 km · not uncertainty')
     expect(inspection).toHaveTextContent('Unavailable — no H3 output committed')
+    expect(inspection).toHaveTextContent(
+      'Unavailable — No materialized review queue or geographic review assignments are committed.',
+    )
 
     fireEvent.click(screen.getByText('Read all 2 candidate clusters as a table'))
     expect(screen.getByRole('table').querySelectorAll('tbody tr')).toHaveLength(2)
