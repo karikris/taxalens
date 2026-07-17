@@ -4,6 +4,9 @@ export const BASELINE_OCCURRENCE_UNION_SCHEMA_VERSION =
 export const BASELINE_PROVIDER_UNION_POLICY_VERSION =
   'baseline-provider-union-policy-v1.0.0' as const
 
+export const GEOGRAPHIC_IMPACT_CELL_SCHEMA_VERSION =
+  'taxalens-geographic-impact-cell:v1.0.0' as const
+
 export const GEOGRAPHIC_CONTINENTS = [
   'Africa',
   'Antarctica',
@@ -23,6 +26,17 @@ export type KnownRangeRole =
   | 'vagrant'
   | 'uncertain'
   | 'unknown'
+export type EvidenceAvailability = 'available' | 'unavailable'
+export type DirectProviderDeltaStatus = EvidenceAvailability
+export type NearestBaselineDistanceStatus =
+  | 'available'
+  | 'unavailable'
+  | 'not_applicable'
+export type NearestBaselineDistanceMethod = 'haversine_cell_centroid'
+export type DataDeficientState =
+  | 'sufficient'
+  | 'data_deficient'
+  | 'unavailable'
 
 export type BaselineProviderRelationshipKind =
   | 'canonical_source'
@@ -98,13 +112,86 @@ export interface BaselineOccurrenceUnionRow {
   readonly canonical_flag: boolean
 }
 
+/**
+ * One full-outer-join cell comparing baseline occurrence evidence with Flickr
+ * candidate evidence. Nullable baseline fields represent unavailable inputs,
+ * never measured zero. Review and release counts remain separate.
+ */
+export interface GeographicImpactCellRow {
+  readonly schema_version: typeof GEOGRAPHIC_IMPACT_CELL_SCHEMA_VERSION
+  readonly geographic_impact_build_id: string
+  readonly project_id: string
+  readonly run_id: string
+  readonly registry_version: string
+  readonly accepted_taxon_key: string
+  readonly scientific_name: string
+  readonly baseline_snapshot_id: string
+  readonly flickr_snapshot_id: string
+  readonly provider_union_policy_version: typeof BASELINE_PROVIDER_UNION_POLICY_VERSION
+  readonly verification_projection_version: string
+  readonly release_policy_version: string
+  readonly verification_campaign_id: string | null
+  readonly quality_snapshot_id: string | null
+  readonly release_decision_id: string | null
+  readonly grid_name: string
+  readonly grid_version: string
+  readonly spatial_resolution: number
+  readonly spatial_cell_id: string
+  readonly parent_spatial_cell_id: string | null
+  readonly country_hierarchy_id: string
+  readonly continent: GeographicContinent
+  readonly country_code: string
+  readonly country: string
+  readonly admin1: string | null
+  readonly centroid_latitude: number
+  readonly centroid_longitude: number
+  readonly baseline_evidence_status: EvidenceAvailability
+  readonly provider_input_row_count: number | null
+  readonly baseline_union_count: number | null
+  readonly baseline_range_inference_eligible_count: number | null
+  readonly baseline_excluded_occurrence_count: number | null
+  readonly gbif_only_count: number | null
+  readonly inaturalist_origin_through_gbif_count: number | null
+  readonly direct_inaturalist_delta_status: DirectProviderDeltaStatus
+  readonly direct_inaturalist_delta_count: number | null
+  readonly duplicates_removed_count: number | null
+  readonly unresolved_provider_duplicate_group_count: number | null
+  readonly flickr_candidate_count: number
+  readonly flickr_visually_eligible_count: number
+  readonly reviewed_positive_count: number
+  readonly reviewed_negative_count: number
+  readonly uncertain_count: number
+  readonly pending_count: number
+  readonly media_failure_count: number
+  readonly skipped_count: number
+  readonly release_ready_count: number
+  readonly baseline_only_cell: boolean
+  readonly matched_cell: boolean
+  readonly candidate_only_cell: boolean
+  /** Product label: Human-supported additional cell. */
+  readonly reviewed_additional_cell: boolean
+  readonly release_ready_additional_cell: boolean
+  readonly nearest_baseline_distance_status: NearestBaselineDistanceStatus
+  readonly nearest_baseline_distance_km: number | null
+  readonly nearest_baseline_cell_id: string | null
+  readonly nearest_baseline_distance_method: NearestBaselineDistanceMethod | null
+  readonly latest_baseline_event_date: string | null
+  readonly latest_flickr_candidate_date: string | null
+  readonly latest_reviewed_positive_date: string | null
+  readonly latest_release_ready_date: string | null
+  readonly data_deficient_state: DataDeficientState
+  readonly data_deficient_reasons: readonly string[]
+}
+
 export type ParquetPhysicalType =
   | 'utf8'
   | 'boolean'
   | 'uint8'
+  | 'uint64'
   | 'float32'
   | 'float64'
   | 'date32'
+  | 'list_utf8'
 
 export interface ParquetColumnContract {
   readonly physicalType: ParquetPhysicalType
@@ -165,3 +252,74 @@ export const BASELINE_OCCURRENCE_UNION_PARQUET_COLUMNS = Object.freeze({
 
 export type BaselineOccurrenceUnionColumn =
   keyof typeof BASELINE_OCCURRENCE_UNION_PARQUET_COLUMNS
+
+/** Ordered physical column contract for geographic_impact_cells.parquet. */
+export const GEOGRAPHIC_IMPACT_CELL_PARQUET_COLUMNS = Object.freeze({
+  schema_version: { physicalType: 'utf8', nullable: false },
+  geographic_impact_build_id: { physicalType: 'utf8', nullable: false },
+  project_id: { physicalType: 'utf8', nullable: false },
+  run_id: { physicalType: 'utf8', nullable: false },
+  registry_version: { physicalType: 'utf8', nullable: false },
+  accepted_taxon_key: { physicalType: 'utf8', nullable: false },
+  scientific_name: { physicalType: 'utf8', nullable: false },
+  baseline_snapshot_id: { physicalType: 'utf8', nullable: false },
+  flickr_snapshot_id: { physicalType: 'utf8', nullable: false },
+  provider_union_policy_version: { physicalType: 'utf8', nullable: false },
+  verification_projection_version: { physicalType: 'utf8', nullable: false },
+  release_policy_version: { physicalType: 'utf8', nullable: false },
+  verification_campaign_id: { physicalType: 'utf8', nullable: true },
+  quality_snapshot_id: { physicalType: 'utf8', nullable: true },
+  release_decision_id: { physicalType: 'utf8', nullable: true },
+  grid_name: { physicalType: 'utf8', nullable: false },
+  grid_version: { physicalType: 'utf8', nullable: false },
+  spatial_resolution: { physicalType: 'uint8', nullable: false },
+  spatial_cell_id: { physicalType: 'utf8', nullable: false },
+  parent_spatial_cell_id: { physicalType: 'utf8', nullable: true },
+  country_hierarchy_id: { physicalType: 'utf8', nullable: false },
+  continent: { physicalType: 'utf8', nullable: false },
+  country_code: { physicalType: 'utf8', nullable: false },
+  country: { physicalType: 'utf8', nullable: false },
+  admin1: { physicalType: 'utf8', nullable: true },
+  centroid_latitude: { physicalType: 'float64', nullable: false },
+  centroid_longitude: { physicalType: 'float64', nullable: false },
+  baseline_evidence_status: { physicalType: 'utf8', nullable: false },
+  provider_input_row_count: { physicalType: 'uint64', nullable: true },
+  baseline_union_count: { physicalType: 'uint64', nullable: true },
+  baseline_range_inference_eligible_count: { physicalType: 'uint64', nullable: true },
+  baseline_excluded_occurrence_count: { physicalType: 'uint64', nullable: true },
+  gbif_only_count: { physicalType: 'uint64', nullable: true },
+  inaturalist_origin_through_gbif_count: { physicalType: 'uint64', nullable: true },
+  direct_inaturalist_delta_status: { physicalType: 'utf8', nullable: false },
+  direct_inaturalist_delta_count: { physicalType: 'uint64', nullable: true },
+  duplicates_removed_count: { physicalType: 'uint64', nullable: true },
+  unresolved_provider_duplicate_group_count: { physicalType: 'uint64', nullable: true },
+  flickr_candidate_count: { physicalType: 'uint64', nullable: false },
+  flickr_visually_eligible_count: { physicalType: 'uint64', nullable: false },
+  reviewed_positive_count: { physicalType: 'uint64', nullable: false },
+  reviewed_negative_count: { physicalType: 'uint64', nullable: false },
+  uncertain_count: { physicalType: 'uint64', nullable: false },
+  pending_count: { physicalType: 'uint64', nullable: false },
+  media_failure_count: { physicalType: 'uint64', nullable: false },
+  skipped_count: { physicalType: 'uint64', nullable: false },
+  release_ready_count: { physicalType: 'uint64', nullable: false },
+  baseline_only_cell: { physicalType: 'boolean', nullable: false },
+  matched_cell: { physicalType: 'boolean', nullable: false },
+  candidate_only_cell: { physicalType: 'boolean', nullable: false },
+  reviewed_additional_cell: { physicalType: 'boolean', nullable: false },
+  release_ready_additional_cell: { physicalType: 'boolean', nullable: false },
+  nearest_baseline_distance_status: { physicalType: 'utf8', nullable: false },
+  nearest_baseline_distance_km: { physicalType: 'float64', nullable: true },
+  nearest_baseline_cell_id: { physicalType: 'utf8', nullable: true },
+  nearest_baseline_distance_method: { physicalType: 'utf8', nullable: true },
+  latest_baseline_event_date: { physicalType: 'date32', nullable: true },
+  latest_flickr_candidate_date: { physicalType: 'date32', nullable: true },
+  latest_reviewed_positive_date: { physicalType: 'date32', nullable: true },
+  latest_release_ready_date: { physicalType: 'date32', nullable: true },
+  data_deficient_state: { physicalType: 'utf8', nullable: false },
+  data_deficient_reasons: { physicalType: 'list_utf8', nullable: false },
+} as const satisfies Readonly<
+  Record<keyof GeographicImpactCellRow, ParquetColumnContract>
+>)
+
+export type GeographicImpactCellColumn =
+  keyof typeof GEOGRAPHIC_IMPACT_CELL_PARQUET_COLUMNS

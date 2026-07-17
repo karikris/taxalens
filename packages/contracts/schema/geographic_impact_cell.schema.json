@@ -1,0 +1,297 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://taxalens.local/contracts/geographic-impact-cell-v1.0.0.schema.json",
+  "title": "TaxaLens geographic impact cell",
+  "description": "One target, resolution, and spatial-cell result from the full outer comparison of baseline occurrence evidence and Flickr candidate evidence.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "geographic_impact_build_id",
+    "project_id",
+    "run_id",
+    "registry_version",
+    "accepted_taxon_key",
+    "scientific_name",
+    "baseline_snapshot_id",
+    "flickr_snapshot_id",
+    "provider_union_policy_version",
+    "verification_projection_version",
+    "release_policy_version",
+    "verification_campaign_id",
+    "quality_snapshot_id",
+    "release_decision_id",
+    "grid_name",
+    "grid_version",
+    "spatial_resolution",
+    "spatial_cell_id",
+    "parent_spatial_cell_id",
+    "country_hierarchy_id",
+    "continent",
+    "country_code",
+    "country",
+    "admin1",
+    "centroid_latitude",
+    "centroid_longitude",
+    "baseline_evidence_status",
+    "provider_input_row_count",
+    "baseline_union_count",
+    "baseline_range_inference_eligible_count",
+    "baseline_excluded_occurrence_count",
+    "gbif_only_count",
+    "inaturalist_origin_through_gbif_count",
+    "direct_inaturalist_delta_status",
+    "direct_inaturalist_delta_count",
+    "duplicates_removed_count",
+    "unresolved_provider_duplicate_group_count",
+    "flickr_candidate_count",
+    "flickr_visually_eligible_count",
+    "reviewed_positive_count",
+    "reviewed_negative_count",
+    "uncertain_count",
+    "pending_count",
+    "media_failure_count",
+    "skipped_count",
+    "release_ready_count",
+    "baseline_only_cell",
+    "matched_cell",
+    "candidate_only_cell",
+    "reviewed_additional_cell",
+    "release_ready_additional_cell",
+    "nearest_baseline_distance_status",
+    "nearest_baseline_distance_km",
+    "nearest_baseline_cell_id",
+    "nearest_baseline_distance_method",
+    "latest_baseline_event_date",
+    "latest_flickr_candidate_date",
+    "latest_reviewed_positive_date",
+    "latest_release_ready_date",
+    "data_deficient_state",
+    "data_deficient_reasons"
+  ],
+  "properties": {
+    "schema_version": {"const": "taxalens-geographic-impact-cell:v1.0.0"},
+    "geographic_impact_build_id": {"$ref": "#/$defs/nonEmptyString"},
+    "project_id": {"$ref": "#/$defs/nonEmptyString"},
+    "run_id": {"$ref": "#/$defs/nonEmptyString"},
+    "registry_version": {"$ref": "#/$defs/nonEmptyString"},
+    "accepted_taxon_key": {"$ref": "#/$defs/nonEmptyString"},
+    "scientific_name": {"$ref": "#/$defs/nonEmptyString"},
+    "baseline_snapshot_id": {"$ref": "#/$defs/nonEmptyString"},
+    "flickr_snapshot_id": {"$ref": "#/$defs/nonEmptyString"},
+    "provider_union_policy_version": {"const": "baseline-provider-union-policy-v1.0.0"},
+    "verification_projection_version": {"$ref": "#/$defs/nonEmptyString"},
+    "release_policy_version": {"$ref": "#/$defs/nonEmptyString"},
+    "verification_campaign_id": {"$ref": "#/$defs/nullableNonEmptyString"},
+    "quality_snapshot_id": {"$ref": "#/$defs/nullableNonEmptyString"},
+    "release_decision_id": {"$ref": "#/$defs/nullableNonEmptyString"},
+    "grid_name": {"$ref": "#/$defs/nonEmptyString"},
+    "grid_version": {"$ref": "#/$defs/nonEmptyString"},
+    "spatial_resolution": {"type": "integer", "minimum": 0, "maximum": 15},
+    "spatial_cell_id": {"$ref": "#/$defs/nonEmptyString"},
+    "parent_spatial_cell_id": {"$ref": "#/$defs/nullableNonEmptyString"},
+    "country_hierarchy_id": {"$ref": "#/$defs/nonEmptyString"},
+    "continent": {
+      "enum": [
+        "Africa",
+        "Antarctica",
+        "Asia",
+        "Europe",
+        "North America",
+        "Oceania",
+        "South America"
+      ]
+    },
+    "country_code": {"type": "string", "pattern": "^[A-Z]{2}$"},
+    "country": {"$ref": "#/$defs/nonEmptyString"},
+    "admin1": {"$ref": "#/$defs/nullableNonEmptyString"},
+    "centroid_latitude": {"type": "number", "minimum": -90, "maximum": 90},
+    "centroid_longitude": {"type": "number", "minimum": -180, "maximum": 180},
+    "baseline_evidence_status": {"enum": ["available", "unavailable"]},
+    "provider_input_row_count": {"$ref": "#/$defs/nullableNonNegativeInteger"},
+    "baseline_union_count": {"$ref": "#/$defs/nullableNonNegativeInteger"},
+    "baseline_range_inference_eligible_count": {
+      "$ref": "#/$defs/nullableNonNegativeInteger"
+    },
+    "baseline_excluded_occurrence_count": {
+      "$ref": "#/$defs/nullableNonNegativeInteger"
+    },
+    "gbif_only_count": {"$ref": "#/$defs/nullableNonNegativeInteger"},
+    "inaturalist_origin_through_gbif_count": {
+      "$ref": "#/$defs/nullableNonNegativeInteger"
+    },
+    "direct_inaturalist_delta_status": {"enum": ["available", "unavailable"]},
+    "direct_inaturalist_delta_count": {"$ref": "#/$defs/nullableNonNegativeInteger"},
+    "duplicates_removed_count": {"$ref": "#/$defs/nullableNonNegativeInteger"},
+    "unresolved_provider_duplicate_group_count": {
+      "$ref": "#/$defs/nullableNonNegativeInteger"
+    },
+    "flickr_candidate_count": {"$ref": "#/$defs/nonNegativeInteger"},
+    "flickr_visually_eligible_count": {"$ref": "#/$defs/nonNegativeInteger"},
+    "reviewed_positive_count": {"$ref": "#/$defs/nonNegativeInteger"},
+    "reviewed_negative_count": {"$ref": "#/$defs/nonNegativeInteger"},
+    "uncertain_count": {"$ref": "#/$defs/nonNegativeInteger"},
+    "pending_count": {"$ref": "#/$defs/nonNegativeInteger"},
+    "media_failure_count": {"$ref": "#/$defs/nonNegativeInteger"},
+    "skipped_count": {"$ref": "#/$defs/nonNegativeInteger"},
+    "release_ready_count": {"$ref": "#/$defs/nonNegativeInteger"},
+    "baseline_only_cell": {"type": "boolean"},
+    "matched_cell": {"type": "boolean"},
+    "candidate_only_cell": {"type": "boolean"},
+    "reviewed_additional_cell": {"type": "boolean"},
+    "release_ready_additional_cell": {"type": "boolean"},
+    "nearest_baseline_distance_status": {
+      "enum": ["available", "unavailable", "not_applicable"]
+    },
+    "nearest_baseline_distance_km": {
+      "anyOf": [
+        {"type": "number", "minimum": 0},
+        {"type": "null"}
+      ]
+    },
+    "nearest_baseline_cell_id": {"$ref": "#/$defs/nullableNonEmptyString"},
+    "nearest_baseline_distance_method": {
+      "anyOf": [
+        {"const": "haversine_cell_centroid"},
+        {"type": "null"}
+      ]
+    },
+    "latest_baseline_event_date": {"$ref": "#/$defs/nullableDate"},
+    "latest_flickr_candidate_date": {"$ref": "#/$defs/nullableDate"},
+    "latest_reviewed_positive_date": {"$ref": "#/$defs/nullableDate"},
+    "latest_release_ready_date": {"$ref": "#/$defs/nullableDate"},
+    "data_deficient_state": {
+      "enum": ["sufficient", "data_deficient", "unavailable"]
+    },
+    "data_deficient_reasons": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/nonEmptyString"}
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"baseline_evidence_status": {"const": "available"}},
+        "required": ["baseline_evidence_status"]
+      },
+      "then": {
+        "properties": {
+          "provider_input_row_count": {"$ref": "#/$defs/nonNegativeInteger"},
+          "baseline_union_count": {"$ref": "#/$defs/nonNegativeInteger"},
+          "baseline_range_inference_eligible_count": {
+            "$ref": "#/$defs/nonNegativeInteger"
+          },
+          "baseline_excluded_occurrence_count": {
+            "$ref": "#/$defs/nonNegativeInteger"
+          },
+          "gbif_only_count": {"$ref": "#/$defs/nonNegativeInteger"},
+          "inaturalist_origin_through_gbif_count": {
+            "$ref": "#/$defs/nonNegativeInteger"
+          },
+          "duplicates_removed_count": {"$ref": "#/$defs/nonNegativeInteger"},
+          "unresolved_provider_duplicate_group_count": {
+            "$ref": "#/$defs/nonNegativeInteger"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "provider_input_row_count": {"type": "null"},
+          "baseline_union_count": {"type": "null"},
+          "baseline_range_inference_eligible_count": {"type": "null"},
+          "baseline_excluded_occurrence_count": {"type": "null"},
+          "gbif_only_count": {"type": "null"},
+          "inaturalist_origin_through_gbif_count": {"type": "null"},
+          "direct_inaturalist_delta_status": {"const": "unavailable"},
+          "direct_inaturalist_delta_count": {"type": "null"},
+          "duplicates_removed_count": {"type": "null"},
+          "unresolved_provider_duplicate_group_count": {"type": "null"},
+          "baseline_only_cell": {"const": false},
+          "matched_cell": {"const": false},
+          "candidate_only_cell": {"const": false},
+          "reviewed_additional_cell": {"const": false},
+          "release_ready_additional_cell": {"const": false},
+          "data_deficient_state": {"const": "unavailable"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"direct_inaturalist_delta_status": {"const": "available"}},
+        "required": ["direct_inaturalist_delta_status"]
+      },
+      "then": {
+        "properties": {
+          "direct_inaturalist_delta_count": {"$ref": "#/$defs/nonNegativeInteger"}
+        }
+      },
+      "else": {
+        "properties": {"direct_inaturalist_delta_count": {"type": "null"}}
+      }
+    },
+    {
+      "if": {
+        "properties": {"nearest_baseline_distance_status": {"const": "available"}},
+        "required": ["nearest_baseline_distance_status"]
+      },
+      "then": {
+        "properties": {
+          "nearest_baseline_distance_km": {"type": "number", "minimum": 0},
+          "nearest_baseline_cell_id": {"$ref": "#/$defs/nonEmptyString"},
+          "nearest_baseline_distance_method": {"const": "haversine_cell_centroid"}
+        }
+      },
+      "else": {
+        "properties": {
+          "nearest_baseline_distance_km": {"type": "null"},
+          "nearest_baseline_cell_id": {"type": "null"},
+          "nearest_baseline_distance_method": {"type": "null"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"data_deficient_state": {"const": "sufficient"}},
+        "required": ["data_deficient_state"]
+      },
+      "then": {
+        "properties": {"data_deficient_reasons": {"maxItems": 0}}
+      },
+      "else": {
+        "properties": {"data_deficient_reasons": {"minItems": 1}}
+      }
+    },
+    {
+      "if": {
+        "properties": {"release_ready_count": {"minimum": 1}},
+        "required": ["release_ready_count"]
+      },
+      "then": {
+        "properties": {"release_decision_id": {"$ref": "#/$defs/nonEmptyString"}}
+      }
+    }
+  ],
+  "$defs": {
+    "nonEmptyString": {"type": "string", "minLength": 1},
+    "nullableNonEmptyString": {
+      "anyOf": [
+        {"$ref": "#/$defs/nonEmptyString"},
+        {"type": "null"}
+      ]
+    },
+    "nonNegativeInteger": {"type": "integer", "minimum": 0},
+    "nullableNonNegativeInteger": {
+      "anyOf": [
+        {"$ref": "#/$defs/nonNegativeInteger"},
+        {"type": "null"}
+      ]
+    },
+    "nullableDate": {
+      "anyOf": [
+        {"type": "string", "format": "date"},
+        {"type": "null"}
+      ]
+    }
+  }
+}
