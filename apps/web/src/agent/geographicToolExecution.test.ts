@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { GeographicImpactBrowserResult, GeographicImpactRollup } from '../impact/geographicImpactAnalytics'
 import { executeGeographicTool, type GeographicToolAnalyticalEvidence } from './geographicToolExecution'
-import { explainCountryGeographicContribution } from './geographicAnalystWorkflow'
+import { explainCountryGeographicContribution, recommendGeographicReviews } from './geographicAnalystWorkflow'
 import { createGeographicToolEvidence, GEOGRAPHIC_ARTIFACT_CITATION_VERSION, GEOGRAPHIC_ARTIFACT_KINDS } from './geographicTools'
 
 describe('deterministic geographic tools', () => {
@@ -76,6 +76,33 @@ describe('deterministic geographic tools', () => {
       unsupportedClaimsRejected: true,
       scientificClaimAllowed: false,
     })
+  })
+
+  it.each([
+    ['unbiased_audit', 'pending', false, /inclusion probabilities and weights/],
+    ['geographic_coverage_gap', 'pending', false, /targeted coverage-gap batch/],
+    ['failure_discovery', 'uncertain', false, /targeted failure-discovery batch/],
+    ['reference_shortfall', 'pending', true, /reference readiness/],
+    ['conflict_adjudication', 'conflict', false, /resolves existing conflicts/],
+  ] as const)('distinguishes the %s review objective', (objective, reviewState, referenceShortfall, disclosure) => {
+    const source = analyticalEvidence()
+    const analytical: GeographicToolAnalyticalEvidence = {
+      ...source,
+      reviewCandidates: [{
+        ...source.reviewCandidates[0]!,
+        reviewState,
+        referenceShortfall,
+      }],
+    }
+    const workflow = recommendGeographicReviews(evidence, analytical, objective, 10)
+
+    expect(workflow.nextItemIds).toEqual(['item:a'])
+    expect(workflow.samplingDisclosure).toMatch(disclosure)
+    expect(workflow.toolResults.map(({ tool }) => tool)).toEqual([
+      'inspect_geographic_impact',
+      'recommend_geographic_review_batch',
+    ])
+    expect(workflow.externalActionsExecuted).toBe(false)
   })
 })
 

@@ -1,5 +1,5 @@
 import { executeGeographicTool, type GeographicToolAnalyticalEvidence } from './geographicToolExecution'
-import type { GeographicToolEvidence, GeographicToolResult } from './geographicTools'
+import type { GeographicReviewObjective, GeographicToolEvidence, GeographicToolResult } from './geographicTools'
 
 export const GEOGRAPHIC_ANALYST_MODEL = 'gpt-5.6-sol' as const
 export const GEOGRAPHIC_CONTRIBUTION_WORKFLOW_VERSION =
@@ -15,6 +15,18 @@ export interface GeographicContributionWorkflowResult {
   readonly limitations: readonly string[]
   readonly externalActionsExecuted: false
   readonly unsupportedClaimsRejected: true
+  readonly scientificClaimAllowed: false
+}
+
+export interface GeographicReviewRecommendationWorkflowResult {
+  readonly schemaVersion: typeof GEOGRAPHIC_CONTRIBUTION_WORKFLOW_VERSION
+  readonly objective: GeographicReviewObjective
+  readonly answer: string
+  readonly nextItemIds: readonly string[]
+  readonly samplingDisclosure: string
+  readonly toolResults: readonly GeographicToolResult[]
+  readonly artifactIds: readonly string[]
+  readonly externalActionsExecuted: false
   readonly scientificClaimAllowed: false
 }
 
@@ -87,6 +99,45 @@ export function explainCountryGeographicContribution(
   })
 }
 
+export function recommendGeographicReviews(
+  evidence: GeographicToolEvidence,
+  analytical: GeographicToolAnalyticalEvidence,
+  objective: GeographicReviewObjective,
+  batchSize: number,
+): GeographicReviewRecommendationWorkflowResult {
+  const rollup = analytical.result.selectedRollup
+  const common = scopedArguments(evidence, analytical)
+  const inspection = executeGeographicTool('inspect_geographic_impact', {
+    ...common,
+    scope_level: rollup.scopeLevel,
+    scope_id: rollup.scopeId,
+    evidence_mode: 'comparison',
+    metric: 'review_backlog',
+  }, evidence, analytical)
+  const recommendation = executeGeographicTool('recommend_geographic_review_batch', {
+    ...common,
+    scope_level: rollup.scopeLevel,
+    scope_id: rollup.scopeId,
+    review_objective: objective,
+    batch_size: batchSize,
+  }, evidence, analytical)
+  const nextItemIds = Object.freeze(recommendation.records.map(({ id }) => id))
+  const disclosure = reviewDisclosure(objective)
+  return Object.freeze({
+    schemaVersion: GEOGRAPHIC_CONTRIBUTION_WORKFLOW_VERSION,
+    objective,
+    answer: recommendation.status === 'unavailable'
+      ? `No committed candidate identities satisfy the ${objective.replaceAll('_', ' ')} objective in ${rollup.scopeName}.`
+      : `Review ${formatCount(nextItemIds.length)} existing candidate item${nextItemIds.length === 1 ? '' : 's'} for ${objective.replaceAll('_', ' ')} in ${rollup.scopeName}. ${disclosure}`,
+    nextItemIds,
+    samplingDisclosure: disclosure,
+    toolResults: Object.freeze([inspection, recommendation]),
+    artifactIds: uniqueSorted([...inspection.artifactIds, ...recommendation.artifactIds]),
+    externalActionsExecuted: false as const,
+    scientificClaimAllowed: false as const,
+  })
+}
+
 function scopedArguments(
   evidence: GeographicToolEvidence,
   analytical: GeographicToolAnalyticalEvidence,
@@ -113,4 +164,19 @@ function uniqueSorted(values: readonly string[]): readonly string[] {
 
 function formatCount(value: number): string {
   return value.toLocaleString('en-US')
+}
+
+function reviewDisclosure(objective: GeographicReviewObjective): string {
+  switch (objective) {
+    case 'unbiased_audit':
+      return 'Use only the campaign’s retained inclusion probabilities and weights for population-quality estimation.'
+    case 'geographic_coverage_gap':
+      return 'This is a targeted coverage-gap batch and does not support unweighted population inference.'
+    case 'failure_discovery':
+      return 'This is a targeted failure-discovery batch and does not support unweighted population inference.'
+    case 'reference_shortfall':
+      return 'This batch addresses reference readiness, not geographic population quality.'
+    case 'conflict_adjudication':
+      return 'This batch resolves existing conflicts and does not expand the audit sample.'
+  }
 }
