@@ -33,6 +33,7 @@ export interface GeographicReviewSpatialBinding {
   readonly spatialCellId: string
   readonly cellSupported: boolean
   readonly reviewerAssignmentCount: number
+  readonly committedReviewState?: GeographicHumanReviewState
 }
 
 export interface GeographicOccurrenceReleaseDecision
@@ -79,6 +80,12 @@ export interface GeographicReviewCellProjection {
   readonly populationQualityEligibleCount: number
   readonly targetedFailureDiscoveryReviewedCount: number
   readonly releaseReadyCount: number
+  readonly committedReviewedPositiveCount: number
+  readonly committedReviewedNegativeCount: number
+  readonly committedUncertainCount: number
+  readonly committedPendingCount: number
+  readonly committedMediaFailureCount: number
+  readonly committedSkippedCount: number
   readonly scientificClaimAllowed: false
 }
 
@@ -379,6 +386,48 @@ function projectCells(
               decisivelyReviewed && samplingPurpose === 'failure_discovery',
           ),
           releaseReadyCount: count(projected, ({ releaseReady }) => releaseReady),
+          committedReviewedPositiveCount: committedStateCount(
+            itemMap,
+            bindings,
+            spatialResolution,
+            spatialCellId,
+            'reviewed_target_positive',
+          ),
+          committedReviewedNegativeCount: committedStateCount(
+            itemMap,
+            bindings,
+            spatialResolution,
+            spatialCellId,
+            'reviewed_non_target',
+          ),
+          committedUncertainCount: committedStateCount(
+            itemMap,
+            bindings,
+            spatialResolution,
+            spatialCellId,
+            'uncertain',
+          ),
+          committedPendingCount: committedStateCount(
+            itemMap,
+            bindings,
+            spatialResolution,
+            spatialCellId,
+            'pending',
+          ),
+          committedMediaFailureCount: committedStateCount(
+            itemMap,
+            bindings,
+            spatialResolution,
+            spatialCellId,
+            'media_failure',
+          ),
+          committedSkippedCount: committedStateCount(
+            itemMap,
+            bindings,
+            spatialResolution,
+            spatialCellId,
+            'skipped',
+          ),
           scientificClaimAllowed: false as const,
         })
       })
@@ -388,6 +437,25 @@ function projectCells(
           left.spatialCellId.localeCompare(right.spatialCellId),
       ),
   )
+}
+
+function committedStateCount(
+  items: ReadonlyMap<string, GeographicReviewItemProjection>,
+  bindings: readonly GeographicReviewSpatialBinding[],
+  spatialResolution: number,
+  spatialCellId: string,
+  state: GeographicHumanReviewState,
+): number {
+  return [...items.keys()].filter((itemKey) => {
+    const binding = bindings.find(
+      (candidate) =>
+        candidate.cellSupported &&
+        candidate.spatialResolution === spatialResolution &&
+        candidate.spatialCellId === spatialCellId &&
+        reviewItemKey(candidate.campaignId, candidate.itemId) === itemKey,
+    )
+    return binding !== undefined && (binding.committedReviewState ?? 'pending') === state
+  }).length
 }
 
 function count<T>(values: readonly T[], predicate: (value: T) => boolean): number {

@@ -9,6 +9,12 @@ import {
   filterGeographicImpactCells,
 } from './GeographicEvidenceMaturityFilter'
 import { GeographicReviewProgress } from './GeographicReviewProgress'
+import { applyLocalGeographicReviewProjection } from './geographicReviewOverlay'
+import type { GeographicReviewProjection } from './geographicReviewProjection'
+import {
+  useLocalGeographicReviewProjection,
+  type LocalGeographicReviewProjectionState,
+} from './publicGeographicReviewProjection'
 import { GeographicBreadcrumbs } from './GeographicBreadcrumbs'
 import { GeographicScopeSlicers } from './GeographicScopeSlicers'
 import { GeographicImpactLegend } from './GeographicImpactLegend'
@@ -31,7 +37,7 @@ export function GeographicImpactLens({
   reviewProjection,
   webGlSupported,
 }: {
-  readonly reviewProjection?: import('./geographicReviewProjection').GeographicReviewProjection
+  readonly reviewProjection?: GeographicReviewProjection
   readonly webGlSupported?: boolean
 }) {
   const scope = useGeographicScopeState()
@@ -44,19 +50,48 @@ export function GeographicImpactLens({
     scope.selected,
     typeof Worker !== 'undefined',
   )
-  const visibleCells = useMemo(
+  const localReview = useLocalGeographicReviewProjection({
+    enabled:
+      reviewProjection === undefined &&
+      mapData.status === 'available' &&
+      typeof Worker !== 'undefined' &&
+      typeof globalThis.indexedDB !== 'undefined',
+  })
+  const activeReviewProjection =
+    reviewProjection ??
+    (localReview.status === 'available' ? localReview.projection : undefined)
+  const evidenceData = useMemo(
     () =>
       mapData.status === 'available'
-        ? filterGeographicImpactCells(mapData.data.cells, evidenceMode)
+        ? activeReviewProjection === undefined
+          ? mapData.data
+          : applyLocalGeographicReviewProjection(
+              mapData.data,
+              activeReviewProjection,
+            )
         : undefined,
-    [evidenceMode, mapData],
+    [activeReviewProjection, mapData],
+  )
+  const visibleCells = useMemo(
+    () =>
+      evidenceData === undefined
+        ? undefined
+        : filterGeographicImpactCells(evidenceData.cells, evidenceMode),
+    [evidenceData, evidenceMode],
   )
   const visibleData = useMemo(
     () =>
       mapData.status === 'available' && visibleCells !== undefined
-        ? Object.freeze({ ...mapData.data, cells: visibleCells })
+        ? Object.freeze({ ...(evidenceData ?? mapData.data), cells: visibleCells })
         : undefined,
-    [mapData, visibleCells],
+    [evidenceData, mapData, visibleCells],
+  )
+  const scopedReviewProjection = useMemo(
+    () =>
+      activeReviewProjection === undefined || evidenceData === undefined
+        ? undefined
+        : scopeReviewProjection(activeReviewProjection, evidenceData),
+    [activeReviewProjection, evidenceData],
   )
   const impactFeatures = useMemo(
     () =>
@@ -98,7 +133,7 @@ export function GeographicImpactLens({
           claims.
         </p>
       </div>
-      <MapEvidenceState state={mapData} />
+      <MapEvidenceState state={mapData} evidenceData={evidenceData} />
       <div className="geographic-impact-lens__scope" role="status" aria-live="polite">
         <span>Geographic scope</span>
         <strong>{scope.selected.scope_name}</strong>
@@ -114,19 +149,22 @@ export function GeographicImpactLens({
         <GeographicEvidenceMaturityFilter
           mode={evidenceMode}
           onChange={setEvidenceMode}
-          sourceCellCount={mapData.data.cells.length}
+          sourceCellCount={(evidenceData ?? mapData.data).cells.length}
           visibleCellCount={visibleCells.length}
         />
+      ) : null}
+      {reviewProjection === undefined ? (
+        <LocalReviewEvidenceState state={localReview} />
       ) : null}
       {impactFeatures === undefined ? null : (
         <GeographicImpactLegend features={impactFeatures} />
       )}
       {mapData.status === 'available' && visibleData !== undefined ? (
         <>
-          {reviewProjection === undefined ? null : (
+          {scopedReviewProjection === undefined ? null : (
             <GeographicReviewProgress
-              projection={reviewProjection}
-              spatialResolution={mapData.data.spatialResolution}
+              projection={scopedReviewProjection}
+              spatialResolution={(evidenceData ?? mapData.data).spatialResolution}
             />
           )}
           <GeographicImpactAccessibleSummary
@@ -203,7 +241,13 @@ function useGeographicImpactMapData(
   return state
 }
 
-function MapEvidenceState({ state }: { readonly state: GeographicImpactMapLoadState }) {
+function MapEvidenceState({
+  state,
+  evidenceData,
+}: {
+  readonly state: GeographicImpactMapLoadState
+  readonly evidenceData: PublicGeographicImpactMapData | undefined
+}) {
   switch (state.status) {
     case 'unavailable':
       return (
@@ -226,14 +270,71 @@ function MapEvidenceState({ state }: { readonly state: GeographicImpactMapLoadSt
         </EvidenceState>
       )
     case 'available':
+      const data = evidenceData ?? state.data
       return (
         <EvidenceState state="available" title="Baseline and Flickr evidence mapped">
-          {state.data.cells.length.toLocaleString()} preaggregated resolution-
-          {state.data.spatialResolution} cells are shown for this scope from artifact{' '}
+          {data.cells.length.toLocaleString()} preaggregated resolution-
+          {data.spatialResolution} cells are shown for this scope from artifact{' '}
           <code>{PUBLIC_GEOGRAPHIC_IMPACT_MAP_SOURCE.artifactSha256.slice(0, 12)}</code>. Direct
           iNaturalist delta is {PUBLIC_GEOGRAPHIC_IMPACT_MAP_SOURCE.directInaturalistDeltaStatus};
-          retained human outcomes and release-ready candidates remain zero.
+          {data.localReviewOverlayApplied
+            ? ` ${data.localReviewEventCount ?? 0} local append-only review events are projected without changing retained release-ready evidence.`
+            : ' committed human-review and release states are shown without a local overlay.'}
         </EvidenceState>
       )
   }
+}
+
+function LocalReviewEvidenceState({
+  state,
+}: {
+  readonly state: LocalGeographicReviewProjectionState
+}) {
+  switch (state.status) {
+    case 'unavailable':
+      return (
+        <EvidenceState state="review" title="Local geographic review overlay unavailable">
+          {state.reason} The committed map remains available and no review state is invented.
+        </EvidenceState>
+      )
+    case 'loading':
+      return (
+        <EvidenceState state="loading" title="Projecting local geographic reviews">
+          TaxaLens is verifying the committed audit bindings and reading the append-only IndexedDB
+          ledger.
+        </EvidenceState>
+      )
+    case 'failure':
+      return (
+        <EvidenceState state="failure" title="Local geographic review overlay stopped">
+          {state.message}
+        </EvidenceState>
+      )
+    case 'available':
+      return (
+        <EvidenceState state="available" title="Local geographic review overlay active">
+          {state.localEventCount.toLocaleString('en-US')} append-only event
+          {state.localEventCount === 1 ? '' : 's'} from campaign <code>{state.campaignId}</code>{' '}
+          are projected locally. The targeted failure-discovery campaign is unavailable in this
+          committed replay, and local outcomes cannot create a scientific release.
+        </EvidenceState>
+      )
+  }
+}
+
+function scopeReviewProjection(
+  projection: GeographicReviewProjection,
+  data: PublicGeographicImpactMapData,
+): GeographicReviewProjection {
+  const visibleCellIds = new Set(data.cells.map(({ spatialCellId }) => spatialCellId))
+  return Object.freeze({
+    ...projection,
+    cells: Object.freeze(
+      projection.cells.filter(
+        (cell) =>
+          cell.spatialResolution === data.spatialResolution &&
+          visibleCellIds.has(cell.spatialCellId),
+      ),
+    ),
+  })
 }

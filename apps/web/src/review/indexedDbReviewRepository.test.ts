@@ -16,6 +16,7 @@ import {
   withReviewerId,
 } from './reviewStore'
 import { REVIEW_REPOSITORY_RECEIPT_SCHEMA_VERSION } from './reviewRepository'
+import { subscribeToLocalReviewLedgerChanges } from './repositories/localReviewLedgerEvents'
 
 describe('IndexedDB review repository', () => {
   it('fails clearly when browser IndexedDB is unavailable', async () => {
@@ -33,9 +34,25 @@ describe('IndexedDB review repository', () => {
     const databaseName = 'taxalens-indexeddb-repository-offline'
     const [firstEvent, secondEvent] = reviewEvents()
     const firstRepository = repository(factory, databaseName)
+    const changes: unknown[] = []
+    const unsubscribe = subscribeToLocalReviewLedgerChanges((change) => changes.push(change))
 
     await firstRepository.appendEvent(firstEvent)
     await firstRepository.appendEvent(secondEvent)
+
+    expect(changes).toEqual([
+      {
+        campaignId: HUMAN_REVIEW_CAMPAIGN.campaignId,
+        operation: 'append',
+        eventId: firstEvent.eventId,
+      },
+      {
+        campaignId: HUMAN_REVIEW_CAMPAIGN.campaignId,
+        operation: 'append',
+        eventId: secondEvent.eventId,
+      },
+    ])
+    unsubscribe()
     await firstRepository.appendEvent(secondEvent)
 
     await expect(
@@ -131,11 +148,19 @@ describe('IndexedDB review repository', () => {
     const databaseName = 'taxalens-indexeddb-repository-clear'
     const [event] = reviewEvents()
     const repositoryUnderTest = repository(factory, databaseName)
+    const changes: unknown[] = []
+    const unsubscribe = subscribeToLocalReviewLedgerChanges((change) => changes.push(change))
     await repositoryUnderTest.appendEvent(event)
 
     await repositoryUnderTest.clearLocalCampaign(
       HUMAN_REVIEW_CAMPAIGN.campaignId,
     )
+    expect(changes.at(-1)).toEqual({
+      campaignId: HUMAN_REVIEW_CAMPAIGN.campaignId,
+      operation: 'clear',
+      eventId: null,
+    })
+    unsubscribe()
 
     await expect(
       repositoryUnderTest.loadCampaign(HUMAN_REVIEW_CAMPAIGN.campaignId),

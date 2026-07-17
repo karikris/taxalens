@@ -58,6 +58,8 @@ export interface PublicGeographicImpactMapData {
   readonly scopeId: string
   readonly source: typeof PUBLIC_GEOGRAPHIC_IMPACT_MAP_SOURCE
   readonly scientificClaimAllowed: false
+  readonly localReviewOverlayApplied?: true
+  readonly localReviewEventCount?: number
 }
 
 export interface PublicGeographicImpactMapCell extends GeographicImpactBrowserCell {

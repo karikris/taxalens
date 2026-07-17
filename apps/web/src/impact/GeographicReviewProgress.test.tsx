@@ -50,6 +50,12 @@ describe('GeographicReviewProgress', () => {
         populationQualityEligibleCount: 1,
         targetedFailureDiscoveryReviewedCount: 1,
         releaseReadyCount: 0,
+        committedReviewedPositiveCount: 0,
+        committedReviewedNegativeCount: 0,
+        committedUncertainCount: 0,
+        committedPendingCount: 4,
+        committedMediaFailureCount: 0,
+        committedSkippedCount: 0,
       }),
       cell(5, {
         campaignItemCount: 4,
@@ -65,6 +71,12 @@ describe('GeographicReviewProgress', () => {
         populationQualityEligibleCount: 1,
         targetedFailureDiscoveryReviewedCount: 1,
         releaseReadyCount: 0,
+        committedReviewedPositiveCount: 0,
+        committedReviewedNegativeCount: 0,
+        committedUncertainCount: 0,
+        committedPendingCount: 4,
+        committedMediaFailureCount: 0,
+        committedSkippedCount: 0,
       }),
     ])
 

@@ -31,6 +31,7 @@ import {
   type ReviewEventQueue,
   type ReviewSyncStatus,
 } from './reviewSync'
+import { announceLocalReviewLedgerChange } from './localReviewLedgerEvents'
 
 export {
   REVIEW_SYNC_STATUS_SCHEMA_VERSION,
@@ -143,7 +144,14 @@ export class IndexedDbReviewRepository
   }
 
   async appendEvent(event: VerificationEvent): Promise<void> {
-    await appendEventToDatabase(await this.#database(), event)
+    const appended = await appendEventToDatabase(await this.#database(), event)
+    if (appended) {
+      announceLocalReviewLedgerChange({
+        campaignId: event.campaignId,
+        operation: 'append',
+        eventId: event.eventId,
+      })
+    }
   }
 
   async loadCurrentDecisions(
@@ -248,6 +256,11 @@ export class IndexedDbReviewRepository
     transaction.objectStore(PROJECTIONS_STORE).delete(campaignId)
     transaction.objectStore(SYNC_STATUS_STORE).delete(campaignId)
     await complete
+    announceLocalReviewLedgerChange({
+      campaignId,
+      operation: 'clear',
+      eventId: null,
+    })
   }
 
   async loadSyncStatus(campaignId: string): Promise<ReviewSyncStatus | null> {
@@ -539,7 +552,7 @@ async function seedCampaign(
 async function appendEventToDatabase(
   database: IDBDatabase,
   event: VerificationEvent,
-): Promise<void> {
+): Promise<boolean> {
   const transaction = database.transaction(
     [
       CAMPAIGNS_STORE,
@@ -575,7 +588,7 @@ async function appendEventToDatabase(
         throw new Error(`Review event ID conflicts: ${event.eventId}`)
       }
       await complete
-      return
+      return false
     }
     const eventRecords = await requestResult<EventRecord[]>(
       eventStore.index(CAMPAIGN_INDEX).getAll(event.campaignId),
@@ -626,6 +639,7 @@ async function appendEventToDatabase(
       }),
     )
     await complete
+    return true
   } catch (reason) {
     abortTransaction(transaction)
     await complete.catch(() => undefined)
