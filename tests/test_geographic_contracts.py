@@ -339,6 +339,21 @@ def test_geographic_impact_manifest_binds_inventory_and_counts() -> None:
     assert document.to_dict() == value
 
 
+def test_geographic_impact_manifest_allows_multiple_pinned_commits_per_repository() -> None:
+    value = _impact_manifest()
+    commits = [dict(item) for item in value["source_commits"]]  # type: ignore[index]
+    commits.append({"repository": "karikris/taxalens", "commit_sha": "d" * 40})
+    artifacts = [dict(item) for item in value["artifacts"]]  # type: ignore[index]
+    artifacts[6]["source_commit"] = "d" * 40
+
+    validation = validate_geographic_contract(
+        "geographic_impact_manifest",
+        {**value, "source_commits": commits, "artifacts": artifacts},
+    )
+
+    assert validation.valid, validation
+
+
 def test_geographic_impact_manifest_rejects_review_without_evidence() -> None:
     value = _impact_manifest()
     artifacts = [dict(item) for item in value["artifacts"]]  # type: ignore[union-attr]
@@ -647,6 +662,8 @@ def _impact_manifest() -> dict[str, object]:
         "direct_inaturalist_delta_status": "unavailable",
         "direct_inaturalist_delta_count": None,
         "flickr_candidate_count": 2,
+        "geographically_supported_flickr_candidate_count": 2,
+        "geographically_unsupported_flickr_candidate_count": 0,
         "reviewed_positive_count": 1,
         "reviewed_negative_count": 0,
         "uncertain_count": 0,
@@ -654,9 +671,12 @@ def _impact_manifest() -> dict[str, object]:
         "media_failure_count": 0,
         "skipped_count": 0,
         "release_ready_count": 0,
+        "baseline_only_cell_count": 1,
+        "matched_cell_count": 1,
         "candidate_only_cell_count": 1,
         "reviewed_additional_cell_count": 1,
         "release_ready_additional_cell_count": 0,
+        "unassigned_cartographic_cell_count": 0,
         "deterministic_fingerprint_sha256": "f" * 64,
         "generated_by": "taxalens-geographic-impact-builder:v1",
     }

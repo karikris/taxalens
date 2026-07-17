@@ -347,6 +347,8 @@ export interface GeographicImpactManifestDocument {
   readonly direct_inaturalist_delta_status: DirectProviderDeltaStatus
   readonly direct_inaturalist_delta_count: number | null
   readonly flickr_candidate_count: number
+  readonly geographically_supported_flickr_candidate_count: number
+  readonly geographically_unsupported_flickr_candidate_count: number
   readonly reviewed_positive_count: number
   readonly reviewed_negative_count: number
   readonly uncertain_count: number
@@ -354,9 +356,12 @@ export interface GeographicImpactManifestDocument {
   readonly media_failure_count: number
   readonly skipped_count: number
   readonly release_ready_count: number
+  readonly baseline_only_cell_count: number | null
+  readonly matched_cell_count: number | null
   readonly candidate_only_cell_count: number | null
   readonly reviewed_additional_cell_count: number | null
   readonly release_ready_additional_cell_count: number | null
+  readonly unassigned_cartographic_cell_count: number
   readonly deterministic_fingerprint_sha256: string
   readonly generated_by: string
 }

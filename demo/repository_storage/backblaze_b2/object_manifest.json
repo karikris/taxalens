@@ -1,7 +1,7 @@
 {
   "bucket_alias": "taxalens-repository-fixture",
   "credentials_included": false,
-  "object_count": 98,
+  "object_count": 99,
   "objects": [
     {
       "bytes": 484,
@@ -472,6 +472,15 @@
       "sha256": "97b2422657d79bc8e682c4e51358c0316f6c942a31fea9ed608ef2c4ba420d94"
     },
     {
+      "bytes": 7330,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase14/geographic_impact/geographic_impact_manifest.json",
+      "repository_path": "demo/source/biominer_phase14/geographic_impact/geographic_impact_manifest.json",
+      "sha256": "df6be1d24fc41cedb32061a36c477eefe188c414661fc3c4cdd3886cbfd991c4"
+    },
+    {
       "bytes": 38351,
       "git_tracked_required": true,
       "immutable": true,
@@ -891,5 +900,5 @@
   "scientific_claim_allowed": false,
   "signed_urls_included": false,
   "storage_mode": "repository_mirror",
-  "total_bytes": 15433192
+  "total_bytes": 15440522
 }

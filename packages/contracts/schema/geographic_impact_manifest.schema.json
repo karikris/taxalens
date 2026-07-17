@@ -33,6 +33,8 @@
     "direct_inaturalist_delta_status",
     "direct_inaturalist_delta_count",
     "flickr_candidate_count",
+    "geographically_supported_flickr_candidate_count",
+    "geographically_unsupported_flickr_candidate_count",
     "reviewed_positive_count",
     "reviewed_negative_count",
     "uncertain_count",
@@ -40,9 +42,12 @@
     "media_failure_count",
     "skipped_count",
     "release_ready_count",
+    "baseline_only_cell_count",
+    "matched_cell_count",
     "candidate_only_cell_count",
     "reviewed_additional_cell_count",
     "release_ready_additional_cell_count",
+    "unassigned_cartographic_cell_count",
     "deterministic_fingerprint_sha256",
     "generated_by"
   ],
@@ -78,6 +83,7 @@
     "source_commits": {
       "type": "array",
       "minItems": 1,
+      "uniqueItems": true,
       "items": {"$ref": "#/$defs/sourceCommit"}
     },
     "artifacts": {
@@ -93,6 +99,8 @@
     "direct_inaturalist_delta_status": {"enum": ["available", "unavailable"]},
     "direct_inaturalist_delta_count": {"$ref": "#/$defs/nullableCount"},
     "flickr_candidate_count": {"$ref": "#/$defs/count"},
+    "geographically_supported_flickr_candidate_count": {"$ref": "#/$defs/count"},
+    "geographically_unsupported_flickr_candidate_count": {"$ref": "#/$defs/count"},
     "reviewed_positive_count": {"$ref": "#/$defs/count"},
     "reviewed_negative_count": {"$ref": "#/$defs/count"},
     "uncertain_count": {"$ref": "#/$defs/count"},
@@ -100,9 +108,12 @@
     "media_failure_count": {"$ref": "#/$defs/count"},
     "skipped_count": {"$ref": "#/$defs/count"},
     "release_ready_count": {"$ref": "#/$defs/count"},
+    "baseline_only_cell_count": {"$ref": "#/$defs/nullableCount"},
+    "matched_cell_count": {"$ref": "#/$defs/nullableCount"},
     "candidate_only_cell_count": {"$ref": "#/$defs/nullableCount"},
     "reviewed_additional_cell_count": {"$ref": "#/$defs/nullableCount"},
     "release_ready_additional_cell_count": {"$ref": "#/$defs/nullableCount"},
+    "unassigned_cartographic_cell_count": {"$ref": "#/$defs/count"},
     "deterministic_fingerprint_sha256": {"$ref": "#/$defs/sha256"},
     "generated_by": {"$ref": "#/$defs/nonEmptyString"}
   },
@@ -112,6 +123,8 @@
       "then": {
         "properties": {
           "baseline_union_count": {"$ref": "#/$defs/count"},
+          "baseline_only_cell_count": {"$ref": "#/$defs/count"},
+          "matched_cell_count": {"$ref": "#/$defs/count"},
           "candidate_only_cell_count": {"$ref": "#/$defs/count"},
           "reviewed_additional_cell_count": {"$ref": "#/$defs/count"},
           "release_ready_additional_cell_count": {"$ref": "#/$defs/count"}
@@ -120,6 +133,8 @@
       "else": {
         "properties": {
           "baseline_union_count": {"type": "null"},
+          "baseline_only_cell_count": {"type": "null"},
+          "matched_cell_count": {"type": "null"},
           "direct_inaturalist_delta_status": {"const": "unavailable"},
           "direct_inaturalist_delta_count": {"type": "null"},
           "candidate_only_cell_count": {"type": "null"},

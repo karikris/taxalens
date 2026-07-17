@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 
 import polars as pl
+from packages.replay.src.geographic_impact_manifest import build_geographic_impact_manifest
 from packages.replay.src.geographic_impact_materializer import (
     DEFAULT_BASELINE_UNION,
     DEFAULT_COUNTRY_HIERARCHY,
@@ -29,6 +30,7 @@ from packages.replay.src.offline_country_lookup import DEFAULT_COUNTRY_BOUNDARIE
 OUTPUT_ROOT = REPOSITORY_ROOT / "demo/source/biominer_phase14/geographic_impact"
 OUTPUT_CELLS = OUTPUT_ROOT / "geographic_impact_cells.parquet"
 OUTPUT_SUMMARY = OUTPUT_ROOT / "geographic_impact_summary.parquet"
+OUTPUT_MANIFEST = OUTPUT_ROOT / "geographic_impact_manifest.json"
 
 
 def sha256_bytes(content: bytes) -> str:
@@ -71,9 +73,20 @@ def build_outputs() -> dict[Path, bytes]:
         geographic_impact_build_id=geographic_impact_build_id()
     )
     summaries = build_committed_geographic_impact_summaries(cells)
+    cells_content = parquet_bytes(cells)
+    summaries_content = parquet_bytes(summaries)
+    manifest = build_geographic_impact_manifest(
+        cells,
+        summaries,
+        cells_content=cells_content,
+        summaries_content=summaries_content,
+        cells_path=OUTPUT_CELLS,
+        summaries_path=OUTPUT_SUMMARY,
+    )
     return {
-        OUTPUT_CELLS: parquet_bytes(cells),
-        OUTPUT_SUMMARY: parquet_bytes(summaries),
+        OUTPUT_CELLS: cells_content,
+        OUTPUT_SUMMARY: summaries_content,
+        OUTPUT_MANIFEST: canonical_json_bytes(manifest),
     }
 
 

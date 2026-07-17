@@ -272,6 +272,8 @@
       "direct_inaturalist_delta_status": "unavailable",
       "direct_inaturalist_delta_count": null,
       "flickr_candidate_count": 2,
+      "geographically_supported_flickr_candidate_count": 2,
+      "geographically_unsupported_flickr_candidate_count": 0,
       "reviewed_positive_count": 1,
       "reviewed_negative_count": 0,
       "uncertain_count": 0,
@@ -279,9 +281,12 @@
       "media_failure_count": 0,
       "skipped_count": 0,
       "release_ready_count": 0,
+      "baseline_only_cell_count": 1,
+      "matched_cell_count": 1,
       "candidate_only_cell_count": 1,
       "reviewed_additional_cell_count": 1,
       "release_ready_additional_cell_count": 0,
+      "unassigned_cartographic_cell_count": 0,
       "deterministic_fingerprint_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
       "generated_by": "taxalens-geographic-impact-builder:v1"
     }

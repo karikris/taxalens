@@ -672,6 +672,8 @@ class GeographicImpactManifestDocument:
     direct_inaturalist_delta_status: EvidenceAvailability
     direct_inaturalist_delta_count: int | None
     flickr_candidate_count: int
+    geographically_supported_flickr_candidate_count: int
+    geographically_unsupported_flickr_candidate_count: int
     reviewed_positive_count: int
     reviewed_negative_count: int
     uncertain_count: int
@@ -679,9 +681,12 @@ class GeographicImpactManifestDocument:
     media_failure_count: int
     skipped_count: int
     release_ready_count: int
+    baseline_only_cell_count: int | None
+    matched_cell_count: int | None
     candidate_only_cell_count: int | None
     reviewed_additional_cell_count: int | None
     release_ready_additional_cell_count: int | None
+    unassigned_cartographic_cell_count: int
     deterministic_fingerprint_sha256: str
     generated_by: str
 
@@ -1122,29 +1127,20 @@ def _impact_manifest_semantic_failures(
     }:
         fail("/summary_scope_levels", "scope_inventory_invariant")
 
-    commit_repositories = {
-        str(item["repository"]) for item in commits_value if isinstance(item, Mapping)
-    }
-    commits_by_repository = {
-        str(item["repository"]): str(item["commit_sha"])
+    commit_pairs = {
+        (str(item["repository"]), str(item["commit_sha"]))
         for item in commits_value
         if isinstance(item, Mapping)
     }
-    if len(commit_repositories) != len(commits_value):
-        fail("/source_commits", "unique_repository")
-    artifact_repositories = {
-        str(item["source_repository"])
+    if len(commit_pairs) != len(commits_value):
+        fail("/source_commits", "unique_source_commit")
+    artifact_source_pairs = {
+        (str(item["source_repository"]), str(item["source_commit"]))
         for item in artifacts
         if item["source_repository"] is not None
     }
-    if not artifact_repositories.issubset(commit_repositories):
+    if not artifact_source_pairs.issubset(commit_pairs):
         fail("/source_commits", "source_commit_required")
-    for artifact in artifacts:
-        repository = artifact["source_repository"]
-        if repository is not None and artifact["source_commit"] != commits_by_repository.get(
-            str(repository)
-        ):
-            fail("/source_commits", "source_commit_identity_invariant")
 
     always_available = {
         "flickr_geography",
@@ -1173,6 +1169,11 @@ def _impact_manifest_semantic_failures(
     review_total = reviewed_or_attempted + int(value["pending_count"])  # type: ignore[arg-type]
     if review_total != int(value["flickr_candidate_count"]):  # type: ignore[arg-type]
         fail("/flickr_candidate_count", "count_reconciliation")
+    geographic_total = int(  # type: ignore[arg-type]
+        value["geographically_supported_flickr_candidate_count"]
+    ) + int(value["geographically_unsupported_flickr_candidate_count"])  # type: ignore[arg-type]
+    if geographic_total != int(value["flickr_candidate_count"]):  # type: ignore[arg-type]
+        fail("/flickr_candidate_count", "geographic_support_reconciliation")
     if int(value["release_ready_count"]) > int(  # type: ignore[arg-type]
         value["reviewed_positive_count"]  # type: ignore[arg-type]
     ):
@@ -1199,6 +1200,9 @@ def _impact_manifest_semantic_failures(
         fail("/hierarchy_node_count", "artifact_count_reconciliation")
 
     if value["baseline_evidence_status"] == "available":
+        impact_cells = int(value["impact_cell_count"])  # type: ignore[arg-type]
+        baseline_only = int(value["baseline_only_cell_count"])  # type: ignore[arg-type]
+        matched = int(value["matched_cell_count"])  # type: ignore[arg-type]
         candidate_only = int(value["candidate_only_cell_count"])  # type: ignore[arg-type]
         reviewed_additional = int(  # type: ignore[arg-type]
             value["reviewed_additional_cell_count"]
@@ -1210,6 +1214,12 @@ def _impact_manifest_semantic_failures(
             fail("/reviewed_additional_cell_count", "cell_count_reconciliation")
         if release_additional > reviewed_additional:
             fail("/release_ready_additional_cell_count", "cell_count_reconciliation")
+        if baseline_only + matched > impact_cells or candidate_only > impact_cells:
+            fail("/impact_cell_count", "cell_count_reconciliation")
+    if int(value["unassigned_cartographic_cell_count"]) > int(  # type: ignore[arg-type]
+        value["impact_cell_count"]  # type: ignore[arg-type]
+    ):
+        fail("/unassigned_cartographic_cell_count", "cell_count_reconciliation")
 
     snapshot_expectations = {
         "baseline_geographic_spread": value["baseline_snapshot_id"],
