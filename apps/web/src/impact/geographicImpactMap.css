@@ -43,6 +43,62 @@
   color: var(--tl-state-failure-ink);
 }
 
+.geographic-slicers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(12rem, 1fr)) auto;
+  gap: var(--tl-space-2);
+  align-items: end;
+  margin: 0;
+  padding: var(--tl-space-3);
+  border: 1px solid var(--tl-line-strong);
+}
+
+.geographic-slicers legend,
+.geographic-slicers label > span {
+  font-weight: 700;
+}
+
+.geographic-slicers > p {
+  grid-column: 1 / -1;
+  max-width: var(--tl-reading-width);
+  margin: 0;
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-sm);
+}
+
+.geographic-slicers label {
+  display: grid;
+  gap: var(--tl-space-1);
+}
+
+.geographic-slicers select,
+.geographic-slicers button {
+  min-height: 2.75rem;
+  padding: var(--tl-space-2) var(--tl-space-3);
+  color: var(--tl-ink);
+  background: var(--tl-surface-paper);
+  border: 1px solid var(--tl-line-strong);
+  border-radius: var(--tl-radius-sm);
+}
+
+.geographic-slicers button:not(:disabled) {
+  color: var(--tl-paper-100);
+  background: var(--tl-brand);
+  cursor: pointer;
+}
+
+.geographic-slicers :disabled {
+  color: var(--tl-ink-muted);
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+@media (max-width: 48rem) {
+  .geographic-slicers {
+    grid-template-columns: 1fr;
+  }
+}
+
 .taxalens-world-map {
   display: grid;
   gap: var(--tl-space-2);

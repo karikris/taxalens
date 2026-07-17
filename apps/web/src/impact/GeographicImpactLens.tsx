@@ -1,4 +1,5 @@
 import { EvidenceState } from '../design-system'
+import { GeographicScopeSlicers } from './GeographicScopeSlicers'
 import { useGeographicScopeState } from './geographicScope'
 import { OfflineWorldMap } from './OfflineWorldMap'
 
@@ -42,6 +43,7 @@ export function GeographicImpactLens({
         </small>
         {scope.urlError === null ? null : <p>{scope.urlError}</p>}
       </div>
+      <GeographicScopeSlicers controller={scope} />
       <OfflineWorldMap {...(webGlSupported === undefined ? {} : { webGlSupported })} />
     </section>
   )
