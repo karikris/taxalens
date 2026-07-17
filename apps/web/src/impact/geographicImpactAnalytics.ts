@@ -1,5 +1,6 @@
 import type { AsyncDuckDBConnection } from '@duckdb/duckdb-wasm'
 import type { GeographicScopeLevel } from '../../../../packages/contracts/src/geographic_impact_contract'
+import { Table } from 'apache-arrow'
 
 import {
   createDuckDbRuntime,
@@ -153,29 +154,48 @@ export interface GeographicImpactRollup {
 export async function queryGeographicImpact(
   project: TaxaLensProjectFacade,
   candidate: unknown,
+  signal: AbortSignal,
 ): Promise<GeographicImpactBrowserResult> {
   const startedAt = monotonicNow()
+  throwIfGeographicQueryAborted(signal)
   const sources = loadGeographicImpactQuerySources(project, candidate)
+  throwIfGeographicQueryAborted(signal)
   const { database } = await createDuckDbRuntime()
   let connection: AsyncDuckDBConnection | undefined
   let registration: GeographicSourceRegistrationResult | undefined
   try {
+    throwIfGeographicQueryAborted(signal)
     const engineVersion = await database.getVersion()
+    throwIfGeographicQueryAborted(signal)
     if (engineVersion !== DUCKDB_ENGINE_VERSION) {
       throw new Error(
         `DuckDB engine ${engineVersion} differs from the pinned ${DUCKDB_ENGINE_VERSION} runtime`,
       )
     }
     registration = await registerGeographicImpactQuerySources(database, sources)
+    throwIfGeographicQueryAborted(signal)
     const parquetExtensionUrl = await loadLocalParquetExtension()
+    throwIfGeographicQueryAborted(signal)
     connection = await database.connect()
+    throwIfGeographicQueryAborted(signal)
     await connection.query(`SET autoinstall_known_extensions = false;
       SET autoload_known_extensions = false;
       LOAD ${sqlLiteral(parquetExtensionUrl)}`)
+    throwIfGeographicQueryAborted(signal)
     await createGeographicViews(connection, sources)
-    const table = await connection.query(buildGeographicImpactSql(sources))
+    throwIfGeographicQueryAborted(signal)
+    const table = await cancellableGeographicQuery(
+      connection,
+      buildGeographicImpactSql(sources),
+      signal,
+    )
     const cells = decodeAndReconcileCells(table)
-    const rollupTable = await connection.query(buildGeographicRollupSql(sources))
+    throwIfGeographicQueryAborted(signal)
+    const rollupTable = await cancellableGeographicQuery(
+      connection,
+      buildGeographicRollupSql(sources),
+      signal,
+    )
     const { selectedRollup, childRollups } = decodeGeographicRollups(rollupTable, sources)
     if (sources.input.evidenceMode === 'comparison') {
       reconcileSelectedRollup(cells, selectedRollup)
@@ -220,12 +240,56 @@ export async function queryGeographicImpact(
       scientificClaimAllowed: false,
     })
   } finally {
-    await connection?.close()
-    if (registration !== undefined) {
-      await database.dropFiles(registration.artifacts.map(({ fileName }) => fileName))
+    if (signal.aborted) {
+      await database.terminate()
+    } else {
+      await connection?.close()
+      if (registration !== undefined) {
+        await database.dropFiles(registration.artifacts.map(({ fileName }) => fileName))
+      }
+      await database.terminate()
     }
-    await database.terminate()
   }
+}
+
+async function cancellableGeographicQuery(
+  connection: AsyncDuckDBConnection,
+  sql: string,
+  signal: AbortSignal,
+): Promise<Table> {
+  throwIfGeographicQueryAborted(signal)
+  let rejectAbort: ((reason: DOMException) => void) | undefined
+  const abort = new Promise<never>((_resolve, reject) => {
+    rejectAbort = reject
+  })
+  const onAbort = () => {
+    void connection.cancelSent().catch(() => undefined)
+    rejectAbort?.(geographicQueryAbortError())
+  }
+  signal.addEventListener('abort', onAbort, { once: true })
+  try {
+    const reader = await Promise.race([connection.send(sql), abort])
+    const batches = await Promise.race([reader.readAll(), abort])
+    throwIfGeographicQueryAborted(signal)
+    return new Table(batches)
+  } catch (error) {
+    if (signal.aborted) {
+      throw geographicQueryAbortError()
+    }
+    throw error
+  } finally {
+    signal.removeEventListener('abort', onAbort)
+  }
+}
+
+function throwIfGeographicQueryAborted(signal: AbortSignal): void {
+  if (signal.aborted) {
+    throw geographicQueryAbortError()
+  }
+}
+
+function geographicQueryAbortError(): DOMException {
+  return new DOMException('Geographic Impact query was cancelled.', 'AbortError')
 }
 
 interface EngineeringMetricInput {

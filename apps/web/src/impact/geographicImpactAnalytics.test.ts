@@ -20,13 +20,18 @@ const duckDb = vi.hoisted(() => {
     },
   }
   const query = vi.fn(async (sql: string) =>
-    sql.startsWith('WITH baseline_cells')
-      ? table
-      : sql.startsWith('WITH selected_rollup')
-        ? rollupTable
-        : undefined,
+    sql.startsWith('WITH baseline_cells') ? table : undefined,
   )
-  const connection = { query, close: vi.fn(async () => undefined) }
+  const send = vi.fn(async (sql: string) => ({
+    readAll: vi.fn(async () => [sql.startsWith('WITH baseline_cells') ? table : rollupTable]),
+  }))
+  const cancelSent = vi.fn(async () => true)
+  const connection = {
+    query,
+    send,
+    cancelSent,
+    close: vi.fn(async () => undefined),
+  }
   const database = {
     getVersion: vi.fn(async () => 'v1.4.3'),
     registerFileBuffer: vi.fn(async () => undefined),
@@ -38,6 +43,8 @@ const duckDb = vi.hoisted(() => {
     rows,
     rollupRows,
     query,
+    send,
+    cancelSent,
     connection,
     database,
     createDuckDbRuntime: vi.fn(async () => ({ database, worker: {} })),
@@ -46,6 +53,12 @@ const duckDb = vi.hoisted(() => {
     ),
   }
 })
+
+vi.mock('apache-arrow', () => ({
+  Table: function MockArrowTable(batches: readonly unknown[]) {
+    return batches[0]
+  },
+}))
 
 vi.mock('../data/duckdbRuntime', () => ({
   DUCKDB_ENGINE_VERSION: 'v1.4.3',
@@ -126,6 +139,7 @@ describe('browser geographic impact full outer join', () => {
     const result = await queryGeographicImpact(
       createSyntheticGeographicProject(),
       syntheticGeographicQuery,
+      new AbortController().signal,
     )
 
     expect(result).toMatchObject({
@@ -212,7 +226,7 @@ describe('browser geographic impact full outer join', () => {
     expect(duckDb.connection.close).toHaveBeenCalledOnce()
     expect(duckDb.database.terminate).toHaveBeenCalledOnce()
 
-    const sql = duckDb.query.mock.calls.map(([statement]) => statement).find((statement) =>
+    const sql = duckDb.send.mock.calls.map(([statement]) => statement).find((statement) =>
       statement.startsWith('WITH baseline_cells'),
     )
     expect(sql).toContain('FULL OUTER JOIN flickr_cells')
@@ -224,7 +238,7 @@ describe('browser geographic impact full outer join', () => {
     expect(sql).toContain('baseline.spatial_resolution = flickr.spatial_resolution')
     expect(sql).toContain('baseline.spatial_cell_id = flickr.spatial_cell_id')
     expect(sql).toContain("impact.country_code = 'AU'")
-    const rollupSql = duckDb.query.mock.calls
+    const rollupSql = duckDb.send.mock.calls
       .map(([statement]) => statement)
       .find((statement) => statement.startsWith('WITH selected_rollup'))
     expect(rollupSql).toContain("scope_level = 'country'")
@@ -239,11 +253,44 @@ describe('browser geographic impact full outer join', () => {
     }
 
     await expect(
-      queryGeographicImpact(createSyntheticGeographicProject(), syntheticGeographicQuery),
+      queryGeographicImpact(
+        createSyntheticGeographicProject(),
+        syntheticGeographicQuery,
+        new AbortController().signal,
+      ),
     ).rejects.toThrow(
       'browser source join differs from materialized_flickr_candidate_count',
     )
     expect(duckDb.connection.close).toHaveBeenCalledOnce()
+    expect(duckDb.database.terminate).toHaveBeenCalledOnce()
+  })
+
+  it('cancels a pending SELECT and terminates aborted worker state', async () => {
+    let rejectPending: ((reason: Error) => void) | undefined
+    duckDb.send.mockImplementationOnce(
+      async () =>
+        await new Promise<never>((_resolve, reject) => {
+          rejectPending = reject
+        }),
+    )
+    duckDb.cancelSent.mockImplementationOnce(async () => {
+      rejectPending?.(new Error('pending query cancelled'))
+      return true
+    })
+    const controller = new AbortController()
+    const pending = queryGeographicImpact(
+      createSyntheticGeographicProject(),
+      syntheticGeographicQuery,
+      controller.signal,
+    )
+    await vi.waitFor(() => expect(duckDb.send).toHaveBeenCalledOnce())
+
+    controller.abort()
+
+    await expect(pending).rejects.toMatchObject({ name: 'AbortError' })
+    expect(duckDb.cancelSent).toHaveBeenCalledOnce()
+    expect(duckDb.connection.close).not.toHaveBeenCalled()
+    expect(duckDb.database.dropFiles).not.toHaveBeenCalled()
     expect(duckDb.database.terminate).toHaveBeenCalledOnce()
   })
 
