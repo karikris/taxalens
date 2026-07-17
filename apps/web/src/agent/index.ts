@@ -9,6 +9,15 @@ export {
 export { AgentWorkspace } from './AgentWorkspace'
 export { AgentReplayWorkspace } from './AgentReplayWorkspace'
 export {
+  geographicClaimAccepted,
+  GEOGRAPHIC_AGENT_EVALUATION_CASES,
+  GEOGRAPHIC_AGENT_EVALUATION_THRESHOLD,
+  GEOGRAPHIC_AGENT_EVALUATION_VERSION,
+  runGeographicAgentEvaluation,
+  type GeographicAgentEvaluationCase,
+  type GeographicEvaluationClaimType,
+} from './geographicAgentEvaluation'
+export {
   loadStoredGeographicAnalystReplay,
   STORED_GEOGRAPHIC_ANALYST_REPLAY_VERSION,
   type StoredGeographicAnalystReplay,
