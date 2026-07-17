@@ -3,14 +3,111 @@ import { describe, expect, it } from 'vitest'
 import {
   calculateGeographicCoverageUplift,
   calculateGeographicCoverageUpliftFromCells,
+  classifyCandidateRangeEdgeState,
   classifyHumanSupportedAdditionalCell,
   classifyPotentialCoverageGapCell,
   classifyReleaseReadyAdditionalCell,
   countHumanSupportedAdditionalCells,
+  countCandidateRangeEdgeStates,
   countPotentialCoverageGapCells,
   countReleaseReadyAdditionalCells,
   POTENTIAL_COVERAGE_GAP_LABEL,
 } from './geographicContributionMetrics'
+
+describe('candidate range-edge maturity', () => {
+  const candidate = {
+    baselineEvidenceStatus: 'available' as const,
+    candidateOnlyCell: true,
+    reviewedAdditionalCell: false,
+    releaseReadyAdditionalCell: false,
+    nearestBaselineDistanceKm: 42.5,
+    dataDeficientState: 'sufficient' as const,
+  }
+
+  it('separates potential, human-supported and release-ready proximity', () => {
+    expect(classifyCandidateRangeEdgeState(candidate)).toBe('potential')
+    expect(
+      classifyCandidateRangeEdgeState({
+        ...candidate,
+        reviewedAdditionalCell: true,
+      }),
+    ).toBe('human_supported')
+    expect(
+      classifyCandidateRangeEdgeState({
+        ...candidate,
+        reviewedAdditionalCell: true,
+        releaseReadyAdditionalCell: true,
+      }),
+    ).toBe('release_ready')
+  })
+
+  it('uses deficiency only when a candidate comparison is unavailable', () => {
+    expect(
+      classifyCandidateRangeEdgeState({
+        ...candidate,
+        nearestBaselineDistanceKm: null,
+        dataDeficientState: 'data_deficient',
+      }),
+    ).toBe('data_deficient')
+    expect(
+      classifyCandidateRangeEdgeState({
+        ...candidate,
+        nearestBaselineDistanceKm: null,
+        dataDeficientState: 'sufficient',
+      }),
+    ).toBe('unavailable')
+    expect(
+      classifyCandidateRangeEdgeState({
+        ...candidate,
+        candidateOnlyCell: false,
+        nearestBaselineDistanceKm: null,
+      }),
+    ).toBe('unavailable')
+  })
+
+  it('fails closed on contradictory maturity and unavailable baseline state', () => {
+    expect(() =>
+      classifyCandidateRangeEdgeState({
+        ...candidate,
+        reviewedAdditionalCell: false,
+        releaseReadyAdditionalCell: true,
+      }),
+    ).toThrow(/must be human-supported/u)
+    expect(() =>
+      classifyCandidateRangeEdgeState({
+        ...candidate,
+        baselineEvidenceStatus: 'unavailable',
+      }),
+    ).toThrow(/cannot expose a range-edge comparison/u)
+  })
+
+  it('counts maturity-qualified cells rather than candidate records', () => {
+    expect(
+      countCandidateRangeEdgeStates([
+        {
+          ...candidate,
+          nearestBaselineDistanceKm: 10,
+        },
+        {
+          ...candidate,
+          nearestBaselineDistanceKm: 100,
+          reviewedAdditionalCell: true,
+        },
+        {
+          ...candidate,
+          nearestBaselineDistanceKm: null,
+          dataDeficientState: 'data_deficient',
+        },
+      ]),
+    ).toEqual({
+      potential: 1,
+      human_supported: 1,
+      release_ready: 0,
+      data_deficient: 1,
+      unavailable: 0,
+    })
+  })
+})
 
 describe('potential geographic coverage contribution', () => {
   it('classifies only candidate cells without eligible selected-baseline evidence', () => {

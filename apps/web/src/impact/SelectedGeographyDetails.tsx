@@ -1,10 +1,12 @@
 import type { CountryHierarchyNode } from '../../../../packages/contracts/src/geographic_impact_contract'
 import {
   calculateGeographicCoverageUpliftFromCells,
+  countCandidateRangeEdgeStates,
   countHumanSupportedAdditionalCells,
   countPotentialCoverageGapCells,
   countReleaseReadyAdditionalCells,
   type GeographicCoverageUplift,
+  type CandidateRangeEdgeStateCounts,
 } from './geographicContributionMetrics'
 import type { PublicGeographicImpactMapCell } from './publicGeographicImpactMapData'
 
@@ -37,6 +39,7 @@ export interface SelectedGeographyDetailModel {
   readonly unavailableCellCount: number
   readonly temporalContribution: string
   readonly coverageUplift: GeographicCoverageUplift
+  readonly rangeEdgeStateCounts: CandidateRangeEdgeStateCounts
 }
 
 export function SelectedGeographyDetails({
@@ -136,6 +139,26 @@ export function SelectedGeographyDetails({
                 ? 'Unavailable'
                 : `${formatDistance(details.nearestBaselineDistanceKm)} km`
             }
+          />
+          <Detail
+            label="Potential candidate range-edge cells"
+            value={formatCount(details.rangeEdgeStateCounts.potential)}
+          />
+          <Detail
+            label="Human-supported candidate range-edge cells"
+            value={formatCount(details.rangeEdgeStateCounts.human_supported)}
+          />
+          <Detail
+            label="Release-ready candidate range-edge cells"
+            value={formatCount(details.rangeEdgeStateCounts.release_ready)}
+          />
+          <Detail
+            label="Data-deficient candidate range-edge cells"
+            value={formatCount(details.rangeEdgeStateCounts.data_deficient)}
+          />
+          <Detail
+            label="Range-edge unavailable or not applicable"
+            value={formatCount(details.rangeEdgeStateCounts.unavailable)}
           />
           <Detail
             label="Latest credible baseline date"
@@ -265,6 +288,7 @@ export function buildSelectedGeographyDetails(
       latestFlickrCandidateDate,
     ),
     coverageUplift: calculateGeographicCoverageUpliftFromCells(selectedCells),
+    rangeEdgeStateCounts: countCandidateRangeEdgeStates(selectedCells),
   })
 }
 

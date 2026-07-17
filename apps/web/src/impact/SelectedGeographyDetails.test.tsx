@@ -72,6 +72,13 @@ describe('SelectedGeographyDetails', () => {
         humanSupported: { additionalCellCount: 0, percent: 0 },
         releaseReady: { additionalCellCount: 0, percent: 0 },
       },
+      rangeEdgeStateCounts: {
+        potential: 0,
+        human_supported: 0,
+        release_ready: 0,
+        data_deficient: 0,
+        unavailable: 3,
+      },
     })
     expect(details.temporalContribution).toMatch(/1,096 days later/u)
   })
@@ -103,6 +110,10 @@ describe('SelectedGeographyDetails', () => {
       .toHaveTextContent('1')
     expect(screen.getByText('Nearest baseline distance').closest('div'))
       .toHaveTextContent('88.13 km')
+    expect(screen.getByText('Potential candidate range-edge cells').closest('div'))
+      .toHaveTextContent('1')
+    expect(screen.getByText('Data-deficient candidate range-edge cells').closest('div'))
+      .toHaveTextContent('0')
     expect(screen.getByText(/temporal contribution is data-deficient/u))
       .toBeInTheDocument()
     expect(screen.getByText('Candidate uplift').closest('div'))

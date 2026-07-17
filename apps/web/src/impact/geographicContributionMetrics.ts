@@ -106,6 +106,82 @@ export interface GeographicCoverageUplift {
   readonly scientificClaimAllowed: false
 }
 
+export type CandidateRangeEdgeState =
+  | 'potential'
+  | 'human_supported'
+  | 'release_ready'
+  | 'data_deficient'
+  | 'unavailable'
+
+export interface CandidateRangeEdgeInput {
+  readonly baselineEvidenceStatus: 'available' | 'unavailable'
+  readonly candidateOnlyCell: boolean
+  readonly reviewedAdditionalCell: boolean
+  readonly releaseReadyAdditionalCell: boolean
+  readonly nearestBaselineDistanceKm: number | null
+  readonly dataDeficientState: 'sufficient' | 'data_deficient' | 'unavailable'
+}
+
+export type CandidateRangeEdgeStateCounts = Readonly<Record<CandidateRangeEdgeState, number>>
+
+/**
+ * Qualify cell-centroid proximity by evidence maturity.
+ * This is not a distance to a proven biological range boundary.
+ */
+export function classifyCandidateRangeEdgeState(
+  input: CandidateRangeEdgeInput,
+): CandidateRangeEdgeState {
+  if (input.releaseReadyAdditionalCell && !input.reviewedAdditionalCell) {
+    throw new Error('release-ready range-edge evidence must be human-supported')
+  }
+  if (input.reviewedAdditionalCell && !input.candidateOnlyCell) {
+    throw new Error('human-supported range-edge evidence must be candidate-only')
+  }
+  if (
+    input.nearestBaselineDistanceKm !== null &&
+    (!Number.isFinite(input.nearestBaselineDistanceKm) ||
+      input.nearestBaselineDistanceKm < 0)
+  ) {
+    throw new Error('nearest baseline distance must be finite and non-negative')
+  }
+  if (input.baselineEvidenceStatus === 'unavailable') {
+    if (input.candidateOnlyCell || input.nearestBaselineDistanceKm !== null) {
+      throw new Error('unavailable baseline evidence cannot expose a range-edge comparison')
+    }
+    return 'unavailable'
+  }
+  if (!input.candidateOnlyCell) return 'unavailable'
+  if (input.nearestBaselineDistanceKm === null) {
+    return input.dataDeficientState === 'data_deficient'
+      ? 'data_deficient'
+      : 'unavailable'
+  }
+  if (input.releaseReadyAdditionalCell) return 'release_ready'
+  if (input.reviewedAdditionalCell) return 'human_supported'
+  return 'potential'
+}
+
+export function countCandidateRangeEdgeStates(
+  cells: readonly Omit<CandidateRangeEdgeInput, 'baselineEvidenceStatus'>[],
+): CandidateRangeEdgeStateCounts {
+  const counts: Record<CandidateRangeEdgeState, number> = {
+    potential: 0,
+    human_supported: 0,
+    release_ready: 0,
+    data_deficient: 0,
+    unavailable: 0,
+  }
+  for (const cell of cells) {
+    counts[
+      classifyCandidateRangeEdgeState({
+        ...cell,
+        baselineEvidenceStatus: 'available',
+      })
+    ] += 1
+  }
+  return Object.freeze(counts)
+}
+
 /**
  * Classify potential contribution against one selected baseline snapshot.
  * This is an evidence comparison, never a biological absence or occurrence claim.
