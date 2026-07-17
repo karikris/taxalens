@@ -331,6 +331,99 @@
   font-size: var(--tl-text-sm);
 }
 
+.geographic-impact-table {
+  display: grid;
+  gap: var(--tl-space-2);
+  padding: var(--tl-space-3);
+  border: 1px solid var(--tl-line-strong);
+  border-radius: var(--tl-radius-sm);
+}
+
+.geographic-impact-table h4,
+.geographic-impact-table p {
+  margin: 0;
+}
+
+.geographic-impact-table__scroll {
+  max-width: 100%;
+  overflow: auto;
+  border: 1px solid var(--tl-line);
+}
+
+.geographic-impact-table table {
+  width: 100%;
+  min-width: 88rem;
+  border-collapse: collapse;
+  background: var(--tl-surface-paper);
+}
+
+.geographic-impact-table caption {
+  padding: var(--tl-space-2);
+  color: var(--tl-ink-muted);
+  text-align: left;
+}
+
+.geographic-impact-table th,
+.geographic-impact-table td {
+  padding: var(--tl-space-2);
+  text-align: left;
+  border: 1px solid var(--tl-line);
+}
+
+.geographic-impact-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  color: var(--tl-ink);
+  background: var(--tl-surface-subtle);
+}
+
+.geographic-impact-table th button,
+.geographic-impact-table td button,
+.geographic-impact-table__pagination button {
+  min-height: 2.5rem;
+  padding: var(--tl-space-1) var(--tl-space-2);
+  color: var(--tl-brand);
+  font: inherit;
+  font-weight: 700;
+  background: var(--tl-surface-paper);
+  border: 1px solid var(--tl-line-strong);
+  border-radius: var(--tl-radius-sm);
+  cursor: pointer;
+}
+
+.geographic-impact-table th button {
+  min-height: auto;
+  padding: 0;
+  text-align: left;
+  background: transparent;
+  border: 0;
+}
+
+.geographic-impact-table tbody tr[data-selected='true'] {
+  background: var(--tl-state-available-bg);
+  outline: 3px solid var(--tl-focus);
+  outline-offset: -3px;
+}
+
+.geographic-impact-table .numeric {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.geographic-impact-table__pagination {
+  display: flex;
+  gap: var(--tl-space-2);
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.geographic-impact-table__pagination button:disabled {
+  color: var(--tl-ink-muted);
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
 .geographic-impact-legend__swatch {
   position: relative;
   display: inline-block;

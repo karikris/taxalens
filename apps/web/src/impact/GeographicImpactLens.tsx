@@ -5,6 +5,7 @@ import { GeographicCountryRanking } from './GeographicCountryRanking'
 import { GeographicBreadcrumbs } from './GeographicBreadcrumbs'
 import { GeographicScopeSlicers } from './GeographicScopeSlicers'
 import { GeographicImpactLegend } from './GeographicImpactLegend'
+import { GeographicImpactTable } from './GeographicImpactTable'
 import { SelectedGeographyDetails } from './SelectedGeographyDetails'
 import { useGeographicScopeState } from './geographicScope'
 import { OfflineWorldMap } from './OfflineWorldMap'
@@ -27,7 +28,7 @@ export function GeographicImpactLens({
     useState<GeographicImpactMetric>('candidate_only_cells')
   const mapData = useGeographicImpactMapData(
     scope.selected,
-    webGlSupported !== false && typeof Worker !== 'undefined',
+    typeof Worker !== 'undefined',
   )
   const impactFeatures = useMemo(
     () =>
@@ -93,6 +94,11 @@ export function GeographicImpactLens({
             metric={rankingMetric}
             onCountrySelect={selectCountry}
             onMetricChange={setRankingMetric}
+          />
+          <GeographicImpactTable
+            cells={mapData.data.cells}
+            selectedCellId={selectedCellId}
+            onCellSelect={setSelectedCellId}
           />
         </>
       ) : null}

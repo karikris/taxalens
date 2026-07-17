@@ -34,6 +34,7 @@ import {
   TAXALENS_FLICKR_UNCERTAIN_LAYER,
   TAXALENS_IMPACT_CELL_SOURCE_ID,
   TAXALENS_IMPACT_INTERACTIVE_LAYER_IDS,
+  taxalensSelectedImpactCellLayer,
 } from './geographicImpactLayers'
 import { registerGeographicEvidenceImages } from './geographicEvidenceIcons'
 import { GEOGRAPHIC_BUBBLE_SCALE_CAPTION } from './geographicBubbleScale'
@@ -228,6 +229,13 @@ export function OfflineWorldMap({
                 </>
               ) : null}
               <Layer {...TAXALENS_FLICKR_RELEASE_READY_LAYER} />
+              {selectedImpactFeature === null ? null : (
+                <Layer
+                  {...taxalensSelectedImpactCellLayer(
+                    selectedImpactFeature.properties.spatialCellId,
+                  )}
+                />
+              )}
             </Source>
           )}
           <NavigationControl position="top-right" showCompass={false} visualizePitch={false} />

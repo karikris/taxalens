@@ -6,6 +6,8 @@ import {
 } from './geographicEvidenceIcons'
 
 export const TAXALENS_IMPACT_CELL_SOURCE_ID = 'taxalens-impact-cells' as const
+export const TAXALENS_SELECTED_IMPACT_CELL_LAYER_ID =
+  'taxalens-selected-impact-cell' as const
 export const TAXALENS_BASELINE_EVIDENCE_LAYER_ID =
   'taxalens-baseline-occurrence-evidence' as const
 
@@ -111,3 +113,23 @@ export const TAXALENS_FLICKR_RELEASE_READY_LAYER = Object.freeze({
     'circle-stroke-width': 3,
   },
 } satisfies LayerProps)
+
+export function taxalensSelectedImpactCellLayer(spatialCellId: string): LayerProps {
+  return {
+    id: TAXALENS_SELECTED_IMPACT_CELL_LAYER_ID,
+    type: 'circle',
+    source: TAXALENS_IMPACT_CELL_SOURCE_ID,
+    filter: ['==', ['get', 'spatialCellId'], spatialCellId],
+    paint: {
+      'circle-radius': [
+        '+',
+        ['max', ['get', 'baselineRadius'], ['get', 'flickrRadius']],
+        5,
+      ],
+      'circle-color': 'rgba(255, 255, 255, 0)',
+      'circle-stroke-color': '#6d28d9',
+      'circle-stroke-opacity': 1,
+      'circle-stroke-width': 3,
+    },
+  }
+}

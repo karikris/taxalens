@@ -7,6 +7,8 @@ import {
   TAXALENS_FLICKR_REVIEWED_NEGATIVE_LAYER,
   TAXALENS_FLICKR_REVIEWED_POSITIVE_LAYER,
   TAXALENS_FLICKR_UNCERTAIN_LAYER,
+  TAXALENS_SELECTED_IMPACT_CELL_LAYER_ID,
+  taxalensSelectedImpactCellLayer,
 } from './geographicImpactLayers'
 import {
   TAXALENS_EXCLUDED_EVIDENCE_IMAGE_ID,
@@ -21,6 +23,18 @@ describe('Geographic Impact evidence layers', () => {
       paint: {
         'circle-radius': ['get', 'baselineRadius'],
         'circle-color': '#2563eb',
+      },
+    })
+  })
+
+  it('creates a declarative selected-cell highlight with identity and stroke', () => {
+    expect(taxalensSelectedImpactCellLayer('cell:selected')).toMatchObject({
+      id: TAXALENS_SELECTED_IMPACT_CELL_LAYER_ID,
+      type: 'circle',
+      filter: ['==', ['get', 'spatialCellId'], 'cell:selected'],
+      paint: {
+        'circle-color': 'rgba(255, 255, 255, 0)',
+        'circle-stroke-width': 3,
       },
     })
   })
