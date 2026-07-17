@@ -24,6 +24,7 @@ import { SelectedGeographyDetails } from './SelectedGeographyDetails'
 import { useGeographicScopeState } from './geographicScope'
 import { OfflineWorldMap } from './OfflineWorldMap'
 import { buildBoundedGeographicImpactFeatures } from './geographicImpactFeatureCollection'
+import { GeographicImpactMapCache } from './geographicImpactMapCache'
 import {
   useGeographicImpactRecordRouteState,
 } from './geographicImpactRecordRoute'
@@ -245,6 +246,9 @@ function useGeographicImpactMapData(
   scope: Parameters<typeof loadPublicGeographicImpactMapData>[0],
   enabled: boolean,
 ): GeographicImpactMapLoadState {
+  const [cache] = useState(
+    () => new GeographicImpactMapCache<PublicGeographicImpactMapData>(),
+  )
   const [state, setState] = useState<GeographicImpactMapLoadState>(
     enabled ? { status: 'loading' } : { status: 'unavailable' },
   )
@@ -253,11 +257,20 @@ function useGeographicImpactMapData(
       setState({ status: 'unavailable' })
       return
     }
+    const cacheKey = `${scope.scope_id}:${scope.scope_level}`
+    const cached = cache.get(cacheKey)
+    if (cached !== undefined) {
+      setState({ status: 'available', data: cached })
+      return
+    }
     const controller = new AbortController()
     setState({ status: 'loading' })
     void loadPublicGeographicImpactMapData(scope, controller.signal).then(
       (data) => {
-        if (!controller.signal.aborted) setState({ status: 'available', data })
+        if (!controller.signal.aborted) {
+          cache.set(cacheKey, data)
+          setState({ status: 'available', data })
+        }
       },
       (error: unknown) => {
         if (!controller.signal.aborted) {
@@ -269,7 +282,7 @@ function useGeographicImpactMapData(
       },
     )
     return () => controller.abort()
-  }, [enabled, scope])
+  }, [cache, enabled, scope])
   return state
 }
 

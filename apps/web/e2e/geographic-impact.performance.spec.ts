@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 
 const repositoryRoot = fileURLToPath(new URL('../../..', import.meta.url))
 const impactManifestPath = `${repositoryRoot}/demo/source/biominer_phase14/geographic_impact/geographic_impact_manifest.json`
+const performanceBaselinePath = `${repositoryRoot}/apps/web/performance/geographic-impact-performance-baseline.json`
 
 interface ImpactArtifactEntry {
   readonly availability: 'available' | 'unavailable'
@@ -81,8 +82,29 @@ interface PerformanceSampleSummary {
   readonly maximum: number
 }
 
+interface PerformanceBudget {
+  readonly statistic: 'median' | 'p95'
+  readonly baseline: number
+  readonly relativeTolerance: number
+  readonly absoluteTolerance: number
+  readonly unit: 'milliseconds'
+  readonly samples: readonly number[]
+}
+
+interface GeographicPerformanceBaseline {
+  readonly latency: {
+    readonly mapInitialization: PerformanceBudget
+    readonly continentDrilldown: PerformanceBudget
+    readonly countryDrilldown: PerformanceBudget
+    readonly flickrCandidateFilter: PerformanceBudget
+  }
+}
+
 const MAP_STARTUP_SAMPLE_COUNT = 5
 const MAP_INTERACTION_SAMPLE_COUNT = 5
+const performanceBaseline = JSON.parse(
+  await readFile(performanceBaselinePath, 'utf8'),
+) as GeographicPerformanceBaseline
 
 const benchmarkLogicalNames = Object.freeze([
   'baseline_geographic_spread',
@@ -92,6 +114,12 @@ const benchmarkLogicalNames = Object.freeze([
   'geographic_impact_summary',
   'country_hierarchy',
 ] as const)
+const registeredLogicalNames = Object.freeze([
+  'baseline_occurrence_union',
+  'flickr_geography',
+  'geographic_impact_cells',
+  'geographic_impact_summary',
+] as const)
 
 test('measures the real committed Geographic Impact browser path', async ({ page }) => {
   const manifestBytes = await readFile(impactManifestPath)
@@ -99,13 +127,26 @@ test('measures the real committed Geographic Impact browser path', async ({ page
   const pathsByLogicalName = new Map<string, string>([
     ['geographic_impact_manifest', impactManifestPath],
   ])
+  let expectedArtifactLoadBytes = manifestBytes.byteLength
   for (const logicalName of benchmarkLogicalNames) {
     const entry = manifest.artifacts.find((candidate) => candidate.logical_name === logicalName)
-    if (entry?.availability !== 'available' || entry.path === null) {
+    if (
+      entry?.availability !== 'available' ||
+      entry.path === null ||
+      entry.byte_size === null
+    ) {
       throw new Error(`Committed performance artifact is unavailable: ${logicalName}`)
     }
     pathsByLogicalName.set(logicalName, `${repositoryRoot}/${entry.path}`)
+    expectedArtifactLoadBytes += entry.byte_size
   }
+  const expectedRegisteredBytes = registeredLogicalNames.reduce((total, logicalName) => {
+    const entry = manifest.artifacts.find((candidate) => candidate.logical_name === logicalName)
+    if (entry?.availability !== 'available' || entry.byte_size === null) {
+      throw new Error(`Registered performance artifact is unavailable: ${logicalName}`)
+    }
+    return total + entry.byte_size
+  }, 0)
 
   await page.route('**/performance-artifacts/*', async (route) => {
     const logicalName = decodeURIComponent(
@@ -396,12 +437,12 @@ test('measures the real committed Geographic Impact browser path', async ({ page
   expect(reportedMeasurement.environment.online).toBe(true)
   expect(externalRequests).toEqual([])
   expect(reportedMeasurement.artifactLoad.fileCount).toBe(7)
-  expect(reportedMeasurement.artifactLoad.bytes).toBe(5_506_400)
+  expect(reportedMeasurement.artifactLoad.bytes).toBe(expectedArtifactLoadBytes)
   expect(reportedMeasurement.firstQuery.cellCount).toBe(2_155)
   expect(reportedMeasurement.firstQuery.baselineUnionCount).toBe(19_201)
   expect(reportedMeasurement.firstQuery.flickrCandidateCount).toBe(13_416)
   expect(reportedMeasurement.firstQuery.candidateOnlyCellCount).toBe(1_221)
-  expect(reportedMeasurement.firstQuery.registeredBytes).toBe(4_883_017)
+  expect(reportedMeasurement.firstQuery.registeredBytes).toBe(expectedRegisteredBytes)
   expect(reportedMeasurement.firstQuery.cacheState).toBe(
     'fresh_duckdb_worker_memory_no_persistent_cache',
   )
@@ -421,58 +462,6 @@ test('measures the real committed Geographic Impact browser path', async ({ page
   expect(reportedMeasurement.mapFeatures.milliseconds).toBeGreaterThanOrEqual(0)
 
   console.log(`GEOGRAPHIC_IMPACT_PERFORMANCE ${JSON.stringify(reportedMeasurement)}`)
-})
-
-test('measures repeated application map initialization', async ({ browser }) => {
-  test.setTimeout(120_000)
-  const samples: number[] = []
-  const featureCounts: number[] = []
-
-  for (let sample = 0; sample < MAP_STARTUP_SAMPLE_COUNT; sample += 1) {
-    const context = await browser.newContext({
-      colorScheme: 'light',
-      locale: 'en-AU',
-      reducedMotion: 'no-preference',
-      viewport: { width: 1280, height: 720 },
-    })
-    const page = await context.newPage()
-    await page.addInitScript(() => {
-      ;(window as typeof window & { __taxalensMapInitializationStartedAt?: number })
-        .__taxalensMapInitializationStartedAt = performance.now()
-    })
-    try {
-      await page.goto('/#dashboard', { waitUntil: 'domcontentloaded' })
-      const canvas = page.locator('.taxalens-world-map__canvas[data-map-loaded="true"]')
-      await expect(canvas).toHaveAttribute('data-camera-scope', 'global', {
-        timeout: 60_000,
-      })
-      await expect(canvas).toHaveAttribute('data-baseline-evidence', 'true')
-      await expect(canvas).toHaveAttribute('data-flickr-evidence', 'true')
-
-      const elapsedMilliseconds = await page.evaluate(() => {
-        const startedAt = (
-          window as typeof window & { __taxalensMapInitializationStartedAt?: number }
-        ).__taxalensMapInitializationStartedAt
-        if (startedAt === undefined) {
-          throw new Error('Geographic Impact map initialization timer was not installed')
-        }
-        return performance.now() - startedAt
-      })
-      const featureCount = Number(await canvas.getAttribute('data-impact-feature-count'))
-      samples.push(elapsedMilliseconds)
-      featureCounts.push(featureCount)
-    } finally {
-      await context.close()
-    }
-  }
-
-  expect(featureCounts).toEqual(Array(MAP_STARTUP_SAMPLE_COUNT).fill(2_155))
-  const measurement = {
-    sampleCount: MAP_STARTUP_SAMPLE_COUNT,
-    featureCount: featureCounts[0],
-    milliseconds: summarizePerformanceSamples(samples),
-  }
-  console.log(`GEOGRAPHIC_IMPACT_MAP_INITIALIZATION ${JSON.stringify(measurement)}`)
 })
 
 test('measures geographic drilldown and evidence filter latency', async ({ page }) => {
@@ -569,6 +558,78 @@ test('measures geographic drilldown and evidence filter latency', async ({ page 
     },
   }
   console.log(`GEOGRAPHIC_IMPACT_INTERACTIONS ${JSON.stringify(measurement)}`)
+  expectPerformanceBudget(
+    'continent drilldown',
+    measurement.continent.milliseconds,
+    performanceBaseline.latency.continentDrilldown,
+  )
+  expectPerformanceBudget(
+    'country drilldown',
+    measurement.country.milliseconds,
+    performanceBaseline.latency.countryDrilldown,
+  )
+  expectPerformanceBudget(
+    'Flickr candidate filter',
+    measurement.filter.milliseconds,
+    performanceBaseline.latency.flickrCandidateFilter,
+  )
+})
+
+test('measures repeated application map initialization', async ({ browser }) => {
+  test.setTimeout(120_000)
+  const samples: number[] = []
+  const featureCounts: number[] = []
+
+  for (let sample = 0; sample < MAP_STARTUP_SAMPLE_COUNT; sample += 1) {
+    const context = await browser.newContext({
+      colorScheme: 'light',
+      locale: 'en-AU',
+      reducedMotion: 'no-preference',
+      viewport: { width: 1280, height: 720 },
+    })
+    const page = await context.newPage()
+    await page.addInitScript(() => {
+      ;(window as typeof window & { __taxalensMapInitializationStartedAt?: number })
+        .__taxalensMapInitializationStartedAt = performance.now()
+    })
+    try {
+      await page.goto('/#dashboard', { waitUntil: 'domcontentloaded' })
+      const canvas = page.locator('.taxalens-world-map__canvas[data-map-loaded="true"]')
+      await expect(canvas).toHaveAttribute('data-camera-scope', 'global', {
+        timeout: 60_000,
+      })
+      await expect(canvas).toHaveAttribute('data-baseline-evidence', 'true')
+      await expect(canvas).toHaveAttribute('data-flickr-evidence', 'true')
+
+      const elapsedMilliseconds = await page.evaluate(() => {
+        const startedAt = (
+          window as typeof window & { __taxalensMapInitializationStartedAt?: number }
+        ).__taxalensMapInitializationStartedAt
+        if (startedAt === undefined) {
+          throw new Error('Geographic Impact map initialization timer was not installed')
+        }
+        return performance.now() - startedAt
+      })
+      const featureCount = Number(await canvas.getAttribute('data-impact-feature-count'))
+      samples.push(elapsedMilliseconds)
+      featureCounts.push(featureCount)
+    } finally {
+      await context.close()
+    }
+  }
+
+  expect(featureCounts).toEqual(Array(MAP_STARTUP_SAMPLE_COUNT).fill(2_155))
+  const measurement = {
+    sampleCount: MAP_STARTUP_SAMPLE_COUNT,
+    featureCount: featureCounts[0],
+    milliseconds: summarizePerformanceSamples(samples),
+  }
+  expectPerformanceBudget(
+    'map initialization',
+    measurement.milliseconds,
+    performanceBaseline.latency.mapInitialization,
+  )
+  console.log(`GEOGRAPHIC_IMPACT_MAP_INITIALIZATION ${JSON.stringify(measurement)}`)
 })
 
 function summarizePerformanceSamples(samples: readonly number[]): PerformanceSampleSummary {
@@ -591,6 +652,24 @@ function summarizePerformanceSamples(samples: readonly number[]): PerformanceSam
 
 function roundMilliseconds(value: number): number {
   return Number(value.toFixed(2))
+}
+
+function expectPerformanceBudget(
+  name: string,
+  summary: PerformanceSampleSummary,
+  budget: PerformanceBudget,
+): void {
+  expect(budget.samples).toHaveLength(MAP_INTERACTION_SAMPLE_COUNT)
+  const actual = summary[budget.statistic]
+  const maximum = budget.baseline + Math.max(
+    budget.baseline * budget.relativeTolerance,
+    budget.absoluteTolerance,
+  )
+  expect(
+    actual,
+    `${name} ${budget.statistic} ${actual}ms exceeds measured ceiling ${maximum}ms`,
+  )
+    .toBeLessThanOrEqual(maximum)
 }
 
 async function expectImpactTableCellCount(

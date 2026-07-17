@@ -57,7 +57,16 @@ The production build also verifies the local MapLibre licence notices and public
 
 The static replay is dominated by the pinned DuckDB engine and local Parquet extension, not by MapLibre or geographic evidence. Because the replay is self-contained, those bytes trade network service dependencies for a larger static distribution. Browser caching, HTTP compression and request timing determine transferred bytes in a deployment and are intentionally outside this raw filesystem measurement.
 
-Task 8.4.4 uses these exact measured bytes to set a transparent regression ceiling. It does not claim that 51.2 MB is an ideal product target or that every judge downloads all files before opening Geographic Impact.
+Task 8.4.4 uses these exact measured bytes to set transparent regression ceilings:
+
+| Budget | Baseline | Ceiling |
+| --- | ---: | ---: |
+| Total raw distribution | 51,239,420 bytes | 52,776,603 bytes |
+| Geographic evidence group | 3,017,829 bytes | 3,222,629 bytes |
+| MapLibre renderer vendor | 1,027,752 bytes | 1,093,288 bytes |
+| Dashboard chunks | 301,624 bytes | 334,392 bytes |
+
+The ceiling is the measured baseline plus the larger of its recorded relative or absolute tolerance. This does not claim that 51.2 MB is an ideal product target or that every judge downloads all files before opening Geographic Impact.
 
 ## Environment
 

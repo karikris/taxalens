@@ -81,6 +81,23 @@ The `LD_LIBRARY_PATH` prefix is specific to this WSL test host's locally extract
 
 ## Interpretation limits
 
-This is one reproducible local development-server baseline, not a hosted-service latency claim or a statistically stable benchmark distribution. Route fulfilment checks exact byte counts and production manifest bindings; checksum and bundle verification remain separate release gates. Browser `performance.memory` does not expose worker/Wasm peak allocation, and no forced garbage collection was used. The test records actual cardinalities and lifecycle times but deliberately establishes no regression threshold; Task 8.4 will collect repeated build measurements before setting tolerances.
+This is one reproducible local development-server baseline, not a hosted-service latency claim or a statistically stable benchmark distribution. Route fulfilment checks exact byte counts and production manifest bindings; checksum and bundle verification remain separate release gates. Browser `performance.memory` does not expose worker/Wasm peak allocation, and no forced garbage collection was used. This original Task 3.3 run deliberately established no regression threshold; the repeated Task 8.4 measurements below add the first measured tolerances.
 
 The run also exposed and now covers two real-browser-only lifecycle failures: registered in-memory files must be released by dedicated worker termination rather than `dropFiles` racing open Parquet handles, and rollup ordering must be applied outside the `UNION ALL BY NAME` compound query. The benchmark did not pass until both production paths completed cleanly.
+
+## Task 8.4 repeated browser gate
+
+Task 8.4 added five fresh-context startup observations plus five in-session observations for each controlled interaction. The committed baseline is `apps/web/performance/geographic-impact-performance-baseline.json`; CI never rewrites it automatically.
+
+| Operation | Gated statistic | Committed baseline | Regression ceiling | Completion signal |
+| --- | --- | ---: | ---: | --- |
+| Global map initialization | p95 | 2,475.30 ms | 3,225.30 ms | map loaded, global camera, 2,155 features, blue and amber evidence present |
+| Global → Asia | median | 1,312.36 ms | 2,812.36 ms | URL, camera scope and 2,879-cell table agree |
+| Asia → India | median | 1,227.21 ms | 2,227.21 ms | URL, camera scope and 2,526-cell table agree |
+| All evidence → Flickr candidates | median | 187.57 ms | 937.57 ms | exact live status and 1,319-cell table agree |
+
+Each ceiling equals the measured baseline plus the larger of its recorded relative or absolute tolerance. Fresh-context startup uses p95. Interaction gates use the median of five samples because p95 over five observations is the single maximum and proved dominated by nondeterministic headless-WebGL scheduling on this WSL host; minimum, median, p95 and maximum remain emitted for diagnosis. A sustained interaction regression still moves the median and fails the gate. These are regression tripwires for this replay and test host class, not universal service-level objectives.
+
+The repeated drilldown test also exposed a transient MapLibre image-lifecycle race. Local excluded and uncertain marker images are now registered once per map lifecycle, and symbol layers are passed directly to the source rather than through a fragment. Repeated continent/country transitions complete without degrading to the static fallback.
+
+Scope changes originally rebuilt a DuckDB-Wasm worker even when returning to a scope already verified during the same mounted lens session. The map now retains a per-lens LRU capped at eight decoded scopes and 30,000 preaggregated cell rows. Only completed results enter the cache; uncached queries remain abortable, raw Parquet is not retained as JavaScript records, and no cache is shared across sessions.
