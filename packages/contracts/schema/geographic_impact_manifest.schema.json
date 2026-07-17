@@ -1,0 +1,239 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://taxalens.local/contracts/geographic-impact-manifest-v1.0.0.schema.json",
+  "title": "TaxaLens geographic impact manifest",
+  "description": "Immutable identity, inventory, reconciliation totals, and source revisions for one Geographic Impact materialization.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "manifest_id",
+    "geographic_impact_build_id",
+    "created_at",
+    "project_id",
+    "run_id",
+    "registry_version",
+    "accepted_taxon_key",
+    "scientific_name",
+    "baseline_snapshot_id",
+    "flickr_snapshot_id",
+    "provider_union_policy_version",
+    "verification_projection_version",
+    "release_policy_version",
+    "country_hierarchy_id",
+    "spatial_resolutions",
+    "summary_scope_levels",
+    "source_commits",
+    "artifacts",
+    "impact_cell_count",
+    "summary_row_count",
+    "hierarchy_node_count",
+    "baseline_evidence_status",
+    "baseline_union_count",
+    "direct_inaturalist_delta_status",
+    "direct_inaturalist_delta_count",
+    "flickr_candidate_count",
+    "reviewed_positive_count",
+    "reviewed_negative_count",
+    "uncertain_count",
+    "pending_count",
+    "media_failure_count",
+    "skipped_count",
+    "release_ready_count",
+    "candidate_only_cell_count",
+    "reviewed_additional_cell_count",
+    "release_ready_additional_cell_count",
+    "deterministic_fingerprint_sha256",
+    "generated_by"
+  ],
+  "properties": {
+    "schema_version": {"const": "taxalens-geographic-impact-manifest:v1.0.0"},
+    "manifest_id": {"$ref": "#/$defs/nonEmptyString"},
+    "geographic_impact_build_id": {"$ref": "#/$defs/nonEmptyString"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "project_id": {"$ref": "#/$defs/nonEmptyString"},
+    "run_id": {"$ref": "#/$defs/nonEmptyString"},
+    "registry_version": {"$ref": "#/$defs/nonEmptyString"},
+    "accepted_taxon_key": {"$ref": "#/$defs/nonEmptyString"},
+    "scientific_name": {"$ref": "#/$defs/nonEmptyString"},
+    "baseline_snapshot_id": {"$ref": "#/$defs/nonEmptyString"},
+    "flickr_snapshot_id": {"$ref": "#/$defs/nonEmptyString"},
+    "provider_union_policy_version": {"const": "baseline-provider-union-policy-v1.0.0"},
+    "verification_projection_version": {"$ref": "#/$defs/nonEmptyString"},
+    "release_policy_version": {"$ref": "#/$defs/nonEmptyString"},
+    "country_hierarchy_id": {"$ref": "#/$defs/nonEmptyString"},
+    "spatial_resolutions": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "integer", "minimum": 0, "maximum": 15}
+    },
+    "summary_scope_levels": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "uniqueItems": true,
+      "items": {"enum": ["global", "continent", "country", "admin1"]}
+    },
+    "source_commits": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/sourceCommit"}
+    },
+    "artifacts": {
+      "type": "array",
+      "minItems": 9,
+      "items": {"$ref": "#/$defs/artifact"}
+    },
+    "impact_cell_count": {"$ref": "#/$defs/positiveCount"},
+    "summary_row_count": {"$ref": "#/$defs/positiveCount"},
+    "hierarchy_node_count": {"$ref": "#/$defs/positiveCount"},
+    "baseline_evidence_status": {"enum": ["available", "unavailable"]},
+    "baseline_union_count": {"$ref": "#/$defs/nullableCount"},
+    "direct_inaturalist_delta_status": {"enum": ["available", "unavailable"]},
+    "direct_inaturalist_delta_count": {"$ref": "#/$defs/nullableCount"},
+    "flickr_candidate_count": {"$ref": "#/$defs/count"},
+    "reviewed_positive_count": {"$ref": "#/$defs/count"},
+    "reviewed_negative_count": {"$ref": "#/$defs/count"},
+    "uncertain_count": {"$ref": "#/$defs/count"},
+    "pending_count": {"$ref": "#/$defs/count"},
+    "media_failure_count": {"$ref": "#/$defs/count"},
+    "skipped_count": {"$ref": "#/$defs/count"},
+    "release_ready_count": {"$ref": "#/$defs/count"},
+    "candidate_only_cell_count": {"$ref": "#/$defs/nullableCount"},
+    "reviewed_additional_cell_count": {"$ref": "#/$defs/nullableCount"},
+    "release_ready_additional_cell_count": {"$ref": "#/$defs/nullableCount"},
+    "deterministic_fingerprint_sha256": {"$ref": "#/$defs/sha256"},
+    "generated_by": {"$ref": "#/$defs/nonEmptyString"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"baseline_evidence_status": {"const": "available"}}, "required": ["baseline_evidence_status"]},
+      "then": {
+        "properties": {
+          "baseline_union_count": {"$ref": "#/$defs/count"},
+          "candidate_only_cell_count": {"$ref": "#/$defs/count"},
+          "reviewed_additional_cell_count": {"$ref": "#/$defs/count"},
+          "release_ready_additional_cell_count": {"$ref": "#/$defs/count"}
+        }
+      },
+      "else": {
+        "properties": {
+          "baseline_union_count": {"type": "null"},
+          "direct_inaturalist_delta_status": {"const": "unavailable"},
+          "direct_inaturalist_delta_count": {"type": "null"},
+          "candidate_only_cell_count": {"type": "null"},
+          "reviewed_additional_cell_count": {"type": "null"},
+          "release_ready_additional_cell_count": {"type": "null"}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"direct_inaturalist_delta_status": {"const": "available"}}, "required": ["direct_inaturalist_delta_status"]},
+      "then": {"properties": {"direct_inaturalist_delta_count": {"$ref": "#/$defs/count"}}},
+      "else": {"properties": {"direct_inaturalist_delta_count": {"type": "null"}}}
+    }
+  ],
+  "$defs": {
+    "nonEmptyString": {"type": "string", "minLength": 1},
+    "count": {"type": "integer", "minimum": 0},
+    "positiveCount": {"type": "integer", "minimum": 1},
+    "nullableCount": {"anyOf": [{"$ref": "#/$defs/count"}, {"type": "null"}]},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "nullableNonEmptyString": {"anyOf": [{"$ref": "#/$defs/nonEmptyString"}, {"type": "null"}]},
+    "nullableSha256": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+    "sourceCommit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "commit_sha"],
+      "properties": {
+        "repository": {"enum": ["karikris/taxalens", "karikris/BioMiner"]},
+        "commit_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "logical_name",
+        "availability",
+        "path",
+        "media_type",
+        "schema_version",
+        "sha256",
+        "byte_size",
+        "row_count",
+        "snapshot_id",
+        "source_repository",
+        "source_commit",
+        "rights_id",
+        "unavailable_reason"
+      ],
+      "properties": {
+        "logical_name": {
+          "enum": [
+            "baseline_geographic_spread",
+            "baseline_occurrence_union",
+            "flickr_geography",
+            "verification_consensus",
+            "quality_snapshot",
+            "release_decisions",
+            "geographic_impact_cells",
+            "geographic_impact_summary",
+            "country_hierarchy"
+          ]
+        },
+        "availability": {"enum": ["available", "unavailable"]},
+        "path": {"$ref": "#/$defs/nullableNonEmptyString"},
+        "media_type": {"$ref": "#/$defs/nullableNonEmptyString"},
+        "schema_version": {"$ref": "#/$defs/nullableNonEmptyString"},
+        "sha256": {"$ref": "#/$defs/nullableSha256"},
+        "byte_size": {"$ref": "#/$defs/nullableCount"},
+        "row_count": {"$ref": "#/$defs/nullableCount"},
+        "snapshot_id": {"$ref": "#/$defs/nullableNonEmptyString"},
+        "source_repository": {
+          "anyOf": [
+            {"enum": ["karikris/taxalens", "karikris/BioMiner"]},
+            {"type": "null"}
+          ]
+        },
+        "source_commit": {"anyOf": [{"type": "string", "pattern": "^[0-9a-f]{40}$"}, {"type": "null"}]},
+        "rights_id": {"$ref": "#/$defs/nullableNonEmptyString"},
+        "unavailable_reason": {"$ref": "#/$defs/nullableNonEmptyString"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"availability": {"const": "available"}}, "required": ["availability"]},
+          "then": {
+            "properties": {
+              "path": {"$ref": "#/$defs/nonEmptyString"},
+              "media_type": {"$ref": "#/$defs/nonEmptyString"},
+              "schema_version": {"$ref": "#/$defs/nonEmptyString"},
+              "sha256": {"$ref": "#/$defs/sha256"},
+              "byte_size": {"$ref": "#/$defs/count"},
+              "row_count": {"$ref": "#/$defs/count"},
+              "source_repository": {"enum": ["karikris/taxalens", "karikris/BioMiner"]},
+              "source_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+              "rights_id": {"$ref": "#/$defs/nonEmptyString"},
+              "unavailable_reason": {"type": "null"}
+            }
+          },
+          "else": {
+            "properties": {
+              "path": {"type": "null"},
+              "media_type": {"type": "null"},
+              "schema_version": {"type": "null"},
+              "sha256": {"type": "null"},
+              "byte_size": {"type": "null"},
+              "row_count": {"type": "null"},
+              "source_repository": {"type": "null"},
+              "source_commit": {"type": "null"},
+              "rights_id": {"type": "null"},
+              "unavailable_reason": {"$ref": "#/$defs/nonEmptyString"}
+            }
+          }
+        }
+      ]
+    }
+  }
+}
