@@ -4,6 +4,7 @@ import { EvidenceState } from '../design-system'
 import { GeographicBreadcrumbs } from './GeographicBreadcrumbs'
 import { GeographicScopeSlicers } from './GeographicScopeSlicers'
 import { GeographicImpactLegend } from './GeographicImpactLegend'
+import { SelectedGeographyDetails } from './SelectedGeographyDetails'
 import { useGeographicScopeState } from './geographicScope'
 import { OfflineWorldMap } from './OfflineWorldMap'
 import { buildBoundedGeographicImpactFeatures } from './geographicImpactFeatureCollection'
@@ -19,6 +20,7 @@ export function GeographicImpactLens({
   readonly webGlSupported?: boolean
 }) {
   const scope = useGeographicScopeState()
+  const [selectedCellId, setSelectedCellId] = useState<string | null>(null)
   const mapData = useGeographicImpactMapData(
     scope.selected,
     webGlSupported !== false && typeof Worker !== 'undefined',
@@ -39,6 +41,7 @@ export function GeographicImpactLens({
     },
     [scope.index, scope.selectScope],
   )
+  useEffect(() => setSelectedCellId(null), [scope.selected.scope_id])
 
   return (
     <section
@@ -74,9 +77,18 @@ export function GeographicImpactLens({
       {impactFeatures === undefined ? null : (
         <GeographicImpactLegend features={impactFeatures} />
       )}
+      {mapData.status === 'available' ? (
+        <SelectedGeographyDetails
+          cells={mapData.data.cells}
+          scope={scope.selected}
+          selectedCellId={selectedCellId}
+        />
+      ) : null}
       <OfflineWorldMap
         {...(impactFeatures === undefined ? {} : { impactFeatures })}
         onCountrySelect={selectCountry}
+        onImpactCellSelect={setSelectedCellId}
+        selectedImpactCellId={selectedCellId}
         selectedScope={scope.selected}
         {...(webGlSupported === undefined ? {} : { webGlSupported })}
       />

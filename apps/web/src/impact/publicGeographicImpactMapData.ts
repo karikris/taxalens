@@ -53,11 +53,25 @@ export const PUBLIC_GEOGRAPHIC_IMPACT_MAP_SOURCE = Object.freeze({
 } as const)
 
 export interface PublicGeographicImpactMapData {
-  readonly cells: readonly GeographicImpactBrowserCell[]
+  readonly cells: readonly PublicGeographicImpactMapCell[]
   readonly spatialResolution: 3 | 5 | 7
   readonly scopeId: string
   readonly source: typeof PUBLIC_GEOGRAPHIC_IMPACT_MAP_SOURCE
   readonly scientificClaimAllowed: false
+}
+
+export interface PublicGeographicImpactMapCell extends GeographicImpactBrowserCell {
+  readonly baselineExcludedOccurrenceCount: number
+  readonly gbifOnlyCount: number
+  readonly inaturalistOriginThroughGbifCount: number
+  readonly directInaturalistDeltaStatus: 'available' | 'unavailable'
+  readonly directInaturalistDeltaCount: number | null
+  readonly duplicatesRemovedCount: number
+  readonly unresolvedProviderDuplicateGroupCount: number
+  readonly latestBaselineEventDate: string | null
+  readonly latestFlickrCandidateDate: string | null
+  readonly latestReviewedPositiveDate: string | null
+  readonly latestReleaseReadyDate: string | null
 }
 
 export function geographicMapResolutionForScope(
@@ -136,6 +150,13 @@ export function buildPublicGeographicImpactMapSql(
       centroid_longitude,
       baseline_union_count,
       baseline_range_inference_eligible_count,
+      baseline_excluded_occurrence_count,
+      gbif_only_count,
+      inaturalist_origin_through_gbif_count,
+      direct_inaturalist_delta_status,
+      direct_inaturalist_delta_count,
+      duplicates_removed_count,
+      unresolved_provider_duplicate_group_count,
       flickr_candidate_count,
       flickr_visually_eligible_count,
       reviewed_positive_count,
@@ -151,7 +172,11 @@ export function buildPublicGeographicImpactMapSql(
       reviewed_additional_cell,
       release_ready_additional_cell,
       nearest_baseline_distance_km,
-      data_deficient_state
+      data_deficient_state,
+      CAST(latest_baseline_event_date AS VARCHAR) AS latest_baseline_event_date,
+      CAST(latest_flickr_candidate_date AS VARCHAR) AS latest_flickr_candidate_date,
+      CAST(latest_reviewed_positive_date AS VARCHAR) AS latest_reviewed_positive_date,
+      CAST(latest_release_ready_date AS VARCHAR) AS latest_release_ready_date
     FROM read_parquet(${sqlLiteral(MAP_ARTIFACT_FILE_NAME)})
     WHERE project_id = ${sqlLiteral(impactManifest.project_id)}
       AND run_id = ${sqlLiteral(impactManifest.run_id)}
@@ -208,7 +233,7 @@ function scopeSqlPredicate(scope: CountryHierarchyNode): string {
 
 function decodeMapCells(
   table: Awaited<ReturnType<AsyncDuckDBConnection['query']>>,
-): readonly GeographicImpactBrowserCell[] {
+): readonly PublicGeographicImpactMapCell[] {
   return Object.freeze(
     Array.from({ length: table.numRows }, (_, row) =>
       Object.freeze({
@@ -224,6 +249,29 @@ function decodeMapCells(
         baselineRangeInferenceEligibleCount: requiredCount(
           table,
           'baseline_range_inference_eligible_count',
+          row,
+        ),
+        baselineExcludedOccurrenceCount: requiredCount(
+          table,
+          'baseline_excluded_occurrence_count',
+          row,
+        ),
+        gbifOnlyCount: requiredCount(table, 'gbif_only_count', row),
+        inaturalistOriginThroughGbifCount: requiredCount(
+          table,
+          'inaturalist_origin_through_gbif_count',
+          row,
+        ),
+        directInaturalistDeltaStatus: requiredDirectDeltaStatus(table, row),
+        directInaturalistDeltaCount: nullableCount(
+          table,
+          'direct_inaturalist_delta_count',
+          row,
+        ),
+        duplicatesRemovedCount: requiredCount(table, 'duplicates_removed_count', row),
+        unresolvedProviderDuplicateGroupCount: requiredCount(
+          table,
+          'unresolved_provider_duplicate_group_count',
           row,
         ),
         flickrCandidateCount: requiredCount(table, 'flickr_candidate_count', row),
@@ -258,9 +306,40 @@ function decodeMapCells(
           row,
         ),
         dataDeficientState: requiredDataDeficientState(table, row),
+        latestBaselineEventDate: nullableIsoDate(
+          table,
+          'latest_baseline_event_date',
+          row,
+        ),
+        latestFlickrCandidateDate: nullableIsoDate(
+          table,
+          'latest_flickr_candidate_date',
+          row,
+        ),
+        latestReviewedPositiveDate: nullableIsoDate(
+          table,
+          'latest_reviewed_positive_date',
+          row,
+        ),
+        latestReleaseReadyDate: nullableIsoDate(
+          table,
+          'latest_release_ready_date',
+          row,
+        ),
       }),
     ),
   )
+}
+
+function requiredDirectDeltaStatus(
+  table: Awaited<ReturnType<AsyncDuckDBConnection['query']>>,
+  row: number,
+): PublicGeographicImpactMapCell['directInaturalistDeltaStatus'] {
+  const value = requiredString(table, 'direct_inaturalist_delta_status', row)
+  if (value !== 'available' && value !== 'unavailable') {
+    throw new Error('Geographic Impact map returned an invalid direct iNaturalist delta status')
+  }
+  return value
 }
 
 function requiredDataDeficientState(
@@ -310,6 +389,37 @@ function requiredCount(
     throw new Error(`Geographic Impact map returned an invalid ${column}`)
   }
   return count
+}
+
+function nullableCount(
+  table: Awaited<ReturnType<AsyncDuckDBConnection['query']>>,
+  column: string,
+  row: number,
+): number | null {
+  const value = table.getChild(column)?.get(row)
+  if (value === null) return null
+  const count = typeof value === 'bigint' ? Number(value) : value
+  if (typeof count !== 'number' || !Number.isSafeInteger(count) || count < 0) {
+    throw new Error(`Geographic Impact map returned an invalid ${column}`)
+  }
+  return count
+}
+
+function nullableIsoDate(
+  table: Awaited<ReturnType<AsyncDuckDBConnection['query']>>,
+  column: string,
+  row: number,
+): string | null {
+  const value = table.getChild(column)?.get(row)
+  if (value === null) return null
+  if (
+    typeof value !== 'string' ||
+    !/^\d{4}-\d{2}-\d{2}$/u.test(value) ||
+    Number.isNaN(Date.parse(`${value}T00:00:00Z`))
+  ) {
+    throw new Error(`Geographic Impact map returned an invalid ${column}`)
+  }
+  return value
 }
 
 function requiredFiniteNumber(

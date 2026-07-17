@@ -46,12 +46,16 @@ export const TAXALENS_MAP_ACCESSIBLE_NAME =
 
 export function OfflineWorldMap({
   onCountrySelect,
+  onImpactCellSelect,
   impactFeatures,
+  selectedImpactCellId,
   selectedScope = TAXALENS_GEOGRAPHIC_SCOPE_INDEX.root,
   webGlSupported,
 }: {
   readonly onCountrySelect?: (countryCode: string) => void
+  readonly onImpactCellSelect?: (spatialCellId: string | null) => void
   readonly impactFeatures?: BoundedGeographicImpactFeatures
+  readonly selectedImpactCellId?: string | null
   readonly selectedScope?: CountryHierarchyNode
   readonly webGlSupported?: boolean
 }) {
@@ -62,8 +66,22 @@ export function OfflineWorldMap({
   const [loaded, setLoaded] = useState(false)
   const [evidenceImagesReady, setEvidenceImagesReady] = useState(false)
   const [cameraScopeId, setCameraScopeId] = useState<string | null>(null)
-  const [selectedImpactFeature, setSelectedImpactFeature] =
-    useState<GeographicImpactMapFeature | null>(null)
+  const [internalSelectedImpactCellId, setInternalSelectedImpactCellId] =
+    useState<string | null>(null)
+  const effectiveSelectedImpactCellId =
+    selectedImpactCellId === undefined
+      ? internalSelectedImpactCellId
+      : selectedImpactCellId
+  const selectedImpactFeature =
+    impactFeatures?.collection.features.find(
+      ({ properties }) => properties.spatialCellId === effectiveSelectedImpactCellId,
+    ) ?? null
+  const selectImpactCell = (spatialCellId: string | null) => {
+    if (selectedImpactCellId === undefined) {
+      setInternalSelectedImpactCellId(spatialCellId)
+    }
+    onImpactCellSelect?.(spatialCellId)
+  }
 
   useEffect(() => {
     if (!loaded || mapRef.current === null) return
@@ -83,7 +101,21 @@ export function OfflineWorldMap({
     }
   }, [impactFeatures, loaded])
 
-  useEffect(() => setSelectedImpactFeature(null), [impactFeatures])
+  useEffect(() => {
+    if (
+      effectiveSelectedImpactCellId !== null &&
+      selectedImpactFeature === null
+    ) {
+      if (selectedImpactCellId === undefined) setInternalSelectedImpactCellId(null)
+      onImpactCellSelect?.(null)
+    }
+  }, [
+    effectiveSelectedImpactCellId,
+    impactFeatures,
+    onImpactCellSelect,
+    selectedImpactCellId,
+    selectedImpactFeature,
+  ])
 
   if (!supported || runtimeError !== null) {
     return (
@@ -160,7 +192,7 @@ export function OfflineWorldMap({
             selectMapFeatureFromEvent(
               event,
               impactFeatures,
-              setSelectedImpactFeature,
+              (feature) => selectImpactCell(feature?.properties.spatialCellId ?? null),
               onCountrySelect,
             )
           }
@@ -209,7 +241,7 @@ export function OfflineWorldMap({
               closeOnClick={false}
               maxWidth="22rem"
               className="taxalens-impact-popup"
-              onClose={() => setSelectedImpactFeature(null)}
+              onClose={() => selectImpactCell(null)}
             >
               <GeographicImpactCellTooltip feature={selectedImpactFeature} />
             </Popup>
