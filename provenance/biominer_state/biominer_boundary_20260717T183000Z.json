@@ -1,0 +1,50 @@
+{
+  "biominer": {
+    "branch": "main",
+    "head": "c47a004bc2bcc11759df51fc8851d3b1b74788ee",
+    "path": "/home/toffe/github/karikris/BioMiner",
+    "phase13_signal": false,
+    "pinned_revision": {
+      "available": true,
+      "head_matches": false,
+      "resolved_sha": "74a7d648a562efa744e6502ef504a23b63b4e02f"
+    },
+    "status": {
+      "raw": [
+        "?? BioMiner-agent-pack.zip",
+        "?? BioMiner-agent-pack/",
+        "?? config/papilio_demoleus_flickr_estimator.sh2",
+        "?? config/papilio_demoleus_multilingual_keywords.json",
+        "?? docs/superpowers/",
+        "?? duplicate_query_terms_skipped",
+        "?? logs/",
+        "?? query_terms_added"
+      ],
+      "staged": [],
+      "untracked": [
+        "?? BioMiner-agent-pack.zip",
+        "?? BioMiner-agent-pack/",
+        "?? config/papilio_demoleus_flickr_estimator.sh2",
+        "?? config/papilio_demoleus_multilingual_keywords.json",
+        "?? docs/superpowers/",
+        "?? duplicate_query_terms_skipped",
+        "?? logs/",
+        "?? query_terms_added"
+      ]
+    }
+  },
+  "failures": [],
+  "manifest_path": "/home/toffe/github/karikris/taxalens/provenance/biominer_migration_manifest.yaml",
+  "phase13_excluded": true,
+  "phase13_pinned": true,
+  "pinned_sha": "74a7d648a562efa744e6502ef504a23b63b4e02f",
+  "taxalens": {
+    "branch": "main",
+    "head": "a6945c0dc499de0f648135e19be61d4712300bcf"
+  },
+  "timestamp": "2026-07-17T18:30:00.233285Z",
+  "warnings": [
+    "BioMiner local HEAD differs from the retained evidence pin; pinned=74a7d648a562efa744e6502ef504a23b63b4e02f, local HEAD=c47a004bc2bcc11759df51fc8851d3b1b74788ee. The pinned commit remains available and migrations must use commit-qualified Git objects.",
+    "BioMiner has untracked content: BioMiner-agent-pack.zip, BioMiner-agent-pack/, config/papilio_demoleus_flickr_estimator.sh2, config/papilio_demoleus_multilingual_keywords.json, docs/superpowers/, duplicate_query_terms_skipped, logs/, query_terms_added."
+  ]
+}
