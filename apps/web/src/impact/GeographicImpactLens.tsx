@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { EvidenceState } from '../design-system'
 import { GeographicCountryRanking } from './GeographicCountryRanking'
 import { GeographicImpactAccessibleSummary } from './GeographicImpactAccessibleSummary'
+import { GeographicImpactExport } from './GeographicImpactExport'
 import { GeographicBreadcrumbs } from './GeographicBreadcrumbs'
 import { GeographicScopeSlicers } from './GeographicScopeSlicers'
 import { GeographicImpactLegend } from './GeographicImpactLegend'
@@ -106,6 +107,7 @@ export function GeographicImpactLens({
             selectedCellId={selectedCellId}
             onCellSelect={setSelectedCellId}
           />
+          <GeographicImpactExport data={mapData.data} scope={scope.selected} />
         </>
       ) : null}
       <OfflineWorldMap

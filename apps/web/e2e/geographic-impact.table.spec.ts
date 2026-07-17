@@ -50,3 +50,18 @@ test('keeps the evidence table available without WebGL', async ({ page }) => {
     page.getByRole('table', { name: /exact preaggregated cells in the selected scope/u }),
   ).toBeVisible()
 })
+
+test('prepares the checksum-bound geographic export locally', async ({ page }) => {
+  await page.goto('./#dashboard')
+  await expect(page.getByText('Baseline and Flickr evidence mapped', { exact: true }))
+    .toBeVisible({ timeout: 30_000 })
+
+  await page.getByRole('button', { name: 'Prepare geographic export' }).click()
+  await expect(page.getByText('Seven geographic export files prepared', { exact: true }))
+    .toBeVisible({ timeout: 30_000 })
+  await expect(
+    page.getByRole('list', { name: 'Prepared Geographic Impact export files' }).getByRole('listitem'),
+  ).toHaveCount(7)
+  await expect(page.getByText(/No signer is invented/u)).toBeVisible()
+  await expect(page.getByText(/full target at all supported resolutions/u)).toBeVisible()
+})

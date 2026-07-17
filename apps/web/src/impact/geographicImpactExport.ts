@@ -17,6 +17,7 @@ export type GeographicImpactExportRole =
   | 'scope_summary_json'
   | 'scope_summary_csv'
   | 'methodology_json'
+  | 'manifest_json'
 
 export interface GeographicImpactExportPayload {
   readonly role: GeographicImpactExportRole
@@ -45,6 +46,19 @@ export interface GeographicImpactMethodologyExport {
   readonly schemaVersion: typeof GEOGRAPHIC_IMPACT_EXPORT_SCHEMA_VERSION
   readonly prefix: string
   readonly payload: GeographicImpactExportPayload
+  readonly scientificClaimAllowed: false
+}
+
+export interface GeographicImpactExportFile extends GeographicImpactExportPayload {
+  readonly sha256: string
+}
+
+export interface GeographicImpactExportBundle {
+  readonly schemaVersion: typeof GEOGRAPHIC_IMPACT_EXPORT_SCHEMA_VERSION
+  readonly prefix: string
+  readonly files: readonly GeographicImpactExportFile[]
+  readonly bundleSha256: string
+  readonly manifestSignatureStatus: 'unavailable'
   readonly scientificClaimAllowed: false
 }
 
@@ -331,6 +345,73 @@ export function prepareGeographicImpactMethodology(
       mediaType: 'application/json',
       bytes,
     }),
+    scientificClaimAllowed: false as const,
+  })
+}
+
+export async function prepareGeographicImpactExportBundle(
+  data: PublicGeographicImpactMapData,
+  scope: CountryHierarchyNode,
+  sourceParquetBytes: Uint8Array<ArrayBuffer>,
+): Promise<GeographicImpactExportBundle> {
+  const cells = await prepareGeographicImpactCellExport(data, sourceParquetBytes)
+  const summary = prepareGeographicImpactScopeSummary(data, scope)
+  const methodology = prepareGeographicImpactMethodology(data, scope)
+  const payloads = [...cells.payloads, ...summary.payloads, methodology.payload]
+  const files = await Promise.all(
+    payloads.map(async (payload) =>
+      Object.freeze({ ...payload, sha256: await sha256Hex(payload.bytes) }),
+    ),
+  )
+  const manifestBytes = canonicalExportJsonBytes({
+    schemaVersion: 'taxalens-geographic-impact-export-manifest:v1.0.0',
+    exportSchemaVersion: GEOGRAPHIC_IMPACT_EXPORT_SCHEMA_VERSION,
+    geographicImpactManifestId: impactManifest.manifest_id,
+    geographicImpactBuildId: impactManifest.geographic_impact_build_id,
+    scopeId: scope.scope_id,
+    spatialResolution: data.spatialResolution,
+    files: files.map(({ bytes, filename, mediaType, role, sha256 }) => ({
+      role,
+      filename,
+      mediaType,
+      byteCount: bytes.byteLength,
+      sha256,
+    })),
+    sourceParquet: {
+      role: 'source_cells_parquet',
+      scope: cells.sourceParquetScope,
+      selectedScopeSerialization: false,
+      sourceArtifactSha256: data.source.artifactSha256,
+    },
+    verification: {
+      digestAlgorithm: 'SHA-256',
+      canonicalization: 'recursive-sorted-keys-utf8-v1',
+      manifestSelfDigestIncluded: false,
+      sourceParquetPreservedByteForByte: true,
+      externalNetworkRequestsRequired: 0,
+    },
+    signature: {
+      status: 'unavailable',
+      algorithm: null,
+      signer: null,
+      value: null,
+      reason: 'No signing key is committed inside the credential-free replay boundary.',
+    },
+    scientificClaimAllowed: false,
+  })
+  const manifestFile = Object.freeze({
+    role: 'manifest_json' as const,
+    filename: `${cells.prefix}.manifest.json`,
+    mediaType: 'application/json',
+    bytes: manifestBytes,
+    sha256: await sha256Hex(manifestBytes),
+  })
+  return Object.freeze({
+    schemaVersion: GEOGRAPHIC_IMPACT_EXPORT_SCHEMA_VERSION,
+    prefix: cells.prefix,
+    files: Object.freeze([...files, manifestFile]),
+    bundleSha256: manifestFile.sha256,
+    manifestSignatureStatus: 'unavailable' as const,
     scientificClaimAllowed: false as const,
   })
 }

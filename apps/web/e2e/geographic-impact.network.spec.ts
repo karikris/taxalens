@@ -36,6 +36,9 @@ test('starts the Geographic Impact map without an external request', async ({
   await expect(page.locator('.taxalens-world-map canvas.maplibregl-canvas')).toHaveCount(1)
   await expect(page.getByText(/no external tiles, fonts, sprites, telemetry or analytics/u))
     .toBeVisible()
+  await page.getByRole('button', { name: 'Prepare geographic export' }).click()
+  await expect(page.getByText('Seven geographic export files prepared', { exact: true }))
+    .toBeVisible({ timeout: 30_000 })
 
   const browserResources = await page.evaluate(() =>
     performance.getEntriesByType('resource').map((entry) => {

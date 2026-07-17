@@ -3,8 +3,10 @@ import { resolve } from 'node:path'
 
 import { describe, expect, it } from 'vitest'
 
+import { sha256Hex } from '../evidence/evidenceExport'
 import {
   prepareGeographicImpactCellExport,
+  prepareGeographicImpactExportBundle,
   prepareGeographicImpactMethodology,
   prepareGeographicImpactScopeSummary,
 } from './geographicImpactExport'
@@ -178,6 +180,57 @@ describe('Geographic Impact cell export', () => {
     ]) {
       expect(text).not.toContain(prohibited)
     }
+  })
+
+  it('hashes every payload and binds a deterministic unsigned manifest', async () => {
+    const first = await prepareGeographicImpactExportBundle(
+      data(),
+      requiredScope('country:IN'),
+      sourceParquet,
+    )
+    const second = await prepareGeographicImpactExportBundle(
+      data(),
+      requiredScope('country:IN'),
+      sourceParquet,
+    )
+
+    expect(first.files).toHaveLength(7)
+    expect(first.files.map(({ role }) => role)).toEqual([
+      'cells_json',
+      'cells_csv',
+      'source_cells_parquet',
+      'scope_summary_json',
+      'scope_summary_csv',
+      'methodology_json',
+      'manifest_json',
+    ])
+    expect(first.bundleSha256).toBe(first.files.at(-1)?.sha256)
+    expect(first.bundleSha256).toBe(second.bundleSha256)
+    expect(first.manifestSignatureStatus).toBe('unavailable')
+    for (const file of first.files) {
+      expect(file.sha256).toBe(await sha256Hex(file.bytes))
+    }
+    const manifest = JSON.parse(
+      new TextDecoder().decode(first.files.at(-1)?.bytes),
+    )
+    expect(manifest.files).toHaveLength(6)
+    expect(manifest.files).toEqual(
+      first.files.slice(0, -1).map(({ bytes, filename, mediaType, role, sha256 }) => ({
+        role,
+        filename,
+        mediaType,
+        byteCount: bytes.byteLength,
+        sha256,
+      })),
+    )
+    expect(manifest.sourceParquet).toMatchObject({
+      scope: 'full_target_all_supported_resolutions',
+      selectedScopeSerialization: false,
+      sourceArtifactSha256:
+        'a02927ffbb4dc09fca582c61e6ceab51af6d12f8998cf0f7762ebfe26a4ea1c9',
+    })
+    expect(manifest.signature).toMatchObject({ status: 'unavailable', value: null })
+    expect(manifest.verification.manifestSelfDigestIncluded).toBe(false)
   })
 })
 
