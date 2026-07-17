@@ -14,7 +14,9 @@ test('synchronizes exact table selection with map details', async ({ page }) => 
     throw new Error('Geographic Impact table did not expose a spatial cell identity')
   }
 
-  await firstRow.getByRole('button', { name: `Select ${spatialCellId}` }).click()
+  const selectButton = firstRow.getByRole('button', { name: `Select ${spatialCellId}` })
+  await selectButton.focus()
+  await page.keyboard.press('Enter')
   await expect(firstRow.getByRole('button', { name: `Selected ${spatialCellId}` }))
     .toHaveAttribute('aria-pressed', 'true')
   await expect(
@@ -23,6 +25,9 @@ test('synchronizes exact table selection with map details', async ({ page }) => 
     }),
   ).toBeVisible()
   await expect(page.locator('.taxalens-impact-popup')).toBeVisible()
+  await expect(
+    page.locator('.geographic-impact-accessible-summary [role="status"]'),
+  ).toContainText(`Selected cell ${spatialCellId}`)
 })
 
 test('keeps the evidence table available without WebGL', async ({ page }) => {

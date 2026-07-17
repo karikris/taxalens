@@ -424,6 +424,46 @@
   opacity: 0.65;
 }
 
+.geographic-impact-accessible-summary {
+  display: grid;
+  gap: var(--tl-space-2);
+  padding: var(--tl-space-3);
+  background: var(--tl-state-available-bg);
+  border: 1px solid var(--tl-state-available-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.geographic-impact-accessible-summary h4,
+.geographic-impact-accessible-summary p,
+.geographic-impact-accessible-summary dl {
+  margin: 0;
+}
+
+.geographic-impact-accessible-summary dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: var(--tl-space-1) var(--tl-space-3);
+}
+
+.geographic-impact-accessible-summary dl > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--tl-space-2);
+  padding-bottom: var(--tl-space-1);
+  border-bottom: 1px solid var(--tl-line);
+}
+
+.geographic-impact-accessible-summary dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.geographic-impact-accessible-summary__disclosure {
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-sm);
+}
+
 .geographic-impact-legend__swatch {
   position: relative;
   display: inline-block;

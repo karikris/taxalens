@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { EvidenceState } from '../design-system'
 import { GeographicCountryRanking } from './GeographicCountryRanking'
+import { GeographicImpactAccessibleSummary } from './GeographicImpactAccessibleSummary'
 import { GeographicBreadcrumbs } from './GeographicBreadcrumbs'
 import { GeographicScopeSlicers } from './GeographicScopeSlicers'
 import { GeographicImpactLegend } from './GeographicImpactLegend'
@@ -84,6 +85,11 @@ export function GeographicImpactLens({
       )}
       {mapData.status === 'available' ? (
         <>
+          <GeographicImpactAccessibleSummary
+            cells={mapData.data.cells}
+            scope={scope.selected}
+            selectedCellId={selectedCellId}
+          />
           <SelectedGeographyDetails
             cells={mapData.data.cells}
             scope={scope.selected}
