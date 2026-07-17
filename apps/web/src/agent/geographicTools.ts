@@ -10,6 +10,8 @@ export const GEOGRAPHIC_TOOL_RESULT_VERSION =
   'taxalens-geographic-tool-result:v1.0.0' as const
 export const GEOGRAPHIC_ARTIFACT_CITATION_VERSION =
   'taxalens-geographic-artifact-citation:v1.0.0' as const
+export const GEOGRAPHIC_TOOL_EVIDENCE_VERSION =
+  'taxalens-geographic-tool-evidence:v1.0.0' as const
 
 export const GEOGRAPHIC_TOOL_NAMES = Object.freeze([
   'inspect_geographic_impact',
@@ -81,10 +83,33 @@ export interface GeographicArtifactCitation {
   readonly schemaVersion: typeof GEOGRAPHIC_ARTIFACT_CITATION_VERSION
   readonly artifactKind: GeographicArtifactKind
   readonly artifactId: string
-  readonly sha256: string
-  readonly sourceRepository: string
-  readonly sourceCommit: string
-  readonly sourcePath: string
+  readonly availability: 'available' | 'unavailable'
+  readonly snapshotId: string | null
+  readonly sha256: string | null
+  readonly sourceRepository: string | null
+  readonly sourceCommit: string | null
+  readonly sourcePath: string | null
+  readonly unavailableReason: string | null
+}
+
+export interface GeographicToolEvidenceInput {
+  readonly evidenceId: string
+  readonly evidenceScope: GeographicToolEvidenceScope
+  readonly artifactCitations: readonly GeographicArtifactCitation[]
+}
+
+export interface GeographicToolEvidence extends GeographicToolEvidenceInput {
+  readonly schemaVersion: typeof GEOGRAPHIC_TOOL_EVIDENCE_VERSION
+}
+
+export class GeographicToolError extends Error {
+  constructor(
+    readonly code: 'invalid_evidence' | 'invalid_arguments' | 'invalid_result' | 'unknown_tool',
+    message: string,
+  ) {
+    super(message)
+    this.name = 'GeographicToolError'
+  }
 }
 
 export interface GeographicToolFact {
@@ -283,19 +308,25 @@ const OUTPUT_SCHEMA: JsonObjectSchema = deepFreeze({
           },
           artifactKind: { type: 'string', enum: GEOGRAPHIC_ARTIFACT_KINDS },
           artifactId: { type: 'string' },
-          sha256: { type: 'string', pattern: '^[0-9a-f]{64}$' },
-          sourceRepository: { type: 'string' },
-          sourceCommit: { type: 'string' },
-          sourcePath: { type: 'string' },
+          availability: { type: 'string', enum: ['available', 'unavailable'] },
+          snapshotId: { type: ['string', 'null'] },
+          sha256: { type: ['string', 'null'], pattern: '^[0-9a-f]{64}$' },
+          sourceRepository: { type: ['string', 'null'] },
+          sourceCommit: { type: ['string', 'null'] },
+          sourcePath: { type: ['string', 'null'] },
+          unavailableReason: { type: ['string', 'null'] },
         },
         required: [
           'schemaVersion',
           'artifactKind',
           'artifactId',
+          'availability',
+          'snapshotId',
           'sha256',
           'sourceRepository',
           'sourceCommit',
           'sourcePath',
+          'unavailableReason',
         ],
       },
     },
@@ -414,6 +445,48 @@ export function isGeographicEvidenceMode(value: string): value is GeographicEvid
 
 export function isGeographicImpactMetric(value: string): value is GeographicImpactMetric {
   return (GEOGRAPHIC_IMPACT_METRICS as readonly string[]).includes(value)
+}
+
+export function createGeographicToolEvidence(
+  input: GeographicToolEvidenceInput,
+): GeographicToolEvidence {
+  const failures: string[] = []
+  for (const [field, value] of Object.entries(input.evidenceScope)) {
+    if (typeof value !== 'string' || value.length === 0 || value.trim() !== value) {
+      failures.push(`evidence scope ${field} is invalid`)
+    }
+  }
+  if (input.evidenceId.length === 0 || input.evidenceId.trim() !== input.evidenceId) {
+    failures.push('evidenceId is invalid')
+  }
+  const ids = new Set<string>()
+  const kinds = new Set<GeographicArtifactKind>()
+  for (const citation of input.artifactCitations) {
+    kinds.add(citation.artifactKind)
+    if (ids.has(citation.artifactId)) failures.push(`artifact citation ID is repeated: ${citation.artifactId}`)
+    ids.add(citation.artifactId)
+    if (citation.availability === 'available') {
+      if (!citation.sha256?.match(/^[0-9a-f]{64}$/u)) failures.push(`artifact citation digest is invalid: ${citation.artifactId}`)
+      if (!citation.sourceRepository || !citation.sourceCommit?.match(/^[0-9a-f]{40}$/u) || !citation.sourcePath) failures.push(`artifact citation provenance is incomplete: ${citation.artifactId}`)
+      if (citation.unavailableReason !== null) failures.push(`available artifact has an unavailable reason: ${citation.artifactId}`)
+    } else if (citation.sha256 !== null || citation.sourceRepository !== null || citation.sourceCommit !== null || citation.sourcePath !== null || !citation.unavailableReason) {
+      failures.push(`unavailable artifact citation is inconsistent: ${citation.artifactId}`)
+    }
+  }
+  for (const kind of GEOGRAPHIC_ARTIFACT_KINDS) {
+    if (!kinds.has(kind)) failures.push(`artifact citation kind is missing: ${kind}`)
+  }
+  const baseline = input.artifactCitations.find(({ artifactKind }) => artifactKind === 'baseline_provider_union')
+  const flickr = input.artifactCitations.find(({ artifactKind }) => artifactKind === 'flickr_geography')
+  if (baseline?.snapshotId !== input.evidenceScope.baselineSnapshotId) failures.push('baseline citation snapshot differs from evidence scope')
+  if (flickr?.snapshotId !== input.evidenceScope.flickrSnapshotId) failures.push('Flickr citation snapshot differs from evidence scope')
+  if (failures.length > 0) throw new GeographicToolError('invalid_evidence', `Geographic tool evidence is invalid: ${failures.join('; ')}`)
+  return deepFreeze({
+    schemaVersion: GEOGRAPHIC_TOOL_EVIDENCE_VERSION,
+    evidenceId: input.evidenceId,
+    evidenceScope: { ...input.evidenceScope },
+    artifactCitations: input.artifactCitations.map((citation) => ({ ...citation })),
+  })
 }
 
 function deepFreeze<Value>(value: Value): Value {

@@ -2,6 +2,9 @@ import Ajv2020 from 'ajv/dist/2020.js'
 import { describe, expect, it } from 'vitest'
 
 import {
+  createGeographicToolEvidence,
+  GEOGRAPHIC_ARTIFACT_CITATION_VERSION,
+  GEOGRAPHIC_ARTIFACT_KINDS,
   GEOGRAPHIC_TOOL_DEFINITIONS,
   GEOGRAPHIC_TOOL_NAMES,
 } from './geographicTools'
@@ -22,6 +25,45 @@ describe('geographic tool contracts', () => {
       expect(definition.output_schema.additionalProperties).toBe(false)
       expect(Object.isFrozen(definition)).toBe(true)
     }
+  })
+
+  it('requires a complete immutable citation chain and exact snapshots', () => {
+    const citations = GEOGRAPHIC_ARTIFACT_KINDS.map((artifactKind, index) => ({
+      schemaVersion: GEOGRAPHIC_ARTIFACT_CITATION_VERSION,
+      artifactKind,
+      artifactId: `artifact:${artifactKind}`,
+      availability: artifactKind === 'quality_snapshot' ? 'unavailable' as const : 'available' as const,
+      snapshotId:
+        artifactKind === 'baseline_provider_union'
+          ? 'baseline:a'
+          : artifactKind === 'flickr_geography' ? 'flickr:a' : null,
+      sha256: artifactKind === 'quality_snapshot' ? null : String(index + 1).repeat(64),
+      sourceRepository: artifactKind === 'quality_snapshot' ? null : 'karikris/taxalens',
+      sourceCommit: artifactKind === 'quality_snapshot' ? null : String(index + 1).repeat(40),
+      sourcePath: artifactKind === 'quality_snapshot' ? null : `demo/${artifactKind}`,
+      unavailableReason: artifactKind === 'quality_snapshot' ? 'No retained quality snapshot.' : null,
+    }))
+    const input = {
+      evidenceId: 'geographic:evidence:a',
+      evidenceScope: {
+        projectId: 'project:a',
+        runId: 'run:a',
+        acceptedTaxonKey: 'gbif:1938069',
+        baselineSnapshotId: 'baseline:a',
+        flickrSnapshotId: 'flickr:a',
+      },
+      artifactCitations: citations,
+    }
+
+    const evidence = createGeographicToolEvidence(input)
+    expect(evidence.artifactCitations).toHaveLength(GEOGRAPHIC_ARTIFACT_KINDS.length)
+    expect(Object.isFrozen(evidence)).toBe(true)
+    expect(() => createGeographicToolEvidence({ ...input, artifactCitations: citations.slice(1) }))
+      .toThrow('artifact citation kind is missing: baseline_provider_union')
+    expect(() => createGeographicToolEvidence({
+      ...input,
+      evidenceScope: { ...input.evidenceScope, flickrSnapshotId: 'flickr:wrong' },
+    })).toThrow('Flickr citation snapshot differs')
   })
 
   it('requires complete evidence scope and compiles every closed schema', () => {
