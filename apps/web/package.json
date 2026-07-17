@@ -21,7 +21,7 @@
     "test:map-dependencies": "node scripts/verify-map-dependencies.mjs",
     "test:map-distribution": "node scripts/verify-map-distribution.mjs",
     "test:supabase": "node scripts/verify-supabase-migrations.mjs",
-    "test:visual": "playwright test e2e/verification.visual.spec.ts e2e/judge-layout.visual.spec.ts e2e/reduced-motion.visual.spec.ts e2e/geographic-impact.visual.spec.ts --project=chromium --workers=1",
+    "test:visual": "playwright test e2e/verification.visual.spec.ts e2e/judge-layout.visual.spec.ts e2e/reduced-motion.visual.spec.ts e2e/geographic-impact.visual.spec.ts e2e/geographic-impact-accessible.visual.spec.ts --project=chromium --workers=1",
     "test:visual:update": "npm run test:visual -- --update-snapshots",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
