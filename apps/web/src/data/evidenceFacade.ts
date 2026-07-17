@@ -15,17 +15,26 @@ import {
   type JudgeBundleSectionName,
   type JudgeBundleV1Contract,
 } from '../../../../packages/contracts/src/judge_bundle_contract'
+import {
+  BundleLoader,
+  BundleVerifier,
+  PapilioJudgeFixtureValidator,
+  TaxaLensProjectFacade,
+  type JudgeBundleMigrationReceipt,
+  type JudgeBundleMigrationResult,
+  type JsonValue,
+  type VerifiedProjectArtifact,
+} from './projectFacade'
 
-const EXPECTED_BUNDLE_ID = 'papilio-demoleus-prototype-74a7d648-v3'
-const EXPECTED_TAXALENS_SHA = 'fab9d3f1605d28d4bbfc3a4d0074f40e5ffff023'
-const EXPECTED_BIOMINER_SHA = '74a7d648a562efa744e6502ef504a23b63b4e02f'
-const LEGACY_BIOMINER_SHA = '75461d9c065af0cd96b41cd1f845c2e920f7ae34'
-const VERIFICATION_MANIFEST_TAXALENS_SHA = '9b94891ea3ffc37c9e036838c938c596ef0dc529'
-const VERIFICATION_MEDIA_TAXALENS_SHA = 'ff96b7f8f6feaf8197000b0f5265110a7d331e08'
-const VERIFICATION_MEDIA_COUNT = 3
+const PAPILIO_FIXTURE = PapilioJudgeFixtureValidator.identity
 
-type JsonPrimitive = boolean | null | number | string
-export type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue }
+export { BundleLoader, BundleVerifier, PapilioJudgeFixtureValidator, TaxaLensProjectFacade }
+export type {
+  JudgeBundleMigrationReceipt,
+  JudgeBundleMigrationResult,
+  JsonValue,
+  VerifiedProjectArtifact,
+} from './projectFacade'
 
 export interface StoredOpenAIReplayArtifact {
   readonly artifactId: string
@@ -188,20 +197,6 @@ export interface ReplayEvidence extends ReplayIdentity {
     readonly wasmStarted: false
     readonly bundleMigration: JudgeBundleMigrationReceipt
   }
-}
-
-export interface JudgeBundleMigrationReceipt {
-  readonly sourceSchemaVersion: string
-  readonly targetSchemaVersion: typeof JUDGE_BUNDLE_SCHEMA_VERSION
-  readonly applied: boolean
-  readonly storedFilesRewritten: false
-  readonly addedSections: readonly JudgeBundleSectionName[]
-  readonly preservedV1FingerprintSha256: string | null
-}
-
-export interface JudgeBundleMigrationResult {
-  readonly manifest: JudgeBundleContract
-  readonly receipt: JudgeBundleMigrationReceipt
 }
 
 export interface PrototypeEvidenceBoundary {
@@ -466,11 +461,7 @@ export type SectionEvidenceResult =
       }[]
     }
 
-interface VerifiedArtifact {
-  readonly descriptor: JudgeBundleArtifact
-  readonly bytes: Uint8Array<ArrayBuffer>
-  readonly json: JsonValue | undefined
-}
+type VerifiedArtifact = VerifiedProjectArtifact
 
 export interface EvidenceFacade {
   readonly replay: ReplayEvidence
@@ -771,8 +762,6 @@ const ANALYTICS_ARTIFACT_IDS = Object.freeze([
 
 const ANALYTICS_RECEIPT_ID = 'biominer-analytics-import-receipt'
 const ANALYTICS_RECEIPT_SCHEMA = 'taxalens-biominer-analytics-import:v1.0.0' as const
-const ANALYTICS_SOURCE_MANIFEST_SHA =
-  'a62abef7cbac8638da219e53e08ab6760bedcd4f49d6396bfa0d1891d96e5cf2'
 
 function assertParquetMagic(bytes: Uint8Array<ArrayBuffer>, artifactId: string): void {
   const last = bytes.byteLength - 4
@@ -853,39 +842,9 @@ function assertCoverage(
   }
 }
 
-async function assertManifestSemantics(manifest: JudgeBundleContract): Promise<void> {
-  if (manifest.bundle_id !== EXPECTED_BUNDLE_ID) {
-    throw new EvidenceFacadeError('judge_bundle.bundle_id is not the truthful pilot')
-  }
-  if (
-    manifest.source_revisions.taxalens_sha !== EXPECTED_TAXALENS_SHA ||
-    manifest.source_revisions.biominer_sha !== EXPECTED_BIOMINER_SHA
-  ) {
-    throw new EvidenceFacadeError('judge_bundle source revisions do not match the pinned replay')
-  }
-
+async function assertBundleManifestSemantics(manifest: JudgeBundleContract): Promise<void> {
   const inventoryById = assertUniqueInventory(manifest)
   const inventoryIds = new Set(inventoryById.keys())
-  for (const artifact of manifest.artifact_inventory) {
-    const admitted =
-      (artifact.source_repository === 'karikris/TaxaLens' &&
-        (artifact.source_commit === manifest.source_revisions.taxalens_sha ||
-          (['verification_campaigns', 'verification_items'] as const).some(
-            (role) =>
-              artifact.role === role &&
-              artifact.source_commit === VERIFICATION_MANIFEST_TAXALENS_SHA,
-          ) ||
-          (artifact.role === 'verification_media' &&
-            artifact.source_commit === VERIFICATION_MEDIA_TAXALENS_SHA))) ||
-      (artifact.source_repository === 'karikris/BioMiner' &&
-        (artifact.source_commit === manifest.source_revisions.biominer_sha ||
-          artifact.source_commit === LEGACY_BIOMINER_SHA))
-    if (!admitted) {
-      throw new EvidenceFacadeError(
-        `${artifact.artifact_id} source revision is outside the pinned replay`,
-      )
-    }
-  }
   if (manifest.expected_ui_counts.artifact_count !== manifest.artifact_inventory.length) {
     throw new EvidenceFacadeError('Artifact inventory count differs from expected UI count')
   }
@@ -970,7 +929,7 @@ async function assertManifestSemantics(manifest: JudgeBundleContract): Promise<v
     replayTraceSequences.add(trace.sequence)
   }
   if (!manifest.rights.all_artifacts_covered || !manifest.attribution.complete) {
-    throw new EvidenceFacadeError('Truthful replay requires complete rights and attribution coverage')
+    throw new EvidenceFacadeError('Bundle requires complete rights and attribution coverage')
   }
   assertCoverage('Rights manifest', inventoryIds, manifest.rights.items)
   assertCoverage('Attribution manifest', inventoryIds, manifest.attribution.entries)
@@ -1551,9 +1510,9 @@ function projectGeographyReferenceEvidence(
       'reference_readiness.data.counts',
     ) !== 0 ||
     numberField(rights, 'included_image_count', 'rights_manifest') !==
-      VERIFICATION_MEDIA_COUNT ||
+      PAPILIO_FIXTURE.verificationMediaCount ||
     numberField(rights, 'licensed_image_count', 'rights_manifest') !==
-      VERIFICATION_MEDIA_COUNT
+      PAPILIO_FIXTURE.verificationMediaCount
   ) {
     throw new EvidenceFacadeError('Geography/reference boundary exceeds the truthful pilot')
   }
@@ -1823,7 +1782,7 @@ function projectPrototypeEvidence(
     stringField(snapshot, 'origin_repository', 'prototype_evidence_snapshot') !==
       'karikris/BioMiner' ||
     stringField(snapshot, 'origin_commit', 'prototype_evidence_snapshot') !==
-      EXPECTED_BIOMINER_SHA ||
+      PAPILIO_FIXTURE.biominerSha ||
     snapshot.status !== 'prototype_only_available_with_limitations' ||
     snapshot.prototype_integration_authorized !== true ||
     snapshot.production_default_change_authorized !== false ||
@@ -2146,7 +2105,7 @@ function projectPrototypeEvidence(
       artifactId: 'prototype-evidence-snapshot',
       snapshotSha256: artifact.descriptor.sha256,
       producerSha: artifact.descriptor.source_commit,
-      originCommit: EXPECTED_BIOMINER_SHA,
+      originCommit: PAPILIO_FIXTURE.biominerSha,
       importManifestSha256: stringField(
         fingerprints,
         'import_manifest_sha256',
@@ -2168,7 +2127,8 @@ function validateAnalyticsArtifacts(artifacts: ReadonlyMap<string, VerifiedArtif
       ANALYTICS_RECEIPT_SCHEMA ||
     stringField(receipt, 'origin_repository', 'analytics_import_receipt') !==
       'karikris/BioMiner' ||
-    stringField(receipt, 'origin_commit', 'analytics_import_receipt') !== LEGACY_BIOMINER_SHA ||
+    stringField(receipt, 'origin_commit', 'analytics_import_receipt') !==
+      PAPILIO_FIXTURE.legacyBiominerSha ||
     receipt.scientific_claim_allowed !== false
   ) {
     throw new EvidenceFacadeError('Analytics receipt is outside the bounded BioMiner replay')
@@ -2176,7 +2136,7 @@ function validateAnalyticsArtifacts(artifacts: ReadonlyMap<string, VerifiedArtif
   const sourceManifest = object(receipt.source_manifest, 'analytics_import_receipt.source_manifest')
   if (
     stringField(sourceManifest, 'sha256', 'analytics_import_receipt.source_manifest') !==
-    ANALYTICS_SOURCE_MANIFEST_SHA
+    PAPILIO_FIXTURE.analyticsSourceManifestSha256
   ) {
     throw new EvidenceFacadeError('Analytics source-manifest checksum differs')
   }
@@ -2335,8 +2295,8 @@ class VerifiedEvidenceFacade implements EvidenceFacade {
       candidates: deepFreeze(candidates),
       receipt: Object.freeze({
         schemaVersion: ANALYTICS_RECEIPT_SCHEMA,
-        originCommit: LEGACY_BIOMINER_SHA,
-        sourceManifestSha256: ANALYTICS_SOURCE_MANIFEST_SHA,
+        originCommit: PAPILIO_FIXTURE.legacyBiominerSha,
+        sourceManifestSha256: PAPILIO_FIXTURE.analyticsSourceManifestSha256,
       }),
     })
   }
@@ -2440,37 +2400,22 @@ export async function loadEvidenceFacade(
   signal: AbortSignal,
   fetcher: typeof fetch = globalThis.fetch,
 ): Promise<EvidenceFacade> {
-  const manifestBytes = await fetchBytes('judge_bundle.json', signal, fetcher)
-  const candidate = parseJson(manifestBytes, 'judge_bundle')
-  const migration = await migrateJudgeBundleToCurrent(candidate)
-  const manifest = migration.manifest
-  await assertManifestSemantics(manifest)
-
-  const artifacts = new Map<string, VerifiedArtifact>()
-  const orderedInventory = [...manifest.artifact_inventory].sort(comparePaths)
-  for (const descriptor of orderedInventory) {
-    const bytes = await fetchBytes(descriptor.path, signal, fetcher)
-    if (bytes.byteLength !== descriptor.bytes) {
-      throw new EvidenceFacadeError(
-        `${descriptor.artifact_id} byte count is ${bytes.byteLength}; expected ${descriptor.bytes}`,
-      )
-    }
-    if ((await sha256Hex(bytes)) !== descriptor.sha256) {
-      throw new EvidenceFacadeError(`${descriptor.artifact_id} checksum verification failed`)
-    }
-    const json = isJsonArtifact(descriptor)
-      ? deepFreeze(parseJson(bytes, descriptor.artifact_id))
-      : undefined
-    if (json !== undefined) {
-      assertRecordCount(descriptor, json)
-    } else if (isParquetArtifact(descriptor)) {
-      assertParquetMagic(bytes, descriptor.artifact_id)
-    }
-    artifacts.set(
-      descriptor.artifact_id,
-      Object.freeze({ descriptor: Object.freeze(descriptor), bytes, json }),
-    )
+  const loader = new BundleLoader(
+    new BundleVerifier(migrateJudgeBundleToCurrent, assertBundleManifestSemantics),
+    (path, loadSignal) => fetchBytes(path, loadSignal, fetcher),
+    parseJson,
+    verifyBundleArtifact,
+  )
+  const project = await loader.load(signal)
+  try {
+    new PapilioJudgeFixtureValidator().verify(project)
+  } catch (error) {
+    throw new EvidenceFacadeError(error instanceof Error ? error.message : 'Papilio fixture failed')
   }
+  const manifest = project.manifest
+  const migration = { receipt: project.migrationReceipt }
+  const artifacts = new Map<string, VerifiedArtifact>(project.artifactEntries())
+  const orderedInventory = [...manifest.artifact_inventory].sort(comparePaths)
 
   const runSummaryArtifact = [...artifacts.values()].find(
     ({ descriptor }) => descriptor.role === 'run_summary' && isJsonArtifact(descriptor),
@@ -2552,9 +2497,32 @@ export async function loadEvidenceFacade(
   return Object.freeze(new VerifiedEvidenceFacade(replay, artifacts, storedOpenAIReplay))
 }
 
+async function verifyBundleArtifact(
+  descriptor: JudgeBundleArtifact,
+  bytes: Uint8Array<ArrayBuffer>,
+): Promise<VerifiedProjectArtifact> {
+  if (bytes.byteLength !== descriptor.bytes) {
+    throw new EvidenceFacadeError(
+      `${descriptor.artifact_id} byte count is ${bytes.byteLength}; expected ${descriptor.bytes}`,
+    )
+  }
+  if ((await sha256Hex(bytes)) !== descriptor.sha256) {
+    throw new EvidenceFacadeError(`${descriptor.artifact_id} checksum verification failed`)
+  }
+  const json = isJsonArtifact(descriptor)
+    ? deepFreeze(parseJson(bytes, descriptor.artifact_id))
+    : undefined
+  if (json !== undefined) {
+    assertRecordCount(descriptor, json)
+  } else if (isParquetArtifact(descriptor)) {
+    assertParquetMagic(bytes, descriptor.artifact_id)
+  }
+  return Object.freeze({ descriptor: Object.freeze(descriptor), bytes, json })
+}
+
 export const replayEvidenceContract = Object.freeze({
   schemaVersion: JUDGE_BUNDLE_SCHEMA_VERSION,
-  bundleId: EXPECTED_BUNDLE_ID,
-  taxalensSha: EXPECTED_TAXALENS_SHA,
-  biominerSha: EXPECTED_BIOMINER_SHA,
+  bundleId: PAPILIO_FIXTURE.bundleId,
+  taxalensSha: PAPILIO_FIXTURE.taxalensSha,
+  biominerSha: PAPILIO_FIXTURE.biominerSha,
 })
