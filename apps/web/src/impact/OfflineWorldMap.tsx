@@ -3,6 +3,7 @@ import {
   Layer,
   Map,
   NavigationControl,
+  Popup,
   ScaleControl,
   Source,
   type MapLayerMouseEvent,
@@ -32,9 +33,12 @@ import {
   TAXALENS_FLICKR_REVIEWED_POSITIVE_LAYER,
   TAXALENS_FLICKR_UNCERTAIN_LAYER,
   TAXALENS_IMPACT_CELL_SOURCE_ID,
+  TAXALENS_IMPACT_INTERACTIVE_LAYER_IDS,
 } from './geographicImpactLayers'
 import { registerGeographicEvidenceImages } from './geographicEvidenceIcons'
 import { GEOGRAPHIC_BUBBLE_SCALE_CAPTION } from './geographicBubbleScale'
+import type { GeographicImpactMapFeature } from './geographicImpactFeatureCollection'
+import { GeographicImpactCellTooltip } from './GeographicImpactCellTooltip'
 import './geographicImpactMap.css'
 
 export const TAXALENS_MAP_ACCESSIBLE_NAME =
@@ -58,6 +62,8 @@ export function OfflineWorldMap({
   const [loaded, setLoaded] = useState(false)
   const [evidenceImagesReady, setEvidenceImagesReady] = useState(false)
   const [cameraScopeId, setCameraScopeId] = useState<string | null>(null)
+  const [selectedImpactFeature, setSelectedImpactFeature] =
+    useState<GeographicImpactMapFeature | null>(null)
 
   useEffect(() => {
     if (!loaded || mapRef.current === null) return
@@ -76,6 +82,8 @@ export function OfflineWorldMap({
       )
     }
   }, [impactFeatures, loaded])
+
+  useEffect(() => setSelectedImpactFeature(null), [impactFeatures])
 
   if (!supported || runtimeError !== null) {
     return (
@@ -125,7 +133,14 @@ export function OfflineWorldMap({
             zoom: 0,
           }}
           mapStyle={TAXALENS_OFFLINE_MAP_STYLE}
-          interactiveLayerIds={[TAXALENS_SELECTABLE_COUNTRY_LAYER_ID]}
+          interactiveLayerIds={
+            impactFeatures === undefined
+              ? [TAXALENS_SELECTABLE_COUNTRY_LAYER_ID]
+              : [
+                  TAXALENS_SELECTABLE_COUNTRY_LAYER_ID,
+                  ...TAXALENS_IMPACT_INTERACTIVE_LAYER_IDS,
+                ]
+          }
           attributionControl={false}
           maplibreLogo={false}
           renderWorldCopies={false}
@@ -141,7 +156,14 @@ export function OfflineWorldMap({
           locale={{ 'Map.Title': TAXALENS_MAP_ACCESSIBLE_NAME }}
           onLoad={() => setLoaded(true)}
           onError={({ error }) => setRuntimeError(error.message)}
-          onClick={(event) => selectCountryFromMapEvent(event, onCountrySelect)}
+          onClick={(event) =>
+            selectMapFeatureFromEvent(
+              event,
+              impactFeatures,
+              setSelectedImpactFeature,
+              onCountrySelect,
+            )
+          }
           onMoveEnd={() => {
             if (pendingCameraScope.current !== null) {
               setCameraScopeId(pendingCameraScope.current)
@@ -178,6 +200,20 @@ export function OfflineWorldMap({
           )}
           <NavigationControl position="top-right" showCompass={false} visualizePitch={false} />
           <ScaleControl position="bottom-left" unit="metric" maxWidth={120} />
+          {selectedImpactFeature === null ? null : (
+            <Popup
+              longitude={selectedImpactFeature.geometry.coordinates[0]}
+              latitude={selectedImpactFeature.geometry.coordinates[1]}
+              anchor="bottom"
+              closeButton
+              closeOnClick={false}
+              maxWidth="22rem"
+              className="taxalens-impact-popup"
+              onClose={() => setSelectedImpactFeature(null)}
+            >
+              <GeographicImpactCellTooltip feature={selectedImpactFeature} />
+            </Popup>
+          )}
         </Map>
         <span className="sr-only" role="status" aria-live="polite">
           {loaded
@@ -192,11 +228,30 @@ export function OfflineWorldMap({
   )
 }
 
-function selectCountryFromMapEvent(
+function selectMapFeatureFromEvent(
   event: MapLayerMouseEvent,
+  impactFeatures: BoundedGeographicImpactFeatures | undefined,
+  selectImpactFeature: (feature: GeographicImpactMapFeature | null) => void,
   onCountrySelect: ((countryCode: string) => void) | undefined,
 ): void {
-  const countryCode = event.features?.[0]?.properties.country_code
+  const spatialCellId = event.features?.find(({ layer }) =>
+    TAXALENS_IMPACT_INTERACTIVE_LAYER_IDS.includes(
+      layer?.id as (typeof TAXALENS_IMPACT_INTERACTIVE_LAYER_IDS)[number],
+    ),
+  )?.properties.spatialCellId
+  if (typeof spatialCellId === 'string' && impactFeatures !== undefined) {
+    const selected = impactFeatures.collection.features.find(
+      ({ properties }) => properties.spatialCellId === spatialCellId,
+    )
+    if (selected !== undefined) {
+      selectImpactFeature(selected)
+      return
+    }
+  }
+  selectImpactFeature(null)
+  const countryCode = event.features?.find(
+    ({ properties }) => typeof properties.country_code === 'string',
+  )?.properties.country_code
   if (typeof countryCode === 'string' && countryCode !== '') {
     onCountrySelect?.(countryCode)
   }

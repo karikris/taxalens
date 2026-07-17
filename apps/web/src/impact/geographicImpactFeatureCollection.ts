@@ -10,9 +10,11 @@ export const GEOGRAPHIC_IMPACT_MAX_MAP_FEATURES = 5_000
 export interface GeographicImpactMapFeatureProperties {
   readonly spatialCellId: string
   readonly spatialResolution: number
+  readonly baselineUnionCount: number
   readonly baselineCount: number
   readonly baselineRadius: number
   readonly flickrCandidateCount: number
+  readonly flickrVisuallyEligibleCount: number
   readonly flickrRadius: number
   readonly reviewedPositiveCount: number
   readonly reviewedPositiveRadius: number
@@ -101,11 +103,13 @@ export function buildBoundedGeographicImpactFeatures(
       properties: Object.freeze({
         spatialCellId: cell.spatialCellId,
         spatialResolution: cell.spatialResolution,
+        baselineUnionCount: cell.baselineUnionCount,
         baselineCount: cell.baselineRangeInferenceEligibleCount,
         baselineRadius: bubbleScale.radiusForCount(
           cell.baselineRangeInferenceEligibleCount,
         ),
         flickrCandidateCount: cell.flickrCandidateCount,
+        flickrVisuallyEligibleCount: cell.flickrVisuallyEligibleCount,
         flickrRadius: bubbleScale.radiusForCount(cell.flickrCandidateCount),
         reviewedPositiveCount: cell.reviewedPositiveCount,
         reviewedPositiveRadius: bubbleScale.radiusForCount(cell.reviewedPositiveCount),

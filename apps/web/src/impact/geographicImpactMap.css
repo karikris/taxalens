@@ -315,6 +315,59 @@
   font-size: var(--tl-text-sm);
 }
 
+.taxalens-impact-popup .maplibregl-popup-content {
+  max-height: min(32rem, 72vh);
+  overflow: auto;
+  color: var(--tl-ink);
+  background: var(--tl-surface-paper);
+  border: 1px solid var(--tl-line-strong);
+  border-radius: var(--tl-radius-sm);
+  box-shadow: var(--tl-shadow-raised);
+}
+
+.taxalens-impact-popup .maplibregl-popup-close-button {
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  color: var(--tl-ink);
+  font-size: 1.5rem;
+}
+
+.geographic-impact-tooltip {
+  display: grid;
+  gap: var(--tl-space-2);
+  min-width: min(18rem, 72vw);
+  padding: var(--tl-space-2);
+}
+
+.geographic-impact-tooltip h4,
+.geographic-impact-tooltip p,
+.geographic-impact-tooltip dl {
+  margin: 0;
+}
+
+.geographic-impact-tooltip dl {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.geographic-impact-tooltip dl > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--tl-space-2);
+  border-bottom: 1px solid var(--tl-line);
+}
+
+.geographic-impact-tooltip dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.geographic-impact-tooltip__disclosure {
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-sm);
+}
+
 .taxalens-world-map--fallback > div {
   display: grid;
   place-content: center;

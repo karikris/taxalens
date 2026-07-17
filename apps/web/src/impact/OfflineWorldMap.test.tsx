@@ -34,6 +34,18 @@ vi.mock('@vis.gl/react-maplibre', () => ({
     <span data-testid="maplibre-layer" data-layer-id={id} data-layer-type={type} />
   ),
   NavigationControl: () => <button type="button">Map navigation</button>,
+  Popup: ({
+    children,
+    onClose,
+  }: {
+    readonly children: ReactNode
+    readonly onClose: () => void
+  }) => (
+    <aside data-testid="maplibre-popup">
+      {children}
+      <button type="button" onClick={onClose}>Close popup</button>
+    </aside>
+  ),
   ScaleControl: () => <span>Map scale</span>,
 }))
 
@@ -148,6 +160,40 @@ describe('OfflineWorldMap', () => {
     expect(screen.getByText(/candidates remain hypotheses/u)).toBeInTheDocument()
   })
 
+  it('opens exact cell counts without triggering country drilldown', () => {
+    const onCountrySelect = vi.fn()
+    render(
+      <OfflineWorldMap
+        webGlSupported
+        impactFeatures={syntheticImpactFeatures()}
+        onCountrySelect={onCountrySelect}
+      />,
+    )
+    const props = mapMocks.mapProps.at(-1)
+
+    act(() => {
+      ;(props?.onClick as (event: unknown) => void)({
+        features: [
+          {
+            layer: { id: 'taxalens-flickr-pending' },
+            properties: { spatialCellId: 'test-cell' },
+          },
+          {
+            layer: { id: 'taxalens-selectable-countries' },
+            properties: { country_code: 'AU' },
+          },
+        ],
+      })
+    })
+
+    expect(screen.getByTestId('maplibre-popup')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'test-cell' })).toBeInTheDocument()
+    expect(screen.getByText('Flickr candidate evidence').closest('div'))
+      .toHaveTextContent('5')
+    expect(onCountrySelect).not.toHaveBeenCalled()
+    expect(window.location.hash).toBe('#dashboard')
+  })
+
   it('keeps the cartographic foundation separate from unsupported impact claims', () => {
     render(<GeographicImpactLens webGlSupported={false} />)
 
@@ -198,9 +244,11 @@ function syntheticImpactFeatures(): BoundedGeographicImpactFeatures {
           properties: {
             spatialCellId: 'test-cell',
             spatialResolution: 3,
+            baselineUnionCount: 1,
             baselineCount: 1,
             baselineRadius: 3,
             flickrCandidateCount: 5,
+            flickrVisuallyEligibleCount: 5,
             flickrRadius: 28,
             reviewedPositiveCount: 1,
             reviewedPositiveRadius: 3,

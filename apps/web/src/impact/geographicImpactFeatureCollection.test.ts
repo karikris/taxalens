@@ -36,9 +36,11 @@ describe('bounded Geographic Impact map features', () => {
       geometry: { type: 'Point', coordinates: [134, -25] },
       properties: {
         spatialCellId: 'cell:candidate',
+        baselineUnionCount: 0,
         baselineCount: 0,
         baselineRadius: 0,
         flickrCandidateCount: 8,
+        flickrVisuallyEligibleCount: 0,
         flickrRadius: expect.any(Number),
         pendingRadius: expect.any(Number),
         pendingCount: 8,
