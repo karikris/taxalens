@@ -2,12 +2,16 @@ from __future__ import annotations
 
 import hashlib
 import json
+from copy import deepcopy
 from dataclasses import FrozenInstanceError
 from pathlib import Path
 
 import pytest
 from jsonschema import Draft202012Validator
 from taxalens.product import (
+    BASELINE_OCCURRENCE_UNION_SCHEMA_VERSION,
+    COUNTRY_HIERARCHY_SCHEMA_VERSION,
+    GEOGRAPHIC_IMPACT_MANIFEST_SCHEMA_VERSION,
     JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES,
     JUDGE_BUNDLE_SCHEMA_VERSION,
     JUDGE_BUNDLE_SECTION_NAMES,
@@ -30,6 +34,7 @@ V1_SCHEMA_PATH = Path("packages/contracts/schema/judge_bundle_v1.schema.json")
 GEOGRAPHIC_SECTIONS_SCHEMA_PATH = Path(
     "packages/contracts/schema/judge_bundle_geographic_sections.schema.json"
 )
+GEOGRAPHIC_FIXTURE_PATH = Path("packages/contracts/fixtures/geographic_contract_cases.json")
 TYPESCRIPT_PATH = Path("packages/contracts/src/judge_bundle_contract.ts")
 TRUTHFUL_FIXTURE_PATH = Path("demo/fixture/papilio_pilot/judge_bundle.json")
 
@@ -215,6 +220,185 @@ def _bundle(root: Path) -> dict[str, object]:
     return bundle
 
 
+def _geographic_bundle(root: Path) -> tuple[dict[str, object], dict[str, object]]:
+    bundle = _bundle(root)
+    fixtures = json.loads(GEOGRAPHIC_FIXTURE_PATH.read_text(encoding="utf-8"))
+    manifest = deepcopy(fixtures["positive"]["geographic_impact_manifest"])
+    hierarchy = deepcopy(fixtures["positive"]["country_hierarchy"])
+    manifest.update(
+        {
+            "accepted_taxon_key": "taxon-1",
+            "scientific_name": "Papilio example",
+            "source_commits": [
+                {"repository": "karikris/taxalens", "commit_sha": TAXALENS_SHA},
+                {"repository": "karikris/BioMiner", "commit_sha": BIOMINER_SHA},
+            ],
+        }
+    )
+    role_by_logical_name = {
+        "baseline_geographic_spread": "baseline_geographic_spread",
+        "baseline_occurrence_union": "baseline_provider_union",
+        "flickr_geography": "flickr_geography",
+        "verification_consensus": "verification_decisions",
+        "quality_snapshot": "verification_quality",
+        "release_decisions": "verification_quality",
+        "geographic_impact_cells": "geographic_impact_cells",
+        "geographic_impact_summary": "geographic_impact_summary",
+        "country_hierarchy": "country_hierarchy",
+    }
+    schema_by_logical_name = {
+        "baseline_occurrence_union": BASELINE_OCCURRENCE_UNION_SCHEMA_VERSION,
+        "country_hierarchy": COUNTRY_HIERARCHY_SCHEMA_VERSION,
+    }
+    geographic_descriptors: list[dict[str, object]] = []
+    for entry in manifest["artifacts"]:
+        logical_name = entry["logical_name"]
+        row_count = entry["row_count"]
+        payload = hierarchy if logical_name == "country_hierarchy" else [
+            {"row": index, "logical_name": logical_name}
+            for index in range(row_count)
+        ]
+        descriptor = _artifact(
+            root,
+            artifact_id=f"geo-{logical_name.replace('_', '-')}",
+            relative_path=f"geographic/{logical_name}.json",
+            role=role_by_logical_name[logical_name],
+            payload=payload,
+        )
+        repository = entry["source_repository"]
+        descriptor.update(
+            {
+                "record_count": row_count,
+                "schema_version": schema_by_logical_name.get(
+                    logical_name, entry["schema_version"]
+                ),
+                "source_repository": repository,
+                "source_commit": (
+                    TAXALENS_SHA if str(repository).lower() == "karikris/taxalens" else BIOMINER_SHA
+                ),
+            }
+        )
+        entry.update(
+            {
+                "path": descriptor["path"],
+                "media_type": descriptor["media_type"],
+                "schema_version": descriptor["schema_version"],
+                "sha256": descriptor["sha256"],
+                "byte_size": descriptor["bytes"],
+                "row_count": descriptor["record_count"],
+                "source_commit": descriptor["source_commit"],
+            }
+        )
+        if logical_name == "release_decisions":
+            entry["snapshot_id"] = manifest["release_policy_version"]
+        geographic_descriptors.append(descriptor)
+
+    manifest_descriptor = _artifact(
+        root,
+        artifact_id="geographic-impact-manifest",
+        relative_path="geographic/geographic_impact_manifest.json",
+        role="geographic_impact_manifest",
+        payload=manifest,
+    )
+    manifest_descriptor.update(
+        {
+            "schema_version": GEOGRAPHIC_IMPACT_MANIFEST_SCHEMA_VERSION,
+            "source_repository": "karikris/taxalens",
+            "source_commit": TAXALENS_SHA,
+        }
+    )
+    inventory = bundle["artifact_inventory"]
+    assert isinstance(inventory, list)
+    inventory.extend([*geographic_descriptors, manifest_descriptor])
+
+    sections = bundle["sections"]
+    expected = bundle["expected_ui_counts"]
+    assert isinstance(sections, dict) and isinstance(expected, dict)
+    section_records = expected["section_records"]
+    assert isinstance(section_records, dict)
+    ids_by_role: dict[str, list[str]] = {}
+    for descriptor in geographic_descriptors:
+        role = str(descriptor["role"])
+        ids_by_role.setdefault(role, []).append(str(descriptor["artifact_id"]))
+    descriptors_by_id = {
+        str(descriptor["artifact_id"]): descriptor for descriptor in geographic_descriptors
+    }
+    for role, artifact_ids in ids_by_role.items():
+        section = _available(artifact_ids[0])
+        section["artifact_ids"] = artifact_ids
+        sections[role] = section
+        section_records[role] = sum(
+            int(descriptors_by_id[artifact_id]["record_count"])
+            for artifact_id in artifact_ids
+        )
+
+    rights = bundle["rights"]
+    assert isinstance(rights, dict)
+    rights_items = rights["items"]
+    assert isinstance(rights_items, list)
+    rights_items[0]["artifact_ids"] = [item["artifact_id"] for item in inventory]
+    expected["artifact_count"] = len(inventory)
+    expected["unavailable_section_count"] = sum(
+        section["status"] == "unavailable" for section in sections.values()
+    )
+    _refresh_bundle_checksums(bundle)
+    return bundle, manifest
+
+
+def _refresh_bundle_checksums(bundle: dict[str, object]) -> None:
+    inventory = bundle["artifact_inventory"]
+    checksums = bundle["checksums"]
+    assert isinstance(inventory, list) and isinstance(checksums, dict)
+    checksums["inventory_sha256"] = compute_inventory_sha256(inventory)
+    checksums["payload_root_sha256"] = compute_payload_root_sha256(inventory)
+
+
+def _rewrite_manifest(
+    root: Path,
+    bundle: dict[str, object],
+    manifest: dict[str, object],
+) -> None:
+    inventory = bundle["artifact_inventory"]
+    assert isinstance(inventory, list)
+    descriptor = next(
+        item for item in inventory if item["artifact_id"] == "geographic-impact-manifest"
+    )
+    content = (
+        json.dumps(manifest, ensure_ascii=False, separators=(",", ":"), sort_keys=True) + "\n"
+    ).encode()
+    (root / descriptor["path"]).write_bytes(content)
+    descriptor["bytes"] = len(content)
+    descriptor["sha256"] = hashlib.sha256(content).hexdigest()
+    _refresh_bundle_checksums(bundle)
+
+
+def _set_manifest_artifact_row_count(
+    root: Path,
+    bundle: dict[str, object],
+    manifest: dict[str, object],
+    logical_name: str,
+    row_count: int,
+) -> None:
+    entry = next(
+        item for item in manifest["artifacts"] if item["logical_name"] == logical_name
+    )
+    entry["row_count"] = row_count
+    inventory = bundle["artifact_inventory"]
+    expected = bundle["expected_ui_counts"]
+    assert isinstance(inventory, list) and isinstance(expected, dict)
+    descriptor = next(item for item in inventory if item["path"] == entry["path"])
+    descriptor["record_count"] = row_count
+    section_records = expected["section_records"]
+    assert isinstance(section_records, dict)
+    role = descriptor["role"]
+    section_records[role] = sum(
+        int(item["record_count"])
+        for item in inventory
+        if item["role"] == role and item["record_count"] is not None
+    )
+    _rewrite_manifest(root, bundle, manifest)
+
+
 def _project_v1_fixture_to_v2_shape() -> dict[str, object]:
     bundle = json.loads(TRUTHFUL_FIXTURE_PATH.read_text(encoding="utf-8"))
     return migrate_judge_bundle_v1_to_v2(bundle).data
@@ -317,6 +501,138 @@ def test_loading_returns_an_immutable_strict_json_contract(tmp_path: Path) -> No
         loaded.manifest_path = Path("changed")  # type: ignore[misc]
     with pytest.raises(TypeError):
         loaded.data["bundle_id"] = "changed"  # type: ignore[index]
+
+
+def test_v2_geographic_bundle_reconciles_manifest_inventory_and_hierarchy(
+    tmp_path: Path,
+) -> None:
+    bundle, _ = _geographic_bundle(tmp_path)
+    schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+
+    result = validate_judge_bundle(
+        bundle,
+        bundle_root=tmp_path,
+        verify_files=True,
+    )
+
+    assert result.artifact_count == 13
+    assert result.section_count == len(JUDGE_BUNDLE_V2_SECTION_NAMES)
+    assert result.files_verified is True
+    assert list(Draft202012Validator(schema, format_checker=None).iter_errors(bundle)) == []
+
+
+def test_available_geography_requires_verified_manifest_payload(tmp_path: Path) -> None:
+    bundle, _ = _geographic_bundle(tmp_path)
+
+    with pytest.raises(JudgeBundleError, match="require verify_files=true"):
+        validate_judge_bundle(bundle, verify_files=False)
+
+    inventory = bundle["artifact_inventory"]
+    rights = bundle["rights"]
+    expected = bundle["expected_ui_counts"]
+    assert isinstance(inventory, list) and isinstance(rights, dict) and isinstance(expected, dict)
+    inventory[:] = [
+        item for item in inventory if item["artifact_id"] != "geographic-impact-manifest"
+    ]
+    rights["items"][0]["artifact_ids"] = [item["artifact_id"] for item in inventory]
+    expected["artifact_count"] = len(inventory)
+    _refresh_bundle_checksums(bundle)
+    with pytest.raises(JudgeBundleError, match="exactly one geographic impact manifest"):
+        validate_judge_bundle(bundle, bundle_root=tmp_path, verify_files=True)
+
+
+def test_geographic_manifest_requires_complete_identity(tmp_path: Path) -> None:
+    bundle, manifest = _geographic_bundle(tmp_path)
+    del manifest["project_id"]
+    _rewrite_manifest(tmp_path, bundle, manifest)
+
+    with pytest.raises(JudgeBundleError, match="geographic schema validation"):
+        validate_judge_bundle(bundle, bundle_root=tmp_path, verify_files=True)
+
+
+def test_provider_union_requires_deduplication_provenance(tmp_path: Path) -> None:
+    bundle, manifest = _geographic_bundle(tmp_path)
+    provider_union = next(
+        item
+        for item in manifest["artifacts"]
+        if item["logical_name"] == "baseline_occurrence_union"
+    )
+    provider_union["schema_version"] = "baseline-occurrence-union:unknown"
+    inventory = bundle["artifact_inventory"]
+    assert isinstance(inventory, list)
+    descriptor = next(item for item in inventory if item["path"] == provider_union["path"])
+    descriptor["schema_version"] = provider_union["schema_version"]
+    _rewrite_manifest(tmp_path, bundle, manifest)
+
+    with pytest.raises(JudgeBundleError, match="lacks deduplication provenance"):
+        validate_judge_bundle(bundle, bundle_root=tmp_path, verify_files=True)
+
+
+def test_geographic_impact_counts_must_reconcile_to_artifacts(tmp_path: Path) -> None:
+    bundle, manifest = _geographic_bundle(tmp_path)
+    manifest["impact_cell_count"] = 4
+    _rewrite_manifest(tmp_path, bundle, manifest)
+
+    with pytest.raises(JudgeBundleError, match="artifact_count_reconciliation"):
+        validate_judge_bundle(bundle, bundle_root=tmp_path, verify_files=True)
+
+
+def test_country_hierarchy_identity_must_match_impact_manifest(tmp_path: Path) -> None:
+    bundle, manifest = _geographic_bundle(tmp_path)
+    fixtures = json.loads(GEOGRAPHIC_FIXTURE_PATH.read_text(encoding="utf-8"))
+    hierarchy = deepcopy(fixtures["positive"]["country_hierarchy"])
+    hierarchy["country_hierarchy_id"] = "country-hierarchy:different"
+    content = (
+        json.dumps(hierarchy, ensure_ascii=False, separators=(",", ":"), sort_keys=True) + "\n"
+    ).encode()
+    entry = next(
+        item for item in manifest["artifacts"] if item["logical_name"] == "country_hierarchy"
+    )
+    inventory = bundle["artifact_inventory"]
+    assert isinstance(inventory, list)
+    descriptor = next(item for item in inventory if item["path"] == entry["path"])
+    (tmp_path / descriptor["path"]).write_bytes(content)
+    descriptor["bytes"] = entry["byte_size"] = len(content)
+    descriptor["sha256"] = entry["sha256"] = hashlib.sha256(content).hexdigest()
+    _rewrite_manifest(tmp_path, bundle, manifest)
+
+    with pytest.raises(JudgeBundleError, match="hierarchy identity or node count mismatch"):
+        validate_judge_bundle(bundle, bundle_root=tmp_path, verify_files=True)
+
+
+def test_reviewed_contribution_requires_review_and_quality_evidence(tmp_path: Path) -> None:
+    bundle, manifest = _geographic_bundle(tmp_path)
+    _set_manifest_artifact_row_count(
+        tmp_path,
+        bundle,
+        manifest,
+        "verification_consensus",
+        0,
+    )
+
+    with pytest.raises(JudgeBundleError, match="lacks review evidence"):
+        validate_judge_bundle(bundle, bundle_root=tmp_path, verify_files=True)
+
+
+def test_release_ready_contribution_requires_release_gate_evidence(tmp_path: Path) -> None:
+    bundle, manifest = _geographic_bundle(tmp_path)
+    _set_manifest_artifact_row_count(
+        tmp_path,
+        bundle,
+        manifest,
+        "release_decisions",
+        1,
+    )
+    release = next(
+        item for item in manifest["artifacts"] if item["logical_name"] == "release_decisions"
+    )
+    release["snapshot_id"] = None
+    manifest["release_ready_count"] = 1
+    manifest["release_ready_additional_cell_count"] = 1
+    _rewrite_manifest(tmp_path, bundle, manifest)
+
+    with pytest.raises(JudgeBundleError, match="lacks release-gate evidence"):
+        validate_judge_bundle(bundle, bundle_root=tmp_path, verify_files=True)
 
 
 def test_v1_migration_preserves_evidence_and_adds_only_unavailable_geography() -> None:

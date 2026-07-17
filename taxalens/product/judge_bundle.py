@@ -12,6 +12,15 @@ from datetime import datetime
 from pathlib import Path, PurePosixPath
 
 from taxalens.product.contracts import FrozenJson, freeze_json
+from taxalens.product.geographic_contracts import (
+    BASELINE_OCCURRENCE_UNION_SCHEMA_VERSION,
+    COUNTRY_HIERARCHY_SCHEMA_VERSION,
+    GEOGRAPHIC_IMPACT_MANIFEST_SCHEMA_VERSION,
+    CountryHierarchyDocument,
+    GeographicImpactArtifactEntry,
+    GeographicImpactManifestDocument,
+    GeographicSchemaError,
+)
 
 JUDGE_BUNDLE_V1_SCHEMA_VERSION = "taxalens-judge-bundle:v1.0.0"
 JUDGE_BUNDLE_V2_SCHEMA_VERSION = "taxalens-judge-bundle:v2.0.0"
@@ -68,7 +77,14 @@ _ARTIFACT_ROLES_V1 = frozenset(
     (*JUDGE_BUNDLE_V1_SECTION_NAMES, "rights", "attribution", "openai_replay_traces", "other")
 )
 _ARTIFACT_ROLES_V2 = frozenset(
-    (*JUDGE_BUNDLE_SECTION_NAMES, "rights", "attribution", "openai_replay_traces", "other")
+    (
+        *JUDGE_BUNDLE_SECTION_NAMES,
+        "geographic_impact_manifest",
+        "rights",
+        "attribution",
+        "openai_replay_traces",
+        "other",
+    )
 )
 _TOP_LEVEL_FIELDS = frozenset(
     (
@@ -283,6 +299,14 @@ def _validate_judge_bundle_version(
         unavailable_count=unavailable_count,
         section_names=section_names,
     )
+    if schema_version == JUDGE_BUNDLE_V2_SCHEMA_VERSION:
+        _validate_geographic_bundle_evidence(
+            bundle,
+            sections=sections,
+            artifacts=artifacts,
+            bundle_root=root,
+            verify_files=verify_files,
+        )
 
     if any(section["scientific_claim_allowed"] for section in sections.values()):
         if rights["status"] != "rights_verified":
@@ -309,6 +333,312 @@ def _validate_judge_bundle_version(
         payload_root_sha256=payload_root_sha256,
         files_verified=verify_files,
     )
+
+
+def _validate_geographic_bundle_evidence(
+    bundle: Mapping[str, object],
+    *,
+    sections: Mapping[str, Mapping[str, object]],
+    artifacts: Mapping[str, Mapping[str, object]],
+    bundle_root: Path | None,
+    verify_files: bool,
+) -> None:
+    """Reconcile available v2 geography against its immutable verification manifest."""
+
+    geographic_available = any(
+        sections[name].get("status") != "unavailable"
+        for name in JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES
+    )
+    manifest_descriptors = [
+        artifact
+        for artifact in artifacts.values()
+        if artifact.get("role") == "geographic_impact_manifest"
+    ]
+    if not geographic_available:
+        if manifest_descriptors:
+            raise JudgeBundleError(
+                "geographic impact manifest requires at least one available geographic section"
+            )
+        return
+    if not verify_files or bundle_root is None:
+        raise JudgeBundleError(
+            "available geographic impact sections require verify_files=true"
+        )
+    if len(manifest_descriptors) != 1:
+        raise JudgeBundleError(
+            "available geographic impact sections require exactly one geographic impact manifest"
+        )
+
+    descriptor = manifest_descriptors[0]
+    _require_auxiliary_json_descriptor(
+        descriptor,
+        label="geographic impact manifest",
+        schema_version=GEOGRAPHIC_IMPACT_MANIFEST_SCHEMA_VERSION,
+    )
+    manifest_value = _load_strict_json_artifact(
+        bundle_root,
+        descriptor,
+        label="geographic impact manifest",
+    )
+    try:
+        manifest = GeographicImpactManifestDocument.from_mapping(manifest_value)
+    except GeographicSchemaError as error:
+        raise JudgeBundleError(str(error)) from error
+
+    target = _mapping(bundle.get("target"), "target")
+    if (
+        manifest.accepted_taxon_key != target.get("accepted_taxon_key")
+        or manifest.scientific_name != target.get("scientific_name")
+    ):
+        raise JudgeBundleError("geographic impact manifest target identity mismatch")
+    revisions = _mapping(bundle.get("source_revisions"), "source_revisions")
+    expected_commits = {
+        "karikris/taxalens": revisions["taxalens_sha"],
+        "karikris/biominer": revisions["biominer_sha"],
+    }
+    for source in manifest.source_commits:
+        expected = expected_commits.get(source.repository.lower())
+        if expected is None or source.commit_sha != expected:
+            raise JudgeBundleError(
+                "geographic impact manifest source commit does not match bundle revisions"
+            )
+
+    inventory_by_path = {str(item["path"]): item for item in artifacts.values()}
+    manifest_artifacts = {item.logical_name: item for item in manifest.artifacts}
+    linked_descriptors: dict[str, Mapping[str, object]] = {}
+    for logical_name, entry in manifest_artifacts.items():
+        if entry.availability == "unavailable":
+            continue
+        if entry.path is None:
+            raise JudgeBundleError(
+                f"geographic impact artifact {logical_name} has no path identity"
+            )
+        linked = inventory_by_path.get(entry.path)
+        if linked is None:
+            raise JudgeBundleError(
+                f"geographic impact artifact {logical_name} is missing from judge inventory"
+            )
+        _reconcile_geographic_artifact_descriptor(logical_name, entry, linked)
+        linked_descriptors[logical_name] = linked
+
+    _validate_geographic_section_links(
+        manifest_artifacts=manifest_artifacts,
+        linked_descriptors=linked_descriptors,
+        sections=sections,
+    )
+    _validate_provider_union_provenance(manifest, manifest_artifacts)
+    _validate_review_and_release_evidence(manifest, manifest_artifacts)
+    _validate_country_hierarchy_artifact(
+        manifest,
+        manifest_artifacts=manifest_artifacts,
+        bundle_root=bundle_root,
+    )
+
+
+def _require_auxiliary_json_descriptor(
+    descriptor: Mapping[str, object],
+    *,
+    label: str,
+    schema_version: str,
+) -> None:
+    if descriptor.get("media_type") != "application/json":
+        raise JudgeBundleError(f"{label} must use application/json")
+    if descriptor.get("schema_version") != schema_version:
+        raise JudgeBundleError(f"{label} has the wrong schema identity")
+    if descriptor.get("record_count") != 1:
+        raise JudgeBundleError(f"{label} must declare exactly one record")
+    if descriptor.get("required") is not True:
+        raise JudgeBundleError(f"{label} must be a required artifact")
+
+
+def _load_strict_json_artifact(
+    bundle_root: Path,
+    descriptor: Mapping[str, object],
+    *,
+    label: str,
+) -> Mapping[str, object]:
+    relative_path = _safe_path(descriptor.get("path"), f"{label}.path")
+    candidate = bundle_root.joinpath(*PurePosixPath(relative_path).parts).resolve()
+    if not candidate.is_relative_to(bundle_root):
+        raise JudgeBundleError(f"{label} path escapes bundle root")
+    try:
+        value = json.loads(
+            candidate.read_bytes(),
+            object_pairs_hook=_reject_duplicate_keys,
+            parse_constant=_reject_non_json_constant,
+        )
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise JudgeBundleError(f"{label} is not strict UTF-8 JSON: {error}") from error
+    return _mapping(value, label)
+
+
+def _reconcile_geographic_artifact_descriptor(
+    logical_name: str,
+    entry: GeographicImpactArtifactEntry,
+    descriptor: Mapping[str, object],
+) -> None:
+    if descriptor.get("required") is not True:
+        raise JudgeBundleError(
+            f"geographic impact artifact {logical_name} must be required"
+        )
+    expected = {
+        "media_type": entry.media_type,
+        "schema_version": entry.schema_version,
+        "sha256": entry.sha256,
+        "bytes": entry.byte_size,
+        "record_count": entry.row_count,
+        "source_commit": entry.source_commit,
+    }
+    for field, value in expected.items():
+        if descriptor.get(field) != value:
+            raise JudgeBundleError(
+                f"geographic impact artifact {logical_name} {field} mismatch"
+            )
+    if str(descriptor.get("source_repository")).lower() != str(
+        entry.source_repository
+    ).lower():
+        raise JudgeBundleError(
+            f"geographic impact artifact {logical_name} source_repository mismatch"
+        )
+
+
+def _validate_geographic_section_links(
+    *,
+    manifest_artifacts: Mapping[str, GeographicImpactArtifactEntry],
+    linked_descriptors: Mapping[str, Mapping[str, object]],
+    sections: Mapping[str, Mapping[str, object]],
+) -> None:
+    section_by_logical_name = {
+        "baseline_geographic_spread": "baseline_geographic_spread",
+        "baseline_occurrence_union": "baseline_provider_union",
+        "flickr_geography": "flickr_geography",
+        "geographic_impact_cells": "geographic_impact_cells",
+        "geographic_impact_summary": "geographic_impact_summary",
+        "country_hierarchy": "country_hierarchy",
+    }
+    for logical_name, section_name in section_by_logical_name.items():
+        entry = manifest_artifacts[logical_name]
+        section = sections[section_name]
+        if entry.availability == "unavailable":
+            if section.get("status") != "unavailable":
+                raise JudgeBundleError(
+                    f"section {section_name} is available without manifest evidence"
+                )
+            continue
+        descriptor = linked_descriptors[logical_name]
+        if (
+            section.get("status") == "unavailable"
+            or descriptor.get("artifact_id") not in section.get("artifact_ids", [])
+            or descriptor.get("role") != section_name
+        ):
+            raise JudgeBundleError(
+                f"section {section_name} does not bind its geographic impact artifact"
+            )
+    support_section_by_logical_name = {
+        "verification_consensus": "verification_decisions",
+        "quality_snapshot": "verification_quality",
+        "release_decisions": "verification_quality",
+    }
+    for logical_name, section_name in support_section_by_logical_name.items():
+        entry = manifest_artifacts[logical_name]
+        if entry.availability == "unavailable":
+            continue
+        descriptor = linked_descriptors[logical_name]
+        section = sections[section_name]
+        if (
+            section.get("status") == "unavailable"
+            or descriptor.get("artifact_id") not in section.get("artifact_ids", [])
+            or descriptor.get("role") != section_name
+        ):
+            raise JudgeBundleError(
+                f"section {section_name} does not bind {logical_name} evidence"
+            )
+
+
+def _validate_provider_union_provenance(
+    manifest: GeographicImpactManifestDocument,
+    manifest_artifacts: Mapping[str, GeographicImpactArtifactEntry],
+) -> None:
+    provider_union = manifest_artifacts["baseline_occurrence_union"]
+    if manifest.baseline_evidence_status == "unavailable":
+        if provider_union.availability != "unavailable":
+            raise JudgeBundleError(
+                "unavailable baseline evidence cannot declare a provider union"
+            )
+        return
+    if (
+        provider_union.availability != "available"
+        or provider_union.schema_version != BASELINE_OCCURRENCE_UNION_SCHEMA_VERSION
+        or provider_union.sha256 is None
+        or provider_union.source_commit is None
+        or provider_union.snapshot_id != manifest.baseline_snapshot_id
+    ):
+        raise JudgeBundleError(
+            "baseline provider union lacks deduplication provenance"
+        )
+
+
+def _validate_review_and_release_evidence(
+    manifest: GeographicImpactManifestDocument,
+    manifest_artifacts: Mapping[str, GeographicImpactArtifactEntry],
+) -> None:
+    reviewed_or_attempted = (
+        manifest.reviewed_positive_count
+        + manifest.reviewed_negative_count
+        + manifest.uncertain_count
+        + manifest.media_failure_count
+        + manifest.skipped_count
+    )
+    consensus = manifest_artifacts["verification_consensus"]
+    quality = manifest_artifacts["quality_snapshot"]
+    release = manifest_artifacts["release_decisions"]
+    if reviewed_or_attempted > 0 and (
+        consensus.availability != "available" or not consensus.row_count
+    ):
+        raise JudgeBundleError("reviewed geographic contribution lacks review evidence")
+    if manifest.reviewed_positive_count > 0 and (
+        quality.availability != "available" or not quality.row_count
+    ):
+        raise JudgeBundleError("reviewed geographic contribution lacks quality evidence")
+    if manifest.release_ready_count > 0 and (
+        release.availability != "available"
+        or not release.row_count
+        or release.snapshot_id != manifest.release_policy_version
+    ):
+        raise JudgeBundleError(
+            "release-ready geographic contribution lacks release-gate evidence"
+        )
+
+
+def _validate_country_hierarchy_artifact(
+    manifest: GeographicImpactManifestDocument,
+    *,
+    manifest_artifacts: Mapping[str, GeographicImpactArtifactEntry],
+    bundle_root: Path,
+) -> None:
+    entry = manifest_artifacts["country_hierarchy"]
+    if (
+        entry.schema_version != COUNTRY_HIERARCHY_SCHEMA_VERSION
+        or entry.media_type != "application/json"
+    ):
+        raise JudgeBundleError("country hierarchy has the wrong schema identity")
+    descriptor = {
+        "path": entry.path,
+    }
+    value = _load_strict_json_artifact(
+        bundle_root,
+        descriptor,
+        label="country hierarchy",
+    )
+    try:
+        hierarchy = CountryHierarchyDocument.from_mapping(value)
+    except GeographicSchemaError as error:
+        raise JudgeBundleError(str(error)) from error
+    if (
+        hierarchy.country_hierarchy_id != manifest.country_hierarchy_id
+        or len(hierarchy.nodes) != manifest.hierarchy_node_count
+    ):
+        raise JudgeBundleError("country hierarchy identity or node count mismatch")
 
 
 def migrate_judge_bundle_v1_to_v2(

@@ -50,3 +50,28 @@ Migration must not:
 The public v1 fixture is migrated in memory when loaded. Its stored manifest and
 payload files remain immutable until a separately verified v2 fixture is
 materialized.
+
+## Geographic verification boundary
+
+Any v2 bundle that marks a geographic section `available` or `partial` must
+also inventory exactly one required JSON artifact with role
+`geographic_impact_manifest`. Validation is fail-closed and requires payload
+checksum verification; descriptor-only validation is insufficient for an
+available Geographic Impact Lens.
+
+The verifier validates the shared geographic-impact manifest and country
+hierarchy contracts, then reconciles their paths, schema versions, checksums,
+byte counts, row counts, repositories and commits against the judge inventory.
+It also requires:
+
+- an exact baseline-union schema and snapshot identity as provider-union
+  deduplication provenance;
+- impact-cell, summary and hierarchy counts that reconcile to their artifacts;
+- a hierarchy ID and node count that match the bundled hierarchy document;
+- non-empty consensus and quality evidence for reviewed contribution; and
+- a non-empty release-decision artifact whose snapshot identity matches the
+  configured release policy before any release-ready count can be non-zero.
+
+The generic verifier reads only the JSON verification manifest and country
+hierarchy. Parquet row validation remains the responsibility of the typed
+artifact adapters and materialization checks.

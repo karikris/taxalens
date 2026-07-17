@@ -162,6 +162,7 @@
             "geographic_impact_cells",
             "geographic_impact_summary",
             "country_hierarchy",
+            "geographic_impact_manifest",
             "rights",
             "attribution",
             "openai_replay_traces",

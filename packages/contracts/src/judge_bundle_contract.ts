@@ -87,7 +87,13 @@ export interface JudgeBundleArtifact {
   artifact_id: string;
   path: string;
   media_type: string;
-  role: JudgeBundleSectionName | 'rights' | 'attribution' | 'openai_replay_traces' | 'other';
+  role:
+    | JudgeBundleSectionName
+    | 'geographic_impact_manifest'
+    | 'rights'
+    | 'attribution'
+    | 'openai_replay_traces'
+    | 'other';
   sha256: string;
   bytes: number;
   record_count: Nullable<number>;
@@ -99,6 +105,7 @@ export interface JudgeBundleArtifact {
 
 export type JudgeBundleV2ArtifactRole =
   | JudgeBundleV2SectionName
+  | 'geographic_impact_manifest'
   | 'rights'
   | 'attribution'
   | 'openai_replay_traces'
