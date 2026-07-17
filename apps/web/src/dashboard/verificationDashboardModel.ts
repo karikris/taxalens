@@ -51,7 +51,7 @@ export const VERIFICATION_CAMPAIGN_CATALOG = Object.freeze([
       '8adc6d35657a54fac32a536d6a487c36de343bd27cc2d3905048e4e4817ae6ab',
   }),
   Object.freeze({
-    campaignId: 'reviewer-controls-60f6731c51ea2c5d01643899',
+    campaignId: 'reviewer-controls-a9083d4e8f683545a2991bfa',
     title: 'Reviewer workflow controls',
     kind: 'quality_control' as const,
     status: 'ready' as const,
@@ -60,7 +60,7 @@ export const VERIFICATION_CAMPAIGN_CATALOG = Object.freeze([
     access: 'private_review' as const,
     purpose: 'Positive, negative, ambiguity, duplicate, failure, adjudication',
     manifestSha256:
-      '60f6731c51ea2c5d01643899144b8ba906fd24d38400537490638140087192db',
+      'a9083d4e8f683545a2991bfa39aaa584a15177f8384a3a0e07707f2986783d1f',
   }),
 ] satisfies readonly VerificationCampaignCatalogEntry[])
 

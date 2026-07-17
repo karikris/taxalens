@@ -330,6 +330,26 @@ def test_output_rejects_incomplete_candidate_union_and_visual_weights() -> None:
         target_aware_object_scores_frame([_row(visual_input_evidence=[visual])])
 
 
+def test_release_gate_keeps_the_configured_target_scoreable() -> None:
+    frame = target_aware_object_scores_frame([_row()])
+
+    for row in frame.to_dicts():
+        candidates = row["regional_candidate_evidence"]
+        target_candidates = [candidate for candidate in candidates if candidate["target_candidate"]]
+        assert len(target_candidates) == 1
+        target = target_candidates[0]
+        assert target["accepted_taxon_key"] == row["target_accepted_taxon_key"]
+        assert target["candidate_priority"] == 0
+        assert any(
+            target[field] is not None
+            for field in (
+                "text_ensemble_similarity",
+                "reference_centroid_similarity",
+                "classifier_decision_score",
+            )
+        )
+
+
 def test_target_confirmation_fails_closed_on_quality_or_provenance_drift() -> None:
     with pytest.raises(ValueError, match="target_confirmed.*compatible route"):
         target_aware_object_scores_frame([_row(route_compatible=False)])

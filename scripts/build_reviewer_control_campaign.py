@@ -43,8 +43,8 @@ TRACKED_MEDIA = {
             "apps/web/e2e/judge-layout.visual.spec.ts-snapshots/"
             "dashboard-1280x720-chromium-linux.png"
         ),
-        "sha256": "4f715f98854825ce555265276189f96046c10d1b635d027980fae0d187845934",
-        "byteCount": 116_584,
+        "sha256": "49f171502623c6611128e3a766b173472353380f4731b602cf0b36417f0fc055",
+        "byteCount": 116_823,
         "mediaType": "image/png",
     },
     "ambiguous": {

@@ -1,9 +1,9 @@
 {
   "schemaVersion": "taxalens-reviewer-control-campaign-packet:v1.0.0",
-  "manifestSha256": "60f6731c51ea2c5d01643899144b8ba906fd24d38400537490638140087192db",
+  "manifestSha256": "a9083d4e8f683545a2991bfa39aaa584a15177f8384a3a0e07707f2986783d1f",
   "campaign": {
     "schemaVersion": "taxalens-verification-campaign:v1.0.0",
-    "campaignId": "reviewer-controls-60f6731c51ea2c5d01643899",
+    "campaignId": "reviewer-controls-a9083d4e8f683545a2991bfa",
     "title": "Papilio demoleus reviewer workflow controls",
     "description": "A private six-item workflow-control packet for positive, negative, ambiguity, duplicate, media-failure, and adjudication behavior.",
     "kind": "quality_control",
@@ -38,7 +38,7 @@
       ]
     },
     "samplingPlan": {
-      "planId": "reviewer-controls-60f6731c51ea2c5d01643899-fixed-control-design",
+      "planId": "reviewer-controls-a9083d4e8f683545a2991bfa-fixed-control-design",
       "purpose": "reviewer_quality_control",
       "design": "control_items",
       "representative": false,
@@ -116,7 +116,7 @@
       ]
     },
     "questionFingerprint": "a763d1bc582fca3c75a936b1fd5b1d8a4f0356d491732544f7ff6dd3c27aba9b",
-    "manifestSha256": "60f6731c51ea2c5d01643899144b8ba906fd24d38400537490638140087192db",
+    "manifestSha256": "a9083d4e8f683545a2991bfa39aaa584a15177f8384a3a0e07707f2986783d1f",
     "taxalensSha": "adb202a9b28f28dd0cb6702945296cb714062236",
     "biominerSha": null,
     "publicReplay": false,
@@ -125,7 +125,7 @@
   "items": [
     {
       "itemId": "reviewer-control:known-target",
-      "campaignId": "reviewer-controls-60f6731c51ea2c5d01643899",
+      "campaignId": "reviewer-controls-a9083d4e8f683545a2991bfa",
       "source": "wikimedia_commons",
       "sourceObservationId": "commons-file:Common_Lime_Butterfly_Papilio_demoleus_UP_by_Kadavoor.jpg",
       "sourceMediaId": "commons-file:Common_Lime_Butterfly_Papilio_demoleus_UP_by_Kadavoor.jpg",
@@ -168,12 +168,12 @@
     },
     {
       "itemId": "reviewer-control:known-negative",
-      "campaignId": "reviewer-controls-60f6731c51ea2c5d01643899",
+      "campaignId": "reviewer-controls-a9083d4e8f683545a2991bfa",
       "source": "taxalens_fixture",
       "sourceObservationId": "taxalens-fixture:dashboard-no-organism",
       "sourceMediaId": "taxalens-fixture:dashboard-no-organism",
-      "imageSha256": "4f715f98854825ce555265276189f96046c10d1b635d027980fae0d187845934",
-      "imageByteCount": 116584,
+      "imageSha256": "49f171502623c6611128e3a766b173472353380f4731b602cf0b36417f0fc055",
+      "imageByteCount": 116823,
       "mediaType": "image/png",
       "previewUri": "apps/web/e2e/judge-layout.visual.spec.ts-snapshots/dashboard-1280x720-chromium-linux.png",
       "targetTaxon": {
@@ -193,7 +193,7 @@
       "expectedLifeStage": "unknown",
       "expectedVisualDomain": "unsuitable",
       "expectedView": "unknown",
-      "duplicateGroupId": "sha256:4f715f98854825ce555265276189f96046c10d1b635d027980fae0d187845934",
+      "duplicateGroupId": "sha256:49f171502623c6611128e3a766b173472353380f4731b602cf0b36417f0fc055",
       "observationGroupId": "taxalens-fixture:dashboard-no-organism",
       "ownerPhotographerGroupId": "taxalens-fixture:product-screenshot",
       "samplingStratumId": "known_negative",
@@ -211,7 +211,7 @@
     },
     {
       "itemId": "reviewer-control:ambiguous",
-      "campaignId": "reviewer-controls-60f6731c51ea2c5d01643899",
+      "campaignId": "reviewer-controls-a9083d4e8f683545a2991bfa",
       "source": "taxalens_fixture",
       "sourceObservationId": "taxalens-fixture:embedded-reference-review",
       "sourceMediaId": "taxalens-fixture:embedded-reference-review",
@@ -254,7 +254,7 @@
     },
     {
       "itemId": "reviewer-control:duplicate",
-      "campaignId": "reviewer-controls-60f6731c51ea2c5d01643899",
+      "campaignId": "reviewer-controls-a9083d4e8f683545a2991bfa",
       "source": "wikimedia_commons",
       "sourceObservationId": "commons-file:Common_Lime_Butterfly_Papilio_demoleus_UP_by_Kadavoor.jpg",
       "sourceMediaId": "commons-file:Common_Lime_Butterfly_Papilio_demoleus_UP_by_Kadavoor.jpg",
@@ -297,7 +297,7 @@
     },
     {
       "itemId": "reviewer-control:media-failure",
-      "campaignId": "reviewer-controls-60f6731c51ea2c5d01643899",
+      "campaignId": "reviewer-controls-a9083d4e8f683545a2991bfa",
       "source": "taxalens_fixture",
       "sourceObservationId": "taxalens-fixture:intentionally-missing-media",
       "sourceMediaId": "taxalens-fixture:intentionally-missing-media",
@@ -340,7 +340,7 @@
     },
     {
       "itemId": "reviewer-control:adjudication-example",
-      "campaignId": "reviewer-controls-60f6731c51ea2c5d01643899",
+      "campaignId": "reviewer-controls-a9083d4e8f683545a2991bfa",
       "source": "wikimedia_commons",
       "sourceObservationId": "commons-file:Close_wing_position_of_Papilio_demoleus_Linnaeus_1758_Lime_Butterfly_WLB.jpg",
       "sourceMediaId": "commons-file:Close_wing_position_of_Papilio_demoleus_Linnaeus_1758_Lime_Butterfly_WLB.jpg",
@@ -384,7 +384,7 @@
   ],
   "controlSet": {
     "schemaVersion": "taxalens-reviewer-control-set:v1.0.0",
-    "controlSetId": "reviewer-controls-60f6731c51ea2c5d01643899-scored-truth",
+    "controlSetId": "reviewer-controls-a9083d4e8f683545a2991bfa-scored-truth",
     "groundTruthSha256": "7e736fd896ac34142e969088346c7842d9a0982661cb1d4ac6dc501303a5e0ba",
     "controls": [
       {
@@ -506,8 +506,8 @@
       {
         "inputId": "media:known_negative",
         "path": "apps/web/e2e/judge-layout.visual.spec.ts-snapshots/dashboard-1280x720-chromium-linux.png",
-        "sha256": "4f715f98854825ce555265276189f96046c10d1b635d027980fae0d187845934",
-        "byteCount": 116584,
+        "sha256": "49f171502623c6611128e3a766b173472353380f4731b602cf0b36417f0fc055",
+        "byteCount": 116823,
         "mediaType": "image/png",
         "decodedWidth": 1280,
         "decodedHeight": 720,
