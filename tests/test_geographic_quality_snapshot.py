@@ -9,14 +9,11 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT_PATH = ROOT / "scripts/build_geographic_quality_snapshot.py"
-CAMPAIGN_PATH = (
-    ROOT / "demo/source/verification/papilio-demoleus-flickr-audit.campaign.json"
-)
+CAMPAIGN_PATH = ROOT / "demo/source/verification/papilio-demoleus-flickr-audit.campaign.json"
 EVENTS_PATH = ROOT / "demo/repository_storage/supabase/verification_events.json"
 CONSENSUS_PATH = ROOT / "demo/repository_storage/supabase/verification_consensus.json"
 SNAPSHOT_PATH = (
-    ROOT
-    / "demo/source/verification/papilio-demoleus-flickr-geographic-quality.snapshot.json"
+    ROOT / "demo/source/verification/papilio-demoleus-flickr-geographic-quality.snapshot.json"
 )
 
 spec = importlib.util.spec_from_file_location("geographic_quality_snapshot", SCRIPT_PATH)
@@ -125,9 +122,7 @@ def test_weighted_geographic_summary_excludes_skip_and_cant_view() -> None:
     assert snapshot["counts"]["skippedItemCount"] == 1
     assert snapshot["qualitySnapshotStatus"] == "provisional"
     assert snapshot["blockers"] == ["first_geographic_milestone_not_met"]
-    assert sum(
-        row["decisiveItemCount"] for row in snapshot["dimensions"]["continent"]
-    ) == 2
+    assert sum(row["decisiveItemCount"] for row in snapshot["dimensions"]["continent"]) == 2
 
 
 def test_snapshot_rejects_consensus_for_an_unknown_item() -> None:

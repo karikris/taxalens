@@ -658,18 +658,12 @@ def build_geographic_audit_strata(
             for row in selected
         ),
         "allObservedRawScoreBands": {
-            row["geographic_audit_dimensions"]["raw_screening_score_band"]
-            for row in population
+            row["geographic_audit_dimensions"]["raw_screening_score_band"] for row in population
         }.issubset(
-            {
-                row["geographic_audit_dimensions"]["raw_screening_score_band"]
-                for row in selected
-            }
+            {row["geographic_audit_dimensions"]["raw_screening_score_band"] for row in selected}
         ),
         "multipleQueryTiers": len(
-            {
-                row["geographic_audit_dimensions"]["query_trust_tier"] for row in selected
-            }
+            {row["geographic_audit_dimensions"]["query_trust_tier"] for row in selected}
         )
         >= 2,
         "independentOwnerGroups": len(selected_owner_groups) == len(set(selected_owner_groups)),
@@ -1257,8 +1251,7 @@ def build_packet(
                     "role": (
                         "geographic_audit_reporting"
                         if artifact.artifact_id == "committed_geographic_impact_cells"
-                        else
-                        "committed_population_contract"
+                        else "committed_population_contract"
                         if artifact.git_tracked
                         else "historical_screening_cache"
                     ),
@@ -1403,9 +1396,10 @@ def validate_geographic_audit(packet: dict[str, Any]) -> None:
     if set(dimensions) != expected_dimensions:
         raise RuntimeError("Geographic audit reporting dimensions changed.")
     for dimension, receipts in dimensions.items():
-        if sum(row["populationOwnerGroupCount"] for row in receipts) != selection[
-            "sourceRecordCount"
-        ]:
+        if (
+            sum(row["populationOwnerGroupCount"] for row in receipts)
+            != selection["sourceRecordCount"]
+        ):
             raise RuntimeError(f"Geographic audit {dimension} population does not reconcile.")
         if sum(row["selectedOwnerGroupCount"] for row in receipts) != len(items):
             raise RuntimeError(f"Geographic audit {dimension} selection does not reconcile.")

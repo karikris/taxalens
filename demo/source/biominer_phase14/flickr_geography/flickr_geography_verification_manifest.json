@@ -67,7 +67,7 @@
     "schema_version": "taxalens-flickr-geography-verification:v1.0.0",
     "sha256": "c414d2db442acc372029a4cc6d0a02d57a7f4e8495efd93ef2faa2499c32084d"
   },
-  "build_id": "flickr-geography-verification:c2ebcd622ff9c67d6ed185a8",
+  "build_id": "flickr-geography-verification:8c6bbd691df374cca4bda508",
   "candidate_semantics": "flickr_candidate_evidence_not_taxonomic_identity_or_occurrence",
   "counts": {
     "campaign_long_row_count": 147,
@@ -87,7 +87,7 @@
     "long_form_manifest": "a240e9bf0c0a3d0a21c464953eb8dcff5d9cbe53a23400d0d733609cc5511850",
     "long_form_parquet": "a38002d884cf5f96ad2027f691852ee0199ff08cec82574d640d06777aae8837",
     "verification_assignments": "e69fc957101e102e2bf802bc2654a49dccb255d79efe7ab6c57579602b54b869",
-    "verification_campaign": "c9efb76f6c576b217aa7fd7469f49d671d81e3b248b2ab735d4fb874be6b61bc",
+    "verification_campaign": "0a2100ba90032a12b9bdfeac6810c4cf4129b1789c815f7796dfad1f0addf754",
     "verification_consensus": "358afaf053c095b275e6189632fd22b4bd10b266953d57fd40e606163e194e0f"
   },
   "inputs": {
@@ -105,7 +105,7 @@
     },
     "verification_campaign": {
       "path": "demo/source/verification/papilio-demoleus-flickr-audit.campaign.json",
-      "sha256": "c9efb76f6c576b217aa7fd7469f49d671d81e3b248b2ab735d4fb874be6b61bc"
+      "sha256": "0a2100ba90032a12b9bdfeac6810c4cf4129b1789c815f7796dfad1f0addf754"
     },
     "verification_consensus": {
       "path": "demo/repository_storage/supabase/verification_consensus.json",

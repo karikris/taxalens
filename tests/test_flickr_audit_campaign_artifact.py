@@ -166,10 +166,7 @@ def test_geographic_audit_strata_preserve_primary_sampling_and_reconcile(
     assert audit["reviewerDisclosureAllowedBeforeDecision"] is False
     assert all(audit["representationRequirements"].values())
     assert audit["impactArtifact"] == {
-        "path": (
-            "demo/source/biominer_phase14/geographic_impact/"
-            "geographic_impact_cells.parquet"
-        ),
+        "path": ("demo/source/biominer_phase14/geographic_impact/geographic_impact_cells.parquet"),
         "sha256": "a02927ffbb4dc09fca582c61e6ceab51af6d12f8998cf0f7762ebfe26a4ea1c9",
         "byteCount": 639_681,
     }
@@ -191,13 +188,12 @@ def test_geographic_audit_strata_preserve_primary_sampling_and_reconcile(
         "query_trust_tier",
     }
     for receipts in audit["dimensions"].values():
-        assert sum(row["populationOwnerGroupCount"] for row in receipts) == selection[
-            "sourceRecordCount"
-        ]
-        assert sum(row["selectedOwnerGroupCount"] for row in receipts) == len(items)
-        assert all(
-            row["zeroTake"] is (row["selectedOwnerGroupCount"] == 0) for row in receipts
+        assert (
+            sum(row["populationOwnerGroupCount"] for row in receipts)
+            == selection["sourceRecordCount"]
         )
+        assert sum(row["selectedOwnerGroupCount"] for row in receipts) == len(items)
+        assert all(row["zeroTake"] is (row["selectedOwnerGroupCount"] == 0) for row in receipts)
 
 
 def test_geographic_audit_represents_required_dimensions_without_overclaim(
@@ -205,20 +201,14 @@ def test_geographic_audit_represents_required_dimensions_without_overclaim(
 ) -> None:
     audit = packet["selection"]["geographicAuditStrata"]
     selected_values = {
-        dimension: {
-            row["value"] for row in receipts if row["selectedOwnerGroupCount"] > 0
-        }
+        dimension: {row["value"] for row in receipts if row["selectedOwnerGroupCount"] > 0}
         for dimension, receipts in audit["dimensions"].items()
     }
 
-    assert {"Asia", "Europe", "North America", "Oceania"}.issubset(
-        selected_values["continent"]
-    )
+    assert {"Asia", "Europe", "North America", "Oceania"}.issubset(selected_values["continent"])
     assert len(selected_values["country"] - {"unavailable"}) >= 2
     assert "no_usable_geo" in selected_values["coordinate_support"]
-    assert {"baseline_covered_cell", "candidate_only_cell"}.issubset(
-        selected_values["coverage"]
-    )
+    assert {"baseline_covered_cell", "candidate_only_cell"}.issubset(selected_values["coverage"])
     assert {"low", "middle", "high"}.issubset(selected_values["raw_screening_score_band"])
     assert len(selected_values["query_trust_tier"]) >= 2
     assert (

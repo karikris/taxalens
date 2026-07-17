@@ -10,16 +10,12 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT_PATH = ROOT / "scripts/build_geographic_milestone_readiness.py"
-CAMPAIGN_PATH = (
-    ROOT / "demo/source/verification/papilio-demoleus-flickr-audit.campaign.json"
-)
+CAMPAIGN_PATH = ROOT / "demo/source/verification/papilio-demoleus-flickr-audit.campaign.json"
 QUALITY_PATH = (
-    ROOT
-    / "demo/source/verification/papilio-demoleus-flickr-geographic-quality.snapshot.json"
+    ROOT / "demo/source/verification/papilio-demoleus-flickr-geographic-quality.snapshot.json"
 )
 READINESS_PATH = (
-    ROOT
-    / "demo/source/verification/papilio-demoleus-flickr-geographic-milestone-readiness.json"
+    ROOT / "demo/source/verification/papilio-demoleus-flickr-geographic-milestone-readiness.json"
 )
 
 spec = importlib.util.spec_from_file_location("geographic_milestone_readiness", SCRIPT_PATH)

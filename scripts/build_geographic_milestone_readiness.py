@@ -119,10 +119,7 @@ def validate_milestone_import_batch(
     represented = {}
     for dimension in audit["dimensions"]:
         represented[dimension] = sorted(
-            {
-                str(bindings[item_id]["dimensions"][dimension])
-                for item_id in consensus_by_item
-            }
+            {str(bindings[item_id]["dimensions"][dimension]) for item_id in consensus_by_item}
         )
     return {
         "status": "validated",
@@ -147,9 +144,7 @@ def build_readiness(
     if quality_snapshot["campaignId"] != campaign_id:
         raise ValueError("Geographic quality snapshot belongs to another campaign.")
     current = int(quality_snapshot["counts"]["decisiveItemCount"])
-    binding_count = len(
-        campaign_packet["selection"]["geographicAuditStrata"]["itemBindings"]
-    )
+    binding_count = len(campaign_packet["selection"]["geographicAuditStrata"]["itemBindings"])
     structural_ready = binding_count >= FIRST_DECISIVE_MILESTONE
     achieved = current >= FIRST_DECISIVE_MILESTONE
     payload = {
@@ -214,8 +209,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--campaign",
         type=Path,
-        default=ROOT
-        / "demo/source/verification/papilio-demoleus-flickr-audit.campaign.json",
+        default=ROOT / "demo/source/verification/papilio-demoleus-flickr-audit.campaign.json",
     )
     parser.add_argument(
         "--quality-snapshot",

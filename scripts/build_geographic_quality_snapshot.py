@@ -126,11 +126,7 @@ def build_snapshot(
         "schemaVersion": SCHEMA_VERSION,
         "campaignId": campaign_id,
         "qualitySnapshotStatus": (
-            "available"
-            if not blockers
-            else "provisional"
-            if decisive_count > 0
-            else "unavailable"
+            "available" if not blockers else "provisional" if decisive_count > 0 else "unavailable"
         ),
         "scientificClaimAllowed": False,
         "firstDecisiveMilestone": MINIMUM_DECISIVE_MILESTONE,
@@ -209,12 +205,10 @@ def geographic_stratum_summary(
         item_id for item_id in decisive_ids if item_states[item_id]["state"] == "reviewed_positive"
     ]
     weighted_decisive = sum(
-        1 / float(binding_by_item[item_id]["inclusionProbability"])
-        for item_id in decisive_ids
+        1 / float(binding_by_item[item_id]["inclusionProbability"]) for item_id in decisive_ids
     )
     weighted_positive = sum(
-        1 / float(binding_by_item[item_id]["inclusionProbability"])
-        for item_id in positive_ids
+        1 / float(binding_by_item[item_id]["inclusionProbability"]) for item_id in positive_ids
     )
     return {
         "value": receipt["value"],
@@ -253,8 +247,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--campaign",
         type=Path,
-        default=ROOT
-        / "demo/source/verification/papilio-demoleus-flickr-audit.campaign.json",
+        default=ROOT / "demo/source/verification/papilio-demoleus-flickr-audit.campaign.json",
     )
     parser.add_argument(
         "--events",
