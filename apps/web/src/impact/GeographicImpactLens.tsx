@@ -1,4 +1,5 @@
 import { EvidenceState } from '../design-system'
+import { GeographicBreadcrumbs } from './GeographicBreadcrumbs'
 import { GeographicScopeSlicers } from './GeographicScopeSlicers'
 import { useGeographicScopeState } from './geographicScope'
 import { OfflineWorldMap } from './OfflineWorldMap'
@@ -43,6 +44,7 @@ export function GeographicImpactLens({
         </small>
         {scope.urlError === null ? null : <p>{scope.urlError}</p>}
       </div>
+      <GeographicBreadcrumbs controller={scope} />
       <GeographicScopeSlicers controller={scope} />
       <OfflineWorldMap {...(webGlSupported === undefined ? {} : { webGlSupported })} />
     </section>

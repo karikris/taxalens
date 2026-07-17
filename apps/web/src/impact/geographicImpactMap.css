@@ -53,6 +53,36 @@
   border: 1px solid var(--tl-line-strong);
 }
 
+.geographic-breadcrumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tl-space-1);
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.geographic-breadcrumbs li {
+  display: inline-flex;
+  gap: var(--tl-space-1);
+  align-items: center;
+}
+
+.geographic-breadcrumbs button {
+  padding: var(--tl-space-1) var(--tl-space-2);
+  color: var(--tl-brand);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.geographic-breadcrumbs [aria-current='page'] {
+  font-weight: 700;
+}
+
 .geographic-slicers legend,
 .geographic-slicers label > span {
   font-weight: 700;
