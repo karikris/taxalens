@@ -9,6 +9,10 @@ import {
   type CandidateRangeEdgeStateCounts,
 } from './geographicContributionMetrics'
 import type { PublicGeographicImpactMapCell } from './publicGeographicImpactMapData'
+import {
+  calculateTemporalContribution,
+  describeTemporalContribution,
+} from './geographicTemporalContribution'
 
 export interface SelectedGeographyDetailModel {
   readonly title: string
@@ -354,21 +358,13 @@ function temporalContribution(
   latestBaseline: string | null,
   latestFlickr: string | null,
 ): string {
-  if (latestFlickr === null) {
-    return 'Temporal contribution is unavailable because this selection has no dated Flickr candidate evidence.'
-  }
-  if (latestBaseline === null) {
-    return 'The selected baseline has no credible latest date; temporal contribution is data-deficient and no novelty is inferred.'
-  }
-  const days = Math.round(
-    (Date.parse(`${latestFlickr}T00:00:00Z`) -
-      Date.parse(`${latestBaseline}T00:00:00Z`)) /
-      86_400_000,
+  return describeTemporalContribution(
+    calculateTemporalContribution({
+      latestBaselineEventDate: latestBaseline,
+      flickrObservationDate: latestFlickr,
+      maturity: 'candidate',
+    }),
   )
-  if (days > 0) {
-    return `Potential temporal contribution: the latest Flickr candidate date is ${formatCount(days)} days later than the latest credible baseline date. This remains candidate evidence.`
-  }
-  return 'The latest Flickr candidate date is not later than the latest credible baseline date in this selection.'
 }
 
 function formatCount(value: number): string {
