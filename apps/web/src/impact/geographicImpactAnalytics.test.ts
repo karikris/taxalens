@@ -149,6 +149,39 @@ describe('browser geographic impact full outer join', () => {
       reviewedAdditionalCellCount: 1,
     })
     expect(result.childRollups).toEqual([])
+    expect(result.engineering).toMatchObject({
+      operationType: 'full_outer_spatial_cell_join',
+      inputRows: 31,
+      joinInputRows: 21,
+      reconciliationInputRows: 7,
+      rollupInputRows: 3,
+      outputRows: 3,
+      rollupOutputRows: 1,
+      registeredBytes: 12,
+      physicalBytesScanned: null,
+      physicalBytesScannedStatus: 'unavailable_from_duckdb_wasm',
+      registeredBytesUpperBound: 12,
+      filteredPartitions: 0,
+      partitioningState: 'unpartitioned_parquet_files',
+      matchedCellCount: 1,
+      baselineOnlyCellCount: 1,
+      candidateOnlyCellCount: 1,
+      unclassifiedCellCount: 0,
+      reviewedAdditionalCellCount: 1,
+      releaseReadyAdditionalCellCount: 0,
+      sourceOnlyCellCount: 0,
+      materializedOnlyCellCount: 0,
+      cacheState: 'fresh_duckdb_worker_memory_no_persistent_cache',
+    })
+    expect(result.engineering.elapsedMilliseconds).toBeGreaterThanOrEqual(0)
+    expect(result.engineering.inputRelations).toEqual([
+      { logicalName: 'baseline_occurrence_union', inputRows: 9 },
+      { logicalName: 'flickr_geography', inputRows: 12 },
+      { logicalName: 'geographic_impact_cells', inputRows: 7 },
+      { logicalName: 'geographic_impact_summary', inputRows: 3 },
+    ])
+    expect(result.engineering.filtersApplied).toContain('scope_id=country:AU')
+    expect(result.engineering.sourceArtifacts).toHaveLength(4)
     expect(result.joinKeys).toEqual([
       'project_id',
       'run_id',

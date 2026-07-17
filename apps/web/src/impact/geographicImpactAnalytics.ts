@@ -12,6 +12,8 @@ import {
   loadGeographicImpactQuerySources,
   registerGeographicImpactQuerySources,
   type GeographicImpactQuerySources,
+  type GeographicQueryParquetLogicalName,
+  type RegisteredGeographicArtifact,
   type GeographicSourceRegistrationResult,
 } from './geographicImpactSources'
 
@@ -69,7 +71,43 @@ export interface GeographicImpactBrowserResult {
   readonly reviewedAdditionalCellCount: number
   readonly releaseReadyAdditionalCellCount: number
   readonly registration: GeographicSourceRegistrationResult
+  readonly engineering: GeographicImpactEngineeringMetrics
   readonly scientificClaimAllowed: false
+}
+
+export interface GeographicInputRelationMetrics {
+  readonly logicalName: GeographicQueryParquetLogicalName
+  readonly inputRows: number
+}
+
+export interface GeographicImpactEngineeringMetrics {
+  readonly operationType: 'full_outer_spatial_cell_join'
+  readonly joinKeys: typeof GEOGRAPHIC_IMPACT_JOIN_KEYS
+  readonly inputRows: number
+  readonly joinInputRows: number
+  readonly reconciliationInputRows: number
+  readonly rollupInputRows: number
+  readonly inputRelations: readonly GeographicInputRelationMetrics[]
+  readonly outputRows: number
+  readonly rollupOutputRows: number
+  readonly registeredBytes: number
+  readonly physicalBytesScanned: null
+  readonly physicalBytesScannedStatus: 'unavailable_from_duckdb_wasm'
+  readonly registeredBytesUpperBound: number
+  readonly elapsedMilliseconds: number
+  readonly filteredPartitions: 0
+  readonly partitioningState: 'unpartitioned_parquet_files'
+  readonly filtersApplied: readonly string[]
+  readonly matchedCellCount: number
+  readonly baselineOnlyCellCount: number
+  readonly candidateOnlyCellCount: number
+  readonly unclassifiedCellCount: number
+  readonly reviewedAdditionalCellCount: number
+  readonly releaseReadyAdditionalCellCount: number
+  readonly sourceOnlyCellCount: 0
+  readonly materializedOnlyCellCount: 0
+  readonly cacheState: 'fresh_duckdb_worker_memory_no_persistent_cache'
+  readonly sourceArtifacts: readonly RegisteredGeographicArtifact[]
 }
 
 export interface GeographicImpactRollup {
@@ -116,6 +154,7 @@ export async function queryGeographicImpact(
   project: TaxaLensProjectFacade,
   candidate: unknown,
 ): Promise<GeographicImpactBrowserResult> {
+  const startedAt = monotonicNow()
   const sources = loadGeographicImpactQuerySources(project, candidate)
   const { database } = await createDuckDbRuntime()
   let connection: AsyncDuckDBConnection | undefined
@@ -141,6 +180,26 @@ export async function queryGeographicImpact(
     if (sources.input.evidenceMode === 'comparison') {
       reconcileSelectedRollup(cells, selectedRollup)
     }
+    const baselineOnlyCellCount = countCells(cells, 'baselineOnlyCell')
+    const matchedCellCount = countCells(cells, 'matchedCell')
+    const candidateOnlyCellCount = countCells(cells, 'candidateOnlyCell')
+    const reviewedAdditionalCellCount = countCells(cells, 'reviewedAdditionalCell')
+    const releaseReadyAdditionalCellCount = countCells(
+      cells,
+      'releaseReadyAdditionalCell',
+    )
+    const engineering = buildEngineeringMetrics({
+      sources,
+      registration,
+      cells,
+      childRollupCount: childRollups.length,
+      baselineOnlyCellCount,
+      matchedCellCount,
+      candidateOnlyCellCount,
+      reviewedAdditionalCellCount,
+      releaseReadyAdditionalCellCount,
+      elapsedMilliseconds: Math.max(0, monotonicNow() - startedAt),
+    })
 
     return Object.freeze({
       backend: 'duckdb-wasm-parquet',
@@ -151,12 +210,13 @@ export async function queryGeographicImpact(
       cells,
       selectedRollup,
       childRollups,
-      baselineOnlyCellCount: countCells(cells, 'baselineOnlyCell'),
-      matchedCellCount: countCells(cells, 'matchedCell'),
-      candidateOnlyCellCount: countCells(cells, 'candidateOnlyCell'),
-      reviewedAdditionalCellCount: countCells(cells, 'reviewedAdditionalCell'),
-      releaseReadyAdditionalCellCount: countCells(cells, 'releaseReadyAdditionalCell'),
+      baselineOnlyCellCount,
+      matchedCellCount,
+      candidateOnlyCellCount,
+      reviewedAdditionalCellCount,
+      releaseReadyAdditionalCellCount,
       registration,
+      engineering,
       scientificClaimAllowed: false,
     })
   } finally {
@@ -166,6 +226,78 @@ export async function queryGeographicImpact(
     }
     await database.terminate()
   }
+}
+
+interface EngineeringMetricInput {
+  readonly sources: GeographicImpactQuerySources
+  readonly registration: GeographicSourceRegistrationResult
+  readonly cells: readonly GeographicImpactBrowserCell[]
+  readonly childRollupCount: number
+  readonly baselineOnlyCellCount: number
+  readonly matchedCellCount: number
+  readonly candidateOnlyCellCount: number
+  readonly reviewedAdditionalCellCount: number
+  readonly releaseReadyAdditionalCellCount: number
+  readonly elapsedMilliseconds: number
+}
+
+function buildEngineeringMetrics(input: EngineeringMetricInput): GeographicImpactEngineeringMetrics {
+  const relations = input.registration.artifacts.map((artifact) =>
+    Object.freeze({ logicalName: artifact.logicalName, inputRows: artifact.recordCount }),
+  )
+  const rowCount = (logicalName: GeographicQueryParquetLogicalName): number => {
+    const matches = relations.filter((relation) => relation.logicalName === logicalName)
+    if (matches.length !== 1) {
+      throw new Error(`engineering metrics require one ${logicalName} relation`)
+    }
+    return matches[0]!.inputRows
+  }
+  const baselineRows = rowCount(input.sources.baselineSource)
+  const flickrRows = rowCount('flickr_geography')
+  const reconciliationRows = rowCount('geographic_impact_cells')
+  const rollupRows = rowCount('geographic_impact_summary')
+  const classifiedCellCount =
+    input.baselineOnlyCellCount + input.matchedCellCount + input.candidateOnlyCellCount
+  const scope = input.sources.input
+  return Object.freeze({
+    operationType: 'full_outer_spatial_cell_join',
+    joinKeys: GEOGRAPHIC_IMPACT_JOIN_KEYS,
+    inputRows: relations.reduce((total, relation) => total + relation.inputRows, 0),
+    joinInputRows: baselineRows + flickrRows,
+    reconciliationInputRows: reconciliationRows,
+    rollupInputRows: rollupRows,
+    inputRelations: Object.freeze(relations),
+    outputRows: input.cells.length,
+    rollupOutputRows: input.childRollupCount + 1,
+    registeredBytes: input.registration.registeredBytes,
+    physicalBytesScanned: null,
+    physicalBytesScannedStatus: 'unavailable_from_duckdb_wasm',
+    registeredBytesUpperBound: input.registration.registeredBytes,
+    elapsedMilliseconds: input.elapsedMilliseconds,
+    filteredPartitions: 0,
+    partitioningState: 'unpartitioned_parquet_files',
+    filtersApplied: Object.freeze([
+      `project_id=${scope.evidenceScope.projectId}`,
+      `run_id=${scope.evidenceScope.runId}`,
+      `accepted_taxon_key=${scope.evidenceScope.targetAcceptedTaxonKey}`,
+      `baseline_snapshot_id=${scope.evidenceScope.baselineSnapshotId}`,
+      `flickr_snapshot_id=${scope.evidenceScope.flickrSnapshotId}`,
+      `spatial_resolution=${scope.spatialResolution}`,
+      `scope_level=${scope.geographicScope.level}`,
+      `scope_id=${scope.geographicScope.id}`,
+      `evidence_mode=${scope.evidenceMode}`,
+    ]),
+    matchedCellCount: input.matchedCellCount,
+    baselineOnlyCellCount: input.baselineOnlyCellCount,
+    candidateOnlyCellCount: input.candidateOnlyCellCount,
+    unclassifiedCellCount: input.cells.length - classifiedCellCount,
+    reviewedAdditionalCellCount: input.reviewedAdditionalCellCount,
+    releaseReadyAdditionalCellCount: input.releaseReadyAdditionalCellCount,
+    sourceOnlyCellCount: 0,
+    materializedOnlyCellCount: 0,
+    cacheState: 'fresh_duckdb_worker_memory_no_persistent_cache',
+    sourceArtifacts: input.registration.artifacts,
+  })
 }
 
 export function buildGeographicRollupSql(sources: GeographicImpactQuerySources): string {
@@ -909,4 +1041,8 @@ function requiredBoolean(
     throw new Error(`DuckDB geographic impact returned an invalid ${column}`)
   }
   return value
+}
+
+function monotonicNow(): number {
+  return globalThis.performance?.now() ?? Date.now()
 }
