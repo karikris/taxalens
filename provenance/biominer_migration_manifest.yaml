@@ -44,6 +44,25 @@ scientific_claim_gate: "blocked-until-reviewed-references-leakage-safe-splits-ca
 handoff_contract: "storage-handoff-inventory-v1.0.0-with-explicit-uri-sha256-source-sha-and-receipt"
 recorded_at: "2026-07-17"
 components:
+  - component_id: biominer_flickr_geography_handoff
+    source_repository: karikris/BioMiner
+    source_commit: 75461d9c065af0cd96b41cd1f845c2e920f7ae34
+    source_path: examples/species/papilio_demoleus/pilot_geographic_workload_manifest.json
+    destination_path: demo/source/biominer_phase14/flickr_geography_handoff_manifest.json
+    migration_kind: formalized_existing_import
+    reason: Promote the already committed precision-aware Flickr geography Parquet to a first-class, checksum-verified Geographic Impact input without duplicating or reinterpreting its candidate evidence.
+    build_week_scope: modified_existing
+    source_license: MIT
+    changes:
+      - Reused the existing 13,501-row TaxaLens artifact rather than duplicating its bytes.
+      - Pinned the historical committed BioMiner workload manifest and the TaxaLens analytics import receipt independently.
+      - Verified the Flickr accuracy policy, H3 grid, configuration fingerprint, warning counts, and supported resolution counts.
+      - Preserved the unavailable country and admin fields instead of deriving unsupported values.
+      - Kept Flickr coordinates as candidate evidence with scientific claims blocked.
+      - Kept the replay repository-contained with no Supabase or Backblaze B2 requirement.
+    tests:
+      - scripts/verify_flickr_geography_handoff.py
+    status: migrated
   - component_id: biominer_baseline_geographic_handoff
     source_repository: karikris/BioMiner
     source_commit: 247b42f3206d48bb79e2dbf97c5a92e4f207ae71

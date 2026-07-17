@@ -1,0 +1,77 @@
+{
+  "schema_version": "taxalens-biominer-flickr-geography-handoff:v1.0.0",
+  "origin_repository": "karikris/BioMiner",
+  "origin_commit": "75461d9c065af0cd96b41cd1f845c2e920f7ae34",
+  "source_license": "MIT",
+  "project_id": "taxalens-papilio-demoleus-judge-replay",
+  "run_id": "papilio-demoleus-pilot-20260715",
+  "accepted_taxon_key": "gbif:1938069",
+  "scientific_name": "Papilio demoleus",
+  "flickr_snapshot_id": "flickr:2026-07-15",
+  "candidate_semantics": "flickr_candidate_evidence_not_taxonomic_identity_or_occurrence",
+  "scientific_claim_allowed": false,
+  "source_manifest": {
+    "path": "examples/species/papilio_demoleus/pilot_geographic_workload_manifest.json",
+    "sha256": "a62abef7cbac8638da219e53e08ab6760bedcd4f49d6396bfa0d1891d96e5cf2"
+  },
+  "analytics_import_manifest": {
+    "path": "demo/source/biominer_phase14/analytics_import_manifest.json",
+    "sha256": "ad4f57815f7e37e703569d31f73d98000c14f1d9484015ad8cda4c3b1017b4a7"
+  },
+  "artifact": {
+    "artifact_id": "biominer-flickr-geography-parquet",
+    "path": "demo/source/biominer_phase14/analytics/flickr_geography.parquet",
+    "media_type": "application/vnd.apache.parquet",
+    "schema_version": "flickr-geography-v1.0.0",
+    "row_count": 13501,
+    "byte_count": 769162,
+    "sha256": "a3c47a6f213191634f76655d859cdd8555a9b11a4e33a9041209eb23ba7c2bbf"
+  },
+  "geography_contract": {
+    "grid_name": "hierarchical_global_grid",
+    "grid_version": "h3:4.5.0",
+    "spatial_resolutions": [3, 5, 7],
+    "accuracy_policy_version": "flickr-accuracy-v1.0.0",
+    "geography_config_fingerprint": "sha256:c0b9666ed15e06026fbb95f4e894252f76f76005659ab0c104f22b0b27ead714",
+    "precision_support": {
+      "flickr_world": [],
+      "flickr_country": [],
+      "flickr_region": [3],
+      "flickr_city": [3, 5],
+      "flickr_street": [3, 5, 7],
+      "unknown_precision": []
+    }
+  },
+  "observed_counts": {
+    "canonical_photo_count": 13501,
+    "geotag_available_count": 13501,
+    "coordinate_quality": {
+      "flickr_world": 27,
+      "flickr_country": 54,
+      "flickr_region": 390,
+      "flickr_city": 5094,
+      "flickr_street": 7932,
+      "unknown_precision": 4
+    },
+    "supported_cell_rows": {
+      "3": 13416,
+      "5": 13026,
+      "7": 7932
+    },
+    "primary_warnings": {
+      "none": 7926,
+      "coordinate_precision_limits_cells": 5565,
+      "coordinate_at_null_island": 6,
+      "coordinate_accuracy_out_of_range": 4
+    },
+    "country_code_available_count": 0,
+    "admin1_available_count": 0
+  },
+  "availability": {
+    "country_and_admin_fields": "unavailable_in_committed_snapshot",
+    "unsupported_finer_cells_populated": false,
+    "source_runtime_artifact_tracked_upstream": false,
+    "artifact_bytes_committed_in_taxalens": true,
+    "external_storage_required": false
+  }
+}

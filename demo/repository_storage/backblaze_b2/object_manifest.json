@@ -1,7 +1,7 @@
 {
   "bucket_alias": "taxalens-repository-fixture",
   "credentials_included": false,
-  "object_count": 81,
+  "object_count": 82,
   "objects": [
     {
       "bytes": 484,
@@ -391,6 +391,15 @@
       "sha256": "46ba1f71c0537dab862f18e589fd3ea48f2b661bda402d22f6f6e3a6ff92ea0c"
     },
     {
+      "bytes": 2803,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/biominer_phase14/flickr_geography_handoff_manifest.json",
+      "repository_path": "demo/source/biominer_phase14/flickr_geography_handoff_manifest.json",
+      "sha256": "dc58d485d6aee0233ab45c1a857f35ff52c242b5552e50d8a31367a7973ceb71"
+    },
+    {
       "bytes": 3144,
       "git_tracked_required": true,
       "immutable": true,
@@ -738,5 +747,5 @@
   "scientific_claim_allowed": false,
   "signed_urls_included": false,
   "storage_mode": "repository_mirror",
-  "total_bytes": 6056661
+  "total_bytes": 6059464
 }
