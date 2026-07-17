@@ -18,6 +18,7 @@ from packages.replay.src.geographic_impact_materializer import (
     OCCURRENCE_RELEASE_POLICY_VERSION,
     REPOSITORY_ROOT,
     build_committed_geographic_impact_cells,
+    build_committed_geographic_impact_summaries,
 )
 from packages.replay.src.occurrence_release import (
     DEFAULT_QUALITY_SNAPSHOTS,
@@ -27,6 +28,7 @@ from packages.replay.src.offline_country_lookup import DEFAULT_COUNTRY_BOUNDARIE
 
 OUTPUT_ROOT = REPOSITORY_ROOT / "demo/source/biominer_phase14/geographic_impact"
 OUTPUT_CELLS = OUTPUT_ROOT / "geographic_impact_cells.parquet"
+OUTPUT_SUMMARY = OUTPUT_ROOT / "geographic_impact_summary.parquet"
 
 
 def sha256_bytes(content: bytes) -> str:
@@ -68,7 +70,11 @@ def build_outputs() -> dict[Path, bytes]:
     cells = build_committed_geographic_impact_cells(
         geographic_impact_build_id=geographic_impact_build_id()
     )
-    return {OUTPUT_CELLS: parquet_bytes(cells)}
+    summaries = build_committed_geographic_impact_summaries(cells)
+    return {
+        OUTPUT_CELLS: parquet_bytes(cells),
+        OUTPUT_SUMMARY: parquet_bytes(summaries),
+    }
 
 
 def write_outputs(outputs: dict[Path, bytes]) -> None:
@@ -97,13 +103,18 @@ def main() -> int:
         if failures:
             raise SystemExit("\n".join(failures))
         cells = pl.read_parquet(OUTPUT_CELLS)
+        summaries = pl.read_parquet(OUTPUT_SUMMARY)
         print(
-            "verified geographic impact cells: "
-            f"cells={cells.height}, build_id={cells.item(0, 'geographic_impact_build_id')}"
+            "verified geographic impact artifacts: "
+            f"cells={cells.height}, summaries={summaries.height}, "
+            f"build_id={cells.item(0, 'geographic_impact_build_id')}"
         )
         return 0
     write_outputs(outputs)
-    print(f"wrote geographic impact cells: {OUTPUT_CELLS.relative_to(REPOSITORY_ROOT)}")
+    print(
+        "wrote geographic impact artifacts: "
+        + ", ".join(path.relative_to(REPOSITORY_ROOT).as_posix() for path in outputs)
+    )
     return 0
 
 

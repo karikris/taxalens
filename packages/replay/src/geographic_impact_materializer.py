@@ -15,6 +15,8 @@ import polars as pl
 from taxalens.product.geographic_contracts import (
     GEOGRAPHIC_IMPACT_CELL_PARQUET_COLUMNS,
     GEOGRAPHIC_IMPACT_CELL_SCHEMA_VERSION,
+    GEOGRAPHIC_IMPACT_SUMMARY_PARQUET_COLUMNS,
+    GEOGRAPHIC_IMPACT_SUMMARY_SCHEMA_VERSION,
     assert_geographic_contract,
 )
 
@@ -82,6 +84,23 @@ def geographic_impact_cell_schema() -> dict[str, pl.DataType]:
     return {
         column.name: physical[column.physical_type]
         for column in GEOGRAPHIC_IMPACT_CELL_PARQUET_COLUMNS
+    }
+
+
+def geographic_impact_summary_schema() -> dict[str, pl.DataType]:
+    """Return the exact impact-summary physical schema in contract order."""
+
+    physical = {
+        "utf8": pl.String,
+        "uint8": pl.UInt8,
+        "uint64": pl.UInt64,
+        "float64": pl.Float64,
+        "date32": pl.Date,
+        "list_utf8": pl.List(pl.String),
+    }
+    return {
+        column.name: physical[column.physical_type]
+        for column in GEOGRAPHIC_IMPACT_SUMMARY_PARQUET_COLUMNS
     }
 
 
@@ -232,6 +251,310 @@ def build_committed_geographic_impact_cells(
         release_decisions=load_occurrence_release_decisions(),
         quality_snapshot_ids=load_quality_snapshot_ids(),
     )
+
+
+def build_geographic_impact_summaries(
+    cells: pl.DataFrame,
+    *,
+    country_hierarchy: Mapping[str, Any],
+) -> pl.DataFrame:
+    """Roll materialized cells up to every supported hierarchy scope."""
+
+    if cells.schema != geographic_impact_cell_schema():
+        raise GeographicImpactMaterializationError("impact cell schema differs")
+    if not cells.height:
+        raise GeographicImpactMaterializationError("impact cells are empty")
+    if country_hierarchy.get("schema_version") != "taxalens-country-hierarchy:v1.0.0":
+        raise GeographicImpactMaterializationError("country hierarchy schema differs")
+    hierarchy_id = _required_text(
+        country_hierarchy.get("country_hierarchy_id"), "country hierarchy ID"
+    )
+    if cells.get_column("country_hierarchy_id").unique().to_list() != [hierarchy_id]:
+        raise GeographicImpactMaterializationError("cell country hierarchy differs")
+    nodes = country_hierarchy.get("nodes")
+    if not isinstance(nodes, list):
+        raise GeographicImpactMaterializationError("country hierarchy nodes are missing")
+    hierarchy_nodes = [node for node in nodes if isinstance(node, dict)]
+    global_nodes = [node for node in hierarchy_nodes if node.get("scope_level") == "global"]
+    if len(global_nodes) != 1:
+        raise GeographicImpactMaterializationError("country hierarchy global scope differs")
+    by_continent = _hierarchy_node_index(hierarchy_nodes, "continent", "continent")
+    by_country = _hierarchy_node_index(hierarchy_nodes, "country", "country_code")
+    by_admin1 = _admin1_node_index(hierarchy_nodes)
+
+    rows: list[dict[str, object]] = []
+    for resolution_cells in cells.partition_by("spatial_resolution", maintain_order=True):
+        rows.append(_summarize_scope(resolution_cells, global_nodes[0]))
+        for continent in sorted(
+            resolution_cells.get_column("continent").drop_nulls().unique().to_list()
+        ):
+            node = by_continent.get(_required_text(continent, "continent"))
+            if node is None:
+                raise GeographicImpactMaterializationError(
+                    "cell continent is absent from country hierarchy"
+                )
+            rows.append(
+                _summarize_scope(
+                    resolution_cells.filter(pl.col("continent") == continent), node
+                )
+            )
+        for country_code in sorted(
+            resolution_cells.get_column("country_code").drop_nulls().unique().to_list()
+        ):
+            code = _required_text(country_code, "country code")
+            node = by_country.get(code)
+            if node is None:
+                raise GeographicImpactMaterializationError(
+                    "cell country is absent from country hierarchy"
+                )
+            rows.append(
+                _summarize_scope(
+                    resolution_cells.filter(pl.col("country_code") == code), node
+                )
+            )
+        admin1_pairs = (
+            resolution_cells.filter(pl.col("admin1").is_not_null())
+            .select("country_code", "admin1")
+            .unique()
+            .sort(["country_code", "admin1"])
+        )
+        for country_code, admin1 in admin1_pairs.iter_rows():
+            pair = (
+                _required_text(country_code, "admin1 country code"),
+                _required_text(admin1, "admin1 name"),
+            )
+            node = by_admin1.get(pair)
+            if node is None:
+                raise GeographicImpactMaterializationError(
+                    "cell admin1 is absent from country hierarchy"
+                )
+            rows.append(
+                _summarize_scope(
+                    resolution_cells.filter(
+                        (pl.col("country_code") == pair[0]) & (pl.col("admin1") == pair[1])
+                    ),
+                    node,
+                )
+            )
+
+    summaries = pl.DataFrame(rows).select(
+        [
+            pl.col(name).cast(dtype)
+            for name, dtype in geographic_impact_summary_schema().items()
+        ]
+    )
+    level_order = pl.Enum(["global", "continent", "country", "admin1"])
+    summaries = (
+        summaries.with_columns(pl.col("scope_level").cast(level_order).alias("_scope_order"))
+        .sort(["spatial_resolution", "_scope_order", "scope_id"])
+        .drop("_scope_order")
+    )
+    _validate_summaries(summaries, cells)
+    return summaries
+
+
+def build_committed_geographic_impact_summaries(
+    cells: pl.DataFrame,
+    *,
+    country_hierarchy_path: str | Path = DEFAULT_COUNTRY_HIERARCHY,
+) -> pl.DataFrame:
+    """Build hierarchy rollups from committed geographic inputs."""
+
+    try:
+        country_hierarchy = json.loads(Path(country_hierarchy_path).read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise GeographicImpactMaterializationError("country hierarchy is unreadable") from error
+    if not isinstance(country_hierarchy, dict):
+        raise GeographicImpactMaterializationError("country hierarchy must be an object")
+    return build_geographic_impact_summaries(cells, country_hierarchy=country_hierarchy)
+
+
+def _summarize_scope(
+    cells: pl.DataFrame,
+    node: Mapping[str, object],
+) -> dict[str, object]:
+    if not cells.height:
+        raise GeographicImpactMaterializationError("summary scope is empty")
+    single_columns = (
+        "geographic_impact_build_id",
+        "project_id",
+        "run_id",
+        "registry_version",
+        "accepted_taxon_key",
+        "scientific_name",
+        "baseline_snapshot_id",
+        "flickr_snapshot_id",
+        "provider_union_policy_version",
+        "verification_projection_version",
+        "release_policy_version",
+        "country_hierarchy_id",
+        "spatial_resolution",
+        "baseline_evidence_status",
+        "direct_inaturalist_delta_status",
+    )
+    identity: dict[str, object] = {}
+    for column in single_columns:
+        values = cells.get_column(column).unique().to_list()
+        if len(values) != 1:
+            raise GeographicImpactMaterializationError(
+                f"summary {column} is not single-scope"
+            )
+        identity[column] = values[0]
+
+    summed_columns = (
+        "provider_input_row_count",
+        "baseline_union_count",
+        "baseline_range_inference_eligible_count",
+        "baseline_excluded_occurrence_count",
+        "gbif_only_count",
+        "inaturalist_origin_through_gbif_count",
+        "duplicates_removed_count",
+        "unresolved_provider_duplicate_group_count",
+        "flickr_candidate_count",
+        "flickr_visually_eligible_count",
+        "reviewed_positive_count",
+        "reviewed_negative_count",
+        "uncertain_count",
+        "pending_count",
+        "media_failure_count",
+        "skipped_count",
+        "release_ready_count",
+    )
+    totals = {column: int(cells.get_column(column).sum()) for column in summed_columns}
+    candidate_only = cells.filter(pl.col("candidate_only_cell"))
+    available_distances = candidate_only.filter(
+        pl.col("nearest_baseline_distance_status") == "available"
+    )
+    if not candidate_only.height:
+        nearest_status = "not_applicable"
+        maximum_distance: float | None = None
+    elif available_distances.height == candidate_only.height:
+        nearest_status = "available"
+        maximum_distance = float(
+            available_distances.get_column("nearest_baseline_distance_km").max()
+        )
+    else:
+        nearest_status = "unavailable"
+        maximum_distance = None
+    reasons = sorted(
+        {
+            _required_text(reason, "data-deficiency reason")
+            for cell_reasons in cells.get_column("data_deficient_reasons").to_list()
+            for reason in cell_reasons
+        }
+    )
+    deficiency_states = set(cells.get_column("data_deficient_state").unique().to_list())
+    if "unavailable" in deficiency_states:
+        deficiency_state = "unavailable"
+    elif "data_deficient" in deficiency_states:
+        deficiency_state = "data_deficient"
+    else:
+        deficiency_state = "sufficient"
+
+    return {
+        "schema_version": GEOGRAPHIC_IMPACT_SUMMARY_SCHEMA_VERSION,
+        **identity,
+        "scope_level": node["scope_level"],
+        "scope_id": node["scope_id"],
+        "scope_name": node["scope_name"],
+        "parent_scope_id": node["parent_scope_id"],
+        "continent": node["continent"],
+        "country_code": node["country_code"],
+        "country": node["country"],
+        "admin1": node["admin1"],
+        **totals,
+        "direct_inaturalist_delta_count": None,
+        "cell_count": cells.height,
+        "baseline_occupied_cell_count": int(
+            cells.get_column("baseline_range_inference_eligible_count").gt(0).sum()
+        ),
+        "flickr_occupied_cell_count": int(
+            cells.get_column("flickr_candidate_count").gt(0).sum()
+        ),
+        "baseline_only_cell_count": int(cells.get_column("baseline_only_cell").sum()),
+        "matched_cell_count": int(cells.get_column("matched_cell").sum()),
+        "candidate_only_cell_count": candidate_only.height,
+        "reviewed_additional_cell_count": int(
+            cells.get_column("reviewed_additional_cell").sum()
+        ),
+        "release_ready_additional_cell_count": int(
+            cells.get_column("release_ready_additional_cell").sum()
+        ),
+        "nearest_baseline_distance_status": nearest_status,
+        "maximum_nearest_baseline_distance_km": maximum_distance,
+        "latest_baseline_event_date": cells.get_column("latest_baseline_event_date").max(),
+        "latest_flickr_candidate_date": cells.get_column("latest_flickr_candidate_date").max(),
+        "latest_reviewed_positive_date": cells.get_column(
+            "latest_reviewed_positive_date"
+        ).max(),
+        "latest_release_ready_date": cells.get_column("latest_release_ready_date").max(),
+        "data_deficient_state": deficiency_state,
+        "data_deficient_reasons": reasons,
+    }
+
+
+def _hierarchy_node_index(
+    nodes: list[dict[str, object]],
+    level: str,
+    key: str,
+) -> dict[str, dict[str, object]]:
+    indexed: dict[str, dict[str, object]] = {}
+    for node in nodes:
+        if node.get("scope_level") != level:
+            continue
+        value = _required_text(node.get(key), f"{level} hierarchy {key}")
+        if value in indexed:
+            raise GeographicImpactMaterializationError(f"duplicate {level} hierarchy {key}")
+        indexed[value] = node
+    return indexed
+
+
+def _admin1_node_index(
+    nodes: list[dict[str, object]],
+) -> dict[tuple[str, str], dict[str, object]]:
+    indexed: dict[tuple[str, str], dict[str, object]] = {}
+    for node in nodes:
+        if node.get("scope_level") != "admin1":
+            continue
+        key = (
+            _required_text(node.get("country_code"), "admin1 hierarchy country code"),
+            _required_text(node.get("admin1"), "admin1 hierarchy name"),
+        )
+        if key in indexed:
+            raise GeographicImpactMaterializationError("duplicate admin1 hierarchy identity")
+        indexed[key] = node
+    return indexed
+
+
+def _validate_summaries(summaries: pl.DataFrame, cells: pl.DataFrame) -> None:
+    if summaries.schema != geographic_impact_summary_schema():
+        raise GeographicImpactMaterializationError("impact summary physical schema differs")
+    summary_keys = ["spatial_resolution", "scope_level", "scope_id"]
+    if summaries.select(pl.struct(summary_keys).n_unique()).item() != summaries.height:
+        raise GeographicImpactMaterializationError("impact summary identity is not unique")
+    global_rows = summaries.filter(pl.col("scope_level") == "global")
+    if global_rows.height != cells.get_column("spatial_resolution").n_unique():
+        raise GeographicImpactMaterializationError("global summary coverage differs")
+    for row in summaries.iter_rows(named=True):
+        assert_geographic_contract("geographic_impact_summary", _json_row(row))
+
+    global_counts = global_rows.sort("spatial_resolution").select(
+        "spatial_resolution",
+        "cell_count",
+        "baseline_union_count",
+        "flickr_candidate_count",
+    )
+    cell_counts = (
+        cells.group_by("spatial_resolution")
+        .agg(
+            pl.len().cast(pl.UInt64).alias("cell_count"),
+            pl.col("baseline_union_count").sum(),
+            pl.col("flickr_candidate_count").sum(),
+        )
+        .sort("spatial_resolution")
+    )
+    if not global_counts.equals(cell_counts):
+        raise GeographicImpactMaterializationError("global summary totals differ from cells")
 
 
 def _aggregate_baseline(frame: pl.DataFrame) -> pl.DataFrame:
@@ -625,6 +948,9 @@ __all__ = [
     "GeographicImpactScope",
     "aggregate_flickr_review_states",
     "build_committed_geographic_impact_cells",
+    "build_committed_geographic_impact_summaries",
     "build_geographic_impact_cells",
+    "build_geographic_impact_summaries",
     "geographic_impact_cell_schema",
+    "geographic_impact_summary_schema",
 ]
