@@ -87,6 +87,25 @@ export interface ReleaseReadyAdditionalClassification {
     | 'baseline_evidence_unavailable'
 }
 
+export type GeographicCoverageUpliftStatus =
+  | 'available'
+  | 'zero_denominator'
+  | 'unavailable'
+
+export interface GeographicCoverageUpliftTier {
+  readonly additionalCellCount: number
+  readonly percent: number | null
+}
+
+export interface GeographicCoverageUplift {
+  readonly status: GeographicCoverageUpliftStatus
+  readonly baselineOccupiedCellCount: number | null
+  readonly potential: GeographicCoverageUpliftTier
+  readonly humanSupported: GeographicCoverageUpliftTier
+  readonly releaseReady: GeographicCoverageUpliftTier
+  readonly scientificClaimAllowed: false
+}
+
 /**
  * Classify potential contribution against one selected baseline snapshot.
  * This is an evidence comparison, never a biological absence or occurrence claim.
@@ -341,6 +360,61 @@ export function countReleaseReadyAdditionalCells(
   }).length
 }
 
+export function calculateGeographicCoverageUplift(input: {
+  readonly baselineEvidenceStatus: 'available' | 'unavailable'
+  readonly baselineOccupiedCellCount: number | null
+  readonly candidateAdditionalCellCount: number
+  readonly humanSupportedAdditionalCellCount: number
+  readonly releaseReadyAdditionalCellCount: number
+}): GeographicCoverageUplift {
+  for (const [field, count] of [
+    ['candidateAdditionalCellCount', input.candidateAdditionalCellCount],
+    ['humanSupportedAdditionalCellCount', input.humanSupportedAdditionalCellCount],
+    ['releaseReadyAdditionalCellCount', input.releaseReadyAdditionalCellCount],
+  ] as const) {
+    assertCount(count, field)
+  }
+  if (
+    input.humanSupportedAdditionalCellCount > input.candidateAdditionalCellCount ||
+    input.releaseReadyAdditionalCellCount > input.humanSupportedAdditionalCellCount
+  ) {
+    throw new Error('geographic contribution maturity counts are not nested')
+  }
+  if (input.baselineEvidenceStatus === 'unavailable') {
+    if (input.baselineOccupiedCellCount !== null) {
+      throw new Error('unavailable baseline evidence must not expose an occupied-cell count')
+    }
+    return upliftResult('unavailable', null, input)
+  }
+  if (input.baselineOccupiedCellCount === null) {
+    throw new Error('available baseline evidence requires an occupied-cell count')
+  }
+  assertCount(input.baselineOccupiedCellCount, 'baselineOccupiedCellCount')
+  if (input.baselineOccupiedCellCount === 0) {
+    return upliftResult('zero_denominator', 0, input)
+  }
+  return upliftResult('available', input.baselineOccupiedCellCount, input)
+}
+
+export function calculateGeographicCoverageUpliftFromCells(
+  cells: Parameters<typeof countReleaseReadyAdditionalCells>[0],
+  releaseEvidenceByCell?: ReleaseGateEvidenceByCell,
+): GeographicCoverageUplift {
+  return calculateGeographicCoverageUplift({
+    baselineEvidenceStatus: 'available',
+    baselineOccupiedCellCount: cells.filter(
+      ({ baselineRangeInferenceEligibleCount }) =>
+        baselineRangeInferenceEligibleCount > 0,
+    ).length,
+    candidateAdditionalCellCount: countPotentialCoverageGapCells(cells),
+    humanSupportedAdditionalCellCount: countHumanSupportedAdditionalCells(cells),
+    releaseReadyAdditionalCellCount: countReleaseReadyAdditionalCells(
+      cells,
+      releaseEvidenceByCell,
+    ),
+  })
+}
+
 function classification(
   state: PotentialCoverageGapState,
   contributes: boolean,
@@ -377,6 +451,39 @@ function releaseClassification(
     contributes,
     label: RELEASE_READY_ADDITIONAL_LABEL,
     reason,
+  })
+}
+
+function upliftResult(
+  status: GeographicCoverageUpliftStatus,
+  baselineOccupiedCellCount: number | null,
+  input: Pick<
+    Parameters<typeof calculateGeographicCoverageUplift>[0],
+    | 'candidateAdditionalCellCount'
+    | 'humanSupportedAdditionalCellCount'
+    | 'releaseReadyAdditionalCellCount'
+  >,
+): GeographicCoverageUplift {
+  const percent = (additionalCellCount: number) =>
+    status === 'available' && baselineOccupiedCellCount !== null
+      ? (additionalCellCount / baselineOccupiedCellCount) * 100
+      : null
+  return Object.freeze({
+    status,
+    baselineOccupiedCellCount,
+    potential: Object.freeze({
+      additionalCellCount: input.candidateAdditionalCellCount,
+      percent: percent(input.candidateAdditionalCellCount),
+    }),
+    humanSupported: Object.freeze({
+      additionalCellCount: input.humanSupportedAdditionalCellCount,
+      percent: percent(input.humanSupportedAdditionalCellCount),
+    }),
+    releaseReady: Object.freeze({
+      additionalCellCount: input.releaseReadyAdditionalCellCount,
+      percent: percent(input.releaseReadyAdditionalCellCount),
+    }),
+    scientificClaimAllowed: false,
   })
 }
 

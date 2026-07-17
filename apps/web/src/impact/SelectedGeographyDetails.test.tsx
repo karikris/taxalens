@@ -65,6 +65,13 @@ describe('SelectedGeographyDetails', () => {
       latestBaselineEventDate: '2021-01-01',
       latestFlickrCandidateDate: '2024-01-02',
       dataDeficientCellCount: 1,
+      coverageUplift: {
+        status: 'available',
+        baselineOccupiedCellCount: 2,
+        potential: { additionalCellCount: 1, percent: 50 },
+        humanSupported: { additionalCellCount: 0, percent: 0 },
+        releaseReady: { additionalCellCount: 0, percent: 0 },
+      },
     })
     expect(details.temporalContribution).toMatch(/1,096 days later/u)
   })
@@ -98,6 +105,8 @@ describe('SelectedGeographyDetails', () => {
       .toHaveTextContent('88.13 km')
     expect(screen.getByText(/temporal contribution is data-deficient/u))
       .toBeInTheDocument()
+    expect(screen.getByText('Candidate uplift').closest('div'))
+      .toHaveTextContent('1 cells · unavailable (zero baseline denominator)')
     expect(screen.getByText(/unknown, not proof of biological absence/u))
       .toBeInTheDocument()
   })

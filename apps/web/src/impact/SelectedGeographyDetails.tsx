@@ -1,8 +1,10 @@
 import type { CountryHierarchyNode } from '../../../../packages/contracts/src/geographic_impact_contract'
 import {
+  calculateGeographicCoverageUpliftFromCells,
   countHumanSupportedAdditionalCells,
   countPotentialCoverageGapCells,
   countReleaseReadyAdditionalCells,
+  type GeographicCoverageUplift,
 } from './geographicContributionMetrics'
 import type { PublicGeographicImpactMapCell } from './publicGeographicImpactMapData'
 
@@ -34,6 +36,7 @@ export interface SelectedGeographyDetailModel {
   readonly dataDeficientCellCount: number
   readonly unavailableCellCount: number
   readonly temporalContribution: string
+  readonly coverageUplift: GeographicCoverageUplift
 }
 
 export function SelectedGeographyDetails({
@@ -151,6 +154,31 @@ export function SelectedGeographyDetails({
             value={formatCount(details.unavailableCellCount)}
           />
         </DetailGroup>
+        <DetailGroup title="Spatial coverage uplift">
+          <Detail
+            label="Candidate uplift"
+            value={formatUplift(details.coverageUplift.potential, details.coverageUplift)}
+          />
+          <Detail
+            label="Human-supported uplift"
+            value={formatUplift(
+              details.coverageUplift.humanSupported,
+              details.coverageUplift,
+            )}
+          />
+          <Detail
+            label="Release-ready uplift"
+            value={formatUplift(details.coverageUplift.releaseReady, details.coverageUplift)}
+          />
+          <Detail
+            label="Baseline occupied-cell denominator"
+            value={
+              details.coverageUplift.baselineOccupiedCellCount === null
+                ? 'Unavailable'
+                : formatCount(details.coverageUplift.baselineOccupiedCellCount)
+            }
+          />
+        </DetailGroup>
       </div>
       <p className="selected-geography-details__temporal">
         {details.temporalContribution}
@@ -236,6 +264,7 @@ export function buildSelectedGeographyDetails(
       latestBaselineEventDate,
       latestFlickrCandidateDate,
     ),
+    coverageUplift: calculateGeographicCoverageUpliftFromCells(selectedCells),
   })
 }
 
@@ -324,4 +353,18 @@ function formatCount(value: number): string {
 
 function formatDistance(value: number): string {
   return new Intl.NumberFormat('en-AU', { maximumFractionDigits: 2 }).format(value)
+}
+
+function formatUplift(
+  tier: GeographicCoverageUplift['potential'],
+  uplift: GeographicCoverageUplift,
+): string {
+  if (tier.percent === null) {
+    return uplift.status === 'zero_denominator'
+      ? `${formatCount(tier.additionalCellCount)} cells · unavailable (zero baseline denominator)`
+      : `${formatCount(tier.additionalCellCount)} cells · unavailable`
+  }
+  return `${formatCount(tier.additionalCellCount)} cells · ${tier.percent.toLocaleString('en-AU', {
+    maximumFractionDigits: 2,
+  })}%`
 }

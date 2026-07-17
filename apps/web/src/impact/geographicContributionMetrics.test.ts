@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  calculateGeographicCoverageUplift,
+  calculateGeographicCoverageUpliftFromCells,
   classifyHumanSupportedAdditionalCell,
   classifyPotentialCoverageGapCell,
   classifyReleaseReadyAdditionalCell,
@@ -313,3 +315,105 @@ describe('release-ready geographic contribution', () => {
     ).toThrow(/lacks a gate-evidence projection/u)
   })
 })
+
+describe('geographic occupied-cell coverage uplift', () => {
+  it('reports candidate, human-supported and release-ready uplift separately', () => {
+    expect(
+      calculateGeographicCoverageUplift({
+        baselineEvidenceStatus: 'available',
+        baselineOccupiedCellCount: 10,
+        candidateAdditionalCellCount: 5,
+        humanSupportedAdditionalCellCount: 2,
+        releaseReadyAdditionalCellCount: 1,
+      }),
+    ).toEqual({
+      status: 'available',
+      baselineOccupiedCellCount: 10,
+      potential: { additionalCellCount: 5, percent: 50 },
+      humanSupported: { additionalCellCount: 2, percent: 20 },
+      releaseReady: { additionalCellCount: 1, percent: 10 },
+      scientificClaimAllowed: false,
+    })
+  })
+
+  it('keeps zero numerator as zero percent when a positive denominator exists', () => {
+    const uplift = calculateGeographicCoverageUplift({
+      baselineEvidenceStatus: 'available',
+      baselineOccupiedCellCount: 4,
+      candidateAdditionalCellCount: 0,
+      humanSupportedAdditionalCellCount: 0,
+      releaseReadyAdditionalCellCount: 0,
+    })
+    expect(uplift.potential.percent).toBe(0)
+    expect(uplift.humanSupported.percent).toBe(0)
+    expect(uplift.releaseReady.percent).toBe(0)
+  })
+
+  it('does not calculate a percentage for zero or unavailable baseline denominators', () => {
+    expect(
+      calculateGeographicCoverageUplift({
+        baselineEvidenceStatus: 'available',
+        baselineOccupiedCellCount: 0,
+        candidateAdditionalCellCount: 2,
+        humanSupportedAdditionalCellCount: 0,
+        releaseReadyAdditionalCellCount: 0,
+      }),
+    ).toMatchObject({
+      status: 'zero_denominator',
+      potential: { additionalCellCount: 2, percent: null },
+    })
+    expect(
+      calculateGeographicCoverageUplift({
+        baselineEvidenceStatus: 'unavailable',
+        baselineOccupiedCellCount: null,
+        candidateAdditionalCellCount: 0,
+        humanSupportedAdditionalCellCount: 0,
+        releaseReadyAdditionalCellCount: 0,
+      }),
+    ).toMatchObject({
+      status: 'unavailable',
+      baselineOccupiedCellCount: null,
+      potential: { percent: null },
+    })
+  })
+
+  it('derives an exact denominator and reconciled maturity tiers from cells', () => {
+    const uplift = calculateGeographicCoverageUpliftFromCells([
+      contributionCell('baseline:a', { baselineRangeInferenceEligibleCount: 2 }),
+      contributionCell('baseline:b', { baselineRangeInferenceEligibleCount: 1 }),
+      contributionCell('candidate:a', {
+        flickrCandidateCount: 4,
+        candidateOnlyCell: true,
+      }),
+    ])
+    expect(uplift).toMatchObject({
+      status: 'available',
+      baselineOccupiedCellCount: 2,
+      potential: { additionalCellCount: 1, percent: 50 },
+      humanSupported: { additionalCellCount: 0, percent: 0 },
+      releaseReady: { additionalCellCount: 0, percent: 0 },
+    })
+  })
+})
+
+function contributionCell(
+  spatialCellId: string,
+  overrides: Partial<Parameters<typeof calculateGeographicCoverageUpliftFromCells>[0][number]> = {},
+): Parameters<typeof calculateGeographicCoverageUpliftFromCells>[0][number] {
+  return {
+    spatialCellId,
+    baselineRangeInferenceEligibleCount: 0,
+    flickrCandidateCount: 0,
+    candidateOnlyCell: false,
+    reviewedPositiveCount: 0,
+    reviewedNegativeCount: 0,
+    uncertainCount: 0,
+    pendingCount: 0,
+    mediaFailureCount: 0,
+    skippedCount: 0,
+    reviewedAdditionalCell: false,
+    releaseReadyCount: 0,
+    releaseReadyAdditionalCell: false,
+    ...overrides,
+  }
+}
