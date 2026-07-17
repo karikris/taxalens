@@ -275,13 +275,22 @@ def _scope_frame(
     return scoped
 
 
-def _validate_source_frames(
+def validate_biominer_baseline_geography_frames(
     spread: pl.DataFrame,
     occurrence_evidence: pl.DataFrame,
     summary: pl.DataFrame,
     qa_findings: pl.DataFrame,
     scope: BaselineGeographyScope,
 ) -> None:
+    if (
+        not scope.spatial_resolutions
+        or tuple(sorted(set(scope.spatial_resolutions))) != scope.spatial_resolutions
+        or any(
+            isinstance(value, bool) or not isinstance(value, int) or not 0 <= value <= 15
+            for value in scope.spatial_resolutions
+        )
+    ):
+        raise BaselineGeographyAdapterError("unsupported spatial resolution")
     _require_columns(spread, SPREAD_COLUMNS, "geographic spread")
     _require_columns(
         occurrence_evidence,
@@ -307,6 +316,22 @@ def _validate_source_frames(
         (spread, "geographic spread"),
         (occurrence_evidence, "geographic occurrence evidence"),
     ):
+        missing_provenance = frame.filter(
+            pl.any_horizontal(
+                *[
+                    pl.col(column).is_null()
+                    | (pl.col(column).cast(pl.String).str.strip_chars() == "")
+                    for column in (
+                        "source",
+                        "source_dataset_key",
+                        "source_query_hash",
+                        "source_snapshot_version",
+                    )
+                ]
+            )
+        )
+        if missing_provenance.height:
+            raise BaselineGeographyAdapterError(f"{label} contains missing provider provenance")
         _require_unique_value(frame, "source", "GBIF", label)
         _require_unique_value(
             frame,
@@ -338,6 +363,79 @@ def _validate_source_frames(
         )
     if qa_findings.filter(pl.col("severity") == "fatal").height:
         raise BaselineGeographyAdapterError("geographic summary QA contains fatal findings")
+
+
+def _validate_source_manifests(
+    *,
+    spread_manifest: dict[str, Any],
+    summary_manifest: dict[str, Any],
+    artifacts: tuple[BaselineGeographyArtifact, ...],
+    scope: BaselineGeographyScope,
+) -> None:
+    if spread_manifest.get("schema_version") != "geographic-spread-build-v1.0.0":
+        raise BaselineGeographyAdapterError("geographic spread manifest schema differs")
+    if spread_manifest.get("status") != "complete":
+        raise BaselineGeographyAdapterError("geographic spread manifest is incomplete")
+    expected_spread_identity = {
+        "accepted_taxon_key": scope.accepted_taxon_key,
+        "scientific_name": scope.scientific_name,
+        "registry_version": scope.registry_version,
+        "source_snapshot_version": scope.baseline_snapshot_id,
+        "grid_name": scope.grid_name,
+        "grid_version": scope.grid_version,
+        "resolutions": list(scope.spatial_resolutions),
+    }
+    for key, expected in expected_spread_identity.items():
+        if spread_manifest.get(key) != expected:
+            raise BaselineGeographyAdapterError(f"geographic spread manifest {key} differs")
+    if summary_manifest.get("schema_version") != "geographic-summary-build-v1.0.0":
+        raise BaselineGeographyAdapterError("geographic summary manifest schema differs")
+    if summary_manifest.get("status") != "complete":
+        raise BaselineGeographyAdapterError("geographic summary manifest is incomplete")
+    if summary_manifest.get("qa_status") != "passed" or summary_manifest.get("qa_fatal_count") != 0:
+        raise BaselineGeographyAdapterError("geographic summary manifest QA failed")
+    for key, expected in {
+        "registry_version": scope.registry_version,
+        "grid_name": scope.grid_name,
+        "grid_version": scope.grid_version,
+    }.items():
+        if summary_manifest.get(key) != expected:
+            raise BaselineGeographyAdapterError(f"geographic summary manifest {key} differs")
+    by_id = {item.artifact_id: item for item in artifacts}
+    expected_files = (
+        (
+            spread_manifest,
+            "geographic_occurrence_evidence",
+            "biominer-geographic-occurrence-evidence-parquet",
+        ),
+        (
+            spread_manifest,
+            "taxon_geographic_spread",
+            "biominer-taxon-geographic-spread-parquet",
+        ),
+        (
+            summary_manifest,
+            "geographic_qa_findings",
+            "biominer-geographic-qa-findings-parquet",
+        ),
+        (
+            summary_manifest,
+            "taxon_geographic_summary",
+            "biominer-taxon-geographic-summary-parquet",
+        ),
+    )
+    for source_manifest, file_key, artifact_id in expected_files:
+        files = source_manifest.get("files")
+        entry = files.get(file_key) if isinstance(files, dict) else None
+        if not isinstance(entry, dict):
+            raise BaselineGeographyAdapterError(f"source manifest lacks {file_key}")
+        artifact = by_id[artifact_id]
+        if (
+            entry.get("row_count") != artifact.row_count
+            or entry.get("byte_count") != artifact.byte_count
+            or entry.get("sha256") != f"sha256:{artifact.sha256}"
+        ):
+            raise BaselineGeographyAdapterError(f"source manifest metadata differs for {file_key}")
 
 
 def adapt_biominer_baseline_geography(
@@ -385,7 +483,27 @@ def adapt_biominer_baseline_geography(
     qa_findings = pl.read_parquet(
         _artifact_path(artifacts, "biominer-geographic-qa-findings-parquet")
     )
-    _validate_source_frames(spread, occurrence_evidence, summary, qa_findings, scope)
+    validate_biominer_baseline_geography_frames(
+        spread,
+        occurrence_evidence,
+        summary,
+        qa_findings,
+        scope,
+    )
+    spread_manifest = _load_object(
+        _artifact_path(artifacts, "biominer-geographic-spread-manifest"),
+        "geographic spread manifest",
+    )
+    summary_manifest = _load_object(
+        _artifact_path(artifacts, "biominer-geographic-summary-manifest"),
+        "geographic summary manifest",
+    )
+    _validate_source_manifests(
+        spread_manifest=spread_manifest,
+        summary_manifest=summary_manifest,
+        artifacts=artifacts,
+        scope=scope,
+    )
     shared = {
         "scope": scope,
         "origin_repository": origin_repository,
@@ -423,14 +541,8 @@ def adapt_biominer_baseline_geography(
             source_columns=QA_COLUMNS,
             **shared,
         ),
-        spread_manifest=_load_object(
-            _artifact_path(artifacts, "biominer-geographic-spread-manifest"),
-            "geographic spread manifest",
-        ),
-        summary_manifest=_load_object(
-            _artifact_path(artifacts, "biominer-geographic-summary-manifest"),
-            "geographic summary manifest",
-        ),
+        spread_manifest=spread_manifest,
+        summary_manifest=summary_manifest,
     )
 
 
@@ -445,4 +557,5 @@ __all__ = [
     "SPREAD_COLUMNS",
     "SUMMARY_COLUMNS",
     "adapt_biominer_baseline_geography",
+    "validate_biominer_baseline_geography_frames",
 ]

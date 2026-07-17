@@ -62,6 +62,7 @@ components:
       - Copied no BioMiner engine code and made no biological-absence or Flickr-occurrence claim.
     tests:
       - scripts/import_biominer_baseline_geography.py --check
+      - packages/replay/tests/test_biominer_baseline_geography_adapter.py
     status: migrated
   - component_id: biominer_phase14_phase15_prototype_agent_boundary
     source_repository: karikris/BioMiner
