@@ -156,23 +156,24 @@ occurrences or classifications.
 
 ## The 90-second judge route
 
-Start the guided tour in the app and follow:
+Use the numbered product navigation:
 
-1. **Research Mission** — inspect the deterministic target, policy, evidence budget, and blocked
-   live actions.
-2. **Observatory** — open the 13-stage pipeline, run the local DuckDB replay, and trace the final
-   record back to its artifacts.
-3. **Evidence Lens** — inspect discovery provenance, full-frame input contracts, regional
-   candidates, uncertainty, and the unavailable calibrated decision.
-4. **Verification** — download the small checksum-verified Commons image cache, inspect each
-   verification label, and record Yes, No, Can’t tell, Can’t view, or Skip with an optional comment.
-5. **Dashboard** — review the evidence funnel, geographic workload, review priority, query yield,
-   workflow efficiency, and blocked scientific evaluation.
-6. **Export** — prepare and download six deterministic local research outputs, including the
-   prototype boundary.
+1. **Mission** — inspect the deterministic human-verification plan and its planning objective.
+2. **Evidence Lens** — inspect `flickr:55081300254`, then choose **Verify this result**.
+3. **Verify Flickr** — confirm the exact result has no displayable committed media and cannot be
+   labelled; the actionable Commons cache is explicitly separate.
+4. **Verify references** — check the empty public GBIF and iNaturalist routes, return to **All**,
+   prepare the rights-cleared cache, and record one workflow decision.
+5. **Watch quality** — see decisive campaign coverage change while reference readiness remains
+   0 / 24 and the target-precision interval remains unavailable.
+6. **Ask GPT-5.6** — inspect its stored, validated adjudication recommendation for a synthetic
+   conflicted control, clearly separated from current browser state.
+7. **Export** — prepare six checksum-bearing local research outputs, including the prototype
+   boundary.
 
-Use **Reset replay** to return to the initial state. The longer technical and limitation route is
-in the [`JUDGE_GUIDE.md`](JUDGE_GUIDE.md); immutable implementation decisions are recorded under
+Use **Reset replay** to return to the initial state. The built-in guided tour is a slower
+orientation route. Exact timings, expected states, technical checks, and limitations are in
+[`JUDGE_GUIDE.md`](JUDGE_GUIDE.md); immutable implementation decisions are recorded under
 [`docs/reports`](docs/reports/).
 
 The browser packet, bundle campaign and item artifacts, asset verifier, and fixture builder all

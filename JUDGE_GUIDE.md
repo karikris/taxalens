@@ -7,8 +7,8 @@ The supported scored route is the public static replay:
 <https://karikris.github.io/taxalens/>
 
 It requires no installation, login, Flickr key, OpenAI key, Supabase account, Backblaze account,
-GPU, model download, or BioMiner checkout. Select **Reset replay** before starting, then choose
-**Start 90-second judge tour**.
+GPU, model download, or BioMiner checkout. Select **Reset replay** before starting. The route below
+uses the numbered primary navigation so every verification step remains visible.
 
 The local equivalent is:
 
@@ -42,63 +42,82 @@ fails, silently changes the target or counts, or presents unavailable evidence a
 
 ## 90-second route
 
-### 0–15 seconds — Research Mission
+### 0–12 seconds — 1. Mission
 
-1. Start the tour and choose **Visit Research Mission**.
+1. Open **01 Mission**.
 2. Confirm *Papilio demoleus* and `gbif:1938069`.
-3. Confirm replay mode, the pinned registry, bounded plan, and the not-approved live-work state.
+3. Scan the human-verification plan: 80 decisions, a 40-owner Flickr sample, two reviewer labels, a
+   ±20-point planning objective, and human review required before reference support use.
 
-Expected: plan generation is deterministic and OpenAI-independent. If you select **Generate
-deterministic plan**, a SHA-256 plan fingerprint appears; **Launch submitted replay** can only open
-the verified fixture and cannot launch acquisition or inference.
+Expected: all five controls enter deterministic evidence-plan v1.1. The precision number is an
+objective, not an observed interval; reviewer labels are not proof of independent identity.
 
-### 15–35 seconds — Observatory
+### 12–28 seconds — 2. Evidence Lens
 
-1. Resume the tour, advance to Observatory, and choose **Visit Observatory**.
-2. Confirm **30 / 30 verified** and all 13 ordered evidence stages.
-3. Select **Final replay record awaiting review**.
-
-Expected: all 13 contributing stages and 12 contributing artifacts highlight. Counts retain their
-own units, and unavailable stages do not become zero-valued scientific results.
-
-### 35–60 seconds — Evidence Lens
-
-1. Resume, advance, and visit Evidence Lens.
+1. Open **03 Evidence Lens**.
 2. Choose **Inspect verified discovery record**.
-3. Switch the full-frame mode to **Masked full frame**.
-4. Find *Papilio memnon*, geographic uncertainty, and the decision state.
+3. Find source `flickr:55081300254` and choose **Verify this result**.
 
-Expected: source `flickr:55081300254` has two query associations. The masked mode says crossfade is
-unavailable because no transformed image exists. *Papilio memnon* is a planning alternative, the
-best regional competitor remains unavailable, geographic uncertainty is unavailable in metres, and
-the calibrated output is unavailable. The aggregate prototype panel separately shows the frozen
-81-row support bank, exact BioCLIP revision, B13 raw-margin policy, staged operational counts, and
-the prototype-only release boundary. It does not attach those values to the hero record. The page
-states **No scientific result is promoted**.
+Expected: the source has two query associations but remains a candidate. Current local consensus,
+quality contribution, reference state, and event lineage are visible. No scientific result is
+promoted.
 
-### 60–80 seconds — Dashboard
+### 28–42 seconds — 3. Verify the Flickr result boundary
 
-1. Resume, advance, and visit Dashboard.
-2. Scan the evidence funnel, candidate workload, review priority, query yield, efficiency, and
-   reviewed-evaluation state.
+1. Confirm **Exact Flickr result cannot be viewed yet**.
+2. Note that the routed Flickr source has no committed checksum-verified review image.
+3. Use **Flickr Results** only to inspect its retained route and withheld blind-review context, then
+   return to **Reference Images**.
 
-Expected: the dashboard labels its verified local data boundary. It shows candidate workload rather
-than occurrences, refuses conversion rates across unlike units, and leaves reviewed scientific
-metrics unavailable.
+Expected: TaxaLens performs the verification handoff but refuses Yes, No, or Can’t tell for the
+unviewable Flickr source. The actionable Commons fixture below is explicitly separate and cannot
+verify the Flickr result.
 
-### 80–90 seconds — Export
+### 42–58 seconds — 4. Check GBIF/iNaturalist reference readiness
 
-1. Resume, advance to Export, and choose **Visit Export**.
-2. Confirm focus moves to **Export research outputs**.
-3. Choose **Prepare six research outputs**.
+1. In **Reference Images**, select **GBIF**, then **iNaturalist**.
+2. Confirm each public route contains zero displayable items.
+3. Return to **All**, choose **Prepare review cache**, and record one decision on the displayed,
+   CC-licensed Commons workflow fixture. An optional comment may be added.
 
-Expected: six files are prepared locally with deterministic checksums. The prototype-boundary file
-records `GO_PROTOTYPE_ONLY` and the prohibited release modes. The evaluation report still has zero
-committed reviewed metrics, Phase 14 reviewed-evaluation status `blocked`, a human-verified
-shortfall of 490, seven unavailable metric values, and `scientificClaimAllowed: false`.
+Expected: the private 24-item GBIF/iNaturalist reference packet is ready for assigned review but is
+not published as a completed result. Reference readiness remains 0 / 24 independently reviewed.
+BioMiner’s 81 / 81 user-confirmed prototype-role suitability receipt is acknowledged as context,
+not taxonomic verification. The Commons action exercises the product and changes only local
+workflow coverage.
 
-Use **Replay 90-second judge tour** to repeat the route or **Reset replay** to restore all initial
-client state.
+### 58–70 seconds — 5. Watch quality update
+
+1. Open **05 Dashboard**.
+2. Read **Decisive coverage**, **Reference readiness**, **Conflicts**, **Quality interval**, and
+   **Next review milestone**.
+
+Expected after one decisive Commons choice: decisive coverage changes from 0 / 82 to 1 / 82
+campaign assignments. Reference readiness remains blocked, and the target-precision interval
+remains **Unavailable** because there are zero inclusion-weighted decisive Flickr audit outcomes.
+The first quality checkpoint is 20.
+
+### 70–82 seconds — 6. Ask GPT-5.6 for the next action
+
+1. Open **06 Agent Trace**.
+2. Find **GPT-5.6 next review action**.
+3. Confirm the stored recommendation is **adjudication** for one intentionally conflicted control
+   item and inspect its artifact IDs.
+
+Expected: five read-only tool calls and six stored response turns replay locally with no credential
+or live request. The card says **Synthetic evaluation evidence · not current browser state**. It
+demonstrates bounded recommendation logic and predicts no quality, taxonomic, or release outcome.
+
+### 82–90 seconds — 7. Export
+
+1. Return to **05 Dashboard** and find **Export research outputs**.
+2. Choose **Prepare six research outputs**.
+
+Expected: six deterministic local files receive checksums. The evaluation and prototype-boundary
+exports preserve unavailable quality, `GO_PROTOTYPE_ONLY`, and `scientificClaimAllowed: false`.
+
+Use **Reset replay** to clear local state and restore Mission. The built-in guided tour remains
+available as a slower orientation route.
 
 ## Expected counts and visible states
 
@@ -110,12 +129,14 @@ client state.
 | Section records | 36 |
 | Media items | 3 |
 | Guided-tour steps | 6 |
-| Verification campaigns / items / images | 1 / 3 / 3 |
+| Verification campaign assignments / public cache images | 82 / 3 |
+| Public Commons / private Flickr / private reference / control items | 3 / 49 / 24 / 6 |
 | Observatory stages | 13 |
 | DuckDB-Wasm replay operations | 8 |
 | Regional candidate plans | 5 |
-| Stored GPT-5.6 traces | 1 |
-| Stored response turns / tool calls | 2 / 1 |
+| Stored GPT-5.6 traces | 2 |
+| Research replay response turns / tool calls | 2 / 1 |
+| Verification replay response turns / tool calls | 6 / 5 |
 | Deterministic evaluation cases / named checks | 31 / 247 |
 | Local research outputs | 6 |
 | Committed reviewed scientific metrics | 0 |
@@ -182,19 +203,23 @@ eight real operations over committed Parquet and JSON evidence:
 Engineering mode exposes keys, cardinality, rows, nulls, elapsed time, bytes, artifacts, checksums,
 and an inspectable DuckDB `EXPLAIN` plan. A matrix score is never called a hash join.
 
-### 4. Inspect the stored GPT-5.6 trace
+### 4. Inspect the stored GPT-5.6 traces
 
 Open **Agent Trace** and confirm:
 
-- model `gpt-5.6-sol` with medium standard reasoning;
-- **Stored output · no live call**;
-- two stored response turns and one `resolve_taxon` tool call;
-- citation to `query-definitions`;
-- `unsupportedClaimsRejected: true` and `scientificClaimAllowed: false`;
+- the research analyst uses model `gpt-5.6-sol` with medium standard reasoning;
+- both panels say **Stored output · no live call**;
+- the research trace contains two stored response turns, one `resolve_taxon` tool call, and a
+  citation to `query-definitions`;
+- the verification trace contains six stored response turns and five read-only tool calls;
+- the verification recommendation is adjudication for an intentionally conflicted synthetic
+  control item;
+- the verification card says **Synthetic evaluation evidence · not current browser state**;
+- `unsupportedClaimsRejected: true` and `scientificClaimAllowed: false` remain visible;
 - no chain-of-thought, raw Responses items, token estimate, credential, or live-call simulation.
 
-The stored tool result is re-executed locally and must exactly equal the committed result before it
-is displayed.
+Stored tool results are validated against committed fixtures before display. Neither panel is a
+live prediction or evidence that the current human-review ledger contains the synthetic conflict.
 
 ### 5. Exercise the local human-review packet
 
@@ -237,7 +262,8 @@ copied screenshot or stale guide value, are authoritative.
 | --- | --- | --- |
 | TaxaLens hosted source | Live `build-fingerprint.json` `source_sha` | Current static product source |
 | Fixture TaxaLens source | `fab9d3f1605d28d4bbfc3a4d0074f40e5ffff023` | Commit that assembled the current prototype snapshot lineage |
-| BioMiner source | `74a7d648a562efa744e6502ef504a23b63b4e02f` | Current reviewed prototype handoff; includes the 81 / 81 user-goal suitability receipt |
+| Fixture BioMiner source | `74a7d648a562efa744e6502ef504a23b63b4e02f` | Immutable source pinned by the judge bundle; includes the 81 / 81 user-goal suitability receipt |
+| Current BioMiner planning source | `94fa1f634ee3c63917c05d78181dd3cf9ceff940` | Newer upstream repository state acknowledged for workflow planning; not silently substituted into the immutable fixture |
 | Approved AGENTS.md | SHA-256 `39d8bf1df80402d0cfb135d1093618b120f288f525a516196c3ceb6f3eb04ccb` | Product and evidence policy baseline |
 | Judge bundle | `papilio-demoleus-prototype-74a7d648-v3` | Supported replay fixture |
 | Source registry | `butterflies-v2-20260712` | Registry contract displayed in Mission |
@@ -284,7 +310,7 @@ label. It must never replace or mutate the deterministic fixture expectations ab
 
 ## Honest limitations
 
-- The pilot covers one target and one stored analyst session.
+- The pilot covers one target and two stored analyst traces.
 - The fixture contains three rights-cleared Commons images only for the human-verification
   workflow; none is admitted as scientific evidence or as the hero record's image.
 - The aggregate prototype snapshot records upstream YOLOE/BioCLIP execution, but the fixture
@@ -296,9 +322,9 @@ label. It must never replace or mutate the deterministic fixture expectations ab
   490-item human-verification shortfall.
 - The 31-case agent evaluation tests deterministic workflow and policy behaviour, not live GPT-5.6
   answer quality or biodiversity accuracy.
-- Chromium E2E requires the Playwright host libraries. In the Phase 15.3 workspace the browser
-  cannot launch because `libnspr4.so` is absent; unit, contract, static-build, and deployment gates
-  still run, and CI remains the authoritative browser environment.
+- Browser E2E requires the Playwright host libraries. Local Chromium results are recorded by the
+  release gate; Firefox, WebKit, and CI remain separate browser environments and must not be
+  inferred from a Chromium pass.
 - The build and artifact fingerprints are checksum-bearing but not cryptographically signed.
 
 ## Troubleshooting
@@ -318,15 +344,20 @@ label. It must never replace or mutate the deterministic fixture expectations ab
 
 - [ ] Public hosted replay opened without login or installation.
 - [ ] Target, bundle ID, TaxaLens source, and BioMiner source were visible.
-- [ ] Five-step route completed and reset worked.
+- [ ] Seven-step route completed and reset worked.
 - [ ] Observatory showed 30 / 30 verified artifacts and 13 stages.
 - [ ] One record highlighted 13 stages and 12 artifacts.
 - [ ] Evidence Lens kept transformed media, scores, competitor rank, uncertainty, and calibration
       unavailable.
+- [ ] The exact Flickr route stayed unviewable and the separate Commons fixture was not presented
+      as verification of that Flickr source.
+- [ ] GBIF/iNaturalist public review remained 0 / 24 independently reviewed.
 - [ ] Dashboard did not promote workload into an occurrence or reviewed result.
+- [ ] Quality stayed unavailable until inclusion-weighted decisive Flickr audit outcomes exist.
 - [ ] Six outputs were prepared, the prototype receipt stayed prototype-only, and the evaluation
       report remained non-scientific.
-- [ ] Agent Trace was visibly stored, cited, bounded, and credential-free.
+- [ ] Agent Trace was visibly stored, cited, bounded, and credential-free; its verification
+      recommendation remained labelled synthetic evaluation evidence.
 - [ ] Technical fixture, provenance, rights, and deployment fingerprint checks passed.
 - [ ] Optional live work remained disabled and separate.
 - [ ] Limitations were disclosed without promoting Phase 14 prototype evidence into an accuracy or
