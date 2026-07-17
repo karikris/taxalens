@@ -42,10 +42,11 @@ export const JUDGE_TOUR_STEPS: readonly JudgeTourStep[] = Object.freeze([
   },
   {
     view: 'dashboard',
-    title: 'Dashboard',
+    targetId: 'flickr-workload-map',
+    title: 'Flickr Workload Map',
     suggestedSeconds: 15,
     description:
-      'Read the evidence funnel, candidate workload, review priority, query yield, efficiency, and evaluation state without promoting a scientific result.',
+      'Inspect where Flickr processing work exists. This operational cluster view remains separate from Geographic Impact, which compares baseline occurrence evidence with Flickr candidate evidence.',
   },
   {
     view: 'dashboard',

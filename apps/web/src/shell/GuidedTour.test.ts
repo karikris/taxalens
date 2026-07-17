@@ -13,7 +13,7 @@ describe('90-second judge tour contract', () => {
       'Observatory',
       'Evidence Lens',
       'Verification',
-      'Dashboard',
+      'Flickr Workload Map',
       'Export',
     ])
     expect(
@@ -27,6 +27,11 @@ describe('90-second judge tour contract', () => {
       view: 'verification',
       title: 'Verification',
       suggestedSeconds: 25,
+    })
+    expect(JUDGE_TOUR_STEPS[4]).toMatchObject({
+      view: 'dashboard',
+      targetId: 'flickr-workload-map',
+      title: 'Flickr Workload Map',
     })
   })
 

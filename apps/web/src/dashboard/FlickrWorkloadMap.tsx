@@ -58,19 +58,23 @@ export function FlickrWorkloadMap({
 
   return (
     <section
+      id="flickr-workload-map"
       className="geographic-workload"
       aria-labelledby="geographic-workload-title"
+      tabIndex={-1}
       data-map-purpose="flickr-operational-workload"
       data-evidence-semantics="candidate-distribution-only"
       data-scientific-claim-allowed="false"
     >
       <div className="geographic-workload__heading">
         <div>
-          <p className="eyebrow">Candidate acquisition geography</p>
-          <h3 id="geographic-workload-title">Geographic workload map</h3>
+          <p className="eyebrow">Operational Flickr processing</p>
+          <h3 id="geographic-workload-title">Flickr Workload Map</h3>
           <p>
-            Plot checksum-verified cluster centroids as candidate workload. No point is a confirmed
-            occurrence, and no external basemap or tile request is used.
+            This map answers where Flickr processing work exists. It plots checksum-verified
+            cluster centroids as candidate workload; it does not compare baseline occurrence
+            evidence or calculate potential coverage contribution. No point is an occurrence, and
+            no external basemap or tile request is used.
           </p>
         </div>
         <button type="button" disabled={state.kind === 'running'} onClick={loadMap}>
@@ -82,9 +86,11 @@ export function FlickrWorkloadMap({
         </button>
       </div>
 
-      <EvidenceState state="review" title="Candidate distribution only">
-        Cluster radius is a dispersion summary, not coordinate uncertainty. H3 identities and
-        per-cluster review density are not committed.
+      <EvidenceState state="review" title="Operational candidate distribution only">
+        The separate Geographic Impact Lens asks where baseline occurrence evidence exists and
+        where Flickr candidate evidence could add potential coverage after human review and release
+        gates. This workload view reports clusters, outliers, and dispersion only. Cluster radius is
+        not coordinate uncertainty; H3 identities and per-cluster review density are not committed.
       </EvidenceState>
 
       <dl className="geographic-workload__metrics" aria-label="Geographic workload summary">

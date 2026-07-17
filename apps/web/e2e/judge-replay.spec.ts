@@ -87,8 +87,8 @@ test('completes the deterministic judge replay from tour to parsed export', asyn
 
   await page.getByRole('button', { name: 'Resume 90-second judge tour' }).click()
   await page.getByRole('button', { name: 'Next: Verification' }).click()
-  await page.getByRole('button', { name: 'Next: Dashboard' }).click()
-  await page.getByRole('button', { name: 'Visit Dashboard' }).click()
+  await page.getByRole('button', { name: 'Next: Flickr Workload Map' }).click()
+  await page.getByRole('button', { name: 'Visit Flickr Workload Map' }).click()
   await expect(page.getByRole('heading', { name: 'Verified local data boundary' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Evidence funnel' })).toBeVisible()
 

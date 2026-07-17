@@ -87,7 +87,12 @@ describe('FlickrWorkloadMap', () => {
     expect(mapSection).toHaveAttribute('data-evidence-semantics', 'candidate-distribution-only')
     expect(mapSection).toHaveAttribute('data-scientific-claim-allowed', 'false')
     expect(screen.getByText('Cluster payload not yet queried')).toBeInTheDocument()
-    expect(screen.getByText('Candidate distribution only')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Flickr Workload Map' })).toBeInTheDocument()
+    expect(screen.getByText('Operational candidate distribution only')).toBeInTheDocument()
+    expect(screen.getByText(/answers where Flickr processing work exists/)).toBeInTheDocument()
+    expect(
+      screen.getByText(/Geographic Impact Lens asks where baseline occurrence evidence exists/),
+    ).toBeInTheDocument()
     expect(screen.getByText('Candidate clusters').parentElement).toHaveTextContent('76')
     expect(screen.getByText('No-geo').parentElement).toHaveTextContent('Verify locally')
     expect(screen.getByText('Unassigned geotags').parentElement).toHaveTextContent('792')

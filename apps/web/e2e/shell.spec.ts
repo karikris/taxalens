@@ -935,8 +935,10 @@ test('maps verified candidate workload without claiming occurrences or review de
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('./#dashboard')
 
-  await expect(page.getByRole('heading', { name: 'Geographic workload map' })).toBeVisible()
-  await expect(page.getByText('Candidate distribution only', { exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Flickr Workload Map' })).toBeVisible()
+  await expect(
+    page.getByText('Operational candidate distribution only', { exact: true }),
+  ).toBeVisible()
   await expect(page.getByText('Cluster payload not yet queried', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Load verified workload map' }).click()
 
