@@ -14,10 +14,14 @@ test('completes Evidence Lens verification, quality contribution, return, and ex
   })
 
   await page.getByRole('link', { name: 'Verify this result' }).click()
-  await expect(page.getByRole('tab', { name: 'Flickr Results' })).toHaveAttribute(
+  await expect(page.getByRole('tab', { name: 'Reference Images' })).toHaveAttribute(
     'aria-selected',
     'true',
   )
+  await expect(
+    page.getByText('Exact Flickr result cannot be viewed yet'),
+  ).toBeVisible()
+  await page.getByRole('tab', { name: 'Flickr Results' }).click()
   await expect(
     page.getByText('Flickr candidate review media is unavailable'),
   ).toBeVisible()
@@ -52,9 +56,12 @@ test('completes Evidence Lens verification, quality contribution, return, and ex
       name: 'Local human verification evidence',
     }),
   ).toBeVisible()
+  const humanSummary = humanEvidence.locator(
+    '.human-verification-evidence__summary',
+  )
   await expect(
-    humanEvidence.getByText('Current human outcomes').locator('..'),
-  ).toContainText('1 of 3')
+    humanSummary.getByText('Current human consensus').locator('..'),
+  ).toContainText('1 of 3 decisive')
   await expect(
     humanEvidence.getByRole('list', {
       name: 'Current human verification outcomes',

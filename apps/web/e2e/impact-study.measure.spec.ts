@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { expect, test, type Page } from '@playwright/test'
 
@@ -20,6 +20,10 @@ import {
 
 const RUN_STUDY = process.env.TAXALENS_RUN_IMPACT_STUDY === '1'
 const OUTPUT_PATH = process.env.TAXALENS_IMPACT_OUTPUT
+const MANUAL_BASELINE_HTML = readFileSync(
+  new URL('./fixtures/manual-verification-baseline.html', import.meta.url),
+  'utf8',
+)
 const TAXALENS_SHA = 'f62ac135e9222ea4c39933f420b2e96aa73ce742'
 const CAMPAIGN_ID = 'papilio-demoleus-commons-review-v1'
 const TASK_SET_ID =
@@ -146,7 +150,8 @@ async function collectManualSession(
     taskSetId: TASK_SET_ID,
     startedAt: now(),
   })
-  await page.goto('./impact/manual-verification-baseline.html')
+  await page.goto('./')
+  await page.setContent(MANUAL_BASELINE_HTML)
   await expect(
     page.getByRole('heading', { name: 'Manual verification baseline' }),
   ).toBeVisible()
@@ -227,7 +232,7 @@ async function collectAssistedSession(page: Page) {
     taxalensSha: TAXALENS_SHA,
     campaignId: CAMPAIGN_ID,
   })
-  await page.goto('./#verification')
+  await page.goto('./?impact-complete=1#verification')
   await expect(
     page.getByRole('heading', { name: 'Review the label, one image at a time' }),
   ).toBeVisible()

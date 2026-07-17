@@ -18,6 +18,10 @@ test.beforeEach(async ({ page }) => {
 
 test('protects the blocked Flickr review boundary', async ({ page }) => {
   await page.goto(FLICKR_REVIEW_ROUTE)
+  await expect(
+    page.getByText('Exact Flickr result cannot be viewed yet'),
+  ).toBeVisible()
+  await page.getByRole('tab', { name: 'Flickr Results' }).click()
   const review = page.locator('.flickr-candidate-route')
   await expect(
     review.getByText('Flickr candidate review media is unavailable'),

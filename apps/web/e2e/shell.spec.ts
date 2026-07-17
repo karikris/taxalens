@@ -146,10 +146,14 @@ test('routes Evidence Lens through Verification and returns local review lineage
   )
   await verifyResult.click()
 
-  await expect(page.getByRole('tab', { name: 'Flickr Results' })).toHaveAttribute(
+  await expect(page.getByRole('tab', { name: 'Reference Images' })).toHaveAttribute(
     'aria-selected',
     'true',
   )
+  await expect(
+    page.getByText('Exact Flickr result cannot be viewed yet'),
+  ).toBeVisible()
+  await page.getByRole('tab', { name: 'Flickr Results' }).click()
   await expect(
     page.getByRole('heading', {
       name: 'Papilio demoleus Flickr candidate intake',
@@ -178,18 +182,21 @@ test('routes Evidence Lens through Verification and returns local review lineage
       name: 'Local human verification evidence',
     }),
   ).toBeVisible()
-  await expect(
-    humanEvidence.getByText('Current human outcomes').locator('..'),
-  ).toContainText('1 of 3')
   const humanSummary = humanEvidence.locator(
-    '.human-verification-evidence__summary > div',
+    '.human-verification-evidence__summary',
   )
   await expect(
-    humanSummary.filter({ hasText: 'Reviewer count' }),
-  ).toContainText('1 recorded reviewer identity')
+    humanSummary.getByText('Current human consensus').locator('..'),
+  ).toContainText('0 of 3 decisive')
   await expect(
-    humanSummary.filter({ hasText: 'Conflict status' }),
-  ).toContainText('Not calculated')
+    humanSummary.getByText('Current human consensus').locator('..'),
+  ).toContainText('1 recorded reviewer label')
+  await expect(
+    humanSummary.getByText('Current human consensus').locator('..'),
+  ).toContainText('0 unresolved conflicts')
+  await expect(
+    humanSummary.getByText('Event lineage').locator('..'),
+  ).toContainText('1 retained')
   await expect(
     humanEvidence.getByRole('list', {
       name: 'Current human verification outcomes',
@@ -271,7 +278,7 @@ test('configures a bounded mission without enabling unsupported live work', asyn
 
   await page.getByRole('button', { name: 'Generate deterministic plan' }).click()
   await expect(page.getByRole('heading', { name: 'Evidence plan' })).toBeVisible()
-  await expect(page.getByText('taxalens-evidence-plan-v1.0.0', { exact: true })).toBeVisible()
+  await expect(page.getByText('taxalens-evidence-plan-v1.1.0', { exact: true })).toBeVisible()
   await expect(page.getByText(/^sha256:[0-9a-f]{64}$/u)).toBeVisible()
   await expect(page.getByText('butterflies-v2-20260712', { exact: true })).toBeVisible()
   await expect(page.getByText('Explicit approval remains required')).toBeVisible()
