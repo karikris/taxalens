@@ -75,6 +75,10 @@ describe('geographic impact query sources', () => {
       'geographic_impact_cells.parquet',
       'geographic_impact_summary.parquet',
     ])
+    for (const [index, [, registeredBytes]] of registerFileBuffer.mock.calls.entries()) {
+      expect(registeredBytes).not.toBe(sources.parquetSources[index]?.artifact.bytes)
+      expect(registeredBytes).toEqual(sources.parquetSources[index]?.artifact.bytes)
+    }
     expect(result).toMatchObject({ registeredFileCount: 4, registeredBytes: 12 })
     expect(result.artifacts.map(({ recordCount }) => recordCount)).toEqual([9, 12, 7, 3])
     expect(Object.isFrozen(result.artifacts)).toBe(true)

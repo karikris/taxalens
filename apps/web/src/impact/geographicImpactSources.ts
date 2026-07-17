@@ -222,7 +222,8 @@ export async function registerGeographicImpactQuerySources(
     ) {
       throw new Error(`${source.logicalName} is not a non-empty verified Parquet artifact`)
     }
-    await target.registerFileBuffer(source.fileName, source.artifact.bytes)
+    const transferableBytes = source.artifact.bytes.slice()
+    await target.registerFileBuffer(source.fileName, transferableBytes)
     registered.add(source.fileName)
     artifacts.push(
       Object.freeze({

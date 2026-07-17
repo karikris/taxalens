@@ -238,12 +238,21 @@ describe('browser geographic impact full outer join', () => {
     expect(sql).toContain('baseline.spatial_resolution = flickr.spatial_resolution')
     expect(sql).toContain('baseline.spatial_cell_id = flickr.spatial_cell_id')
     expect(sql).toContain("impact.country_code = 'AU'")
+    expect(sql).not.toContain('SELECT *')
     const rollupSql = duckDb.send.mock.calls
       .map(([statement]) => statement)
       .find((statement) => statement.startsWith('WITH selected_rollup'))
     expect(rollupSql).toContain("scope_level = 'country'")
     expect(rollupSql).toContain("scope_level = 'admin1'")
     expect(rollupSql).toContain("parent_scope_id = 'country:AU'")
+    expect(rollupSql).not.toContain('SELECT *')
+    const projectedViews = duckDb.query.mock.calls
+      .map(([statement]) => statement)
+      .filter((statement) => statement.includes('read_parquet'))
+    expect(projectedViews).toHaveLength(4)
+    expect(projectedViews.every((statement) => !statement.includes('SELECT *'))).toBe(true)
+    expect(projectedViews[0]).toContain('canonical_observation_id')
+    expect(projectedViews[1]).toContain('human_review_state')
   })
 
   it('fails closed when the source join differs from materialized impact', async () => {

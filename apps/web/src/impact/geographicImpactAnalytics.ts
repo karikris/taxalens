@@ -369,6 +369,42 @@ function buildEngineeringMetrics(input: EngineeringMetricInput): GeographicImpac
 export function buildGeographicRollupSql(sources: GeographicImpactQuerySources): string {
   const { input } = sources
   const identity = input.evidenceScope
+  const resultColumns = `scope_level,
+      scope_id,
+      scope_name,
+      parent_scope_id,
+      continent,
+      country_code,
+      country,
+      admin1,
+      baseline_evidence_status,
+      baseline_union_count,
+      baseline_range_inference_eligible_count,
+      gbif_only_count,
+      inaturalist_origin_through_gbif_count,
+      direct_inaturalist_delta_status,
+      direct_inaturalist_delta_count,
+      duplicates_removed_count,
+      unresolved_provider_duplicate_group_count,
+      cell_count,
+      baseline_occupied_cell_count,
+      flickr_candidate_count,
+      flickr_visually_eligible_count,
+      reviewed_positive_count,
+      reviewed_negative_count,
+      uncertain_count,
+      pending_count,
+      media_failure_count,
+      skipped_count,
+      release_ready_count,
+      flickr_occupied_cell_count,
+      baseline_only_cell_count,
+      matched_cell_count,
+      candidate_only_cell_count,
+      reviewed_additional_cell_count,
+      release_ready_additional_cell_count,
+      maximum_nearest_baseline_distance_km,
+      data_deficient_state`
   const filters = `project_id = ${sqlLiteral(identity.projectId)}
       AND run_id = ${sqlLiteral(identity.runId)}
       AND accepted_taxon_key = ${sqlLiteral(identity.targetAcceptedTaxonKey)}
@@ -383,19 +419,19 @@ export function buildGeographicRollupSql(sources: GeographicImpactQuerySources):
         AND scope_level = ${sqlLiteral(childLevel)}
         AND parent_scope_id = ${sqlLiteral(input.geographicScope.id)}`
   return `WITH selected_rollup AS (
-      SELECT 0::UTINYINT AS result_order, *
+      SELECT 0::UTINYINT AS result_order, ${resultColumns}
       FROM materialized_geographic_summary
       WHERE ${filters}
         AND scope_level = ${sqlLiteral(input.geographicScope.level)}
         AND scope_id = ${sqlLiteral(input.geographicScope.id)}
     ), child_rollups AS (
-      SELECT 1::UTINYINT AS result_order, *
+      SELECT 1::UTINYINT AS result_order, ${resultColumns}
       FROM materialized_geographic_summary
       ${childSelection}
     )
-    SELECT * FROM selected_rollup
+    SELECT result_order, ${resultColumns} FROM selected_rollup
     UNION ALL BY NAME
-    SELECT * FROM child_rollups
+    SELECT result_order, ${resultColumns} FROM child_rollups
     ORDER BY result_order,
       ${rollupOrderExpression(input.metric)} DESC NULLS LAST,
       scope_name,
@@ -410,14 +446,118 @@ async function createGeographicViews(
   if (baselineFile === undefined) {
     throw new Error('geographic baseline registration is missing')
   }
+  const baselineColumns =
+    sources.baselineSource === 'baseline_occurrence_union'
+      ? `project_id,
+        run_id,
+        accepted_taxon_key,
+        baseline_snapshot_id,
+        spatial_resolution,
+        spatial_cell_id,
+        canonical_observation_id,
+        canonical_flag,
+        range_inference_eligible`
+      : `accepted_taxon_key,
+        source_snapshot_version,
+        spatial_resolution,
+        spatial_cell_id,
+        occurrence_count,
+        range_inference_eligible_count`
   await connection.query(`CREATE TEMP VIEW baseline_geographic_source AS
-    SELECT * FROM read_parquet(${sqlLiteral(baselineFile)})`)
+    SELECT ${baselineColumns}
+    FROM read_parquet(${sqlLiteral(baselineFile)})`)
   await connection.query(`CREATE TEMP VIEW flickr_geographic_source AS
-    SELECT * FROM read_parquet('flickr_geography.parquet')`)
+    SELECT
+      project_id,
+      run_id,
+      target_accepted_taxon_key,
+      flickr_snapshot_id,
+      spatial_resolution,
+      spatial_cell_id,
+      flickr_photo_id,
+      cell_supported,
+      machine_screening_state,
+      human_review_state
+    FROM read_parquet('flickr_geography.parquet')`)
   await connection.query(`CREATE TEMP VIEW materialized_geographic_impact AS
-    SELECT * FROM read_parquet('geographic_impact_cells.parquet')`)
+    SELECT
+      project_id,
+      run_id,
+      accepted_taxon_key,
+      baseline_snapshot_id,
+      flickr_snapshot_id,
+      spatial_resolution,
+      spatial_cell_id,
+      continent,
+      country_code,
+      country,
+      admin1,
+      centroid_latitude,
+      centroid_longitude,
+      baseline_union_count,
+      baseline_range_inference_eligible_count,
+      flickr_candidate_count,
+      flickr_visually_eligible_count,
+      reviewed_positive_count,
+      reviewed_negative_count,
+      uncertain_count,
+      pending_count,
+      media_failure_count,
+      skipped_count,
+      release_ready_count,
+      baseline_only_cell,
+      matched_cell,
+      candidate_only_cell,
+      reviewed_additional_cell,
+      release_ready_additional_cell,
+      nearest_baseline_distance_km,
+      data_deficient_state
+    FROM read_parquet('geographic_impact_cells.parquet')`)
   await connection.query(`CREATE TEMP VIEW materialized_geographic_summary AS
-    SELECT * FROM read_parquet('geographic_impact_summary.parquet')`)
+    SELECT
+      project_id,
+      run_id,
+      accepted_taxon_key,
+      baseline_snapshot_id,
+      flickr_snapshot_id,
+      spatial_resolution,
+      scope_level,
+      scope_id,
+      scope_name,
+      parent_scope_id,
+      continent,
+      country_code,
+      country,
+      admin1,
+      baseline_evidence_status,
+      baseline_union_count,
+      baseline_range_inference_eligible_count,
+      gbif_only_count,
+      inaturalist_origin_through_gbif_count,
+      direct_inaturalist_delta_status,
+      direct_inaturalist_delta_count,
+      duplicates_removed_count,
+      unresolved_provider_duplicate_group_count,
+      cell_count,
+      baseline_occupied_cell_count,
+      flickr_candidate_count,
+      flickr_visually_eligible_count,
+      reviewed_positive_count,
+      reviewed_negative_count,
+      uncertain_count,
+      pending_count,
+      media_failure_count,
+      skipped_count,
+      release_ready_count,
+      flickr_occupied_cell_count,
+      baseline_only_cell_count,
+      matched_cell_count,
+      candidate_only_cell_count,
+      reviewed_additional_cell_count,
+      release_ready_additional_cell_count,
+      maximum_nearest_baseline_distance_km,
+      data_deficient_state
+    FROM read_parquet('geographic_impact_summary.parquet')`)
 }
 
 export function buildGeographicImpactSql(sources: GeographicImpactQuerySources): string {
@@ -618,7 +758,50 @@ export function buildGeographicImpactSql(sources: GeographicImpactQuerySources):
         AND (${scopePredicate})
       )
     )
-    SELECT *
+    SELECT
+      spatial_resolution,
+      spatial_cell_id,
+      continent,
+      country_code,
+      country,
+      admin1,
+      centroid_latitude,
+      centroid_longitude,
+      baseline_union_count,
+      baseline_eligible_count,
+      flickr_candidate_count,
+      flickr_visually_eligible_count,
+      reviewed_positive_count,
+      reviewed_negative_count,
+      uncertain_count,
+      pending_count,
+      media_failure_count,
+      skipped_count,
+      release_ready_count,
+      baseline_only_cell,
+      matched_cell,
+      candidate_only_cell,
+      reviewed_additional_cell,
+      release_ready_additional_cell,
+      nearest_baseline_distance_km,
+      data_deficient_state,
+      materialized_baseline_union_count,
+      materialized_baseline_eligible_count,
+      materialized_flickr_candidate_count,
+      materialized_flickr_visually_eligible_count,
+      materialized_reviewed_positive_count,
+      materialized_reviewed_negative_count,
+      materialized_uncertain_count,
+      materialized_pending_count,
+      materialized_media_failure_count,
+      materialized_skipped_count,
+      materialized_baseline_only_cell,
+      materialized_matched_cell,
+      materialized_candidate_only_cell,
+      materialized_reviewed_additional_cell,
+      materialized_release_ready_additional_cell,
+      source_cell_present,
+      impact_cell_present
     FROM reconciled_cells
     WHERE (${evidencePredicate}) OR NOT source_cell_present OR NOT impact_cell_present
     ORDER BY spatial_cell_id`
