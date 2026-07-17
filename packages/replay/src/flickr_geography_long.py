@@ -140,10 +140,10 @@ def _support_status(cell_column: str) -> pl.Expr:
     return (
         pl.when(pl.col(cell_column).is_not_null())
         .then(pl.lit("supported"))
-        .when(~pl.col("geotag_available"))
-        .then(pl.lit("unavailable_geography"))
         .when(pl.col("coordinate_quality") == "invalid")
         .then(pl.lit("invalid_coordinate"))
+        .when(~pl.col("geotag_available"))
+        .then(pl.lit("unavailable_geography"))
         .otherwise(pl.lit("unsupported_precision"))
     )
 

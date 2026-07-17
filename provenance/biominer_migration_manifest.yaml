@@ -62,6 +62,7 @@ components:
       - Produced zero human-supported and zero release-ready claims.
     tests:
       - scripts/build_flickr_geography_verification.py --check
+      - packages/replay/tests/test_flickr_geography_handoff.py
     status: migrated
   - component_id: taxalens_flickr_geography_long
     source_repository: karikris/BioMiner
@@ -81,6 +82,7 @@ components:
       - Performed no country or admin inference and made no occurrence claim.
     tests:
       - scripts/build_flickr_geography_long.py --check
+      - packages/replay/tests/test_flickr_geography_handoff.py
     status: migrated
   - component_id: biominer_flickr_geography_handoff
     source_repository: karikris/BioMiner
@@ -100,6 +102,7 @@ components:
       - Kept the replay repository-contained with no Supabase or Backblaze B2 requirement.
     tests:
       - scripts/verify_flickr_geography_handoff.py
+      - packages/replay/tests/test_flickr_geography_handoff.py
     status: migrated
   - component_id: biominer_baseline_geographic_handoff
     source_repository: karikris/BioMiner
