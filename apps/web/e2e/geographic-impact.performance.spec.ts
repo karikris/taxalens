@@ -73,6 +73,16 @@ interface GeographicPerformanceMeasurement {
   }
 }
 
+interface PerformanceSampleSummary {
+  readonly samples: readonly number[]
+  readonly minimum: number
+  readonly median: number
+  readonly p95: number
+  readonly maximum: number
+}
+
+const MAP_STARTUP_SAMPLE_COUNT = 5
+
 const benchmarkLogicalNames = Object.freeze([
   'baseline_geographic_spread',
   'baseline_occurrence_union',
@@ -411,3 +421,77 @@ test('measures the real committed Geographic Impact browser path', async ({ page
 
   console.log(`GEOGRAPHIC_IMPACT_PERFORMANCE ${JSON.stringify(reportedMeasurement)}`)
 })
+
+test('measures repeated application map initialization', async ({ browser }) => {
+  test.setTimeout(120_000)
+  const samples: number[] = []
+  const featureCounts: number[] = []
+
+  for (let sample = 0; sample < MAP_STARTUP_SAMPLE_COUNT; sample += 1) {
+    const context = await browser.newContext({
+      colorScheme: 'light',
+      locale: 'en-AU',
+      reducedMotion: 'no-preference',
+      viewport: { width: 1280, height: 720 },
+    })
+    const page = await context.newPage()
+    await page.addInitScript(() => {
+      ;(window as typeof window & { __taxalensMapInitializationStartedAt?: number })
+        .__taxalensMapInitializationStartedAt = performance.now()
+    })
+    try {
+      await page.goto('/#dashboard', { waitUntil: 'domcontentloaded' })
+      const canvas = page.locator('.taxalens-world-map__canvas[data-map-loaded="true"]')
+      await expect(canvas).toHaveAttribute('data-camera-scope', 'global', {
+        timeout: 60_000,
+      })
+      await expect(canvas).toHaveAttribute('data-baseline-evidence', 'true')
+      await expect(canvas).toHaveAttribute('data-flickr-evidence', 'true')
+
+      const elapsedMilliseconds = await page.evaluate(() => {
+        const startedAt = (
+          window as typeof window & { __taxalensMapInitializationStartedAt?: number }
+        ).__taxalensMapInitializationStartedAt
+        if (startedAt === undefined) {
+          throw new Error('Geographic Impact map initialization timer was not installed')
+        }
+        return performance.now() - startedAt
+      })
+      const featureCount = Number(await canvas.getAttribute('data-impact-feature-count'))
+      samples.push(elapsedMilliseconds)
+      featureCounts.push(featureCount)
+    } finally {
+      await context.close()
+    }
+  }
+
+  expect(featureCounts).toEqual(Array(MAP_STARTUP_SAMPLE_COUNT).fill(2_155))
+  const measurement = {
+    sampleCount: MAP_STARTUP_SAMPLE_COUNT,
+    featureCount: featureCounts[0],
+    milliseconds: summarizePerformanceSamples(samples),
+  }
+  console.log(`GEOGRAPHIC_IMPACT_MAP_INITIALIZATION ${JSON.stringify(measurement)}`)
+})
+
+function summarizePerformanceSamples(samples: readonly number[]): PerformanceSampleSummary {
+  if (samples.length === 0) throw new Error('Performance samples must not be empty')
+  const sorted = [...samples].sort((left, right) => left - right)
+  const middle = Math.floor(sorted.length / 2)
+  const median =
+    sorted.length % 2 === 0
+      ? (sorted[middle - 1]! + sorted[middle]!) / 2
+      : sorted[middle]!
+  const p95Index = Math.max(0, Math.ceil(sorted.length * 0.95) - 1)
+  return Object.freeze({
+    samples: Object.freeze(samples.map(roundMilliseconds)),
+    minimum: roundMilliseconds(sorted[0]!),
+    median: roundMilliseconds(median),
+    p95: roundMilliseconds(sorted[p95Index]!),
+    maximum: roundMilliseconds(sorted.at(-1)!),
+  })
+}
+
+function roundMilliseconds(value: number): number {
+  return Number(value.toFixed(2))
+}
