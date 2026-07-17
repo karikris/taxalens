@@ -149,6 +149,8 @@ async function readBundleIdentity(buildRoot) {
 }
 
 async function readReviewMediaIdentity(buildRoot) {
+  const bundle = JSON.parse(await readFile(join(buildRoot, 'judge_bundle.json'), 'utf8'))
+  const expectedItemCount = bundle.expected_ui_counts?.section_records?.verification_media
   const manifest = JSON.parse(
     await readFile(
       join(buildRoot, 'verification/campaign_manifest.json'),
@@ -164,7 +166,9 @@ async function readReviewMediaIdentity(buildRoot) {
     manifest.campaign?.samplingPlan?.purpose !==
       'credential_free_fixture' ||
     !Array.isArray(manifest.items) ||
-    manifest.items.length !== 3 ||
+    !Number.isSafeInteger(expectedItemCount) ||
+    expectedItemCount < 1 ||
+    manifest.items.length !== expectedItemCount ||
     manifest.items.some(
       (item) =>
         item.rights?.policyStatus !== 'allowed' ||
@@ -173,7 +177,7 @@ async function readReviewMediaIdentity(buildRoot) {
     )
   ) {
     throw new Error(
-      'Built review media does not expose the credential-free three-image fixture.',
+      'Built review media does not expose a credential-free fixture.',
     )
   }
   return Object.freeze({
@@ -181,7 +185,7 @@ async function readReviewMediaIdentity(buildRoot) {
     manifest_sha256: manifest.manifestSha256,
     campaign_id: manifest.campaign.campaignId,
     delivery: 'bundled_checksum_verified_fixture',
-    item_count: 3,
+    item_count: manifest.items.length,
     private_media_included: false,
   })
 }

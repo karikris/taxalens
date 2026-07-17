@@ -102,7 +102,7 @@ export async function verifyPublicReviewMediaBuild({
     builtManifest.manifestSha256 !== manifest.manifestSha256 ||
     builtManifest.campaign?.campaignId !== manifest.campaign.campaignId ||
     builtManifest.campaign?.publicReplay !== true ||
-    builtManifest.items?.length !== 3
+    builtManifest.items?.length !== manifest.items.length
   ) {
     throw new Error(
       'Built verification campaign differs from the approved public fixture.',
@@ -134,10 +134,10 @@ function approvedMediaFromManifest(manifest) {
     manifest.campaign?.samplingPlan?.purpose !==
       'credential_free_fixture' ||
     !Array.isArray(manifest.items) ||
-    manifest.items.length !== 3
+    manifest.items.length === 0
   ) {
     throw new Error(
-      'Public review media verification requires the signed three-image fixture manifest.',
+      'Public review media verification requires a non-empty signed fixture manifest.',
     )
   }
   const approved = new Map()

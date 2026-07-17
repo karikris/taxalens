@@ -2,7 +2,7 @@ import type { AsyncDuckDBConnection } from '@duckdb/duckdb-wasm'
 
 import type {
   AnalyticsArtifactProvenance,
-  GeographyReferenceEvidenceBoundary,
+  GeographicWorkloadReplayInput,
   ParquetArtifactInput,
 } from '../data/evidenceFacade'
 import {
@@ -12,14 +12,10 @@ import {
   loadLocalParquetExtension,
 } from '../data/duckdbRuntime'
 
-const ASSIGNMENTS_ARTIFACT = 'biominer-flickr-geo-assignments-parquet'
-const CLUSTERS_ARTIFACT = 'biominer-flickr-geo-clusters-parquet'
+const ASSIGNMENTS_SCHEMA = 'biominer-flickr-geo-assignments-parquet:v1.0.0'
+const CLUSTERS_SCHEMA = 'biominer-flickr-geo-clusters-parquet:v1.0.0'
 
-export interface GeographicWorkloadInput {
-  readonly artifacts: readonly ParquetArtifactInput[]
-  readonly boundary: GeographyReferenceEvidenceBoundary
-  readonly targetAcceptedTaxonKey: string
-}
+export type GeographicWorkloadInput = GeographicWorkloadReplayInput
 
 export interface GeographicWorkloadCluster {
   readonly id: string
@@ -60,8 +56,14 @@ export async function executeGeographicWorkload(
     throw new Error('Geographic workload requires exactly two verified Parquet artifacts')
   }
   const fileNames: Readonly<Record<string, string>> = {
-    [ASSIGNMENTS_ARTIFACT]: 'flickr_geo_assignments.parquet',
-    [CLUSTERS_ARTIFACT]: 'flickr_geo_clusters.parquet',
+    [ASSIGNMENTS_SCHEMA]: 'flickr_geo_assignments.parquet',
+    [CLUSTERS_SCHEMA]: 'flickr_geo_clusters.parquet',
+  }
+  const assignmentArtifact = input.artifacts.find(
+    ({ schemaVersion }) => schemaVersion === ASSIGNMENTS_SCHEMA,
+  )
+  if (assignmentArtifact?.recordCount === null || assignmentArtifact?.recordCount === undefined) {
+    throw new Error('Geographic assignment count is unavailable from the verified manifest')
   }
   const { database } = await createDuckDbRuntime()
   let connection: AsyncDuckDBConnection | undefined
@@ -74,7 +76,10 @@ export async function executeGeographicWorkload(
       )
     }
     for (const artifact of input.artifacts) {
-      const fileName = fileNames[artifact.artifactId]
+      const fileName =
+        artifact.schemaVersion === null || artifact.schemaVersion === undefined
+          ? undefined
+          : fileNames[artifact.schemaVersion]
       if (
         fileName === undefined ||
         artifact.mediaType !== 'application/vnd.apache.parquet' ||
@@ -151,7 +156,7 @@ export async function executeGeographicWorkload(
       clusterRows.numRows !== locatedClusterCount ||
       unassignedGeotaggedRecordCount !== boundary.unassignedGeotaggedRecordCount ||
       outlierRecordCount !== boundary.outlierRecordCount ||
-      assignmentRecordCount !== 13_501
+      assignmentRecordCount !== assignmentArtifact.recordCount
     ) {
       throw new Error('Parquet workload counts differ from the verified geographic summary')
     }
@@ -237,6 +242,7 @@ function provenanceOnly(
         artifactId: artifact.artifactId,
         mediaType: artifact.mediaType,
         path: artifact.path,
+        schemaVersion: artifact.schemaVersion ?? null,
         sizeBytes: artifact.sizeBytes,
         sha256: artifact.sha256,
         recordCount: artifact.recordCount,

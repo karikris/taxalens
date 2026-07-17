@@ -37,21 +37,7 @@ export function GeographicWorkloadMap({
     setState({ kind: 'running' })
     void (async () => {
       try {
-        const artifactIds = new Set([
-          'biominer-flickr-geo-assignments-parquet',
-          'biominer-flickr-geo-clusters-parquet',
-        ])
-        const artifacts = facade
-          .loadAnalyticsReplayInput()
-          .artifacts.filter(({ artifactId }) => artifactIds.has(artifactId))
-        if (artifacts.length !== 2) {
-          throw new Error('Verified geographic workload Parquets are incomplete')
-        }
-        const result = await execute({
-          artifacts,
-          boundary,
-          targetAcceptedTaxonKey: replay.target.acceptedTaxonKey,
-        })
+        const result = await execute(facade.loadGeographicWorkloadInput())
         setSelectedClusterId(result.clusters[0]?.id ?? null)
         setState({ kind: 'ready', result })
       } catch (reason: unknown) {

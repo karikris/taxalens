@@ -84,6 +84,40 @@ async function parquetFixtureOverrides(): Promise<
   }
 }
 
+async function changedPrototypeCountOverrides(): Promise<
+  Readonly<Record<string, string | Uint8Array<ArrayBuffer>>>
+> {
+  const manifest = structuredClone(committedJudgeBundle) as unknown as JudgeBundleContract
+  const descriptor = manifest.artifact_inventory.find(
+    ({ artifact_id: artifactId }) => artifactId === 'prototype-evidence-snapshot',
+  )
+  if (descriptor === undefined) {
+    throw new Error('Committed fixture has no prototype evidence descriptor')
+  }
+  const original = committedFixtureFiles[descriptor.path]
+  if (typeof original !== 'string') {
+    throw new Error('Committed prototype evidence fixture is missing')
+  }
+  const snapshot = JSON.parse(original) as {
+    contracts: { vision_runtime: { data: { smoke: { images: number } } } }
+  }
+  snapshot.contracts.vision_runtime.data.smoke.images = 6
+  const changed = JSON.stringify(snapshot)
+  const changedBytes = new TextEncoder().encode(changed)
+  descriptor.bytes = changedBytes.byteLength
+  descriptor.sha256 = await sha256Hex(changedBytes)
+  manifest.checksums.inventory_sha256 = await sha256Hex(
+    new TextEncoder().encode(canonicalJson(manifest.artifact_inventory)),
+  )
+  const files = [...manifest.artifact_inventory]
+    .sort((left, right) => (left.path < right.path ? -1 : left.path > right.path ? 1 : 0))
+    .map(({ bytes, path, sha256 }) => ({ bytes, path, sha256 }))
+  manifest.checksums.payload_root_sha256 = await sha256Hex(
+    new TextEncoder().encode(canonicalJson({ files })),
+  )
+  return { 'judge_bundle.json': JSON.stringify(manifest), [descriptor.path]: changed }
+}
+
 describe('loadEvidenceFacade', () => {
   it('validates the committed contract and verifies every artifact in deterministic order', async () => {
     const fetcher = vi.fn(createCommittedFixtureFetcher())
@@ -396,6 +430,7 @@ describe('loadEvidenceFacade', () => {
       1_647_550,
     )
     expect(analytics.artifacts[0]).toMatchObject({
+      schemaVersion: 'biominer-flickr-query-hits-parquet:v1.0.0',
       sizeBytes: 222_190,
       recordCount: 76_485,
       sha256: '95448f3145d903f7f042fe41d74561475ef050f8df21b318ebacb252484e4f0b',
@@ -429,6 +464,13 @@ describe('loadEvidenceFacade', () => {
     expect(discovery.receipt).toMatchObject({
       originCommit: '75461d9c065af0cd96b41cd1f845c2e920f7ae34',
     })
+    const workload = facade.loadGeographicWorkloadInput()
+    expect(workload.artifacts.map(({ schemaVersion }) => schemaVersion)).toEqual([
+      'biominer-flickr-geo-assignments-parquet:v1.0.0',
+      'biominer-flickr-geo-clusters-parquet:v1.0.0',
+    ])
+    expect(workload.boundary).toBe(facade.replay.geographyReference)
+    expect(workload.targetAcceptedTaxonKey).toBe(facade.replay.target.acceptedTaxonKey)
     const firstByte = analytics.artifacts[0]?.bytes[0]
     if (analytics.artifacts[0] === undefined) {
       throw new Error('Analytics fixture has no query-hit Parquet bytes')
@@ -450,6 +492,15 @@ describe('loadEvidenceFacade', () => {
         createCommittedFixtureFetcher({ 'data/run_summary.json': tampered }),
       ),
     ).rejects.toThrow('run-summary checksum verification failed')
+  })
+
+  it('derives prototype operational counts from the verified artifact', async () => {
+    const facade = await loadEvidenceFacade(
+      new AbortController().signal,
+      createCommittedFixtureFetcher(await changedPrototypeCountOverrides()),
+    )
+
+    expect(facade.replay.prototype.runtime.smokeImageCount).toBe(6)
   })
 
   it('rejects a stale manifest through the authoritative runtime schema', async () => {

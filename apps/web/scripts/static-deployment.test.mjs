@@ -38,6 +38,7 @@ async function buildFixture() {
         taxalens_sha: fixtureTaxaLensSha,
         biominer_sha: biominerSha,
       },
+      expected_ui_counts: { section_records: { verification_media: 3 } },
     })}\n`,
   )
   await mkdir(join(buildRoot, 'verification'), { recursive: true })

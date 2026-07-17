@@ -217,19 +217,19 @@ export interface PrototypeEvidenceBoundary {
   readonly publicReferenceImageDisplayAuthorized: false
   readonly scientificClaimAllowed: false
   readonly referenceBank: {
-    readonly supportCount: 81
-    readonly providerSupportedCount: 81
-    readonly humanVerifiedCount: 0
-    readonly allowedCount: 2
-    readonly researchOnlyCount: 79
-    readonly adultRouteCount: 80
-    readonly larvalRouteCount: 1
-    readonly pinnedSpecimenRouteCount: 0
-    readonly supportTrainCount: 26
-    readonly modelSelectionCount: 30
-    readonly calibrationCount: 13
-    readonly finalTestCount: 12
-    readonly totalShortfall: 553
+    readonly supportCount: number
+    readonly providerSupportedCount: number
+    readonly humanVerifiedCount: number
+    readonly allowedCount: number
+    readonly researchOnlyCount: number
+    readonly adultRouteCount: number
+    readonly larvalRouteCount: number
+    readonly pinnedSpecimenRouteCount: number
+    readonly supportTrainCount: number
+    readonly modelSelectionCount: number
+    readonly calibrationCount: number
+    readonly finalTestCount: number
+    readonly totalShortfall: number
   }
   readonly userGoalVerification: {
     readonly status: 'verified_complete'
@@ -237,9 +237,9 @@ export interface PrototypeEvidenceBoundary {
     readonly assertedBy: string
     readonly verificationCompletedOn: string
     readonly goal: string
-    readonly providerSupportedRecordCount: 81
-    readonly verifiedRecordCount: 81
-    readonly recordsMeetingGoalCount: 81
+    readonly providerSupportedRecordCount: number
+    readonly verifiedRecordCount: number
+    readonly recordsMeetingGoalCount: number
     readonly allProviderSupportedRecordsVerified: true
     readonly allVerifiedRecordsMeetGoal: true
     readonly independentHumanTaxonomicVerificationClaimed: false
@@ -247,42 +247,42 @@ export interface PrototypeEvidenceBoundary {
   readonly runtime: {
     readonly bioclipModelId: string
     readonly bioclipModelRevision: string
-    readonly embeddingDimension: 1024
-    readonly frozenSupportEmbeddings: 81
+    readonly embeddingDimension: number
+    readonly frozenSupportEmbeddings: number
     readonly yoloeModelId: string
     readonly yoloeRole: 'gate_and_router_only'
-    readonly smokeImageCount: 5
-    readonly resumedEmbeddingCount: 81
+    readonly smokeImageCount: number
+    readonly resumedEmbeddingCount: number
   }
   readonly benchmark: {
-    readonly recordsScored: 81
-    readonly experimentCount: 19
-    readonly b0TargetScoreability: 0.1
-    readonly b13TargetScoreability: 1
+    readonly recordsScored: number
+    readonly experimentCount: number
+    readonly b0TargetScoreability: number
+    readonly b13TargetScoreability: number
     readonly metricSemantics: string
     readonly classificationAccuracyReported: false
   }
   readonly policy: {
-    readonly experimentId: 'B13'
+    readonly experimentId: string
     readonly targetAlwaysScored: true
-    readonly rawMarginThreshold: 0.1
+    readonly rawMarginThreshold: number
     readonly scoresAreProbabilities: false
-    readonly selectionCoverage: 0.8
-    readonly acceptedCount: 24
-    readonly abstainedCount: 6
+    readonly selectionCoverage: number
+    readonly acceptedCount: number
+    readonly abstainedCount: number
     readonly calibrationStatus: string
   }
   readonly staged: {
-    readonly plannedCount: 13_501
-    readonly classifiedCount: 13_496
-    readonly retryableFailureCount: 5
-    readonly candidateScoreRowCount: 634_312
-    readonly speciesCandidatesPerRecord: 34
-    readonly allCandidatesPerRecord: 47
-    readonly targetScoredRate: 1
-    readonly stagedAbstainedCount: 12_296
-    readonly stagedAbstentionRate: 0.911085
-    readonly stagedDiagnosticThreshold: 0.02
+    readonly plannedCount: number
+    readonly classifiedCount: number
+    readonly retryableFailureCount: number
+    readonly candidateScoreRowCount: number
+    readonly speciesCandidatesPerRecord: number
+    readonly allCandidatesPerRecord: number
+    readonly targetScoredRate: number
+    readonly stagedAbstainedCount: number
+    readonly stagedAbstentionRate: number
+    readonly stagedDiagnosticThreshold: number
     readonly recordsPerSecond: number
   }
   readonly semantics: {
@@ -297,9 +297,9 @@ export interface PrototypeEvidenceBoundary {
   readonly releaseGate: {
     readonly decision: 'GO_PROTOTYPE_ONLY'
     readonly requestedMode: 'explicit_prototype'
-    readonly requiredGateCount: 14
-    readonly passedGateCount: 14
-    readonly failedGateCount: 0
+    readonly requiredGateCount: number
+    readonly passedGateCount: number
+    readonly failedGateCount: number
     readonly prototypeIntegrationAuthorized: true
     readonly explicitPrototypeModeOnly: true
     readonly productionDefaultChangeAuthorized: false
@@ -313,15 +313,15 @@ export interface PrototypeEvidenceBoundary {
     readonly producerSha: string
     readonly originCommit: string
     readonly importManifestSha256: string
-    readonly importedArtifactCount: 21
+    readonly importedArtifactCount: number
   }
 }
 
 export interface DiscoveryEvidenceBoundary {
   readonly media: {
     readonly status: 'unavailable'
-    readonly includedImageCount: 0
-    readonly licensedImageCount: 0
+    readonly includedImageCount: number
+    readonly licensedImageCount: number
     readonly reason: string
   }
   readonly duplicateRelationships: {
@@ -346,7 +346,7 @@ export interface GeographyReferenceEvidenceBoundary {
     readonly readinessVerificationStatus: string
     readonly shortfallVerificationStatus: string
     readonly eligibleSourceMediaCount: number
-    readonly humanVerifiedSourceMediaCount: 0
+    readonly humanVerifiedSourceMediaCount: number
     readonly sourceCandidateShortfall: number
     readonly humanVerifiedShortfall: number
     readonly groupsAwaitingHumanReview: number
@@ -364,7 +364,7 @@ export interface GeographyReferenceEvidenceBoundary {
       readonly checkpointMediaCandidateRowCount: number
       readonly mediaCandidateCount: number
       readonly deduplicatedMediaCandidateCount: number
-      readonly imagesDownloaded: 0
+      readonly imagesDownloaded: number
     }
   }
   readonly sourceRights: {
@@ -374,8 +374,8 @@ export interface GeographyReferenceEvidenceBoundary {
     readonly licenseUri: string
     readonly attributionRequired: boolean
     readonly metadataRightsVerified: true
-    readonly includedImageCount: 0
-    readonly licensedImageCount: 0
+    readonly includedImageCount: number
+    readonly licensedImageCount: number
     readonly mediaPolicy: string
   }
 }
@@ -388,7 +388,7 @@ export interface SelectiveDecisionEvidenceBoundary {
   readonly verificationStatus: string
   readonly unavailableReason: string
   readonly decisionStatus: 'unavailable'
-  readonly candidateVisualScoreCount: 0
+  readonly candidateVisualScoreCount: number
   readonly gates: readonly {
     readonly name: string
     readonly satisfied: false
@@ -434,6 +434,7 @@ export interface AnalyticsArtifactProvenance {
   readonly artifactId: string
   readonly mediaType: string
   readonly path: string
+  readonly schemaVersion?: string | null
   readonly sizeBytes: number
   readonly sha256: string
   readonly recordCount: number | null
@@ -442,6 +443,12 @@ export interface AnalyticsArtifactProvenance {
 
 export interface ParquetArtifactInput extends AnalyticsArtifactProvenance {
   readonly bytes: Uint8Array<ArrayBuffer>
+}
+
+export interface GeographicWorkloadReplayInput {
+  readonly artifacts: readonly ParquetArtifactInput[]
+  readonly boundary: GeographyReferenceEvidenceBoundary
+  readonly targetAcceptedTaxonKey: string
 }
 
 export type ParquetReader = (artifact: ParquetArtifactInput) => Promise<unknown>
@@ -478,6 +485,7 @@ export interface EvidenceFacade {
   loadStoredOpenAIReplay(): readonly StoredOpenAIReplayTrace[]
   loadAnalyticsReplayInput(): AnalyticsReplayInput
   loadDiscoveryProvenanceInput(): DiscoveryProvenanceInput
+  loadGeographicWorkloadInput(): GeographicWorkloadReplayInput
   loadSection(
     name: JudgeBundleSectionName,
     parquetReader?: ParquetReader,
@@ -729,6 +737,18 @@ function numberField(
   const value = record[field]
   if (typeof value !== 'number' || !Number.isFinite(value)) {
     throw new EvidenceFacadeError(`${location}.${field} must be a finite number`)
+  }
+  return value
+}
+
+function countField(
+  record: Record<string, JsonValue>,
+  field: string,
+  location: string,
+): number {
+  const value = numberField(record, field, location)
+  if (!Number.isSafeInteger(value) || value < 0) {
+    throw new EvidenceFacadeError(`${location}.${field} must be a non-negative safe integer`)
   }
   return value
 }
@@ -1465,8 +1485,8 @@ function projectDiscoveryEvidence(
   return deepFreeze({
     media: {
       status: 'unavailable',
-      includedImageCount: 0,
-      licensedImageCount: 0,
+      includedImageCount,
+      licensedImageCount,
       reason: stringField(media, 'reason', 'run_summary.media'),
     },
     duplicateRelationships: {
@@ -1479,6 +1499,7 @@ function projectDiscoveryEvidence(
 
 function projectGeographyReferenceEvidence(
   artifacts: ReadonlyMap<string, VerifiedArtifact>,
+  manifest: JudgeBundleContract,
 ): GeographyReferenceEvidenceBoundary {
   const geography = recordForRole(artifacts, 'geographic_clusters')
   const geographyData = object(geography.data, 'geographic_clusters.data')
@@ -1507,6 +1528,13 @@ function projectGeographyReferenceEvidence(
       const artifactIds = array(item.artifact_ids, 'rights_manifest.items[].artifact_ids')
       return artifactIds.includes('biominer-flickr-geography-parquet')
     })
+  const humanVerifiedSourceMediaCount = numberField(
+    readinessCounts,
+    'human_verified_source_media_count',
+    'reference_readiness.data.counts',
+  )
+  const includedImageCount = numberField(rights, 'included_image_count', 'rights_manifest')
+  const licensedImageCount = numberField(rights, 'licensed_image_count', 'rights_manifest')
   if (
     metadataRights === undefined ||
     booleanField(
@@ -1514,15 +1542,9 @@ function projectGeographyReferenceEvidence(
       'payload_rows_available',
       'geographic_clusters.data',
     ) ||
-    numberField(
-      readinessCounts,
-      'human_verified_source_media_count',
-      'reference_readiness.data.counts',
-    ) !== 0 ||
-    numberField(rights, 'included_image_count', 'rights_manifest') !==
-      PAPILIO_FIXTURE.verificationMediaCount ||
-    numberField(rights, 'licensed_image_count', 'rights_manifest') !==
-      PAPILIO_FIXTURE.verificationMediaCount
+    humanVerifiedSourceMediaCount !== 0 ||
+    includedImageCount !== manifest.expected_ui_counts.section_records.verification_media ||
+    licensedImageCount !== manifest.expected_ui_counts.section_records.verification_media
   ) {
     throw new EvidenceFacadeError('Geography/reference boundary exceeds the truthful pilot')
   }
@@ -1663,7 +1685,7 @@ function projectGeographyReferenceEvidence(
         'eligible_source_media_candidate_count',
         'reference_readiness.data.counts',
       ),
-      humanVerifiedSourceMediaCount: 0,
+      humanVerifiedSourceMediaCount,
       sourceCandidateShortfall: numberField(
         shortfallData,
         'source_candidate_shortfall',
@@ -1686,7 +1708,7 @@ function projectGeographyReferenceEvidence(
       ),
       workflowMeasurements: {
         ...workflowMeasurements,
-        imagesDownloaded: 0,
+        imagesDownloaded: workflowMeasurements.imagesDownloaded,
       },
     },
     sourceRights: {
@@ -1770,7 +1792,7 @@ function projectSelectiveDecisionEvidence(
       'selective_decision_metadata',
     ),
     decisionStatus: 'unavailable',
-    candidateVisualScoreCount: 0,
+    candidateVisualScoreCount: visualScores.length,
     gates,
   })
 }
@@ -1798,13 +1820,18 @@ function projectPrototypeEvidence(
     snapshot.production_default_change_authorized !== false ||
     snapshot.scientific_release_authorized !== false ||
     snapshot.public_reference_image_display_authorized !== false ||
-    snapshot.scientific_claim_allowed !== false ||
-    snapshot.contract_count !== 10
+    snapshot.scientific_claim_allowed !== false
   ) {
     throw new EvidenceFacadeError('Prototype evidence exceeds the admitted prototype boundary')
   }
 
   const contracts = object(snapshot.contracts, 'prototype_evidence_snapshot.contracts')
+  if (
+    countField(snapshot, 'contract_count', 'prototype_evidence_snapshot') !==
+    Object.keys(contracts).length
+  ) {
+    throw new EvidenceFacadeError('Prototype contract count differs from the verified snapshot')
+  }
   const contractData = (name: string): Record<string, JsonValue> => {
     const contract = object(contracts[name], `prototype_evidence_snapshot.contracts.${name}`)
     if (
@@ -1892,69 +1919,250 @@ function projectPrototypeEvidence(
     'prototype.provider_support_goal_verification.semantics',
   )
   const fingerprints = contractData('handoff_fingerprints')
+  const gateSummary = object(phase15.gate_summary, 'prototype.phase15_release.gate_summary')
+  const importedFiles = array(
+    fingerprints.imported_files,
+    'prototype.handoff_fingerprints.imported_files',
+  )
 
-  const exactNumbers: readonly [Record<string, JsonValue>, string, number, string][] = [
-    [referenceCounts, 'prototype_support', 81, 'prototype.reference_bank.counts'],
-    [referenceCounts, 'provider_supported', 81, 'prototype.reference_bank.counts'],
-    [referenceCounts, 'human_verified', 0, 'prototype.reference_bank.counts'],
-    [licence, 'allowed', 2, 'prototype.reference_bank.licence'],
-    [licence, 'research_only', 79, 'prototype.reference_bank.licence'],
-    [routes, 'adult_field', 80, 'prototype.reference_bank.routes'],
-    [routes, 'larval', 1, 'prototype.reference_bank.routes'],
-    [routes, 'pinned_specimen', 0, 'prototype.reference_bank.routes'],
-    [splits, 'support_train', 26, 'prototype.reference_bank.splits'],
-    [splits, 'model_selection', 30, 'prototype.reference_bank.splits'],
-    [splits, 'calibration', 13, 'prototype.reference_bank.splits'],
-    [splits, 'final_test', 12, 'prototype.reference_bank.splits'],
-    [shortfalls, 'total_shortfall', 553, 'prototype.reference_bank.shortfalls'],
-    [bioclip, 'embedding_dimension', 1024, 'prototype.vision_runtime.bioclip'],
-    [bioclip, 'frozen_support_embeddings', 81, 'prototype.vision_runtime.bioclip'],
-    [smoke, 'images', 5, 'prototype.vision_runtime.smoke'],
-    [resume, 'support_embedding_resume_reused', 81, 'prototype.vision_runtime.resume'],
-    [benchmark, 'records_scored', 81, 'prototype.benchmark'],
-    [b0, 'target_scoreability_rate', 0.1, 'prototype.benchmark.B0'],
-    [b13, 'target_scoreability_rate', 1, 'prototype.benchmark.B13'],
-    [marginPolicy, 'threshold', 0.1, 'prototype.selected_policy.margin'],
-    [selection, 'coverage_at_raw_margin_policy', 0.8, 'prototype.selected_policy.selection'],
-    [selection, 'accepted_count', 24, 'prototype.selected_policy.selection'],
-    [selection, 'abstained_count', 6, 'prototype.selected_policy.selection'],
-    [staged, 'planned', 13_501, 'prototype.staged_inference'],
-    [staged, 'classified', 13_496, 'prototype.staged_inference'],
-    [staged, 'retryable_failures', 5, 'prototype.staged_inference'],
-    [staged, 'candidate_score_rows', 634_312, 'prototype.staged_inference'],
-    [staged, 'species_candidates_per_classified_record', 34, 'prototype.staged_inference'],
-    [staged, 'all_candidates_per_classified_record', 47, 'prototype.staged_inference'],
-    [staged, 'target_scored_rate', 1, 'prototype.staged_inference'],
-    [preselection, 'abstained', 12_296, 'prototype.staged_inference.preselection'],
-    [preselection, 'abstention_rate', 0.911085, 'prototype.staged_inference.preselection'],
-    [reasonCounts, 'uncalibrated_margin_below_0_02', 1602, 'prototype.staged.reason_counts'],
-    [
-      userGoal,
-      'provider_supported_record_count',
-      81,
-      'prototype.provider_support_goal_verification',
-    ],
-    [
-      userGoal,
-      'verified_record_count',
-      81,
-      'prototype.provider_support_goal_verification',
-    ],
-    [
-      userGoal,
-      'records_meeting_goal_count',
-      81,
-      'prototype.provider_support_goal_verification',
-    ],
-    [fingerprints, 'imported_artifact_count', 21, 'prototype.handoff_fingerprints'],
-  ]
-  for (const [record, field, expected, location] of exactNumbers) {
-    if (numberField(record, field, location) !== expected) {
-      throw new EvidenceFacadeError(`${location}.${field} differs from prototype evidence`)
-    }
+  const supportCount = countField(
+    referenceCounts,
+    'prototype_support',
+    'prototype.reference_bank.counts',
+  )
+  const providerSupportedCount = countField(
+    referenceCounts,
+    'provider_supported',
+    'prototype.reference_bank.counts',
+  )
+  const humanVerifiedCount = countField(
+    referenceCounts,
+    'human_verified',
+    'prototype.reference_bank.counts',
+  )
+  const allowedCount = countField(licence, 'allowed', 'prototype.reference_bank.licence')
+  const researchOnlyCount = countField(
+    licence,
+    'research_only',
+    'prototype.reference_bank.licence',
+  )
+  const adultRouteCount = countField(
+    routes,
+    'adult_field',
+    'prototype.reference_bank.routes',
+  )
+  const larvalRouteCount = countField(routes, 'larval', 'prototype.reference_bank.routes')
+  const pinnedSpecimenRouteCount = countField(
+    routes,
+    'pinned_specimen',
+    'prototype.reference_bank.routes',
+  )
+  const supportTrainCount = countField(
+    splits,
+    'support_train',
+    'prototype.reference_bank.splits',
+  )
+  const modelSelectionCount = countField(
+    splits,
+    'model_selection',
+    'prototype.reference_bank.splits',
+  )
+  const calibrationCount = countField(
+    splits,
+    'calibration',
+    'prototype.reference_bank.splits',
+  )
+  const finalTestCount = countField(splits, 'final_test', 'prototype.reference_bank.splits')
+  const totalShortfall = countField(
+    shortfalls,
+    'total_shortfall',
+    'prototype.reference_bank.shortfalls',
+  )
+  const embeddingDimension = countField(
+    bioclip,
+    'embedding_dimension',
+    'prototype.vision_runtime.bioclip',
+  )
+  const frozenSupportEmbeddings = countField(
+    bioclip,
+    'frozen_support_embeddings',
+    'prototype.vision_runtime.bioclip',
+  )
+  const smokeImageCount = countField(smoke, 'images', 'prototype.vision_runtime.smoke')
+  const resumedEmbeddingCount = countField(
+    resume,
+    'support_embedding_resume_reused',
+    'prototype.vision_runtime.resume',
+  )
+  const recordsScored = countField(benchmark, 'records_scored', 'prototype.benchmark')
+  const b0TargetScoreability = numberField(
+    b0,
+    'target_scoreability_rate',
+    'prototype.benchmark.B0',
+  )
+  const b13TargetScoreability = numberField(
+    b13,
+    'target_scoreability_rate',
+    'prototype.benchmark.B13',
+  )
+  const experimentCount = experimentIds.length
+  const rawMarginThreshold = numberField(
+    marginPolicy,
+    'threshold',
+    'prototype.selected_policy.margin',
+  )
+  const selectionCoverage = numberField(
+    selection,
+    'coverage_at_raw_margin_policy',
+    'prototype.selected_policy.selection',
+  )
+  const acceptedCount = countField(
+    selection,
+    'accepted_count',
+    'prototype.selected_policy.selection',
+  )
+  const abstainedCount = countField(
+    selection,
+    'abstained_count',
+    'prototype.selected_policy.selection',
+  )
+  const plannedCount = countField(staged, 'planned', 'prototype.staged_inference')
+  const classifiedCount = countField(staged, 'classified', 'prototype.staged_inference')
+  const retryableFailureCount = countField(
+    staged,
+    'retryable_failures',
+    'prototype.staged_inference',
+  )
+  const candidateScoreRowCount = countField(
+    staged,
+    'candidate_score_rows',
+    'prototype.staged_inference',
+  )
+  const speciesCandidatesPerRecord = countField(
+    staged,
+    'species_candidates_per_classified_record',
+    'prototype.staged_inference',
+  )
+  const allCandidatesPerRecord = countField(
+    staged,
+    'all_candidates_per_classified_record',
+    'prototype.staged_inference',
+  )
+  const targetScoredRate = numberField(
+    staged,
+    'target_scored_rate',
+    'prototype.staged_inference',
+  )
+  const stagedAbstainedCount = countField(
+    preselection,
+    'abstained',
+    'prototype.staged_inference.preselection',
+  )
+  const stagedAbstentionRate = numberField(
+    preselection,
+    'abstention_rate',
+    'prototype.staged_inference.preselection',
+  )
+  const providerSupportedRecordCount = countField(
+    userGoal,
+    'provider_supported_record_count',
+    'prototype.provider_support_goal_verification',
+  )
+  const verifiedRecordCount = countField(
+    userGoal,
+    'verified_record_count',
+    'prototype.provider_support_goal_verification',
+  )
+  const recordsMeetingGoalCount = countField(
+    userGoal,
+    'records_meeting_goal_count',
+    'prototype.provider_support_goal_verification',
+  )
+  const importedArtifactCount = countField(
+    fingerprints,
+    'imported_artifact_count',
+    'prototype.handoff_fingerprints',
+  )
+  const requiredGateCount = countField(
+    gateSummary,
+    'required',
+    'prototype.phase15_release.gate_summary',
+  )
+  const passedGateCount = countField(
+    gateSummary,
+    'passed',
+    'prototype.phase15_release.gate_summary',
+  )
+  const failedGateCount = countField(
+    gateSummary,
+    'failed',
+    'prototype.phase15_release.gate_summary',
+  )
+
+  const shortfallRows = array(
+    shortfalls.by_reference_group,
+    'prototype.reference_bank.shortfalls.by_reference_group',
+  )
+  const shortfallTotal = shortfallRows.reduce<number>((total, value, index) => {
+    const row = object(value, `prototype.reference_bank.shortfalls.by_reference_group[${index}]`)
+    return (
+      total +
+      countField(row, 'shortfall', 'prototype.reference_bank.shortfalls.by_reference_group')
+    )
+  }, 0)
+  const reasonCountTotal = Object.keys(reasonCounts).reduce(
+    (total, field) =>
+      total + countField(reasonCounts, field, 'prototype.staged.reason_counts'),
+    0,
+  )
+  const observedAbstentionRate = classifiedCount === 0 ? 0 : stagedAbstainedCount / classifiedCount
+  const observedSelectionCoverage =
+    modelSelectionCount === 0 ? 0 : acceptedCount / modelSelectionCount
+
+  if (
+    supportCount !== providerSupportedCount ||
+    supportCount !== allowedCount + researchOnlyCount ||
+    supportCount !== adultRouteCount + larvalRouteCount + pinnedSpecimenRouteCount ||
+    supportCount !== supportTrainCount + modelSelectionCount + calibrationCount + finalTestCount ||
+    supportCount !== frozenSupportEmbeddings ||
+    supportCount !== resumedEmbeddingCount ||
+    supportCount !== recordsScored ||
+    humanVerifiedCount > providerSupportedCount ||
+    totalShortfall !== shortfallTotal ||
+    countField(
+      benchmarkExecution,
+      'experiment_rows_per_record',
+      'prototype.benchmark.execution',
+    ) !== experimentCount ||
+    modelSelectionCount !== acceptedCount + abstainedCount ||
+    Math.abs(selectionCoverage - observedSelectionCoverage) > 0.000001 ||
+    plannedCount !== classifiedCount + retryableFailureCount ||
+    candidateScoreRowCount !== classifiedCount * allCandidatesPerRecord ||
+    speciesCandidatesPerRecord > allCandidatesPerRecord ||
+    stagedAbstainedCount > classifiedCount ||
+    stagedAbstainedCount !== reasonCountTotal ||
+    Math.abs(stagedAbstentionRate - observedAbstentionRate) > 0.000001 ||
+    providerSupportedRecordCount !== providerSupportedCount ||
+    verifiedRecordCount !== providerSupportedRecordCount ||
+    recordsMeetingGoalCount !== verifiedRecordCount ||
+    importedArtifactCount !== importedFiles.length ||
+    requiredGateCount !== passedGateCount + failedGateCount ||
+    passedGateCount !== requiredGateCount ||
+    failedGateCount > 0 ||
+    embeddingDimension < 1 ||
+    smokeImageCount < 1 ||
+    b0TargetScoreability < 0 ||
+    b0TargetScoreability > 1 ||
+    b13TargetScoreability < 0 ||
+    b13TargetScoreability > 1 ||
+    rawMarginThreshold < 0 ||
+    rawMarginThreshold > 1 ||
+    targetScoredRate < 0 ||
+    targetScoredRate > 1
+  ) {
+    throw new EvidenceFacadeError('Prototype evidence counts do not reconcile')
   }
   if (
-    experimentIds.length !== 19 ||
     stringField(selectedPolicy, 'experiment_id', 'prototype.selected_policy.policy') !== 'B13' ||
     selectedPolicy.target_always_scored !== true ||
     marginPolicy.scores_are_probabilities !== false ||
@@ -1997,19 +2205,19 @@ function projectPrototypeEvidence(
     publicReferenceImageDisplayAuthorized: false,
     scientificClaimAllowed: false,
     referenceBank: {
-      supportCount: 81,
-      providerSupportedCount: 81,
-      humanVerifiedCount: 0,
-      allowedCount: 2,
-      researchOnlyCount: 79,
-      adultRouteCount: 80,
-      larvalRouteCount: 1,
-      pinnedSpecimenRouteCount: 0,
-      supportTrainCount: 26,
-      modelSelectionCount: 30,
-      calibrationCount: 13,
-      finalTestCount: 12,
-      totalShortfall: 553,
+      supportCount,
+      providerSupportedCount,
+      humanVerifiedCount,
+      allowedCount,
+      researchOnlyCount,
+      adultRouteCount,
+      larvalRouteCount,
+      pinnedSpecimenRouteCount,
+      supportTrainCount,
+      modelSelectionCount,
+      calibrationCount,
+      finalTestCount,
+      totalShortfall,
     },
     userGoalVerification: {
       status: 'verified_complete',
@@ -2029,9 +2237,9 @@ function projectPrototypeEvidence(
         'goal',
         'prototype.provider_support_goal_verification',
       ),
-      providerSupportedRecordCount: 81,
-      verifiedRecordCount: 81,
-      recordsMeetingGoalCount: 81,
+      providerSupportedRecordCount,
+      verifiedRecordCount,
+      recordsMeetingGoalCount,
       allProviderSupportedRecordsVerified: true,
       allVerifiedRecordsMeetGoal: true,
       independentHumanTaxonomicVerificationClaimed: false,
@@ -2043,29 +2251,33 @@ function projectPrototypeEvidence(
         'model_revision',
         'prototype.vision_runtime.bioclip',
       ),
-      embeddingDimension: 1024,
-      frozenSupportEmbeddings: 81,
+      embeddingDimension,
+      frozenSupportEmbeddings,
       yoloeModelId: stringField(yoloe, 'model_id', 'prototype.vision_runtime.yoloe'),
       yoloeRole: 'gate_and_router_only',
-      smokeImageCount: 5,
-      resumedEmbeddingCount: 81,
+      smokeImageCount,
+      resumedEmbeddingCount,
     },
     benchmark: {
-      recordsScored: 81,
-      experimentCount: 19,
-      b0TargetScoreability: 0.1,
-      b13TargetScoreability: 1,
+      recordsScored,
+      experimentCount,
+      b0TargetScoreability,
+      b13TargetScoreability,
       metricSemantics: stringField(benchmark, 'metric_semantics', 'prototype.benchmark'),
       classificationAccuracyReported: false,
     },
     policy: {
-      experimentId: 'B13',
+      experimentId: stringField(
+        selectedPolicy,
+        'experiment_id',
+        'prototype.selected_policy.policy',
+      ),
       targetAlwaysScored: true,
-      rawMarginThreshold: 0.1,
+      rawMarginThreshold,
       scoresAreProbabilities: false,
-      selectionCoverage: 0.8,
-      acceptedCount: 24,
-      abstainedCount: 6,
+      selectionCoverage,
+      acceptedCount,
+      abstainedCount,
       calibrationStatus: stringField(
         calibration,
         'status',
@@ -2073,15 +2285,15 @@ function projectPrototypeEvidence(
       ),
     },
     staged: {
-      plannedCount: 13_501,
-      classifiedCount: 13_496,
-      retryableFailureCount: 5,
-      candidateScoreRowCount: 634_312,
-      speciesCandidatesPerRecord: 34,
-      allCandidatesPerRecord: 47,
-      targetScoredRate: 1,
-      stagedAbstainedCount: 12_296,
-      stagedAbstentionRate: 0.911085,
+      plannedCount,
+      classifiedCount,
+      retryableFailureCount,
+      candidateScoreRowCount,
+      speciesCandidatesPerRecord,
+      allCandidatesPerRecord,
+      targetScoredRate,
+      stagedAbstainedCount,
+      stagedAbstentionRate,
       stagedDiagnosticThreshold: 0.02,
       recordsPerSecond: numberField(
         performance,
@@ -2101,9 +2313,9 @@ function projectPrototypeEvidence(
     releaseGate: {
       decision: 'GO_PROTOTYPE_ONLY',
       requestedMode: 'explicit_prototype',
-      requiredGateCount: 14,
-      passedGateCount: 14,
-      failedGateCount: 0,
+      requiredGateCount,
+      passedGateCount,
+      failedGateCount,
       prototypeIntegrationAuthorized: true,
       explicitPrototypeModeOnly: true,
       productionDefaultChangeAuthorized: false,
@@ -2121,7 +2333,7 @@ function projectPrototypeEvidence(
         'import_manifest_sha256',
         'prototype.handoff_fingerprints',
       ),
-      importedArtifactCount: 21,
+      importedArtifactCount,
     },
   })
 }
@@ -2267,6 +2479,7 @@ class VerifiedEvidenceFacade implements EvidenceFacade {
         artifactId,
         mediaType: artifact.descriptor.media_type,
         path: artifact.descriptor.path,
+        schemaVersion: artifact.descriptor.schema_version,
         sizeBytes: artifact.descriptor.bytes,
         sha256: artifact.descriptor.sha256,
         recordCount: artifact.descriptor.record_count,
@@ -2297,6 +2510,7 @@ class VerifiedEvidenceFacade implements EvidenceFacade {
         artifactId: candidateArtifact.descriptor.artifact_id,
         mediaType: candidateArtifact.descriptor.media_type,
         path: candidateArtifact.descriptor.path,
+        schemaVersion: candidateArtifact.descriptor.schema_version,
         sizeBytes: candidateArtifact.descriptor.bytes,
         sha256: candidateArtifact.descriptor.sha256,
         recordCount: candidateArtifact.descriptor.record_count,
@@ -2327,6 +2541,26 @@ class VerifiedEvidenceFacade implements EvidenceFacade {
       artifacts: Object.freeze(artifacts),
       boundary: this.replay.discovery,
       receipt: analytics.receipt,
+    })
+  }
+
+  loadGeographicWorkloadInput(): GeographicWorkloadReplayInput {
+    const workloadSchemas = new Set([
+      'biominer-flickr-geo-assignments-parquet:v1.0.0',
+      'biominer-flickr-geo-clusters-parquet:v1.0.0',
+    ])
+    const artifacts = this.loadAnalyticsReplayInput().artifacts.filter(({ schemaVersion }) =>
+      schemaVersion === null || schemaVersion === undefined
+        ? false
+        : workloadSchemas.has(schemaVersion),
+    )
+    if (artifacts.length !== workloadSchemas.size) {
+      throw new EvidenceFacadeError('Geographic workload requires both verified semantic schemas')
+    }
+    return Object.freeze({
+      artifacts: Object.freeze(artifacts),
+      boundary: this.replay.geographyReference,
+      targetAcceptedTaxonKey: this.replay.target.acceptedTaxonKey,
     })
   }
 
@@ -2447,7 +2681,7 @@ export async function loadEvidenceFacade(
   const mission = projectMissionEvidence(artifacts)
   const observatory = projectObservatoryEvidence(artifacts, manifest)
   const discovery = projectDiscoveryEvidence(artifacts)
-  const geographyReference = projectGeographyReferenceEvidence(artifacts)
+  const geographyReference = projectGeographyReferenceEvidence(artifacts, manifest)
   const selectiveDecision = projectSelectiveDecisionEvidence(artifacts)
   const prototype = projectPrototypeEvidence(artifacts)
   const unavailableSections = Object.freeze(

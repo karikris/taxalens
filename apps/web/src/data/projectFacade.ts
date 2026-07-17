@@ -149,7 +149,6 @@ export class PapilioJudgeFixtureValidator {
     verificationMediaTaxalensSha: 'ff96b7f8f6feaf8197000b0f5265110a7d331e08',
     analyticsSourceManifestSha256:
       'a62abef7cbac8638da219e53e08ab6760bedcd4f49d6396bfa0d1891d96e5cf2',
-    verificationMediaCount: 3,
   })
 
   verify(project: TaxaLensProjectFacade): void {

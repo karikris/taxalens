@@ -126,7 +126,7 @@ export function VerificationWorkspace({
           <p className="eyebrow">Local human verification</p>
           <h2 id="human-review-title">Review the label, one image at a time</h2>
           <p className="lede">
-            Prepare a checksum-verified three-image browser cache, inspect the
+            Prepare a small checksum-verified browser cache, inspect the
             displayed label, then choose Yes, No, Can’t tell, Can’t view, or
             Skip. Comments are optional.
           </p>

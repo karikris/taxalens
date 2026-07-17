@@ -270,6 +270,7 @@ function provenanceOnly(artifact: ParquetArtifactInput): AnalyticsArtifactProven
     artifactId: artifact.artifactId,
     mediaType: artifact.mediaType,
     path: artifact.path,
+    schemaVersion: artifact.schemaVersion ?? null,
     sizeBytes: artifact.sizeBytes,
     sha256: artifact.sha256,
     recordCount: artifact.recordCount,
