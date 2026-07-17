@@ -18,20 +18,67 @@ test('protects the global Geographic Impact map at 1280 by 720', async ({ page }
   await page.goto('./#dashboard')
   await expectGeographicMapReady(page, 'global')
 
-  await page.locator('.taxalens-world-map').scrollIntoViewIfNeeded()
-  await expect(page).toHaveScreenshot('geographic-impact-global-1280x720.png', {
+  await expectGeographicScreenshot(page, 'geographic-impact-global-1280x720.png')
+})
+
+for (const scope of [
+  {
+    baselineEvidence: true,
+    id: 'continent:asia',
+    route: './#dashboard?geo=continent%3Aasia',
+    snapshot: 'geographic-impact-asia-1280x720.png',
+  },
+  {
+    baselineEvidence: false,
+    id: 'country:SE',
+    route: './#dashboard?geo=country%3ASE',
+    snapshot: 'geographic-impact-sweden-1280x720.png',
+  },
+] as const) {
+  test(`protects the ${scope.id} Geographic Impact drilldown`, async ({ page }) => {
+    await page.goto(scope.route)
+    await expectGeographicMapReady(page, scope.id, scope.baselineEvidence)
+
+    await expectGeographicScreenshot(page, scope.snapshot)
+  })
+}
+
+async function expectGeographicScreenshot(page: Page, snapshot: string): Promise<void> {
+  await page.evaluate(async () => {
+    await document.fonts.ready
+    document.documentElement.style.overflowAnchor = 'none'
+    const map = document.querySelector('.taxalens-world-map')
+    if (map) {
+      const top = map.getBoundingClientRect().top + window.scrollY
+      window.scrollTo({ behavior: 'instant', top: Math.max(0, top - 16) })
+    }
+    await new Promise<void>((resolve) => {
+      window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve()))
+    })
+  })
+  await expect
+    .poll(() => page.locator('.taxalens-world-map').evaluate((element) => element.getBoundingClientRect().top))
+    .toBeGreaterThanOrEqual(0)
+  await expect(page).toHaveScreenshot(snapshot, {
     animations: 'disabled',
     caret: 'hide',
     scale: 'css',
   })
-})
+}
 
-async function expectGeographicMapReady(page: Page, scopeId: string): Promise<void> {
+async function expectGeographicMapReady(
+  page: Page,
+  scopeId: string,
+  baselineEvidence = true,
+): Promise<void> {
   await expect(
     page.getByText('Baseline and Flickr evidence mapped', { exact: true }),
   ).toBeVisible({ timeout: 60_000 })
   const canvas = page.locator('.taxalens-world-map__canvas[data-map-loaded="true"]')
   await expect(canvas).toHaveAttribute('data-camera-scope', scopeId, { timeout: 60_000 })
-  await expect(canvas).toHaveAttribute('data-baseline-evidence', 'true')
+  await expect(canvas).toHaveAttribute(
+    'data-baseline-evidence',
+    baselineEvidence ? 'true' : 'false',
+  )
   await expect(canvas).toHaveAttribute('data-flickr-evidence', 'true')
 }
