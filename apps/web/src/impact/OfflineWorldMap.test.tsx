@@ -157,6 +157,21 @@ describe('OfflineWorldMap', () => {
         'taxalens-flickr-release-ready',
       ]),
     )
+    expect(layerIds.indexOf('taxalens-baseline-occurrence-evidence')).toBeLessThan(
+      layerIds.indexOf('taxalens-flickr-pending'),
+    )
+    expect(layerIds.indexOf('taxalens-flickr-pending')).toBeLessThan(
+      layerIds.indexOf('taxalens-flickr-reviewed-positive'),
+    )
+    expect(layerIds.indexOf('taxalens-flickr-reviewed-positive')).toBeLessThan(
+      layerIds.indexOf('taxalens-flickr-reviewed-negative'),
+    )
+    expect(layerIds.indexOf('taxalens-flickr-reviewed-negative')).toBeLessThan(
+      layerIds.indexOf('taxalens-flickr-uncertain'),
+    )
+    expect(layerIds.indexOf('taxalens-flickr-uncertain')).toBeLessThan(
+      layerIds.indexOf('taxalens-flickr-release-ready'),
+    )
     expect(screen.getByText(/candidates remain hypotheses/u)).toBeInTheDocument()
   })
 
