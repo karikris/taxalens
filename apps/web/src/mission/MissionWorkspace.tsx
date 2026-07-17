@@ -150,6 +150,81 @@ function PlanResult({
         </dl>
       </div>
 
+      <section
+        className="mission-plan__verification"
+        aria-labelledby="verification-work-title"
+      >
+        <div>
+          <p className="eyebrow">Human-verification plan</p>
+          <h4 id="verification-work-title">
+            Review capacity and quality objective
+          </h4>
+        </div>
+        <dl>
+          <div>
+            <dt>Review budget</dt>
+            <dd>{plan.verificationWork.reviewBudget}</dd>
+            <small>
+              {plan.verificationWork.unallocatedReviewBudget} decisions
+              unallocated
+            </small>
+          </div>
+          <div>
+            <dt>Audit sample</dt>
+            <dd>{plan.verificationWork.auditSampleSize}</dd>
+            <small>
+              of {plan.verificationWork.auditCampaignPopulationSize} Flickr
+              owner groups
+            </small>
+          </div>
+          <div>
+            <dt>Reviewer labels</dt>
+            <dd>{plan.verificationWork.independentReviewerCount}</dd>
+            <small>
+              {plan.verificationWork.plannedReviewAssignments} planned
+              assignments
+            </small>
+          </div>
+          <div>
+            <dt>Precision objective</dt>
+            <dd>
+              ±
+              {
+                plan.verificationWork.qualityPrecisionObjective
+                  .requestedPercent
+              }
+              points
+            </dd>
+            <small>95% Wilson half-width planning objective</small>
+          </div>
+          <div data-state="blocked">
+            <dt>Reference-review requirement</dt>
+            <dd>
+              {humanize(
+                plan.verificationWork.referenceReview.requirement,
+              )}
+            </dd>
+            <small>
+              0 / {plan.verificationWork.referenceReview.campaignItemCount}{' '}
+              independent outcomes ·{' '}
+              {
+                plan.verificationWork.referenceReview
+                  .providerRoleSuitableRecordCount
+              }{' '}
+              provider-role suitable only
+            </small>
+          </div>
+        </dl>
+        <p>
+          Precision is an objective, not a result. The interval remains{' '}
+          {
+            plan.verificationWork.qualityPrecisionObjective
+              .intervalAvailability
+          }{' '}
+          until inclusion-weighted decisive outcomes are imported.
+        </p>
+      </section>
+
       <dl className="mission-plan__provenance">
         <div>
           <dt>Source registry</dt>
@@ -402,7 +477,139 @@ export function MissionWorkspace({ onReplayLaunch, replay }: MissionWorkspacePro
               />
 
               <PolicySelect
-                label="Reference policy"
+                label="Evidence strictness"
+                description="Both policies keep candidates distinct from occurrences and labels."
+                value={draft.evidenceStrictness}
+                onChange={(value) => update('evidenceStrictness', value)}
+                options={[
+                  { id: 'block_unverified_claims', label: 'Block unverified claims' },
+                  { id: 'metadata_exploration_only', label: 'Metadata exploration only' },
+                ]}
+              />
+            </fieldset>
+
+            <fieldset>
+              <legend>Human verification plan</legend>
+              <NumberField
+                className="mission-field mission-number-field"
+                value={draft.reviewBudget}
+                onChange={(value) => update('reviewBudget', value)}
+                minValue={1}
+                maxValue={490}
+                step={1}
+                formatOptions={{ maximumFractionDigits: 0, useGrouping: false }}
+              >
+                <Label>Review budget</Label>
+                <Group>
+                  <Button slot="decrement" aria-label="Decrease review budget">
+                    −
+                  </Button>
+                  <Input />
+                  <Button slot="increment" aria-label="Increase review budget">
+                    +
+                  </Button>
+                </Group>
+                <Text slot="description">
+                  Maximum reviewer decisions reserved for the audit.
+                </Text>
+              </NumberField>
+
+              <NumberField
+                className="mission-field mission-number-field"
+                value={draft.auditSampleSize}
+                onChange={(value) => update('auditSampleSize', value)}
+                minValue={1}
+                maxValue={49}
+                step={1}
+                formatOptions={{ maximumFractionDigits: 0, useGrouping: false }}
+              >
+                <Label>Audit sample size</Label>
+                <Group>
+                  <Button
+                    slot="decrement"
+                    aria-label="Decrease audit sample size"
+                  >
+                    −
+                  </Button>
+                  <Input />
+                  <Button
+                    slot="increment"
+                    aria-label="Increase audit sample size"
+                  >
+                    +
+                  </Button>
+                </Group>
+                <Text slot="description">
+                  Owner-group sample from the 49-item private Flickr campaign.
+                </Text>
+              </NumberField>
+
+              <NumberField
+                className="mission-field mission-number-field"
+                value={draft.independentReviewerCount}
+                onChange={(value) => update('independentReviewerCount', value)}
+                minValue={2}
+                maxValue={5}
+                step={1}
+                formatOptions={{ maximumFractionDigits: 0, useGrouping: false }}
+              >
+                <Label>Independent reviewer count</Label>
+                <Group>
+                  <Button
+                    slot="decrement"
+                    aria-label="Decrease independent reviewer count"
+                  >
+                    −
+                  </Button>
+                  <Input />
+                  <Button
+                    slot="increment"
+                    aria-label="Increase independent reviewer count"
+                  >
+                    +
+                  </Button>
+                </Group>
+                <Text slot="description">
+                  Planned reviewer labels; identity independence still requires
+                  operational verification.
+                </Text>
+              </NumberField>
+
+              <NumberField
+                className="mission-field mission-number-field"
+                value={draft.qualityPrecisionObjectivePercent}
+                onChange={(value) =>
+                  update('qualityPrecisionObjectivePercent', value)
+                }
+                minValue={5}
+                maxValue={50}
+                step={1}
+                formatOptions={{ maximumFractionDigits: 0, useGrouping: false }}
+              >
+                <Label>Quality precision objective (%)</Label>
+                <Group>
+                  <Button
+                    slot="decrement"
+                    aria-label="Decrease quality precision objective"
+                  >
+                    −
+                  </Button>
+                  <Input />
+                  <Button
+                    slot="increment"
+                    aria-label="Increase quality precision objective"
+                  >
+                    +
+                  </Button>
+                </Group>
+                <Text slot="description">
+                  Requested 95% interval half-width in percentage points; this
+                  is not a measured interval.
+                </Text>
+              </NumberField>
+
+              <PolicySelect
+                label="Reference-review requirement"
                 description="Unreviewed source candidates cannot become reference support."
                 value={draft.referencePolicy}
                 onChange={(value) => update('referencePolicy', value)}
@@ -411,18 +618,10 @@ export function MissionWorkspace({ onReplayLaunch, replay }: MissionWorkspacePro
                     id: 'human_review_before_support_use',
                     label: 'Human review before support use',
                   },
-                  { id: 'metadata_planning_only', label: 'Metadata planning only' },
-                ]}
-              />
-
-              <PolicySelect
-                label="Evidence strictness"
-                description="Both policies keep candidates distinct from occurrences and labels."
-                value={draft.evidenceStrictness}
-                onChange={(value) => update('evidenceStrictness', value)}
-                options={[
-                  { id: 'block_unverified_claims', label: 'Block unverified claims' },
-                  { id: 'metadata_exploration_only', label: 'Metadata exploration only' },
+                  {
+                    id: 'metadata_planning_only',
+                    label: 'Metadata planning only',
+                  },
                 ]}
               />
             </fieldset>
@@ -550,6 +749,22 @@ export function MissionWorkspace({ onReplayLaunch, replay }: MissionWorkspacePro
             <div>
               <dt>Candidate limit</dt>
               <dd>{draft.candidateLimit}</dd>
+            </div>
+            <div>
+              <dt>Review budget</dt>
+              <dd>{draft.reviewBudget}</dd>
+            </div>
+            <div>
+              <dt>Audit sample</dt>
+              <dd>{draft.auditSampleSize}</dd>
+            </div>
+            <div>
+              <dt>Reviewer labels</dt>
+              <dd>{draft.independentReviewerCount}</dd>
+            </div>
+            <div>
+              <dt>Precision objective</dt>
+              <dd>±{draft.qualityPrecisionObjectivePercent} points</dd>
             </div>
             <div>
               <dt>Reference use</dt>

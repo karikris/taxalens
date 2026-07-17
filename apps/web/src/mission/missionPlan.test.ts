@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { loadEvidenceFacade, type ReplayEvidence } from '../data/evidenceFacade'
@@ -82,6 +85,31 @@ describe('generateEvidencePlan', () => {
       status: 'not_approved',
       liveWorkApproved: false,
     })
+    expect(first.verificationWork).toEqual({
+      reviewBudget: 80,
+      auditSampleSize: 40,
+      auditCampaignPopulationSize: 49,
+      independentReviewerCount: 2,
+      plannedReviewAssignments: 80,
+      unallocatedReviewBudget: 0,
+      qualityPrecisionObjective: {
+        metric: '95_percent_wilson_half_width',
+        maximumHalfWidth: 0.2,
+        requestedPercent: 20,
+        approximateMinimumDecisiveOutcomes: 25,
+        auditSampleSatisfiesApproximation: true,
+        currentDecisiveWeightedOutcomeCount: 0,
+        intervalAvailability: 'unavailable',
+      },
+      referenceReview: {
+        requirement: 'human_review_before_support_use',
+        campaignItemCount: 24,
+        requiredIndependentReviewers: 2,
+        currentIndependentOutcomeCount: 0,
+        providerRoleSuitableRecordCount: 81,
+        status: 'blocked',
+      },
+    })
     expect(first.execution).toEqual({
       requestedMode: 'replay',
       capability: 'plan_only',
@@ -136,4 +164,69 @@ describe('generateEvidencePlan', () => {
       ])
     }
   })
+
+  it('rejects review capacity that cannot meet its sample and precision objective', () => {
+    const invalid = {
+      ...createMissionDraft(replay),
+      reviewBudget: 20,
+      auditSampleSize: 20,
+      independentReviewerCount: 2,
+      qualityPrecisionObjectivePercent: 15,
+    }
+
+    expect(() => generateEvidencePlan(invalid, replay)).toThrow(
+      MissionPlanValidationError,
+    )
+    try {
+      generateEvidencePlan(invalid, replay)
+    } catch (error) {
+      expect(
+        (error as MissionPlanValidationError).issues.map(
+          ({ code }) => code,
+        ),
+      ).toEqual([
+        'audit_sample_precision_insufficient',
+        'review_budget_insufficient',
+      ])
+    }
+  })
+
+  it('pins verification planning bounds to the committed campaign and BioMiner import', () => {
+    const flickr = readJson<{ readonly items: readonly unknown[] }>(
+      'demo/source/verification/papilio-demoleus-flickr-audit.campaign.json',
+    )
+    const reference = readJson<{ readonly items: readonly unknown[] }>(
+      'demo/source/verification/papilio-demoleus-reference-audit.campaign.json',
+    )
+    const provider = readJson<{
+      readonly records_meeting_goal_count: number
+      readonly semantics: {
+        readonly independent_human_taxonomic_verification_claimed: boolean
+      }
+    }>(
+      'demo/source/biominer_phase15/artifacts/manifests/pilot_provider_support_goal_verification.json',
+    )
+    const work = generateEvidencePlan(
+      createMissionDraft(replay),
+      replay,
+    ).verificationWork
+
+    expect(work.auditCampaignPopulationSize).toBe(flickr.items.length)
+    expect(work.referenceReview.campaignItemCount).toBe(
+      reference.items.length,
+    )
+    expect(work.referenceReview.providerRoleSuitableRecordCount).toBe(
+      provider.records_meeting_goal_count,
+    )
+    expect(
+      provider.semantics.independent_human_taxonomic_verification_claimed,
+    ).toBe(false)
+    expect(work.referenceReview.currentIndependentOutcomeCount).toBe(0)
+  })
 })
+
+function readJson<T>(relativePath: string): T {
+  return JSON.parse(
+    readFileSync(resolve(process.cwd(), '..', '..', relativePath), 'utf8'),
+  ) as T
+}

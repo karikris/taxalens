@@ -1,6 +1,10 @@
 import type { ReplayEvidence } from '../data/evidenceFacade'
 
-export const EVIDENCE_PLAN_VERSION = 'taxalens-evidence-plan-v1.0.0' as const
+export const EVIDENCE_PLAN_VERSION = 'taxalens-evidence-plan-v1.1.0' as const
+
+export const FLICKR_AUDIT_POPULATION_SIZE = 49
+export const REFERENCE_AUDIT_ITEM_COUNT = 24
+export const BIOMINER_ROLE_SUITABLE_RECORD_COUNT = 81
 
 export type RetrievalPolicy =
   | 'global_then_assign_to_flickr_clusters'
@@ -15,6 +19,10 @@ export interface MissionDraft {
   readonly retrievalPolicy: RetrievalPolicy
   readonly maximumApiCalls: number
   readonly candidateLimit: number
+  readonly reviewBudget: number
+  readonly auditSampleSize: number
+  readonly independentReviewerCount: number
+  readonly qualityPrecisionObjectivePercent: number
   readonly referencePolicy: ReferencePolicy
   readonly evidenceStrictness: EvidenceStrictness
   readonly mode: MissionMode
@@ -27,6 +35,12 @@ export type MissionPlanValidationCode =
   | 'candidate_budget_incomplete'
   | 'candidate_budget_invalid'
   | 'device_annotation_too_long'
+  | 'audit_sample_invalid'
+  | 'audit_sample_precision_insufficient'
+  | 'quality_precision_invalid'
+  | 'review_budget_insufficient'
+  | 'review_budget_invalid'
+  | 'reviewer_count_invalid'
   | 'live_mode_unavailable'
   | 'policy_unsupported'
   | 'region_unknown'
@@ -90,6 +104,31 @@ export interface EvidencePlan {
     readonly device: string | null
     readonly basis: 'validated_mission_bounds'
   }
+  readonly verificationWork: {
+    readonly reviewBudget: number
+    readonly auditSampleSize: number
+    readonly auditCampaignPopulationSize: 49
+    readonly independentReviewerCount: number
+    readonly plannedReviewAssignments: number
+    readonly unallocatedReviewBudget: number
+    readonly qualityPrecisionObjective: {
+      readonly metric: '95_percent_wilson_half_width'
+      readonly maximumHalfWidth: number
+      readonly requestedPercent: number
+      readonly approximateMinimumDecisiveOutcomes: number
+      readonly auditSampleSatisfiesApproximation: true
+      readonly currentDecisiveWeightedOutcomeCount: 0
+      readonly intervalAvailability: 'unavailable'
+    }
+    readonly referenceReview: {
+      readonly requirement: ReferencePolicy
+      readonly campaignItemCount: 24
+      readonly requiredIndependentReviewers: 2
+      readonly currentIndependentOutcomeCount: 0
+      readonly providerRoleSuitableRecordCount: 81
+      readonly status: 'blocked' | 'metadata_planning_only'
+    }
+  }
   readonly unavailableStages: readonly {
     readonly sequence: number
     readonly stageId: string
@@ -150,6 +189,10 @@ export function createMissionDraft(replay: ReplayEvidence): MissionDraft {
     retrievalPolicy: replay.mission.queryPolicy.defaultRetrievalPolicy as RetrievalPolicy,
     maximumApiCalls: replay.mission.budgets.materializedRequestCount,
     candidateLimit: replay.mission.candidatePolicy.candidateCount,
+    reviewBudget: 80,
+    auditSampleSize: 40,
+    independentReviewerCount: 2,
+    qualityPrecisionObjectivePercent: 20,
     referencePolicy: 'human_review_before_support_use',
     evidenceStrictness: 'block_unverified_claims',
     mode: 'replay',
@@ -228,6 +271,84 @@ function validateMissionDraft(
     })
   }
 
+  if (!Number.isInteger(draft.reviewBudget) || draft.reviewBudget < 1) {
+    issues.push({
+      code: 'review_budget_invalid',
+      field: 'reviewBudget',
+      message: 'Review budget must be a positive whole number of decisions.',
+    })
+  }
+  if (
+    !Number.isInteger(draft.auditSampleSize) ||
+    draft.auditSampleSize < 1 ||
+    draft.auditSampleSize > FLICKR_AUDIT_POPULATION_SIZE
+  ) {
+    issues.push({
+      code: 'audit_sample_invalid',
+      field: 'auditSampleSize',
+      message: `Audit sample size must be between 1 and ${FLICKR_AUDIT_POPULATION_SIZE}.`,
+    })
+  }
+  if (
+    !Number.isInteger(draft.independentReviewerCount) ||
+    draft.independentReviewerCount < 2 ||
+    draft.independentReviewerCount > 5
+  ) {
+    issues.push({
+      code: 'reviewer_count_invalid',
+      field: 'independentReviewerCount',
+      message:
+        'Independent reviewer count must be a whole number between 2 and 5.',
+    })
+  }
+  if (
+    !Number.isFinite(draft.qualityPrecisionObjectivePercent) ||
+    draft.qualityPrecisionObjectivePercent < 5 ||
+    draft.qualityPrecisionObjectivePercent > 50
+  ) {
+    issues.push({
+      code: 'quality_precision_invalid',
+      field: 'qualityPrecisionObjectivePercent',
+      message:
+        'Quality precision objective must be between 5 and 50 percentage points.',
+    })
+  }
+  if (
+    Number.isInteger(draft.auditSampleSize) &&
+    draft.auditSampleSize > 0 &&
+    Number.isFinite(draft.qualityPrecisionObjectivePercent) &&
+    draft.qualityPrecisionObjectivePercent >= 5 &&
+    draft.qualityPrecisionObjectivePercent <= 50 &&
+    draft.auditSampleSize <
+      approximateMinimumDecisiveOutcomes(
+        draft.qualityPrecisionObjectivePercent,
+      )
+  ) {
+    issues.push({
+      code: 'audit_sample_precision_insufficient',
+      field: 'auditSampleSize',
+      message: `The ${draft.qualityPrecisionObjectivePercent}-point objective needs approximately ${approximateMinimumDecisiveOutcomes(
+        draft.qualityPrecisionObjectivePercent,
+      )} decisive outcomes before finite-population adjustment.`,
+    })
+  }
+  if (
+    Number.isInteger(draft.reviewBudget) &&
+    draft.reviewBudget > 0 &&
+    Number.isInteger(draft.auditSampleSize) &&
+    draft.auditSampleSize > 0 &&
+    Number.isInteger(draft.independentReviewerCount) &&
+    draft.independentReviewerCount > 0 &&
+    draft.reviewBudget <
+      draft.auditSampleSize * draft.independentReviewerCount
+  ) {
+    issues.push({
+      code: 'review_budget_insufficient',
+      field: 'reviewBudget',
+      message: `Review budget must cover ${draft.auditSampleSize * draft.independentReviewerCount} planned reviewer assignments.`,
+    })
+  }
+
   if (!retrievalPolicies.includes(draft.retrievalPolicy)) {
     issues.push({
       code: 'policy_unsupported',
@@ -303,6 +424,11 @@ export function generateEvidencePlan(draft: MissionDraft, replay: ReplayEvidence
       humanReviewRequired: section.humanReviewRequired,
       scientificClaimAllowed: section.scientificClaimAllowed,
     }))
+  const plannedReviewAssignments =
+    draft.auditSampleSize * draft.independentReviewerCount
+  const minimumDecisiveOutcomes = approximateMinimumDecisiveOutcomes(
+    draft.qualityPrecisionObjectivePercent,
+  )
 
   return deepFreeze<EvidencePlan>({
     planVersion: EVIDENCE_PLAN_VERSION,
@@ -350,6 +476,35 @@ export function generateEvidencePlan(draft: MissionDraft, replay: ReplayEvidence
       device: draft.device.trim() || null,
       basis: 'validated_mission_bounds',
     },
+    verificationWork: {
+      reviewBudget: draft.reviewBudget,
+      auditSampleSize: draft.auditSampleSize,
+      auditCampaignPopulationSize: FLICKR_AUDIT_POPULATION_SIZE,
+      independentReviewerCount: draft.independentReviewerCount,
+      plannedReviewAssignments,
+      unallocatedReviewBudget: draft.reviewBudget - plannedReviewAssignments,
+      qualityPrecisionObjective: {
+        metric: '95_percent_wilson_half_width',
+        maximumHalfWidth: draft.qualityPrecisionObjectivePercent / 100,
+        requestedPercent: draft.qualityPrecisionObjectivePercent,
+        approximateMinimumDecisiveOutcomes: minimumDecisiveOutcomes,
+        auditSampleSatisfiesApproximation: true,
+        currentDecisiveWeightedOutcomeCount: 0,
+        intervalAvailability: 'unavailable',
+      },
+      referenceReview: {
+        requirement: draft.referencePolicy,
+        campaignItemCount: REFERENCE_AUDIT_ITEM_COUNT,
+        requiredIndependentReviewers: 2,
+        currentIndependentOutcomeCount: 0,
+        providerRoleSuitableRecordCount:
+          BIOMINER_ROLE_SUITABLE_RECORD_COUNT,
+        status:
+          draft.referencePolicy === 'human_review_before_support_use'
+            ? 'blocked'
+            : 'metadata_planning_only',
+      },
+    },
     unavailableStages,
     artifactExpectations,
     approvalRequirement: {
@@ -369,4 +524,11 @@ export function generateEvidencePlan(draft: MissionDraft, replay: ReplayEvidence
       usesOpenAI: false,
     },
   })
+}
+
+function approximateMinimumDecisiveOutcomes(
+  objectivePercent: number,
+): number {
+  const halfWidth = objectivePercent / 100
+  return Math.ceil((1.96 ** 2 * 0.25) / halfWidth ** 2)
 }

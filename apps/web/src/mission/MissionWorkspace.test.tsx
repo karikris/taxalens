@@ -32,6 +32,18 @@ describe('MissionWorkspace', () => {
     )
     expect(screen.getByRole('textbox', { name: 'Maximum API calls' })).toHaveValue('314')
     expect(screen.getByRole('textbox', { name: 'Candidate limit' })).toHaveValue('5')
+    expect(screen.getByRole('textbox', { name: 'Review budget' })).toHaveValue(
+      '80',
+    )
+    expect(
+      screen.getByRole('textbox', { name: 'Audit sample size' }),
+    ).toHaveValue('40')
+    expect(
+      screen.getByRole('textbox', { name: 'Independent reviewer count' }),
+    ).toHaveValue('2')
+    expect(
+      screen.getByRole('textbox', { name: 'Quality precision objective (%)' }),
+    ).toHaveValue('20')
     expect(screen.getByRole('radio', { name: 'Replay committed evidence' })).toBeChecked()
     expect(
       screen.getByRole('radio', { name: 'Live work unavailable in the submitted build' }),
@@ -81,18 +93,52 @@ describe('MissionWorkspace', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Generate deterministic plan' }))
     expect(await screen.findByRole('heading', { name: 'Evidence plan' })).toBeInTheDocument()
-    expect(screen.getByText('taxalens-evidence-plan-v1.0.0')).toBeInTheDocument()
+    expect(screen.getByText('taxalens-evidence-plan-v1.1.0')).toBeInTheDocument()
     expect(screen.getByText(/^sha256:[0-9a-f]{64}$/u)).toBeInTheDocument()
     expect(screen.getByText('butterflies-v2-20260712')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Ordered replay workflow' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Declared, never inferred' })).toBeInTheDocument()
     expect(screen.getByText('Explicit approval remains required')).toBeInTheDocument()
+    const verificationPlan = screen
+      .getByRole('heading', {
+        name: 'Review capacity and quality objective',
+      })
+      .closest('section')
+    expect(verificationPlan).not.toBeNull()
+    expect(verificationPlan).toHaveTextContent('Review budget80')
+    expect(verificationPlan).toHaveTextContent('Audit sample40')
+    expect(verificationPlan).toHaveTextContent('Reviewer labels2')
+    expect(verificationPlan).toHaveTextContent('Precision objective±20points')
+    expect(verificationPlan).toHaveTextContent(
+      'Reference-review requirementhuman review before support use',
+    )
+    expect(verificationPlan).toHaveTextContent(
+      '0 / 24 independent outcomes · 81 provider-role suitable only',
+    )
 
     fireEvent.click(screen.getByRole('button', { name: /Decrease candidate limit/u }))
     fireEvent.click(screen.getByRole('button', { name: 'Generate deterministic plan' }))
     expect(screen.getByText('Plan needs correction')).toBeInTheDocument()
     expect(screen.getByText('The plan must retain all 5 eligible regional candidates.')).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Evidence plan' })).not.toBeInTheDocument()
+  })
+
+  it('rejects a review budget below the configured audit assignments', async () => {
+    renderMission()
+
+    fireEvent.click(
+      screen.getByRole('button', { name: /^Decrease review budget/u }),
+    )
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Generate deterministic plan' }),
+    )
+
+    expect(await screen.findByText('Plan needs correction')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Review budget must cover 80 planned reviewer assignments.',
+      ),
+    ).toBeInTheDocument()
   })
 
   it('launches the submitted replay with a fingerprinted provenance receipt', async () => {

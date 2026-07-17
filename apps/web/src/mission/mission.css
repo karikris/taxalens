@@ -404,6 +404,59 @@
   color: var(--tl-ink-muted);
 }
 
+.mission-plan__verification {
+  display: grid;
+  gap: var(--tl-space-3);
+  padding: var(--tl-space-3);
+  background: var(--tl-brand-soft);
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.mission-plan__verification h4,
+.mission-plan__verification p {
+  margin: 0;
+}
+
+.mission-plan__verification > dl {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0;
+  overflow: hidden;
+  background: var(--tl-line);
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.mission-plan__verification > dl > div {
+  min-width: 0;
+  padding: var(--tl-space-2);
+  background: var(--tl-surface-paper);
+}
+
+.mission-plan__verification > dl > div[data-state="blocked"] {
+  background: var(--tl-state-review-bg);
+}
+
+.mission-plan__verification dt {
+  color: var(--tl-ink-muted);
+  font-size: var(--tl-text-xs);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.mission-plan__verification dd {
+  margin: var(--tl-space-1) 0;
+  overflow-wrap: anywhere;
+  font-weight: 800;
+}
+
+.mission-plan__verification small,
+.mission-plan__verification > p {
+  color: var(--tl-ink-muted);
+}
+
 .mission-plan__grid {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(18rem, 0.8fr);
@@ -778,6 +831,10 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .mission-plan__verification > dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .mission-plan__provenance {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -820,6 +877,7 @@
   .candidate-policy-list,
   .mission-metrics,
   .mission-plan__summary dl,
+  .mission-plan__verification > dl,
   .mission-plan__stages,
   .mission-plan__artifacts,
   .mission-plan__provenance {
