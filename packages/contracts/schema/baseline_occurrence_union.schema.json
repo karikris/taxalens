@@ -1,0 +1,282 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://taxalens.local/contracts/baseline-occurrence-union-v1.0.0.schema.json",
+  "title": "TaxaLens baseline occurrence provider-union row",
+  "description": "One immutable provider relationship in baseline_occurrence_union.parquet. Canonical counts use canonical_flag; exact duplicate and unresolved relationships remain inspectable.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "baseline_snapshot_id",
+    "project_id",
+    "run_id",
+    "registry_version",
+    "accepted_taxon_key",
+    "scientific_name",
+    "canonical_observation_id",
+    "provider_relationship_id",
+    "provider_union_policy_version",
+    "provider_source",
+    "delivery_provider",
+    "provider_observation_id",
+    "gbif_occurrence_key",
+    "inaturalist_observation_id",
+    "source_dataset_key",
+    "source_dataset_citation",
+    "source_record_sha256",
+    "spatial_cell_id",
+    "spatial_resolution",
+    "grid_name",
+    "grid_version",
+    "country_code",
+    "country",
+    "continent",
+    "admin1",
+    "centroid_latitude",
+    "centroid_longitude",
+    "event_date",
+    "coordinate_uncertainty_m",
+    "basis_of_record",
+    "occurrence_status",
+    "known_range_role",
+    "range_inference_eligible",
+    "evidence_confidence",
+    "coordinate_valid",
+    "has_geospatial_issue",
+    "preserved_specimen",
+    "fossil",
+    "exclusion_reason",
+    "provider_relationship_kind",
+    "match_method",
+    "duplicate_group_id",
+    "unresolved_duplicate_group_id",
+    "exact_duplicate_removed",
+    "canonical_flag"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "taxalens-baseline-occurrence-union:v1.0.0"
+    },
+    "baseline_snapshot_id": {"$ref": "#/$defs/nonEmptyString"},
+    "project_id": {"$ref": "#/$defs/nonEmptyString"},
+    "run_id": {"$ref": "#/$defs/nonEmptyString"},
+    "registry_version": {"$ref": "#/$defs/nonEmptyString"},
+    "accepted_taxon_key": {"$ref": "#/$defs/nonEmptyString"},
+    "scientific_name": {"$ref": "#/$defs/nonEmptyString"},
+    "canonical_observation_id": {
+      "type": "string",
+      "pattern": "^baseline-observation:v1:sha256:[0-9a-f]{64}$"
+    },
+    "provider_relationship_id": {
+      "type": "string",
+      "pattern": "^provider-relationship:v1:sha256:[0-9a-f]{64}$"
+    },
+    "provider_union_policy_version": {
+      "const": "baseline-provider-union-policy-v1.0.0"
+    },
+    "provider_source": {"enum": ["gbif", "inaturalist"]},
+    "delivery_provider": {"enum": ["gbif", "inaturalist"]},
+    "provider_observation_id": {"$ref": "#/$defs/nullableNonEmptyString"},
+    "gbif_occurrence_key": {"$ref": "#/$defs/nullableNonEmptyString"},
+    "inaturalist_observation_id": {"$ref": "#/$defs/nullableNonEmptyString"},
+    "source_dataset_key": {"$ref": "#/$defs/nullableNonEmptyString"},
+    "source_dataset_citation": {"$ref": "#/$defs/nonEmptyString"},
+    "source_record_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "spatial_cell_id": {"$ref": "#/$defs/nullableNonEmptyString"},
+    "spatial_resolution": {
+      "anyOf": [
+        {"type": "integer", "minimum": 0, "maximum": 15},
+        {"type": "null"}
+      ]
+    },
+    "grid_name": {"$ref": "#/$defs/nonEmptyString"},
+    "grid_version": {"$ref": "#/$defs/nonEmptyString"},
+    "country_code": {
+      "anyOf": [
+        {"type": "string", "pattern": "^[A-Z]{2}$"},
+        {"type": "null"}
+      ]
+    },
+    "country": {"$ref": "#/$defs/nullableNonEmptyString"},
+    "continent": {
+      "anyOf": [
+        {
+          "enum": [
+            "Africa",
+            "Antarctica",
+            "Asia",
+            "Europe",
+            "North America",
+            "Oceania",
+            "South America"
+          ]
+        },
+        {"type": "null"}
+      ]
+    },
+    "admin1": {"$ref": "#/$defs/nullableNonEmptyString"},
+    "centroid_latitude": {
+      "anyOf": [
+        {"type": "number", "minimum": -90, "maximum": 90},
+        {"type": "null"}
+      ]
+    },
+    "centroid_longitude": {
+      "anyOf": [
+        {"type": "number", "minimum": -180, "maximum": 180},
+        {"type": "null"}
+      ]
+    },
+    "event_date": {
+      "anyOf": [
+        {"type": "string", "format": "date"},
+        {"type": "null"}
+      ]
+    },
+    "coordinate_uncertainty_m": {
+      "anyOf": [
+        {"type": "number", "minimum": 0},
+        {"type": "null"}
+      ]
+    },
+    "basis_of_record": {"$ref": "#/$defs/nullableNonEmptyString"},
+    "occurrence_status": {"$ref": "#/$defs/nullableNonEmptyString"},
+    "known_range_role": {
+      "enum": ["native", "introduced", "vagrant", "uncertain", "unknown"]
+    },
+    "range_inference_eligible": {"type": "boolean"},
+    "evidence_confidence": {"type": "number", "minimum": 0, "maximum": 1},
+    "coordinate_valid": {"type": "boolean"},
+    "has_geospatial_issue": {"type": "boolean"},
+    "preserved_specimen": {"type": "boolean"},
+    "fossil": {"type": "boolean"},
+    "exclusion_reason": {"$ref": "#/$defs/nullableNonEmptyString"},
+    "provider_relationship_kind": {
+      "enum": [
+        "canonical_source",
+        "same_provider_repeat",
+        "inaturalist_via_gbif",
+        "direct_inaturalist_equivalent",
+        "scoped_occurrence_id_equivalent",
+        "stable_source_reference_equivalent",
+        "strict_composite_equivalent",
+        "unresolved_duplicate_candidate"
+      ]
+    },
+    "match_method": {
+      "enum": [
+        "singleton",
+        "provider_identity",
+        "inaturalist_via_gbif",
+        "scoped_occurrence_id",
+        "stable_source_reference",
+        "strict_composite",
+        "unresolved_candidate"
+      ]
+    },
+    "duplicate_group_id": {"$ref": "#/$defs/nullableNonEmptyString"},
+    "unresolved_duplicate_group_id": {"$ref": "#/$defs/nullableNonEmptyString"},
+    "exact_duplicate_removed": {"type": "boolean"},
+    "canonical_flag": {"type": "boolean"}
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"delivery_provider": {"const": "gbif"}},
+        "required": ["delivery_provider"]
+      },
+      "then": {
+        "properties": {
+          "gbif_occurrence_key": {"$ref": "#/$defs/nonEmptyString"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"delivery_provider": {"const": "inaturalist"}},
+        "required": ["delivery_provider"]
+      },
+      "then": {
+        "properties": {
+          "inaturalist_observation_id": {"$ref": "#/$defs/nonEmptyString"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"spatial_cell_id": {"type": "string"}},
+        "required": ["spatial_cell_id"]
+      },
+      "then": {
+        "properties": {
+          "spatial_resolution": {"type": "integer", "minimum": 0, "maximum": 15},
+          "centroid_latitude": {"type": "number", "minimum": -90, "maximum": 90},
+          "centroid_longitude": {"type": "number", "minimum": -180, "maximum": 180}
+        }
+      },
+      "else": {
+        "properties": {
+          "spatial_resolution": {"type": "null"},
+          "centroid_latitude": {"type": "null"},
+          "centroid_longitude": {"type": "null"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"range_inference_eligible": {"const": true}},
+        "required": ["range_inference_eligible"]
+      },
+      "then": {
+        "properties": {
+          "spatial_cell_id": {"$ref": "#/$defs/nonEmptyString"},
+          "coordinate_valid": {"const": true},
+          "has_geospatial_issue": {"const": false},
+          "exclusion_reason": {"type": "null"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"exact_duplicate_removed": {"const": true}},
+        "required": ["exact_duplicate_removed"]
+      },
+      "then": {
+        "properties": {
+          "canonical_flag": {"const": false},
+          "duplicate_group_id": {"$ref": "#/$defs/nonEmptyString"},
+          "unresolved_duplicate_group_id": {"type": "null"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"match_method": {"const": "unresolved_candidate"}},
+        "required": ["match_method"]
+      },
+      "then": {
+        "properties": {
+          "canonical_flag": {"const": true},
+          "exact_duplicate_removed": {"const": false},
+          "unresolved_duplicate_group_id": {"$ref": "#/$defs/nonEmptyString"},
+          "provider_relationship_kind": {"const": "unresolved_duplicate_candidate"}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "nullableNonEmptyString": {
+      "anyOf": [
+        {"$ref": "#/$defs/nonEmptyString"},
+        {"type": "null"}
+      ]
+    }
+  }
+}
