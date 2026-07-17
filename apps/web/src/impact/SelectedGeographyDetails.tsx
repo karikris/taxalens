@@ -2,6 +2,7 @@ import type { CountryHierarchyNode } from '../../../../packages/contracts/src/ge
 import {
   countHumanSupportedAdditionalCells,
   countPotentialCoverageGapCells,
+  countReleaseReadyAdditionalCells,
 } from './geographicContributionMetrics'
 import type { PublicGeographicImpactMapCell } from './publicGeographicImpactMapData'
 
@@ -219,10 +220,7 @@ export function buildSelectedGeographyDetails(
     releaseReadyCount: sum(selectedCells, 'releaseReadyCount'),
     candidateOnlyCellCount: countPotentialCoverageGapCells(selectedCells),
     reviewedAdditionalCellCount: countHumanSupportedAdditionalCells(selectedCells),
-    releaseReadyAdditionalCellCount: countTrue(
-      selectedCells,
-      'releaseReadyAdditionalCell',
-    ),
+    releaseReadyAdditionalCellCount: countReleaseReadyAdditionalCells(selectedCells),
     nearestBaselineDistanceKm: maximumNullable(
       selectedCells.map(({ nearestBaselineDistanceKm }) => nearestBaselineDistanceKm),
     ),
@@ -287,16 +285,6 @@ function sum(
   field: SummableCellField,
 ): number {
   return cells.reduce((total, cell) => total + cell[field], 0)
-}
-
-function countTrue(
-  cells: readonly PublicGeographicImpactMapCell[],
-  field: keyof Pick<
-    PublicGeographicImpactMapCell,
-    'candidateOnlyCell' | 'reviewedAdditionalCell' | 'releaseReadyAdditionalCell'
-  >,
-): number {
-  return cells.filter((cell) => cell[field]).length
 }
 
 function maximumNullable(values: readonly (number | null)[]): number | null {

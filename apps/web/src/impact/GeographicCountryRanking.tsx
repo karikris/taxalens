@@ -2,6 +2,7 @@ import type { GeographicImpactMetric } from './geographicImpactQuery'
 import {
   countHumanSupportedAdditionalCells,
   countPotentialCoverageGapCells,
+  countReleaseReadyAdditionalCells,
 } from './geographicContributionMetrics'
 import type { PublicGeographicImpactMapCell } from './publicGeographicImpactMapData'
 
@@ -169,7 +170,7 @@ function countryRankingRow(
     sourceCellCount: cells.length,
     candidateOnlyCellCount: countPotentialCoverageGapCells(cells),
     reviewedAdditionalCellCount: countHumanSupportedAdditionalCells(cells),
-    releaseReadyAdditionalCellCount: countTrue(cells, 'releaseReadyAdditionalCell'),
+    releaseReadyAdditionalCellCount: countReleaseReadyAdditionalCells(cells),
     maximumRangeEdgeDistanceKm:
       candidateDistances.length === 0 ? null : Math.max(...candidateDistances),
     reviewBacklog: cells.reduce((total, { pendingCount }) => total + pendingCount, 0),
@@ -195,13 +196,6 @@ function countryMetricValue(
     case 'record_count':
       throw new Error('record_count is not a country contribution ranking metric')
   }
-}
-
-function countTrue(
-  cells: readonly PublicGeographicImpactMapCell[],
-  field: 'candidateOnlyCell' | 'reviewedAdditionalCell' | 'releaseReadyAdditionalCell',
-): number {
-  return cells.filter((cell) => cell[field]).length
 }
 
 function requiredRankingMetric(value: string): GeographicImpactMetric {

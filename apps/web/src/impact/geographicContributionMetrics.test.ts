@@ -3,8 +3,10 @@ import { describe, expect, it } from 'vitest'
 import {
   classifyHumanSupportedAdditionalCell,
   classifyPotentialCoverageGapCell,
+  classifyReleaseReadyAdditionalCell,
   countHumanSupportedAdditionalCells,
   countPotentialCoverageGapCells,
+  countReleaseReadyAdditionalCells,
   POTENTIAL_COVERAGE_GAP_LABEL,
 } from './geographicContributionMetrics'
 
@@ -192,5 +194,122 @@ describe('human-supported geographic contribution', () => {
         },
       ]),
     ).toBe(1)
+  })
+})
+
+describe('release-ready geographic contribution', () => {
+  const gateEvidence = {
+    releaseDecisionId: 'release:1',
+    qualitySnapshotId: 'quality:1',
+    decisionStatus: 'release_ready' as const,
+    decisivePositiveConsensus: true,
+    coordinatesValid: true,
+    duplicateGatePassed: true,
+    qualityGatePassed: true,
+    provenanceComplete: true,
+    eventDate: '2026-07-17',
+  }
+  const input = {
+    baselineEvidenceStatus: 'available' as const,
+    baselineRangeInferenceEligibleCount: 0,
+    flickrCandidateCount: 2,
+    materializedCandidateOnlyCell: true,
+    reviewedPositiveCount: 1,
+    reviewedNegativeCount: 0,
+    uncertainCount: 0,
+    pendingCount: 1,
+    mediaFailureCount: 0,
+    skippedCount: 0,
+    materializedReviewedAdditionalCell: true,
+    releaseReadyCount: 1,
+    materializedReleaseReadyAdditionalCell: true,
+    releaseGateEvidence: [gateEvidence],
+  }
+
+  it('requires positive consensus and every occurrence-release gate', () => {
+    expect(classifyReleaseReadyAdditionalCell(input)).toMatchObject({
+      state: 'release_ready_additional',
+      contributes: true,
+      label: 'Release-ready additional cells',
+      reason: 'release_gates_passed_without_eligible_baseline',
+    })
+    for (const gate of [
+      'decisivePositiveConsensus',
+      'coordinatesValid',
+      'duplicateGatePassed',
+      'qualityGatePassed',
+      'provenanceComplete',
+    ] as const) {
+      expect(() =>
+        classifyReleaseReadyAdditionalCell({
+          ...input,
+          releaseGateEvidence: [{ ...gateEvidence, [gate]: false }],
+        }),
+      ).toThrow(/failed the .* gate/u)
+    }
+  })
+
+  it('requires decision, quality and event identities and reconciles exact counts', () => {
+    expect(() =>
+      classifyReleaseReadyAdditionalCell({ ...input, releaseGateEvidence: [] }),
+    ).toThrow(/lacks complete occurrence-release gate evidence/u)
+    expect(() =>
+      classifyReleaseReadyAdditionalCell({
+        ...input,
+        releaseGateEvidence: [{ ...gateEvidence, qualitySnapshotId: null }],
+      }),
+    ).toThrow(/quality snapshot ID/u)
+    expect(() =>
+      classifyReleaseReadyAdditionalCell({
+        ...input,
+        releaseGateEvidence: [{ ...gateEvidence, eventDate: null }],
+      }),
+    ).toThrow(/event date/u)
+  })
+
+  it('does not call a gated candidate additional when baseline evidence occupies the cell', () => {
+    expect(
+      classifyReleaseReadyAdditionalCell({
+        ...input,
+        baselineRangeInferenceEligibleCount: 2,
+        materializedCandidateOnlyCell: false,
+        materializedReviewedAdditionalCell: false,
+        materializedReleaseReadyAdditionalCell: false,
+      }),
+    ).toMatchObject({
+      state: 'not_release_ready_additional',
+      contributes: false,
+      reason: 'not_human_supported_additional',
+    })
+  })
+
+  it('accepts the committed zero-release state and fails closed without a non-zero projection', () => {
+    const zeroCell = {
+      spatialCellId: 'cell:zero',
+      baselineRangeInferenceEligibleCount: 0,
+      flickrCandidateCount: 2,
+      candidateOnlyCell: true,
+      reviewedPositiveCount: 0,
+      reviewedNegativeCount: 0,
+      uncertainCount: 0,
+      pendingCount: 2,
+      mediaFailureCount: 0,
+      skippedCount: 0,
+      reviewedAdditionalCell: false,
+      releaseReadyCount: 0,
+      releaseReadyAdditionalCell: false,
+    }
+    expect(countReleaseReadyAdditionalCells([zeroCell])).toBe(0)
+    expect(() =>
+      countReleaseReadyAdditionalCells([
+        {
+          ...zeroCell,
+          reviewedPositiveCount: 1,
+          reviewedAdditionalCell: true,
+          releaseReadyCount: 1,
+          releaseReadyAdditionalCell: true,
+        },
+      ]),
+    ).toThrow(/lacks a gate-evidence projection/u)
   })
 })

@@ -1,6 +1,8 @@
 export const POTENTIAL_COVERAGE_GAP_LABEL = 'Potential coverage-gap cells' as const
 export const HUMAN_SUPPORTED_ADDITIONAL_LABEL =
   'Human-supported additional cells' as const
+export const RELEASE_READY_ADDITIONAL_LABEL =
+  'Release-ready additional cells' as const
 
 export type PotentialCoverageGapState =
   | 'potential'
@@ -48,6 +50,40 @@ export interface HumanSupportedAdditionalClassification {
     | 'reviewed_target_positive_without_eligible_baseline'
     | 'eligible_baseline_present'
     | 'no_reviewed_target_positive'
+    | 'baseline_evidence_unavailable'
+}
+
+export interface OccurrenceReleaseGateEvidence {
+  readonly releaseDecisionId: string | null
+  readonly qualitySnapshotId: string | null
+  readonly decisionStatus: 'blocked' | 'release_ready'
+  readonly decisivePositiveConsensus: boolean
+  readonly coordinatesValid: boolean
+  readonly duplicateGatePassed: boolean
+  readonly qualityGatePassed: boolean
+  readonly provenanceComplete: boolean
+  readonly eventDate: string | null
+}
+
+export type ReleaseReadyAdditionalState =
+  | 'release_ready_additional'
+  | 'not_release_ready_additional'
+  | 'unavailable'
+
+export interface ReleaseReadyAdditionalInput extends HumanSupportedAdditionalInput {
+  readonly releaseReadyCount: number
+  readonly materializedReleaseReadyAdditionalCell: boolean
+  readonly releaseGateEvidence: readonly OccurrenceReleaseGateEvidence[]
+}
+
+export interface ReleaseReadyAdditionalClassification {
+  readonly state: ReleaseReadyAdditionalState
+  readonly contributes: boolean
+  readonly label: typeof RELEASE_READY_ADDITIONAL_LABEL
+  readonly reason:
+    | 'release_gates_passed_without_eligible_baseline'
+    | 'no_release_ready_decision'
+    | 'not_human_supported_additional'
     | 'baseline_evidence_unavailable'
 }
 
@@ -180,6 +216,131 @@ export function countHumanSupportedAdditionalCells(
   return cells.filter(isHumanSupportedAdditionalCell).length
 }
 
+export function classifyReleaseReadyAdditionalCell(
+  input: ReleaseReadyAdditionalInput,
+): ReleaseReadyAdditionalClassification {
+  assertCount(input.releaseReadyCount, 'releaseReadyCount')
+  const humanSupported = classifyHumanSupportedAdditionalCell(input)
+  if (input.releaseReadyCount > input.reviewedPositiveCount) {
+    throw new Error('release-ready count exceeds reviewed target-positive count')
+  }
+  const readyDecisionIds = input.releaseGateEvidence
+    .filter(validateOccurrenceReleaseGateEvidence)
+    .map(({ releaseDecisionId }) => releaseDecisionId as string)
+  if (new Set(readyDecisionIds).size !== readyDecisionIds.length) {
+    throw new Error('release-ready decision identity is duplicated within a cell')
+  }
+  if (input.releaseReadyCount !== readyDecisionIds.length) {
+    throw new Error('release-ready count lacks complete occurrence-release gate evidence')
+  }
+  if (humanSupported.state === 'unavailable') {
+    if (input.materializedReleaseReadyAdditionalCell) {
+      throw new Error('unavailable baseline cannot materialize release-ready contribution')
+    }
+    return releaseClassification(
+      'unavailable',
+      false,
+      'baseline_evidence_unavailable',
+    )
+  }
+  const expected = humanSupported.contributes && input.releaseReadyCount > 0
+  if (expected !== input.materializedReleaseReadyAdditionalCell) {
+    throw new Error('materialized release-ready additional state differs from gated evidence')
+  }
+  if (expected) {
+    return releaseClassification(
+      'release_ready_additional',
+      true,
+      'release_gates_passed_without_eligible_baseline',
+    )
+  }
+  return input.releaseReadyCount === 0
+    ? releaseClassification(
+        'not_release_ready_additional',
+        false,
+        'no_release_ready_decision',
+      )
+    : releaseClassification(
+        'not_release_ready_additional',
+        false,
+        'not_human_supported_additional',
+      )
+}
+
+export function validateOccurrenceReleaseGateEvidence(
+  evidence: OccurrenceReleaseGateEvidence,
+): boolean {
+  if (evidence.decisionStatus === 'blocked') return false
+  for (const [name, passed] of [
+    ['decisive positive consensus', evidence.decisivePositiveConsensus],
+    ['coordinates', evidence.coordinatesValid],
+    ['duplicate', evidence.duplicateGatePassed],
+    ['quality', evidence.qualityGatePassed],
+    ['provenance', evidence.provenanceComplete],
+  ] as const) {
+    if (!passed) throw new Error(`release-ready decision failed the ${name} gate`)
+  }
+  assertIdentity(evidence.releaseDecisionId, 'release decision ID')
+  assertIdentity(evidence.qualitySnapshotId, 'quality snapshot ID')
+  if (
+    evidence.eventDate === null ||
+    !/^\d{4}-\d{2}-\d{2}$/u.test(evidence.eventDate) ||
+    Number.isNaN(Date.parse(`${evidence.eventDate}T00:00:00Z`))
+  ) {
+    throw new Error('release-ready decision event date is unavailable or invalid')
+  }
+  return true
+}
+
+export type ReleaseGateEvidenceByCell = ReadonlyMap<
+  string,
+  readonly OccurrenceReleaseGateEvidence[]
+>
+
+export function countReleaseReadyAdditionalCells(
+  cells: readonly {
+    readonly spatialCellId: string
+    readonly baselineRangeInferenceEligibleCount: number
+    readonly flickrCandidateCount: number
+    readonly candidateOnlyCell: boolean
+    readonly reviewedPositiveCount: number
+    readonly reviewedNegativeCount: number
+    readonly uncertainCount: number
+    readonly pendingCount: number
+    readonly mediaFailureCount: number
+    readonly skippedCount: number
+    readonly reviewedAdditionalCell: boolean
+    readonly releaseReadyCount: number
+    readonly releaseReadyAdditionalCell: boolean
+  }[],
+  releaseEvidenceByCell?: ReleaseGateEvidenceByCell,
+): number {
+  return cells.filter((cell) => {
+    const releaseGateEvidence = releaseEvidenceByCell?.get(cell.spatialCellId) ?? []
+    if (cell.releaseReadyCount > 0 && !releaseEvidenceByCell?.has(cell.spatialCellId)) {
+      throw new Error(
+        `release-ready cell ${cell.spatialCellId} lacks a gate-evidence projection`,
+      )
+    }
+    return classifyReleaseReadyAdditionalCell({
+      baselineEvidenceStatus: 'available',
+      baselineRangeInferenceEligibleCount: cell.baselineRangeInferenceEligibleCount,
+      flickrCandidateCount: cell.flickrCandidateCount,
+      materializedCandidateOnlyCell: cell.candidateOnlyCell,
+      reviewedPositiveCount: cell.reviewedPositiveCount,
+      reviewedNegativeCount: cell.reviewedNegativeCount,
+      uncertainCount: cell.uncertainCount,
+      pendingCount: cell.pendingCount,
+      mediaFailureCount: cell.mediaFailureCount,
+      skippedCount: cell.skippedCount,
+      materializedReviewedAdditionalCell: cell.reviewedAdditionalCell,
+      releaseReadyCount: cell.releaseReadyCount,
+      materializedReleaseReadyAdditionalCell: cell.releaseReadyAdditionalCell,
+      releaseGateEvidence,
+    }).contributes
+  }).length
+}
+
 function classification(
   state: PotentialCoverageGapState,
   contributes: boolean,
@@ -206,6 +367,19 @@ function humanClassification(
   })
 }
 
+function releaseClassification(
+  state: ReleaseReadyAdditionalState,
+  contributes: boolean,
+  reason: ReleaseReadyAdditionalClassification['reason'],
+): ReleaseReadyAdditionalClassification {
+  return Object.freeze({
+    state,
+    contributes,
+    label: RELEASE_READY_ADDITIONAL_LABEL,
+    reason,
+  })
+}
+
 function assertReviewCounts(input: HumanSupportedAdditionalInput): void {
   for (const field of [
     'reviewedPositiveCount',
@@ -222,5 +396,11 @@ function assertReviewCounts(input: HumanSupportedAdditionalInput): void {
 function assertCount(value: number, field: string): void {
   if (!Number.isSafeInteger(value) || value < 0) {
     throw new Error(`${field} must be a non-negative safe integer`)
+  }
+}
+
+function assertIdentity(value: string | null, field: string): asserts value is string {
+  if (value === null || value.length === 0 || value.trim() !== value) {
+    throw new Error(`${field} must be a non-empty canonical string`)
   }
 }

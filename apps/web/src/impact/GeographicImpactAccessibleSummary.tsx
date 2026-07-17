@@ -4,6 +4,7 @@ import type { CountryHierarchyNode } from '../../../../packages/contracts/src/ge
 import {
   countHumanSupportedAdditionalCells,
   countPotentialCoverageGapCells,
+  countReleaseReadyAdditionalCells,
 } from './geographicContributionMetrics'
 import type { PublicGeographicImpactMapCell } from './publicGeographicImpactMapData'
 
@@ -107,7 +108,7 @@ export function buildGeographicImpactAccessibleSummary(
     releaseReadyCount: sum(cells, 'releaseReadyCount'),
     candidateOnlyCellCount: countPotentialCoverageGapCells(cells),
     reviewedAdditionalCellCount: countHumanSupportedAdditionalCells(cells),
-    releaseReadyAdditionalCellCount: countTrue(cells, 'releaseReadyAdditionalCell'),
+    releaseReadyAdditionalCellCount: countReleaseReadyAdditionalCells(cells),
     selectedCellId: selected?.spatialCellId ?? null,
     selectedCellSummary:
       selected === undefined
@@ -148,13 +149,6 @@ type CountField = keyof Pick<
 
 function sum(cells: readonly PublicGeographicImpactMapCell[], field: CountField): number {
   return cells.reduce((total, cell) => total + cell[field], 0)
-}
-
-function countTrue(
-  cells: readonly PublicGeographicImpactMapCell[],
-  field: 'candidateOnlyCell' | 'reviewedAdditionalCell' | 'releaseReadyAdditionalCell',
-): number {
-  return cells.filter((cell) => cell[field]).length
 }
 
 function selectedSummary(cell: PublicGeographicImpactMapCell): string {
