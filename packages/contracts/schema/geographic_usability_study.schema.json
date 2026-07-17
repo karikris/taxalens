@@ -1,0 +1,176 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://taxalens.local/schema/geographic_usability_study.schema.json",
+  "title": "TaxaLens Geographic Impact usability study",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "protocolVersion",
+    "studyId",
+    "status",
+    "createdAt",
+    "targetBuild",
+    "claims",
+    "sessions"
+  ],
+  "properties": {
+    "schemaVersion": {"const": "taxalens-geographic-usability-study-raw:v1.0.0"},
+    "protocolVersion": {"const": "taxalens-geographic-usability-protocol:v1.0.0"},
+    "studyId": {"$ref": "#/$defs/nonEmptyString"},
+    "status": {"enum": ["pending_human_data", "collecting", "complete"]},
+    "createdAt": {"$ref": "#/$defs/timestamp"},
+    "targetBuild": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bundleId", "taxalensSha", "impactArtifactSha256", "hostedUrlStatus"],
+      "properties": {
+        "bundleId": {"$ref": "#/$defs/nonEmptyString"},
+        "taxalensSha": {"$ref": "#/$defs/gitObjectId"},
+        "impactArtifactSha256": {"$ref": "#/$defs/sha256"},
+        "hostedUrlStatus": {"enum": ["pending", "available"]}
+      }
+    },
+    "claims": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "humanParticipantCount",
+        "humanUsabilityMeasured",
+        "humanTimeSavingsAllowed",
+        "studyObservationsAreReviewEvidence"
+      ],
+      "properties": {
+        "humanParticipantCount": {"type": "integer", "minimum": 0},
+        "humanUsabilityMeasured": {"type": "boolean"},
+        "humanTimeSavingsAllowed": {"const": false},
+        "studyObservationsAreReviewEvidence": {"const": false}
+      }
+    },
+    "sessions": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/session"}
+    }
+  },
+  "$defs": {
+    "nonEmptyString": {"type": "string", "minLength": 1, "pattern": "^\\S(?:.*\\S)?$"},
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "gitObjectId": {"type": "string", "pattern": "^[a-f0-9]{40,64}$"},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "nullableString": {
+      "oneOf": [{"$ref": "#/$defs/nonEmptyString"}, {"type": "null"}]
+    },
+    "participant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "participantIdHash",
+        "synthetic",
+        "consentRecorded",
+        "quotationConsent",
+        "experienceBand",
+        "roleCategory"
+      ],
+      "properties": {
+        "participantIdHash": {"$ref": "#/$defs/sha256"},
+        "synthetic": {"const": false},
+        "consentRecorded": {"const": true},
+        "quotationConsent": {"type": "boolean"},
+        "experienceBand": {"enum": ["less_than_1_year", "1_to_3_years", "4_to_10_years", "more_than_10_years", "not_disclosed"]},
+        "roleCategory": {"enum": ["biodiversity_research", "collections", "ecology", "data_stewardship", "other", "not_disclosed"]}
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["browserName", "browserVersion", "platform", "viewportWidth", "viewportHeight", "externalMapRequests"],
+      "properties": {
+        "browserName": {"$ref": "#/$defs/nonEmptyString"},
+        "browserVersion": {"$ref": "#/$defs/nonEmptyString"},
+        "platform": {"$ref": "#/$defs/nonEmptyString"},
+        "viewportWidth": {"type": "integer", "minimum": 1},
+        "viewportHeight": {"type": "integer", "minimum": 1},
+        "externalMapRequests": {"const": 0}
+      }
+    },
+    "interpretationAnswer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["statementId", "answer", "correct"],
+      "properties": {
+        "statementId": {"enum": ["candidate_present", "baseline_snapshot_gap", "biological_absence", "human_supported_addition", "release_ready_candidate"]},
+        "answer": {"enum": ["supported", "unsupported", "unavailable"]},
+        "correct": {"type": "boolean"}
+      }
+    },
+    "taskObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "taskId",
+        "sequence",
+        "status",
+        "startedAt",
+        "endedAt",
+        "activeMilliseconds",
+        "actionCount",
+        "moderatorHelpCount",
+        "errors",
+        "selectedCountryCode",
+        "selectedSpatialCellId",
+        "selectedRecordId",
+        "inspectedArtifactIds",
+        "interpretationAnswers",
+        "confidence",
+        "comment"
+      ],
+      "properties": {
+        "taskId": {"enum": ["identify_country_gap", "find_candidate_record", "inspect_provenance", "begin_verification", "interpret_evidence_state"]},
+        "sequence": {"type": "integer", "minimum": 1, "maximum": 5},
+        "status": {"enum": ["completed", "incomplete", "abandoned"]},
+        "startedAt": {"$ref": "#/$defs/timestamp"},
+        "endedAt": {"$ref": "#/$defs/timestamp"},
+        "activeMilliseconds": {"type": "integer", "minimum": 0},
+        "actionCount": {"type": "integer", "minimum": 0},
+        "moderatorHelpCount": {"type": "integer", "minimum": 0},
+        "errors": {
+          "type": "array",
+          "items": {"enum": ["wrong_scope", "wrong_evidence_state", "candidate_as_occurrence", "absence_overclaim", "provider_double_count", "precision_ignored", "wrong_record", "wrong_verification_item", "navigation", "other"]}
+        },
+        "selectedCountryCode": {"$ref": "#/$defs/nullableString"},
+        "selectedSpatialCellId": {"$ref": "#/$defs/nullableString"},
+        "selectedRecordId": {"$ref": "#/$defs/nullableString"},
+        "inspectedArtifactIds": {"type": "array", "items": {"$ref": "#/$defs/nonEmptyString"}},
+        "interpretationAnswers": {"type": "array", "items": {"$ref": "#/$defs/interpretationAnswer"}},
+        "confidence": {"oneOf": [{"type": "integer", "minimum": 1, "maximum": 5}, {"type": "null"}]},
+        "comment": {"$ref": "#/$defs/nullableString"}
+      }
+    },
+    "session": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "sessionId",
+        "participant",
+        "environment",
+        "startedAt",
+        "completedAt",
+        "status",
+        "withdrawnDataRetentionAllowed",
+        "tasks"
+      ],
+      "properties": {
+        "schemaVersion": {"const": "taxalens-geographic-usability-session:v1.0.0"},
+        "sessionId": {"$ref": "#/$defs/nonEmptyString"},
+        "participant": {"$ref": "#/$defs/participant"},
+        "environment": {"$ref": "#/$defs/environment"},
+        "startedAt": {"$ref": "#/$defs/timestamp"},
+        "completedAt": {"oneOf": [{"$ref": "#/$defs/timestamp"}, {"type": "null"}]},
+        "status": {"enum": ["completed", "incomplete", "withdrawn"]},
+        "withdrawnDataRetentionAllowed": {"type": "boolean"},
+        "tasks": {"type": "array", "minItems": 5, "maxItems": 5, "items": {"$ref": "#/$defs/taskObservation"}}
+      }
+    }
+  }
+}

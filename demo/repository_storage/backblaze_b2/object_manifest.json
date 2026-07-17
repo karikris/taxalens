@@ -1,7 +1,7 @@
 {
   "bucket_alias": "taxalens-repository-fixture",
   "credentials_included": false,
-  "object_count": 101,
+  "object_count": 102,
   "objects": [
     {
       "bytes": 484,
@@ -814,6 +814,15 @@
       "sha256": "b2d519d5d8a4fd6e340eda13de29c4e8c8beb019bfbaf078e96d7b99ae94e3ed"
     },
     {
+      "bytes": 742,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/impact/geographic-impact-usability-study.raw.json",
+      "repository_path": "demo/source/impact/geographic-impact-usability-study.raw.json",
+      "sha256": "e4a9116afcb37f6a0a093bf11bdd530962c62537cf86cd58b32152d92dfda58f"
+    },
+    {
       "bytes": 17063,
       "git_tracked_required": true,
       "immutable": true,
@@ -918,5 +927,5 @@
   "scientific_claim_allowed": false,
   "signed_urls_included": false,
   "storage_mode": "repository_mirror",
-  "total_bytes": 15604293
+  "total_bytes": 15605035
 }

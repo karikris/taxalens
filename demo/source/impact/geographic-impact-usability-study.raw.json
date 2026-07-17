@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "taxalens-geographic-usability-study-raw:v1.0.0",
+  "protocolVersion": "taxalens-geographic-usability-protocol:v1.0.0",
+  "studyId": "taxalens-geographic-impact-usability-v1",
+  "status": "pending_human_data",
+  "createdAt": "2026-07-18T00:00:00+10:00",
+  "targetBuild": {
+    "bundleId": "papilio-demoleus-prototype-74a7d648-v3",
+    "taxalensSha": "1440596cf4403af61ba8d57481feacda7c4e3044",
+    "impactArtifactSha256": "a02927ffbb4dc09fca582c61e6ceab51af6d12f8998cf0f7762ebfe26a4ea1c9",
+    "hostedUrlStatus": "pending"
+  },
+  "claims": {
+    "humanParticipantCount": 0,
+    "humanUsabilityMeasured": false,
+    "humanTimeSavingsAllowed": false,
+    "studyObservationsAreReviewEvidence": false
+  },
+  "sessions": []
+}
