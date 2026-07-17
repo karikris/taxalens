@@ -1,0 +1,110 @@
+{
+  "artifacts": [
+    {
+      "byte_count": 838726,
+      "logical_name": "source_geojson",
+      "media_type": "application/geo+json",
+      "path": "demo/source/geography/natural_earth_110m_admin_0_countries.source.geojson",
+      "record_count": 177,
+      "schema_version": "natural-earth-geojson:v5.1.2",
+      "sha256": "6866c877d39cba9c357620878839b336d569f8c662d3cfab4cb1dbe2d39c977f"
+    },
+    {
+      "byte_count": 353229,
+      "logical_name": "country_boundaries",
+      "media_type": "application/geo+json",
+      "path": "demo/source/geography/natural_earth_110m_countries.geojson",
+      "record_count": 177,
+      "schema_version": "taxalens-offline-country-boundaries:v1.0.0",
+      "sha256": "a65b36344ace327fdc546bf2613eff026680905e9d2a634443713bb0d07abf33"
+    },
+    {
+      "byte_count": 51457,
+      "logical_name": "iso_country_mapping",
+      "media_type": "application/json",
+      "path": "demo/source/geography/natural_earth_110m_iso_country_mapping.json",
+      "record_count": 175,
+      "schema_version": "taxalens-offline-country-mapping:v1.0.0",
+      "sha256": "4b70b5b4b00e4713caf933dd53a57b383361773fe029b1cc2938b6e94479777d"
+    },
+    {
+      "byte_count": 102491,
+      "logical_name": "country_hierarchy",
+      "media_type": "application/json",
+      "path": "demo/source/geography/country_hierarchy.json",
+      "record_count": 183,
+      "schema_version": "taxalens-country-hierarchy:v1.0.0",
+      "sha256": "f7181eff58f5d68cf0c9987c320b10bb4d9e22220f45af30e33f4de4cb198a54"
+    },
+    {
+      "byte_count": 1100,
+      "logical_name": "attribution",
+      "media_type": "application/json",
+      "path": "demo/source/geography/natural_earth_attribution.json",
+      "record_count": 1,
+      "schema_version": "taxalens-boundary-attribution:v1.0.0",
+      "sha256": "b2d519d5d8a4fd6e340eda13de29c4e8c8beb019bfbaf078e96d7b99ae94e3ed"
+    }
+  ],
+  "country_hierarchy_id": "country-hierarchy:natural-earth-v5.1.2-110m",
+  "counts": {
+    "admin1_count": 0,
+    "boundary_feature_count": 177,
+    "boundary_only_feature_count": 2,
+    "continent_count": 7,
+    "hierarchy_node_count": 183,
+    "selectable_country_count": 175
+  },
+  "created_at": "2026-07-17T11:04:00Z",
+  "dataset_id": "natural-earth:admin-0-countries-110m",
+  "dataset_version": "v5.1.2+f1890d9f",
+  "intended_use": "low_resolution_display_navigation_only",
+  "manifest_id": "geographic-boundaries:natural-earth-v5.1.2-110m",
+  "manifest_path": "demo/source/geography/geographic_boundaries_manifest.json",
+  "normalization_policy": {
+    "boundary_only_policy": "visible_not_selectable",
+    "bounds_policy": "Natural Earth feature bbox; union of child feature bboxes for continents",
+    "centroid_policy": "Natural Earth label point for countries; mean label point for continents",
+    "continent_override_count": 1,
+    "continent_overrides": [
+      {
+        "normalized_continent": "Africa",
+        "reason": "TaxaLens exposes seven continent scopes; for French Southern and Antarctic Lands the source CONTINENT is Seven seas (open ocean), so its own REGION_UN value supplies the selectable hierarchy parent.",
+        "required_region_un": "Africa",
+        "source_continent": "Seven seas (open ocean)"
+      }
+    ],
+    "coordinate_precision_changed": false,
+    "geometry_changed": false,
+    "invalid_iso_alpha2_invented": false,
+    "record_country_inference_performed": false,
+    "source_features_dropped": false
+  },
+  "rights": {
+    "attribution_required": false,
+    "license_name": "Public Domain",
+    "license_uri": "https://www.naturalearthdata.com/about/terms-of-use/",
+    "redistribution_allowed": true,
+    "rights_id": "natural-earth-public-domain-boundaries",
+    "voluntary_attribution": "Made with Natural Earth. Free vector and raster map data @ naturalearthdata.com."
+  },
+  "runtime_policy": {
+    "analytics_or_telemetry_allowed": false,
+    "external_fonts_allowed": false,
+    "external_requests_allowed": false,
+    "external_sprites_allowed": false,
+    "external_tiles_allowed": false
+  },
+  "schema_version": "taxalens-geographic-boundaries-manifest:v1.0.0",
+  "scientific_claim_allowed": false,
+  "source": {
+    "byte_count": 838726,
+    "commit": "f1890d9f152c896d250a77557a5751a93d494776",
+    "feature_count": 177,
+    "path": "geojson/ne_110m_admin_0_countries.geojson",
+    "release": "v5.1.2",
+    "repository": "nvkelso/natural-earth-vector",
+    "sha256": "6866c877d39cba9c357620878839b336d569f8c662d3cfab4cb1dbe2d39c977f",
+    "url": "https://github.com/nvkelso/natural-earth-vector/blob/f1890d9f152c896d250a77557a5751a93d494776/geojson/ne_110m_admin_0_countries.geojson"
+  }
+}

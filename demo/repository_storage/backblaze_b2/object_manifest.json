@@ -1,7 +1,7 @@
 {
   "bucket_alias": "taxalens-repository-fixture",
   "credentials_included": false,
-  "object_count": 86,
+  "object_count": 92,
   "objects": [
     {
       "bytes": 484,
@@ -706,6 +706,60 @@
       "sha256": "3e66b79b1fa188be3aec36db621f6ae71476942ca01e23226bd8c52c3e07fa4e"
     },
     {
+      "bytes": 102491,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/geography/country_hierarchy.json",
+      "repository_path": "demo/source/geography/country_hierarchy.json",
+      "sha256": "f7181eff58f5d68cf0c9987c320b10bb4d9e22220f45af30e33f4de4cb198a54"
+    },
+    {
+      "bytes": 4642,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/geography/geographic_boundaries_manifest.json",
+      "repository_path": "demo/source/geography/geographic_boundaries_manifest.json",
+      "sha256": "c99124704c61a90bc45fc5f09dadb7c565f48e3b794b7f3f05216f8a9671a19e"
+    },
+    {
+      "bytes": 838726,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/geo+json",
+      "object_key": "taxalens/demo/source/geography/natural_earth_110m_admin_0_countries.source.geojson",
+      "repository_path": "demo/source/geography/natural_earth_110m_admin_0_countries.source.geojson",
+      "sha256": "6866c877d39cba9c357620878839b336d569f8c662d3cfab4cb1dbe2d39c977f"
+    },
+    {
+      "bytes": 353229,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/geo+json",
+      "object_key": "taxalens/demo/source/geography/natural_earth_110m_countries.geojson",
+      "repository_path": "demo/source/geography/natural_earth_110m_countries.geojson",
+      "sha256": "a65b36344ace327fdc546bf2613eff026680905e9d2a634443713bb0d07abf33"
+    },
+    {
+      "bytes": 51457,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/geography/natural_earth_110m_iso_country_mapping.json",
+      "repository_path": "demo/source/geography/natural_earth_110m_iso_country_mapping.json",
+      "sha256": "4b70b5b4b00e4713caf933dd53a57b383361773fe029b1cc2938b6e94479777d"
+    },
+    {
+      "bytes": 1100,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/geography/natural_earth_attribution.json",
+      "repository_path": "demo/source/geography/natural_earth_attribution.json",
+      "sha256": "b2d519d5d8a4fd6e340eda13de29c4e8c8beb019bfbaf078e96d7b99ae94e3ed"
+    },
+    {
       "bytes": 17063,
       "git_tracked_required": true,
       "immutable": true,
@@ -783,5 +837,5 @@
   "scientific_claim_allowed": false,
   "signed_urls_included": false,
   "storage_mode": "repository_mirror",
-  "total_bytes": 7925979
+  "total_bytes": 9277624
 }

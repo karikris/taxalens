@@ -1,0 +1,1789 @@
+{
+  "boundary_only_feature_count": 2,
+  "boundary_only_features": [
+    {
+      "continent": "Asia",
+      "feature_id": "ne:1159320531",
+      "name": "Turkish Republic of Northern Cyprus",
+      "natural_earth_id": "1159320531",
+      "reason": "source_has_no_resolved_iso_alpha2_identity",
+      "selectable_country": false,
+      "source_iso_a3": null
+    },
+    {
+      "continent": "Africa",
+      "feature_id": "ne:1159321259",
+      "name": "Somaliland",
+      "natural_earth_id": "1159321259",
+      "reason": "source_has_no_resolved_iso_alpha2_identity",
+      "selectable_country": false,
+      "source_iso_a3": null
+    }
+  ],
+  "countries": [
+    {
+      "continent": "Asia",
+      "country": "United Arab Emirates",
+      "country_code": "AE",
+      "geometry_feature_id": "ne:1159320329",
+      "iso_a3": "ARE",
+      "natural_earth_id": "1159320329",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:AE"
+    },
+    {
+      "continent": "Asia",
+      "country": "Afghanistan",
+      "country_code": "AF",
+      "geometry_feature_id": "ne:1159320319",
+      "iso_a3": "AFG",
+      "natural_earth_id": "1159320319",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:AF"
+    },
+    {
+      "continent": "Europe",
+      "country": "Albania",
+      "country_code": "AL",
+      "geometry_feature_id": "ne:1159320325",
+      "iso_a3": "ALB",
+      "natural_earth_id": "1159320325",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:AL"
+    },
+    {
+      "continent": "Asia",
+      "country": "Armenia",
+      "country_code": "AM",
+      "geometry_feature_id": "ne:1159320333",
+      "iso_a3": "ARM",
+      "natural_earth_id": "1159320333",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:AM"
+    },
+    {
+      "continent": "Africa",
+      "country": "Angola",
+      "country_code": "AO",
+      "geometry_feature_id": "ne:1159320323",
+      "iso_a3": "AGO",
+      "natural_earth_id": "1159320323",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:AO"
+    },
+    {
+      "continent": "Antarctica",
+      "country": "Antarctica",
+      "country_code": "AQ",
+      "geometry_feature_id": "ne:1159320335",
+      "iso_a3": "ATA",
+      "natural_earth_id": "1159320335",
+      "parent_scope_id": "continent:antarctica",
+      "scope_id": "country:AQ"
+    },
+    {
+      "continent": "South America",
+      "country": "Argentina",
+      "country_code": "AR",
+      "geometry_feature_id": "ne:1159320331",
+      "iso_a3": "ARG",
+      "natural_earth_id": "1159320331",
+      "parent_scope_id": "continent:south-america",
+      "scope_id": "country:AR"
+    },
+    {
+      "continent": "Europe",
+      "country": "Austria",
+      "country_code": "AT",
+      "geometry_feature_id": "ne:1159320379",
+      "iso_a3": "AUT",
+      "natural_earth_id": "1159320379",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:AT"
+    },
+    {
+      "continent": "Oceania",
+      "country": "Australia",
+      "country_code": "AU",
+      "geometry_feature_id": "ne:1159320355",
+      "iso_a3": "AUS",
+      "natural_earth_id": "1159320355",
+      "parent_scope_id": "continent:oceania",
+      "scope_id": "country:AU"
+    },
+    {
+      "continent": "Asia",
+      "country": "Azerbaijan",
+      "country_code": "AZ",
+      "geometry_feature_id": "ne:1159320381",
+      "iso_a3": "AZE",
+      "natural_earth_id": "1159320381",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:AZ"
+    },
+    {
+      "continent": "Europe",
+      "country": "Bosnia and Herzegovina",
+      "country_code": "BA",
+      "geometry_feature_id": "ne:1159320417",
+      "iso_a3": "BIH",
+      "natural_earth_id": "1159320417",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:BA"
+    },
+    {
+      "continent": "Asia",
+      "country": "Bangladesh",
+      "country_code": "BD",
+      "geometry_feature_id": "ne:1159320407",
+      "iso_a3": "BGD",
+      "natural_earth_id": "1159320407",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:BD"
+    },
+    {
+      "continent": "Europe",
+      "country": "Belgium",
+      "country_code": "BE",
+      "geometry_feature_id": "ne:1159320389",
+      "iso_a3": "BEL",
+      "natural_earth_id": "1159320389",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:BE"
+    },
+    {
+      "continent": "Africa",
+      "country": "Burkina Faso",
+      "country_code": "BF",
+      "geometry_feature_id": "ne:1159320405",
+      "iso_a3": "BFA",
+      "natural_earth_id": "1159320405",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:BF"
+    },
+    {
+      "continent": "Europe",
+      "country": "Bulgaria",
+      "country_code": "BG",
+      "geometry_feature_id": "ne:1159320409",
+      "iso_a3": "BGR",
+      "natural_earth_id": "1159320409",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:BG"
+    },
+    {
+      "continent": "Africa",
+      "country": "Burundi",
+      "country_code": "BI",
+      "geometry_feature_id": "ne:1159320387",
+      "iso_a3": "BDI",
+      "natural_earth_id": "1159320387",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:BI"
+    },
+    {
+      "continent": "Africa",
+      "country": "Benin",
+      "country_code": "BJ",
+      "geometry_feature_id": "ne:1159320399",
+      "iso_a3": "BEN",
+      "natural_earth_id": "1159320399",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:BJ"
+    },
+    {
+      "continent": "Asia",
+      "country": "Brunei",
+      "country_code": "BN",
+      "geometry_feature_id": "ne:1159320451",
+      "iso_a3": "BRN",
+      "natural_earth_id": "1159320451",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:BN"
+    },
+    {
+      "continent": "South America",
+      "country": "Bolivia",
+      "country_code": "BO",
+      "geometry_feature_id": "ne:1159320439",
+      "iso_a3": "BOL",
+      "natural_earth_id": "1159320439",
+      "parent_scope_id": "continent:south-america",
+      "scope_id": "country:BO"
+    },
+    {
+      "continent": "South America",
+      "country": "Brazil",
+      "country_code": "BR",
+      "geometry_feature_id": "ne:1159320441",
+      "iso_a3": "BRA",
+      "natural_earth_id": "1159320441",
+      "parent_scope_id": "continent:south-america",
+      "scope_id": "country:BR"
+    },
+    {
+      "continent": "North America",
+      "country": "The Bahamas",
+      "country_code": "BS",
+      "geometry_feature_id": "ne:1159320415",
+      "iso_a3": "BHS",
+      "natural_earth_id": "1159320415",
+      "parent_scope_id": "continent:north-america",
+      "scope_id": "country:BS"
+    },
+    {
+      "continent": "Asia",
+      "country": "Bhutan",
+      "country_code": "BT",
+      "geometry_feature_id": "ne:1159320453",
+      "iso_a3": "BTN",
+      "natural_earth_id": "1159320453",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:BT"
+    },
+    {
+      "continent": "Africa",
+      "country": "Botswana",
+      "country_code": "BW",
+      "geometry_feature_id": "ne:1159320461",
+      "iso_a3": "BWA",
+      "natural_earth_id": "1159320461",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:BW"
+    },
+    {
+      "continent": "Europe",
+      "country": "Belarus",
+      "country_code": "BY",
+      "geometry_feature_id": "ne:1159320427",
+      "iso_a3": "BLR",
+      "natural_earth_id": "1159320427",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:BY"
+    },
+    {
+      "continent": "North America",
+      "country": "Belize",
+      "country_code": "BZ",
+      "geometry_feature_id": "ne:1159320431",
+      "iso_a3": "BLZ",
+      "natural_earth_id": "1159320431",
+      "parent_scope_id": "continent:north-america",
+      "scope_id": "country:BZ"
+    },
+    {
+      "continent": "North America",
+      "country": "Canada",
+      "country_code": "CA",
+      "geometry_feature_id": "ne:1159320467",
+      "iso_a3": "CAN",
+      "natural_earth_id": "1159320467",
+      "parent_scope_id": "continent:north-america",
+      "scope_id": "country:CA"
+    },
+    {
+      "continent": "Africa",
+      "country": "Democratic Republic of the Congo",
+      "country_code": "CD",
+      "geometry_feature_id": "ne:1159320513",
+      "iso_a3": "COD",
+      "natural_earth_id": "1159320513",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:CD"
+    },
+    {
+      "continent": "Africa",
+      "country": "Central African Republic",
+      "country_code": "CF",
+      "geometry_feature_id": "ne:1159320463",
+      "iso_a3": "CAF",
+      "natural_earth_id": "1159320463",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:CF"
+    },
+    {
+      "continent": "Africa",
+      "country": "Republic of the Congo",
+      "country_code": "CG",
+      "geometry_feature_id": "ne:1159320515",
+      "iso_a3": "COG",
+      "natural_earth_id": "1159320515",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:CG"
+    },
+    {
+      "continent": "Europe",
+      "country": "Switzerland",
+      "country_code": "CH",
+      "geometry_feature_id": "ne:1159320491",
+      "iso_a3": "CHE",
+      "natural_earth_id": "1159320491",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:CH"
+    },
+    {
+      "continent": "Africa",
+      "country": "Ivory Coast",
+      "country_code": "CI",
+      "geometry_feature_id": "ne:1159320507",
+      "iso_a3": "CIV",
+      "natural_earth_id": "1159320507",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:CI"
+    },
+    {
+      "continent": "South America",
+      "country": "Chile",
+      "country_code": "CL",
+      "geometry_feature_id": "ne:1159320493",
+      "iso_a3": "CHL",
+      "natural_earth_id": "1159320493",
+      "parent_scope_id": "continent:south-america",
+      "scope_id": "country:CL"
+    },
+    {
+      "continent": "Africa",
+      "country": "Cameroon",
+      "country_code": "CM",
+      "geometry_feature_id": "ne:1159320509",
+      "iso_a3": "CMR",
+      "natural_earth_id": "1159320509",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:CM"
+    },
+    {
+      "continent": "Asia",
+      "country": "People's Republic of China",
+      "country_code": "CN",
+      "geometry_feature_id": "ne:1159320471",
+      "iso_a3": "CHN",
+      "natural_earth_id": "1159320471",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:CN"
+    },
+    {
+      "continent": "South America",
+      "country": "Colombia",
+      "country_code": "CO",
+      "geometry_feature_id": "ne:1159320517",
+      "iso_a3": "COL",
+      "natural_earth_id": "1159320517",
+      "parent_scope_id": "continent:south-america",
+      "scope_id": "country:CO"
+    },
+    {
+      "continent": "North America",
+      "country": "Costa Rica",
+      "country_code": "CR",
+      "geometry_feature_id": "ne:1159320525",
+      "iso_a3": "CRI",
+      "natural_earth_id": "1159320525",
+      "parent_scope_id": "continent:north-america",
+      "scope_id": "country:CR"
+    },
+    {
+      "continent": "North America",
+      "country": "Cuba",
+      "country_code": "CU",
+      "geometry_feature_id": "ne:1159320527",
+      "iso_a3": "CUB",
+      "natural_earth_id": "1159320527",
+      "parent_scope_id": "continent:north-america",
+      "scope_id": "country:CU"
+    },
+    {
+      "continent": "Asia",
+      "country": "Cyprus",
+      "country_code": "CY",
+      "geometry_feature_id": "ne:1159320533",
+      "iso_a3": "CYP",
+      "natural_earth_id": "1159320533",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:CY"
+    },
+    {
+      "continent": "Europe",
+      "country": "Czech Republic",
+      "country_code": "CZ",
+      "geometry_feature_id": "ne:1159320535",
+      "iso_a3": "CZE",
+      "natural_earth_id": "1159320535",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:CZ"
+    },
+    {
+      "continent": "Europe",
+      "country": "Germany",
+      "country_code": "DE",
+      "geometry_feature_id": "ne:1159320539",
+      "iso_a3": "DEU",
+      "natural_earth_id": "1159320539",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:DE"
+    },
+    {
+      "continent": "Africa",
+      "country": "Djibouti",
+      "country_code": "DJ",
+      "geometry_feature_id": "ne:1159320541",
+      "iso_a3": "DJI",
+      "natural_earth_id": "1159320541",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:DJ"
+    },
+    {
+      "continent": "Europe",
+      "country": "Denmark",
+      "country_code": "DK",
+      "geometry_feature_id": "ne:1159320547",
+      "iso_a3": "DNK",
+      "natural_earth_id": "1159320547",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:DK"
+    },
+    {
+      "continent": "North America",
+      "country": "Dominican Republic",
+      "country_code": "DO",
+      "geometry_feature_id": "ne:1159320563",
+      "iso_a3": "DOM",
+      "natural_earth_id": "1159320563",
+      "parent_scope_id": "continent:north-america",
+      "scope_id": "country:DO"
+    },
+    {
+      "continent": "Africa",
+      "country": "Algeria",
+      "country_code": "DZ",
+      "geometry_feature_id": "ne:1159320565",
+      "iso_a3": "DZA",
+      "natural_earth_id": "1159320565",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:DZ"
+    },
+    {
+      "continent": "South America",
+      "country": "Ecuador",
+      "country_code": "EC",
+      "geometry_feature_id": "ne:1159320567",
+      "iso_a3": "ECU",
+      "natural_earth_id": "1159320567",
+      "parent_scope_id": "continent:south-america",
+      "scope_id": "country:EC"
+    },
+    {
+      "continent": "Europe",
+      "country": "Estonia",
+      "country_code": "EE",
+      "geometry_feature_id": "ne:1159320615",
+      "iso_a3": "EST",
+      "natural_earth_id": "1159320615",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:EE"
+    },
+    {
+      "continent": "Africa",
+      "country": "Egypt",
+      "country_code": "EG",
+      "geometry_feature_id": "ne:1159320575",
+      "iso_a3": "EGY",
+      "natural_earth_id": "1159320575",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:EG"
+    },
+    {
+      "continent": "Africa",
+      "country": "Western Sahara",
+      "country_code": "EH",
+      "geometry_feature_id": "ne:1159321223",
+      "iso_a3": "ESH",
+      "natural_earth_id": "1159321223",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:EH"
+    },
+    {
+      "continent": "Africa",
+      "country": "Eritrea",
+      "country_code": "ER",
+      "geometry_feature_id": "ne:1159320581",
+      "iso_a3": "ERI",
+      "natural_earth_id": "1159320581",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:ER"
+    },
+    {
+      "continent": "Europe",
+      "country": "Spain",
+      "country_code": "ES",
+      "geometry_feature_id": "ne:1159320587",
+      "iso_a3": "ESP",
+      "natural_earth_id": "1159320587",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:ES"
+    },
+    {
+      "continent": "Africa",
+      "country": "Ethiopia",
+      "country_code": "ET",
+      "geometry_feature_id": "ne:1159320617",
+      "iso_a3": "ETH",
+      "natural_earth_id": "1159320617",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:ET"
+    },
+    {
+      "continent": "Europe",
+      "country": "Finland",
+      "country_code": "FI",
+      "geometry_feature_id": "ne:1159320623",
+      "iso_a3": "FIN",
+      "natural_earth_id": "1159320623",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:FI"
+    },
+    {
+      "continent": "Oceania",
+      "country": "Fiji",
+      "country_code": "FJ",
+      "geometry_feature_id": "ne:1159320625",
+      "iso_a3": "FJI",
+      "natural_earth_id": "1159320625",
+      "parent_scope_id": "continent:oceania",
+      "scope_id": "country:FJ"
+    },
+    {
+      "continent": "South America",
+      "country": "Falkland Islands",
+      "country_code": "FK",
+      "geometry_feature_id": "ne:1159320711",
+      "iso_a3": "FLK",
+      "natural_earth_id": "1159320711",
+      "parent_scope_id": "continent:south-america",
+      "scope_id": "country:FK"
+    },
+    {
+      "continent": "Europe",
+      "country": "France",
+      "country_code": "FR",
+      "geometry_feature_id": "ne:1159320637",
+      "iso_a3": "FRA",
+      "natural_earth_id": "1159320637",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:FR"
+    },
+    {
+      "continent": "Africa",
+      "country": "Gabon",
+      "country_code": "GA",
+      "geometry_feature_id": "ne:1159320693",
+      "iso_a3": "GAB",
+      "natural_earth_id": "1159320693",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:GA"
+    },
+    {
+      "continent": "Europe",
+      "country": "United Kingdom",
+      "country_code": "GB",
+      "geometry_feature_id": "ne:1159320713",
+      "iso_a3": "GBR",
+      "natural_earth_id": "1159320713",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:GB"
+    },
+    {
+      "continent": "Asia",
+      "country": "Georgia",
+      "country_code": "GE",
+      "geometry_feature_id": "ne:1159320779",
+      "iso_a3": "GEO",
+      "natural_earth_id": "1159320779",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:GE"
+    },
+    {
+      "continent": "Africa",
+      "country": "Ghana",
+      "country_code": "GH",
+      "geometry_feature_id": "ne:1159320793",
+      "iso_a3": "GHA",
+      "natural_earth_id": "1159320793",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:GH"
+    },
+    {
+      "continent": "North America",
+      "country": "Greenland",
+      "country_code": "GL",
+      "geometry_feature_id": "ne:1159320551",
+      "iso_a3": "GRL",
+      "natural_earth_id": "1159320551",
+      "parent_scope_id": "continent:north-america",
+      "scope_id": "country:GL"
+    },
+    {
+      "continent": "Africa",
+      "country": "The Gambia",
+      "country_code": "GM",
+      "geometry_feature_id": "ne:1159320797",
+      "iso_a3": "GMB",
+      "natural_earth_id": "1159320797",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:GM"
+    },
+    {
+      "continent": "Africa",
+      "country": "Guinea",
+      "country_code": "GN",
+      "geometry_feature_id": "ne:1159320795",
+      "iso_a3": "GIN",
+      "natural_earth_id": "1159320795",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:GN"
+    },
+    {
+      "continent": "Africa",
+      "country": "Equatorial Guinea",
+      "country_code": "GQ",
+      "geometry_feature_id": "ne:1159320801",
+      "iso_a3": "GNQ",
+      "natural_earth_id": "1159320801",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:GQ"
+    },
+    {
+      "continent": "Europe",
+      "country": "Greece",
+      "country_code": "GR",
+      "geometry_feature_id": "ne:1159320811",
+      "iso_a3": "GRC",
+      "natural_earth_id": "1159320811",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:GR"
+    },
+    {
+      "continent": "North America",
+      "country": "Guatemala",
+      "country_code": "GT",
+      "geometry_feature_id": "ne:1159320815",
+      "iso_a3": "GTM",
+      "natural_earth_id": "1159320815",
+      "parent_scope_id": "continent:north-america",
+      "scope_id": "country:GT"
+    },
+    {
+      "continent": "Africa",
+      "country": "Guinea-Bissau",
+      "country_code": "GW",
+      "geometry_feature_id": "ne:1159320799",
+      "iso_a3": "GNB",
+      "natural_earth_id": "1159320799",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:GW"
+    },
+    {
+      "continent": "South America",
+      "country": "Guyana",
+      "country_code": "GY",
+      "geometry_feature_id": "ne:1159320817",
+      "iso_a3": "GUY",
+      "natural_earth_id": "1159320817",
+      "parent_scope_id": "continent:south-america",
+      "scope_id": "country:GY"
+    },
+    {
+      "continent": "North America",
+      "country": "Honduras",
+      "country_code": "HN",
+      "geometry_feature_id": "ne:1159320827",
+      "iso_a3": "HND",
+      "natural_earth_id": "1159320827",
+      "parent_scope_id": "continent:north-america",
+      "scope_id": "country:HN"
+    },
+    {
+      "continent": "Europe",
+      "country": "Croatia",
+      "country_code": "HR",
+      "geometry_feature_id": "ne:1159320833",
+      "iso_a3": "HRV",
+      "natural_earth_id": "1159320833",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:HR"
+    },
+    {
+      "continent": "North America",
+      "country": "Haiti",
+      "country_code": "HT",
+      "geometry_feature_id": "ne:1159320839",
+      "iso_a3": "HTI",
+      "natural_earth_id": "1159320839",
+      "parent_scope_id": "continent:north-america",
+      "scope_id": "country:HT"
+    },
+    {
+      "continent": "Europe",
+      "country": "Hungary",
+      "country_code": "HU",
+      "geometry_feature_id": "ne:1159320841",
+      "iso_a3": "HUN",
+      "natural_earth_id": "1159320841",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:HU"
+    },
+    {
+      "continent": "Asia",
+      "country": "Indonesia",
+      "country_code": "ID",
+      "geometry_feature_id": "ne:1159320845",
+      "iso_a3": "IDN",
+      "natural_earth_id": "1159320845",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:ID"
+    },
+    {
+      "continent": "Europe",
+      "country": "Ireland",
+      "country_code": "IE",
+      "geometry_feature_id": "ne:1159320877",
+      "iso_a3": "IRL",
+      "natural_earth_id": "1159320877",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:IE"
+    },
+    {
+      "continent": "Asia",
+      "country": "Israel",
+      "country_code": "IL",
+      "geometry_feature_id": "ne:1159320895",
+      "iso_a3": "ISR",
+      "natural_earth_id": "1159320895",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:IL"
+    },
+    {
+      "continent": "Asia",
+      "country": "India",
+      "country_code": "IN",
+      "geometry_feature_id": "ne:1159320847",
+      "iso_a3": "IND",
+      "natural_earth_id": "1159320847",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:IN"
+    },
+    {
+      "continent": "Asia",
+      "country": "Iraq",
+      "country_code": "IQ",
+      "geometry_feature_id": "ne:1159320887",
+      "iso_a3": "IRQ",
+      "natural_earth_id": "1159320887",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:IQ"
+    },
+    {
+      "continent": "Asia",
+      "country": "Iran",
+      "country_code": "IR",
+      "geometry_feature_id": "ne:1159320881",
+      "iso_a3": "IRN",
+      "natural_earth_id": "1159320881",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:IR"
+    },
+    {
+      "continent": "Europe",
+      "country": "Iceland",
+      "country_code": "IS",
+      "geometry_feature_id": "ne:1159320917",
+      "iso_a3": "ISL",
+      "natural_earth_id": "1159320917",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:IS"
+    },
+    {
+      "continent": "Europe",
+      "country": "Italy",
+      "country_code": "IT",
+      "geometry_feature_id": "ne:1159320919",
+      "iso_a3": "ITA",
+      "natural_earth_id": "1159320919",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:IT"
+    },
+    {
+      "continent": "North America",
+      "country": "Jamaica",
+      "country_code": "JM",
+      "geometry_feature_id": "ne:1159320931",
+      "iso_a3": "JAM",
+      "natural_earth_id": "1159320931",
+      "parent_scope_id": "continent:north-america",
+      "scope_id": "country:JM"
+    },
+    {
+      "continent": "Asia",
+      "country": "Jordan",
+      "country_code": "JO",
+      "geometry_feature_id": "ne:1159320935",
+      "iso_a3": "JOR",
+      "natural_earth_id": "1159320935",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:JO"
+    },
+    {
+      "continent": "Asia",
+      "country": "Japan",
+      "country_code": "JP",
+      "geometry_feature_id": "ne:1159320937",
+      "iso_a3": "JPN",
+      "natural_earth_id": "1159320937",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:JP"
+    },
+    {
+      "continent": "Africa",
+      "country": "Kenya",
+      "country_code": "KE",
+      "geometry_feature_id": "ne:1159320971",
+      "iso_a3": "KEN",
+      "natural_earth_id": "1159320971",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:KE"
+    },
+    {
+      "continent": "Asia",
+      "country": "Kyrgyzstan",
+      "country_code": "KG",
+      "geometry_feature_id": "ne:1159320977",
+      "iso_a3": "KGZ",
+      "natural_earth_id": "1159320977",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:KG"
+    },
+    {
+      "continent": "Asia",
+      "country": "Cambodia",
+      "country_code": "KH",
+      "geometry_feature_id": "ne:1159320979",
+      "iso_a3": "KHM",
+      "natural_earth_id": "1159320979",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:KH"
+    },
+    {
+      "continent": "Asia",
+      "country": "North Korea",
+      "country_code": "KP",
+      "geometry_feature_id": "ne:1159321181",
+      "iso_a3": "PRK",
+      "natural_earth_id": "1159321181",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:KP"
+    },
+    {
+      "continent": "Asia",
+      "country": "South Korea",
+      "country_code": "KR",
+      "geometry_feature_id": "ne:1159320985",
+      "iso_a3": "KOR",
+      "natural_earth_id": "1159320985",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:KR"
+    },
+    {
+      "continent": "Asia",
+      "country": "Kuwait",
+      "country_code": "KW",
+      "geometry_feature_id": "ne:1159321009",
+      "iso_a3": "KWT",
+      "natural_earth_id": "1159321009",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:KW"
+    },
+    {
+      "continent": "Asia",
+      "country": "Kazakhstan",
+      "country_code": "KZ",
+      "geometry_feature_id": "ne:1159320967",
+      "iso_a3": "KAZ",
+      "natural_earth_id": "1159320967",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:KZ"
+    },
+    {
+      "continent": "Asia",
+      "country": "Laos",
+      "country_code": "LA",
+      "geometry_feature_id": "ne:1159321011",
+      "iso_a3": "LAO",
+      "natural_earth_id": "1159321011",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:LA"
+    },
+    {
+      "continent": "Asia",
+      "country": "Lebanon",
+      "country_code": "LB",
+      "geometry_feature_id": "ne:1159321013",
+      "iso_a3": "LBN",
+      "natural_earth_id": "1159321013",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:LB"
+    },
+    {
+      "continent": "Asia",
+      "country": "Sri Lanka",
+      "country_code": "LK",
+      "geometry_feature_id": "ne:1159321025",
+      "iso_a3": "LKA",
+      "natural_earth_id": "1159321025",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:LK"
+    },
+    {
+      "continent": "Africa",
+      "country": "Liberia",
+      "country_code": "LR",
+      "geometry_feature_id": "ne:1159321015",
+      "iso_a3": "LBR",
+      "natural_earth_id": "1159321015",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:LR"
+    },
+    {
+      "continent": "Africa",
+      "country": "Lesotho",
+      "country_code": "LS",
+      "geometry_feature_id": "ne:1159321027",
+      "iso_a3": "LSO",
+      "natural_earth_id": "1159321027",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:LS"
+    },
+    {
+      "continent": "Europe",
+      "country": "Lithuania",
+      "country_code": "LT",
+      "geometry_feature_id": "ne:1159321029",
+      "iso_a3": "LTU",
+      "natural_earth_id": "1159321029",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:LT"
+    },
+    {
+      "continent": "Europe",
+      "country": "Luxembourg",
+      "country_code": "LU",
+      "geometry_feature_id": "ne:1159321031",
+      "iso_a3": "LUX",
+      "natural_earth_id": "1159321031",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:LU"
+    },
+    {
+      "continent": "Europe",
+      "country": "Latvia",
+      "country_code": "LV",
+      "geometry_feature_id": "ne:1159321033",
+      "iso_a3": "LVA",
+      "natural_earth_id": "1159321033",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:LV"
+    },
+    {
+      "continent": "Africa",
+      "country": "Libya",
+      "country_code": "LY",
+      "geometry_feature_id": "ne:1159321017",
+      "iso_a3": "LBY",
+      "natural_earth_id": "1159321017",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:LY"
+    },
+    {
+      "continent": "Africa",
+      "country": "Morocco",
+      "country_code": "MA",
+      "geometry_feature_id": "ne:1159321035",
+      "iso_a3": "MAR",
+      "natural_earth_id": "1159321035",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:MA"
+    },
+    {
+      "continent": "Europe",
+      "country": "Moldova",
+      "country_code": "MD",
+      "geometry_feature_id": "ne:1159321045",
+      "iso_a3": "MDA",
+      "natural_earth_id": "1159321045",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:MD"
+    },
+    {
+      "continent": "Europe",
+      "country": "Montenegro",
+      "country_code": "ME",
+      "geometry_feature_id": "ne:1159321069",
+      "iso_a3": "MNE",
+      "natural_earth_id": "1159321069",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:ME"
+    },
+    {
+      "continent": "Africa",
+      "country": "Madagascar",
+      "country_code": "MG",
+      "geometry_feature_id": "ne:1159321051",
+      "iso_a3": "MDG",
+      "natural_earth_id": "1159321051",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:MG"
+    },
+    {
+      "continent": "Europe",
+      "country": "North Macedonia",
+      "country_code": "MK",
+      "geometry_feature_id": "ne:1159321061",
+      "iso_a3": "MKD",
+      "natural_earth_id": "1159321061",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:MK"
+    },
+    {
+      "continent": "Africa",
+      "country": "Mali",
+      "country_code": "ML",
+      "geometry_feature_id": "ne:1159321063",
+      "iso_a3": "MLI",
+      "natural_earth_id": "1159321063",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:ML"
+    },
+    {
+      "continent": "Asia",
+      "country": "Myanmar",
+      "country_code": "MM",
+      "geometry_feature_id": "ne:1159321067",
+      "iso_a3": "MMR",
+      "natural_earth_id": "1159321067",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:MM"
+    },
+    {
+      "continent": "Asia",
+      "country": "Mongolia",
+      "country_code": "MN",
+      "geometry_feature_id": "ne:1159321071",
+      "iso_a3": "MNG",
+      "natural_earth_id": "1159321071",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:MN"
+    },
+    {
+      "continent": "Africa",
+      "country": "Mauritania",
+      "country_code": "MR",
+      "geometry_feature_id": "ne:1159321075",
+      "iso_a3": "MRT",
+      "natural_earth_id": "1159321075",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:MR"
+    },
+    {
+      "continent": "Africa",
+      "country": "Malawi",
+      "country_code": "MW",
+      "geometry_feature_id": "ne:1159321081",
+      "iso_a3": "MWI",
+      "natural_earth_id": "1159321081",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:MW"
+    },
+    {
+      "continent": "North America",
+      "country": "Mexico",
+      "country_code": "MX",
+      "geometry_feature_id": "ne:1159321055",
+      "iso_a3": "MEX",
+      "natural_earth_id": "1159321055",
+      "parent_scope_id": "continent:north-america",
+      "scope_id": "country:MX"
+    },
+    {
+      "continent": "Asia",
+      "country": "Malaysia",
+      "country_code": "MY",
+      "geometry_feature_id": "ne:1159321083",
+      "iso_a3": "MYS",
+      "natural_earth_id": "1159321083",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:MY"
+    },
+    {
+      "continent": "Africa",
+      "country": "Mozambique",
+      "country_code": "MZ",
+      "geometry_feature_id": "ne:1159321073",
+      "iso_a3": "MOZ",
+      "natural_earth_id": "1159321073",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:MZ"
+    },
+    {
+      "continent": "Africa",
+      "country": "Namibia",
+      "country_code": "NA",
+      "geometry_feature_id": "ne:1159321085",
+      "iso_a3": "NAM",
+      "natural_earth_id": "1159321085",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:NA"
+    },
+    {
+      "continent": "Oceania",
+      "country": "New Caledonia",
+      "country_code": "NC",
+      "geometry_feature_id": "ne:1159320641",
+      "iso_a3": "NCL",
+      "natural_earth_id": "1159320641",
+      "parent_scope_id": "continent:oceania",
+      "scope_id": "country:NC"
+    },
+    {
+      "continent": "Africa",
+      "country": "Niger",
+      "country_code": "NE",
+      "geometry_feature_id": "ne:1159321087",
+      "iso_a3": "NER",
+      "natural_earth_id": "1159321087",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:NE"
+    },
+    {
+      "continent": "Africa",
+      "country": "Nigeria",
+      "country_code": "NG",
+      "geometry_feature_id": "ne:1159321089",
+      "iso_a3": "NGA",
+      "natural_earth_id": "1159321089",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:NG"
+    },
+    {
+      "continent": "North America",
+      "country": "Nicaragua",
+      "country_code": "NI",
+      "geometry_feature_id": "ne:1159321091",
+      "iso_a3": "NIC",
+      "natural_earth_id": "1159321091",
+      "parent_scope_id": "continent:north-america",
+      "scope_id": "country:NI"
+    },
+    {
+      "continent": "Europe",
+      "country": "Netherlands",
+      "country_code": "NL",
+      "geometry_feature_id": "ne:1159321101",
+      "iso_a3": "NLD",
+      "natural_earth_id": "1159321101",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:NL"
+    },
+    {
+      "continent": "Europe",
+      "country": "Norway",
+      "country_code": "NO",
+      "geometry_feature_id": "ne:1159321109",
+      "iso_a3": "NOR",
+      "natural_earth_id": "1159321109",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:NO"
+    },
+    {
+      "continent": "Asia",
+      "country": "Nepal",
+      "country_code": "NP",
+      "geometry_feature_id": "ne:1159321121",
+      "iso_a3": "NPL",
+      "natural_earth_id": "1159321121",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:NP"
+    },
+    {
+      "continent": "Oceania",
+      "country": "New Zealand",
+      "country_code": "NZ",
+      "geometry_feature_id": "ne:1159321135",
+      "iso_a3": "NZL",
+      "natural_earth_id": "1159321135",
+      "parent_scope_id": "continent:oceania",
+      "scope_id": "country:NZ"
+    },
+    {
+      "continent": "Asia",
+      "country": "Oman",
+      "country_code": "OM",
+      "geometry_feature_id": "ne:1159321151",
+      "iso_a3": "OMN",
+      "natural_earth_id": "1159321151",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:OM"
+    },
+    {
+      "continent": "North America",
+      "country": "Panama",
+      "country_code": "PA",
+      "geometry_feature_id": "ne:1159321161",
+      "iso_a3": "PAN",
+      "natural_earth_id": "1159321161",
+      "parent_scope_id": "continent:north-america",
+      "scope_id": "country:PA"
+    },
+    {
+      "continent": "South America",
+      "country": "Peru",
+      "country_code": "PE",
+      "geometry_feature_id": "ne:1159321163",
+      "iso_a3": "PER",
+      "natural_earth_id": "1159321163",
+      "parent_scope_id": "continent:south-america",
+      "scope_id": "country:PE"
+    },
+    {
+      "continent": "Oceania",
+      "country": "Papua New Guinea",
+      "country_code": "PG",
+      "geometry_feature_id": "ne:1159321173",
+      "iso_a3": "PNG",
+      "natural_earth_id": "1159321173",
+      "parent_scope_id": "continent:oceania",
+      "scope_id": "country:PG"
+    },
+    {
+      "continent": "Asia",
+      "country": "Philippines",
+      "country_code": "PH",
+      "geometry_feature_id": "ne:1159321169",
+      "iso_a3": "PHL",
+      "natural_earth_id": "1159321169",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:PH"
+    },
+    {
+      "continent": "Asia",
+      "country": "Pakistan",
+      "country_code": "PK",
+      "geometry_feature_id": "ne:1159321153",
+      "iso_a3": "PAK",
+      "natural_earth_id": "1159321153",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:PK"
+    },
+    {
+      "continent": "Europe",
+      "country": "Poland",
+      "country_code": "PL",
+      "geometry_feature_id": "ne:1159321179",
+      "iso_a3": "POL",
+      "natural_earth_id": "1159321179",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:PL"
+    },
+    {
+      "continent": "North America",
+      "country": "Puerto Rico",
+      "country_code": "PR",
+      "geometry_feature_id": "ne:1159321363",
+      "iso_a3": "PRI",
+      "natural_earth_id": "1159321363",
+      "parent_scope_id": "continent:north-america",
+      "scope_id": "country:PR"
+    },
+    {
+      "continent": "Asia",
+      "country": "Palestine",
+      "country_code": "PS",
+      "geometry_feature_id": "ne:1159320899",
+      "iso_a3": "PSE",
+      "natural_earth_id": "1159320899",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:PS"
+    },
+    {
+      "continent": "Europe",
+      "country": "Portugal",
+      "country_code": "PT",
+      "geometry_feature_id": "ne:1159321187",
+      "iso_a3": "PRT",
+      "natural_earth_id": "1159321187",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:PT"
+    },
+    {
+      "continent": "South America",
+      "country": "Paraguay",
+      "country_code": "PY",
+      "geometry_feature_id": "ne:1159321195",
+      "iso_a3": "PRY",
+      "natural_earth_id": "1159321195",
+      "parent_scope_id": "continent:south-america",
+      "scope_id": "country:PY"
+    },
+    {
+      "continent": "Asia",
+      "country": "Qatar",
+      "country_code": "QA",
+      "geometry_feature_id": "ne:1159321197",
+      "iso_a3": "QAT",
+      "natural_earth_id": "1159321197",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:QA"
+    },
+    {
+      "continent": "Europe",
+      "country": "Romania",
+      "country_code": "RO",
+      "geometry_feature_id": "ne:1159321199",
+      "iso_a3": "ROU",
+      "natural_earth_id": "1159321199",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:RO"
+    },
+    {
+      "continent": "Europe",
+      "country": "Serbia",
+      "country_code": "RS",
+      "geometry_feature_id": "ne:1159321267",
+      "iso_a3": "SRB",
+      "natural_earth_id": "1159321267",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:RS"
+    },
+    {
+      "continent": "Europe",
+      "country": "Russia",
+      "country_code": "RU",
+      "geometry_feature_id": "ne:1159321201",
+      "iso_a3": "RUS",
+      "natural_earth_id": "1159321201",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:RU"
+    },
+    {
+      "continent": "Africa",
+      "country": "Rwanda",
+      "country_code": "RW",
+      "geometry_feature_id": "ne:1159321219",
+      "iso_a3": "RWA",
+      "natural_earth_id": "1159321219",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:RW"
+    },
+    {
+      "continent": "Asia",
+      "country": "Saudi Arabia",
+      "country_code": "SA",
+      "geometry_feature_id": "ne:1159321225",
+      "iso_a3": "SAU",
+      "natural_earth_id": "1159321225",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:SA"
+    },
+    {
+      "continent": "Oceania",
+      "country": "Solomon Islands",
+      "country_code": "SB",
+      "geometry_feature_id": "ne:1159321249",
+      "iso_a3": "SLB",
+      "natural_earth_id": "1159321249",
+      "parent_scope_id": "continent:oceania",
+      "scope_id": "country:SB"
+    },
+    {
+      "continent": "Africa",
+      "country": "Sudan",
+      "country_code": "SD",
+      "geometry_feature_id": "ne:1159321229",
+      "iso_a3": "SDN",
+      "natural_earth_id": "1159321229",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:SD"
+    },
+    {
+      "continent": "Europe",
+      "country": "Sweden",
+      "country_code": "SE",
+      "geometry_feature_id": "ne:1159321287",
+      "iso_a3": "SWE",
+      "natural_earth_id": "1159321287",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:SE"
+    },
+    {
+      "continent": "Europe",
+      "country": "Slovenia",
+      "country_code": "SI",
+      "geometry_feature_id": "ne:1159321285",
+      "iso_a3": "SVN",
+      "natural_earth_id": "1159321285",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:SI"
+    },
+    {
+      "continent": "Europe",
+      "country": "Slovakia",
+      "country_code": "SK",
+      "geometry_feature_id": "ne:1159321283",
+      "iso_a3": "SVK",
+      "natural_earth_id": "1159321283",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:SK"
+    },
+    {
+      "continent": "Africa",
+      "country": "Sierra Leone",
+      "country_code": "SL",
+      "geometry_feature_id": "ne:1159321251",
+      "iso_a3": "SLE",
+      "natural_earth_id": "1159321251",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:SL"
+    },
+    {
+      "continent": "Africa",
+      "country": "Senegal",
+      "country_code": "SN",
+      "geometry_feature_id": "ne:1159321243",
+      "iso_a3": "SEN",
+      "natural_earth_id": "1159321243",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:SN"
+    },
+    {
+      "continent": "Africa",
+      "country": "Somalia",
+      "country_code": "SO",
+      "geometry_feature_id": "ne:1159321261",
+      "iso_a3": "SOM",
+      "natural_earth_id": "1159321261",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:SO"
+    },
+    {
+      "continent": "South America",
+      "country": "Suriname",
+      "country_code": "SR",
+      "geometry_feature_id": "ne:1159321281",
+      "iso_a3": "SUR",
+      "natural_earth_id": "1159321281",
+      "parent_scope_id": "continent:south-america",
+      "scope_id": "country:SR"
+    },
+    {
+      "continent": "Africa",
+      "country": "South Sudan",
+      "country_code": "SS",
+      "geometry_feature_id": "ne:1159321235",
+      "iso_a3": "SSD",
+      "natural_earth_id": "1159321235",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:SS"
+    },
+    {
+      "continent": "North America",
+      "country": "El Salvador",
+      "country_code": "SV",
+      "geometry_feature_id": "ne:1159321253",
+      "iso_a3": "SLV",
+      "natural_earth_id": "1159321253",
+      "parent_scope_id": "continent:north-america",
+      "scope_id": "country:SV"
+    },
+    {
+      "continent": "Asia",
+      "country": "Syria",
+      "country_code": "SY",
+      "geometry_feature_id": "ne:1159321295",
+      "iso_a3": "SYR",
+      "natural_earth_id": "1159321295",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:SY"
+    },
+    {
+      "continent": "Africa",
+      "country": "Eswatini",
+      "country_code": "SZ",
+      "geometry_feature_id": "ne:1159321289",
+      "iso_a3": "SWZ",
+      "natural_earth_id": "1159321289",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:SZ"
+    },
+    {
+      "continent": "Africa",
+      "country": "Chad",
+      "country_code": "TD",
+      "geometry_feature_id": "ne:1159321301",
+      "iso_a3": "TCD",
+      "natural_earth_id": "1159321301",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:TD"
+    },
+    {
+      "continent": "Africa",
+      "country": "French Southern and Antarctic Lands",
+      "country_code": "TF",
+      "geometry_feature_id": "ne:1159320631",
+      "iso_a3": "ATF",
+      "natural_earth_id": "1159320631",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:TF"
+    },
+    {
+      "continent": "Africa",
+      "country": "Togo",
+      "country_code": "TG",
+      "geometry_feature_id": "ne:1159321303",
+      "iso_a3": "TGO",
+      "natural_earth_id": "1159321303",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:TG"
+    },
+    {
+      "continent": "Asia",
+      "country": "Thailand",
+      "country_code": "TH",
+      "geometry_feature_id": "ne:1159321305",
+      "iso_a3": "THA",
+      "natural_earth_id": "1159321305",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:TH"
+    },
+    {
+      "continent": "Asia",
+      "country": "Tajikistan",
+      "country_code": "TJ",
+      "geometry_feature_id": "ne:1159321307",
+      "iso_a3": "TJK",
+      "natural_earth_id": "1159321307",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:TJ"
+    },
+    {
+      "continent": "Asia",
+      "country": "East Timor",
+      "country_code": "TL",
+      "geometry_feature_id": "ne:1159321313",
+      "iso_a3": "TLS",
+      "natural_earth_id": "1159321313",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:TL"
+    },
+    {
+      "continent": "Asia",
+      "country": "Turkmenistan",
+      "country_code": "TM",
+      "geometry_feature_id": "ne:1159321309",
+      "iso_a3": "TKM",
+      "natural_earth_id": "1159321309",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:TM"
+    },
+    {
+      "continent": "Africa",
+      "country": "Tunisia",
+      "country_code": "TN",
+      "geometry_feature_id": "ne:1159321327",
+      "iso_a3": "TUN",
+      "natural_earth_id": "1159321327",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:TN"
+    },
+    {
+      "continent": "Asia",
+      "country": "Turkey",
+      "country_code": "TR",
+      "geometry_feature_id": "ne:1159321331",
+      "iso_a3": "TUR",
+      "natural_earth_id": "1159321331",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:TR"
+    },
+    {
+      "continent": "North America",
+      "country": "Trinidad and Tobago",
+      "country_code": "TT",
+      "geometry_feature_id": "ne:1159321321",
+      "iso_a3": "TTO",
+      "natural_earth_id": "1159321321",
+      "parent_scope_id": "continent:north-america",
+      "scope_id": "country:TT"
+    },
+    {
+      "continent": "Asia",
+      "country": "Taiwan",
+      "country_code": "TW",
+      "geometry_feature_id": "ne:1159321335",
+      "iso_a3": "TWN",
+      "natural_earth_id": "1159321335",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:TW"
+    },
+    {
+      "continent": "Africa",
+      "country": "Tanzania",
+      "country_code": "TZ",
+      "geometry_feature_id": "ne:1159321337",
+      "iso_a3": "TZA",
+      "natural_earth_id": "1159321337",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:TZ"
+    },
+    {
+      "continent": "Europe",
+      "country": "Ukraine",
+      "country_code": "UA",
+      "geometry_feature_id": "ne:1159321345",
+      "iso_a3": "UKR",
+      "natural_earth_id": "1159321345",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:UA"
+    },
+    {
+      "continent": "Africa",
+      "country": "Uganda",
+      "country_code": "UG",
+      "geometry_feature_id": "ne:1159321343",
+      "iso_a3": "UGA",
+      "natural_earth_id": "1159321343",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:UG"
+    },
+    {
+      "continent": "North America",
+      "country": "United States of America",
+      "country_code": "US",
+      "geometry_feature_id": "ne:1159321369",
+      "iso_a3": "USA",
+      "natural_earth_id": "1159321369",
+      "parent_scope_id": "continent:north-america",
+      "scope_id": "country:US"
+    },
+    {
+      "continent": "South America",
+      "country": "Uruguay",
+      "country_code": "UY",
+      "geometry_feature_id": "ne:1159321353",
+      "iso_a3": "URY",
+      "natural_earth_id": "1159321353",
+      "parent_scope_id": "continent:south-america",
+      "scope_id": "country:UY"
+    },
+    {
+      "continent": "Asia",
+      "country": "Uzbekistan",
+      "country_code": "UZ",
+      "geometry_feature_id": "ne:1159321405",
+      "iso_a3": "UZB",
+      "natural_earth_id": "1159321405",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:UZ"
+    },
+    {
+      "continent": "South America",
+      "country": "Venezuela",
+      "country_code": "VE",
+      "geometry_feature_id": "ne:1159321411",
+      "iso_a3": "VEN",
+      "natural_earth_id": "1159321411",
+      "parent_scope_id": "continent:south-america",
+      "scope_id": "country:VE"
+    },
+    {
+      "continent": "Asia",
+      "country": "Vietnam",
+      "country_code": "VN",
+      "geometry_feature_id": "ne:1159321417",
+      "iso_a3": "VNM",
+      "natural_earth_id": "1159321417",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:VN"
+    },
+    {
+      "continent": "Oceania",
+      "country": "Vanuatu",
+      "country_code": "VU",
+      "geometry_feature_id": "ne:1159321421",
+      "iso_a3": "VUT",
+      "natural_earth_id": "1159321421",
+      "parent_scope_id": "continent:oceania",
+      "scope_id": "country:VU"
+    },
+    {
+      "continent": "Europe",
+      "country": "Kosovo",
+      "country_code": "XK",
+      "geometry_feature_id": "ne:1159321007",
+      "iso_a3": null,
+      "natural_earth_id": "1159321007",
+      "parent_scope_id": "continent:europe",
+      "scope_id": "country:XK"
+    },
+    {
+      "continent": "Asia",
+      "country": "Yemen",
+      "country_code": "YE",
+      "geometry_feature_id": "ne:1159321425",
+      "iso_a3": "YEM",
+      "natural_earth_id": "1159321425",
+      "parent_scope_id": "continent:asia",
+      "scope_id": "country:YE"
+    },
+    {
+      "continent": "Africa",
+      "country": "South Africa",
+      "country_code": "ZA",
+      "geometry_feature_id": "ne:1159321431",
+      "iso_a3": "ZAF",
+      "natural_earth_id": "1159321431",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:ZA"
+    },
+    {
+      "continent": "Africa",
+      "country": "Zambia",
+      "country_code": "ZM",
+      "geometry_feature_id": "ne:1159321439",
+      "iso_a3": "ZMB",
+      "natural_earth_id": "1159321439",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:ZM"
+    },
+    {
+      "continent": "Africa",
+      "country": "Zimbabwe",
+      "country_code": "ZW",
+      "geometry_feature_id": "ne:1159321441",
+      "iso_a3": "ZWE",
+      "natural_earth_id": "1159321441",
+      "parent_scope_id": "continent:africa",
+      "scope_id": "country:ZW"
+    }
+  ],
+  "country_count": 175,
+  "country_hierarchy_id": "country-hierarchy:natural-earth-v5.1.2-110m",
+  "dataset_id": "natural-earth:admin-0-countries-110m",
+  "dataset_version": "v5.1.2+f1890d9f",
+  "normalization_overrides": [
+    {
+      "normalized_continent": "Africa",
+      "reason": "TaxaLens exposes seven continent scopes; for French Southern and Antarctic Lands the source CONTINENT is Seven seas (open ocean), so its own REGION_UN value supplies the selectable hierarchy parent.",
+      "required_region_un": "Africa",
+      "source_continent": "Seven seas (open ocean)"
+    }
+  ],
+  "schema_version": "taxalens-offline-country-mapping:v1.0.0",
+  "scientific_claim_allowed": false
+}
