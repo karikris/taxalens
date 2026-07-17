@@ -2,7 +2,7 @@ import type { EvidenceFacade, ReplayEvidence } from '../data/evidenceFacade'
 import { EvidenceState } from '../design-system'
 import { PrototypeEvidencePanel } from '../evidence/PrototypeEvidencePanel'
 import { EvidenceFunnel } from './EvidenceFunnel'
-import { GeographicWorkloadMap } from './GeographicWorkloadMap'
+import { FlickrWorkloadMap } from './FlickrWorkloadMap'
 import { QueryYieldAnalysis } from './QueryYieldAnalysis'
 import { ResearchOutputsPanel } from './ResearchOutputsPanel'
 import { ReviewedEvaluationState } from './ReviewedEvaluationState'
@@ -52,7 +52,7 @@ export function DashboardWorkspace({
 
       <EvidenceFunnel replay={replay} />
 
-      <GeographicWorkloadMap facade={facade} replay={replay} />
+      <FlickrWorkloadMap facade={facade} replay={replay} />
 
       <ReviewPriorityWorklist replay={replay} />
 

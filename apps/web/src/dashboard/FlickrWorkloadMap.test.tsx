@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { loadEvidenceFacade, type EvidenceFacade } from '../data/evidenceFacade'
 import { createCommittedFixtureFetcher } from '../test/fixtures'
-import { GeographicWorkloadMap } from './GeographicWorkloadMap'
+import { FlickrWorkloadMap } from './FlickrWorkloadMap'
 import type { GeographicWorkloadResult } from './geographicWorkload'
 
 let facade: EvidenceFacade
@@ -74,11 +74,11 @@ const result: GeographicWorkloadResult = {
   scientificClaimAllowed: false,
 }
 
-describe('GeographicWorkloadMap', () => {
+describe('FlickrWorkloadMap', () => {
   it('keeps the worker stopped until requested and exposes truthful summary states', async () => {
     const execute = vi.fn().mockResolvedValue(result)
     render(
-      <GeographicWorkloadMap facade={facade} replay={facade.replay} execute={execute} />,
+      <FlickrWorkloadMap facade={facade} replay={facade.replay} execute={execute} />,
     )
 
     expect(execute).not.toHaveBeenCalled()
@@ -102,7 +102,7 @@ describe('GeographicWorkloadMap', () => {
 
   it('plots cluster workload, supports selection, and provides a complete table', async () => {
     render(
-      <GeographicWorkloadMap
+      <FlickrWorkloadMap
         facade={facade}
         replay={facade.replay}
         execute={vi.fn().mockResolvedValue(result)}

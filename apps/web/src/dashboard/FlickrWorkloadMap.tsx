@@ -20,7 +20,7 @@ type WorkloadState =
   | { readonly kind: 'error'; readonly message: string }
   | { readonly kind: 'ready'; readonly result: GeographicWorkloadResult }
 
-export function GeographicWorkloadMap({
+export function FlickrWorkloadMap({
   execute = defaultGeographicWorkloadExecutor,
   facade,
   replay,
