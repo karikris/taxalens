@@ -26,8 +26,14 @@ import { moveMapToGeographicScope } from './geographicMapCamera'
 import type { BoundedGeographicImpactFeatures } from './geographicImpactFeatureCollection'
 import {
   TAXALENS_BASELINE_EVIDENCE_LAYER,
+  TAXALENS_FLICKR_PENDING_LAYER,
+  TAXALENS_FLICKR_RELEASE_READY_LAYER,
+  TAXALENS_FLICKR_REVIEWED_NEGATIVE_LAYER,
+  TAXALENS_FLICKR_REVIEWED_POSITIVE_LAYER,
+  TAXALENS_FLICKR_UNCERTAIN_LAYER,
   TAXALENS_IMPACT_CELL_SOURCE_ID,
 } from './geographicImpactLayers'
+import { registerGeographicEvidenceImages } from './geographicEvidenceIcons'
 import { GEOGRAPHIC_BUBBLE_SCALE_CAPTION } from './geographicBubbleScale'
 import './geographicImpactMap.css'
 
@@ -50,6 +56,7 @@ export function OfflineWorldMap({
   const pendingCameraScope = useRef<string | null>(null)
   const [runtimeError, setRuntimeError] = useState<string | null>(null)
   const [loaded, setLoaded] = useState(false)
+  const [evidenceImagesReady, setEvidenceImagesReady] = useState(false)
   const [cameraScopeId, setCameraScopeId] = useState<string | null>(null)
 
   useEffect(() => {
@@ -57,6 +64,18 @@ export function OfflineWorldMap({
     pendingCameraScope.current = selectedScope.scope_id
     moveMapToGeographicScope(mapRef.current, selectedScope)
   }, [loaded, selectedScope])
+
+  useEffect(() => {
+    if (!loaded || impactFeatures === undefined || mapRef.current === null) return
+    try {
+      registerGeographicEvidenceImages(mapRef.current.getMap())
+      setEvidenceImagesReady(true)
+    } catch (error) {
+      setRuntimeError(
+        error instanceof Error ? error.message : 'local evidence images could not be registered',
+      )
+    }
+  }, [impactFeatures, loaded])
 
   if (!supported || runtimeError !== null) {
     return (
@@ -87,6 +106,14 @@ export function OfflineWorldMap({
             : 'false'
         }
         data-impact-feature-count={impactFeatures?.emittedFeatureCount ?? 0}
+        data-flickr-evidence={
+          impactFeatures !== undefined &&
+          impactFeatures.collection.features.some(
+            ({ properties }) => properties.flickrCandidateCount > 0,
+          )
+            ? 'true'
+            : 'false'
+        }
         data-map-loaded={loaded ? 'true' : 'false'}
         data-selected-scope={selectedScope.scope_id}
       >
@@ -138,6 +165,15 @@ export function OfflineWorldMap({
               data={impactFeatures.collection as unknown as FeatureCollection<Geometry>}
             >
               <Layer {...TAXALENS_BASELINE_EVIDENCE_LAYER} />
+              <Layer {...TAXALENS_FLICKR_PENDING_LAYER} />
+              <Layer {...TAXALENS_FLICKR_REVIEWED_POSITIVE_LAYER} />
+              {evidenceImagesReady ? (
+                <>
+                  <Layer {...TAXALENS_FLICKR_REVIEWED_NEGATIVE_LAYER} />
+                  <Layer {...TAXALENS_FLICKR_UNCERTAIN_LAYER} />
+                </>
+              ) : null}
+              <Layer {...TAXALENS_FLICKR_RELEASE_READY_LAYER} />
             </Source>
           )}
           <NavigationControl position="top-right" showCompass={false} visualizePitch={false} />
@@ -192,6 +228,8 @@ function MapCaption({
       {impactFeatures === undefined ? null : (
         <>
           Blue bubbles show deduplicated, range-inference-eligible baseline occurrence evidence.{' '}
+          Amber rings, fills, excluded marks, dashed rings and dark-stroked fills distinguish
+          Flickr candidate maturity states; candidates remain hypotheses.{' '}
           {GEOGRAPHIC_BUBBLE_SCALE_CAPTION}{' '}
         </>
       )}

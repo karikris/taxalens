@@ -21,7 +21,7 @@ test('starts the Geographic Impact map without an external request', async ({
     page.locator('.taxalens-world-map__canvas[data-map-loaded="true"]'),
   ).toBeVisible({ timeout: 30_000 })
   await expect(
-    page.getByText('Baseline occurrence evidence mapped', { exact: true }),
+    page.getByText('Baseline and Flickr evidence mapped', { exact: true }),
   ).toBeVisible({ timeout: 30_000 })
   const evidenceCanvas = page.locator(
     '.taxalens-world-map__canvas[data-baseline-evidence="true"]',
@@ -30,6 +30,9 @@ test('starts the Geographic Impact map without an external request', async ({
   expect(
     Number(await evidenceCanvas.getAttribute('data-impact-feature-count')),
   ).toBeGreaterThan(0)
+  await expect(
+    page.locator('.taxalens-world-map__canvas[data-flickr-evidence="true"]'),
+  ).toBeVisible()
   await expect(page.locator('.taxalens-world-map canvas.maplibregl-canvas')).toHaveCount(1)
   await expect(page.getByText(/no external tiles, fonts, sprites, telemetry or analytics/u))
     .toBeVisible()

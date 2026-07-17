@@ -15,12 +15,17 @@ export interface GeographicImpactMapFeatureProperties {
   readonly flickrCandidateCount: number
   readonly flickrRadius: number
   readonly reviewedPositiveCount: number
+  readonly reviewedPositiveRadius: number
   readonly reviewedNegativeCount: number
+  readonly reviewedNegativeRadius: number
   readonly uncertainCount: number
+  readonly uncertainRadius: number
   readonly pendingCount: number
+  readonly pendingRadius: number
   readonly mediaFailureCount: number
   readonly skippedCount: number
   readonly releaseReadyCount: number
+  readonly releaseReadyRadius: number
   readonly baselineOnlyCell: boolean
   readonly matchedCell: boolean
   readonly candidateOnlyCell: boolean
@@ -103,12 +108,17 @@ export function buildBoundedGeographicImpactFeatures(
         flickrCandidateCount: cell.flickrCandidateCount,
         flickrRadius: bubbleScale.radiusForCount(cell.flickrCandidateCount),
         reviewedPositiveCount: cell.reviewedPositiveCount,
+        reviewedPositiveRadius: bubbleScale.radiusForCount(cell.reviewedPositiveCount),
         reviewedNegativeCount: cell.reviewedNegativeCount,
+        reviewedNegativeRadius: bubbleScale.radiusForCount(cell.reviewedNegativeCount),
         uncertainCount: cell.uncertainCount,
+        uncertainRadius: bubbleScale.radiusForCount(cell.uncertainCount),
         pendingCount: cell.pendingCount,
+        pendingRadius: bubbleScale.radiusForCount(cell.pendingCount),
         mediaFailureCount: cell.mediaFailureCount,
         skippedCount: cell.skippedCount,
         releaseReadyCount: cell.releaseReadyCount,
+        releaseReadyRadius: bubbleScale.radiusForCount(cell.releaseReadyCount),
         baselineOnlyCell: cell.baselineOnlyCell,
         matchedCell: cell.matchedCell,
         candidateOnlyCell: cell.candidateOnlyCell,

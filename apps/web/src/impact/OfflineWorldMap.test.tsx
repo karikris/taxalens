@@ -4,8 +4,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mapMocks = vi.hoisted(() => ({
   camera: {
+    addImage: vi.fn(),
     fitBounds: vi.fn(),
     flyTo: vi.fn(),
+    getMap: vi.fn(),
+    hasImage: vi.fn(() => false),
     jumpTo: vi.fn(),
   },
   mapProps: [] as Array<Record<string, unknown>>,
@@ -45,6 +48,11 @@ describe('OfflineWorldMap', () => {
     mapMocks.camera.fitBounds.mockReset()
     mapMocks.camera.flyTo.mockReset()
     mapMocks.camera.jumpTo.mockReset()
+    mapMocks.camera.addImage.mockReset()
+    mapMocks.camera.hasImage.mockReset()
+    mapMocks.camera.hasImage.mockReturnValue(false)
+    mapMocks.camera.getMap.mockReset()
+    mapMocks.camera.getMap.mockReturnValue(mapMocks.camera)
   })
 
   it('passes only local style and GeoJSON objects to the renderer', () => {
@@ -115,6 +123,31 @@ describe('OfflineWorldMap', () => {
       .toBeInTheDocument()
   })
 
+  it('registers local evidence shapes and exposes every Flickr maturity layer', () => {
+    render(
+      <OfflineWorldMap
+        webGlSupported
+        impactFeatures={syntheticImpactFeatures()}
+      />,
+    )
+    act(() => (mapMocks.mapProps.at(-1)?.onLoad as () => void)())
+
+    expect(mapMocks.camera.addImage).toHaveBeenCalledTimes(2)
+    const layerIds = screen
+      .getAllByTestId('maplibre-layer')
+      .map((layer) => layer.getAttribute('data-layer-id'))
+    expect(layerIds).toEqual(
+      expect.arrayContaining([
+        'taxalens-flickr-pending',
+        'taxalens-flickr-reviewed-positive',
+        'taxalens-flickr-reviewed-negative',
+        'taxalens-flickr-uncertain',
+        'taxalens-flickr-release-ready',
+      ]),
+    )
+    expect(screen.getByText(/candidates remain hypotheses/u)).toBeInTheDocument()
+  })
+
   it('keeps the cartographic foundation separate from unsupported impact claims', () => {
     render(<GeographicImpactLens webGlSupported={false} />)
 
@@ -152,3 +185,61 @@ describe('OfflineWorldMap', () => {
     expect(mapMocks.camera.fitBounds).toHaveBeenCalled()
   })
 })
+
+function syntheticImpactFeatures(): BoundedGeographicImpactFeatures {
+  return {
+    collection: {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          id: 'test-cell',
+          geometry: { type: 'Point', coordinates: [134, -25] },
+          properties: {
+            spatialCellId: 'test-cell',
+            spatialResolution: 3,
+            baselineCount: 1,
+            baselineRadius: 3,
+            flickrCandidateCount: 5,
+            flickrRadius: 28,
+            reviewedPositiveCount: 1,
+            reviewedPositiveRadius: 3,
+            reviewedNegativeCount: 1,
+            reviewedNegativeRadius: 3,
+            uncertainCount: 1,
+            uncertainRadius: 3,
+            pendingCount: 1,
+            pendingRadius: 3,
+            mediaFailureCount: 0,
+            skippedCount: 0,
+            releaseReadyCount: 1,
+            releaseReadyRadius: 3,
+            baselineOnlyCell: false,
+            matchedCell: true,
+            candidateOnlyCell: false,
+            reviewedAdditionalCell: false,
+            releaseReadyAdditionalCell: false,
+            nearestBaselineDistanceKm: 2,
+            dataDeficientState: 'sufficient',
+          },
+        },
+      ],
+    },
+    bubbleScale: {
+      domainMinimum: 0,
+      domainMaximum: 5,
+      scaleMode: 'sqrt_absolute',
+      minimumVisibleRadius: 3,
+      maximumRadius: 28,
+      legendValues: [1, 2, 5],
+      zeroCountBehavior: 'hidden',
+      radiusForCount: () => 3,
+    },
+    metric: 'record_count',
+    maximumFeatureCount: 5_000,
+    sourceCellCount: 1,
+    emittedFeatureCount: 1,
+    omittedFeatureCount: 0,
+    truncated: false,
+  }
+}

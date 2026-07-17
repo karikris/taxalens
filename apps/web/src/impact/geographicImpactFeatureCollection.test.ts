@@ -40,6 +40,7 @@ describe('bounded Geographic Impact map features', () => {
         baselineRadius: 0,
         flickrCandidateCount: 8,
         flickrRadius: expect.any(Number),
+        pendingRadius: expect.any(Number),
         pendingCount: 8,
         candidateOnlyCell: true,
       },

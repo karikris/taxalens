@@ -142,7 +142,7 @@ function MapEvidenceState({ state }: { readonly state: GeographicImpactMapLoadSt
       )
     case 'available':
       return (
-        <EvidenceState state="available" title="Baseline occurrence evidence mapped">
+        <EvidenceState state="available" title="Baseline and Flickr evidence mapped">
           {state.data.cells.length.toLocaleString()} preaggregated resolution-
           {state.data.spatialResolution} cells are shown for this scope from artifact{' '}
           <code>{PUBLIC_GEOGRAPHIC_IMPACT_MAP_SOURCE.artifactSha256.slice(0, 12)}</code>. Direct
