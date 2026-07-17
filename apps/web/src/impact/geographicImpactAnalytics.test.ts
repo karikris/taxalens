@@ -269,6 +269,63 @@ describe('browser geographic impact full outer join', () => {
     expect(duckDb.database.terminate).toHaveBeenCalledOnce()
   })
 
+  it('fails closed when source evidence has no materialized impact cell', async () => {
+    duckDb.rows[2] = {
+      ...duckDb.rows[2],
+      impact_cell_present: false,
+    }
+
+    await expect(
+      queryGeographicImpact(
+        createSyntheticGeographicProject(),
+        syntheticGeographicQuery,
+        new AbortController().signal,
+      ),
+    ).rejects.toThrow(
+      'source geographic evidence contains a cell absent from materialized impact',
+    )
+    expect(duckDb.connection.close).toHaveBeenCalledOnce()
+    expect(duckDb.database.terminate).toHaveBeenCalledOnce()
+  })
+
+  it('fails closed when materialized impact has no source evidence cell', async () => {
+    duckDb.rows[0] = {
+      ...duckDb.rows[0],
+      source_cell_present: false,
+    }
+
+    await expect(
+      queryGeographicImpact(
+        createSyntheticGeographicProject(),
+        syntheticGeographicQuery,
+        new AbortController().signal,
+      ),
+    ).rejects.toThrow(
+      'materialized geographic impact contains a cell absent from source evidence',
+    )
+    expect(duckDb.connection.close).toHaveBeenCalledOnce()
+    expect(duckDb.database.terminate).toHaveBeenCalledOnce()
+  })
+
+  it('fails closed when the selected rollup does not reconcile to browser cells', async () => {
+    duckDb.rollupRows[0] = {
+      ...duckDb.rollupRows[0],
+      candidate_only_cell_count: 0n,
+    }
+
+    await expect(
+      queryGeographicImpact(
+        createSyntheticGeographicProject(),
+        syntheticGeographicQuery,
+        new AbortController().signal,
+      ),
+    ).rejects.toThrow(
+      'selected geographic rollup differs from browser cells for candidate_only_cell_count',
+    )
+    expect(duckDb.connection.close).toHaveBeenCalledOnce()
+    expect(duckDb.database.terminate).toHaveBeenCalledOnce()
+  })
+
   it('cancels a pending SELECT and terminates aborted worker state', async () => {
     let rejectPending: ((reason: Error) => void) | undefined
     duckDb.send.mockImplementationOnce(
