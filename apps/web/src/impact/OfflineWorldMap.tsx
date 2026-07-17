@@ -53,15 +53,18 @@ export function OfflineWorldMap({
       <div className="taxalens-world-map__canvas" data-map-loaded={loaded ? 'true' : 'false'}>
         <Map
           initialViewState={{
-            bounds: [-180, -60, 180, 85],
-            fitBoundsOptions: { padding: 10 },
+            longitude: 0,
+            latitude: 12,
+            zoom: 0,
           }}
           mapStyle={TAXALENS_OFFLINE_MAP_STYLE}
           interactiveLayerIds={[TAXALENS_SELECTABLE_COUNTRY_LAYER_ID]}
           attributionControl={false}
           maplibreLogo={false}
           renderWorldCopies={false}
-          maxBounds={[-180, -85, 180, 85]}
+          // Exact-world maxBounds can make MapLibre's resize constraint singular when the
+          // viewport is wider than the zoom-zero world. Scope-specific bounds belong to the
+          // controlled drilldown camera added in Task 4.2.
           minZoom={0}
           maxZoom={10}
           maxPitch={0}

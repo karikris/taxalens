@@ -41,6 +41,8 @@ describe('OfflineWorldMap', () => {
     expect(props?.attributionControl).toBe(false)
     expect(props?.maplibreLogo).toBe(false)
     expect(props?.renderWorldCopies).toBe(false)
+    expect(props).not.toHaveProperty('maxBounds')
+    expect(props?.initialViewState).toEqual({ latitude: 12, longitude: 0, zoom: 0 })
     expect(props?.locale).toEqual({ 'Map.Title': TAXALENS_MAP_ACCESSIBLE_NAME })
   })
 
