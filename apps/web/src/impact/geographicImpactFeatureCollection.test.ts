@@ -37,12 +37,20 @@ describe('bounded Geographic Impact map features', () => {
       properties: {
         spatialCellId: 'cell:candidate',
         baselineCount: 0,
+        baselineRadius: 0,
         flickrCandidateCount: 8,
+        flickrRadius: expect.any(Number),
         pendingCount: 8,
         candidateOnlyCell: true,
       },
     })
     expect(Object.isFrozen(result.collection.features)).toBe(true)
+    expect(result.bubbleScale).toMatchObject({
+      domainMinimum: 0,
+      domainMaximum: 12,
+      scaleMode: 'sqrt_absolute',
+      zeroCountBehavior: 'hidden',
+    })
   })
 
   it('uses the selected closed metric and rejects an unbounded limit', () => {

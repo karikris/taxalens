@@ -8,6 +8,7 @@ import {
   type MapLayerMouseEvent,
   type MapRef,
 } from '@vis.gl/react-maplibre'
+import type { FeatureCollection, Geometry } from 'geojson'
 import 'maplibre-gl/dist/maplibre-gl.css'
 
 import {
@@ -22,6 +23,12 @@ import {
 import type { CountryHierarchyNode } from '../../../../packages/contracts/src/geographic_impact_contract'
 import { TAXALENS_GEOGRAPHIC_SCOPE_INDEX } from './geographicScope'
 import { moveMapToGeographicScope } from './geographicMapCamera'
+import type { BoundedGeographicImpactFeatures } from './geographicImpactFeatureCollection'
+import {
+  TAXALENS_BASELINE_EVIDENCE_LAYER,
+  TAXALENS_IMPACT_CELL_SOURCE_ID,
+} from './geographicImpactLayers'
+import { GEOGRAPHIC_BUBBLE_SCALE_CAPTION } from './geographicBubbleScale'
 import './geographicImpactMap.css'
 
 export const TAXALENS_MAP_ACCESSIBLE_NAME =
@@ -29,10 +36,12 @@ export const TAXALENS_MAP_ACCESSIBLE_NAME =
 
 export function OfflineWorldMap({
   onCountrySelect,
+  impactFeatures,
   selectedScope = TAXALENS_GEOGRAPHIC_SCOPE_INDEX.root,
   webGlSupported,
 }: {
   readonly onCountrySelect?: (countryCode: string) => void
+  readonly impactFeatures?: BoundedGeographicImpactFeatures
   readonly selectedScope?: CountryHierarchyNode
   readonly webGlSupported?: boolean
 }) {
@@ -71,6 +80,13 @@ export function OfflineWorldMap({
       <div
         className="taxalens-world-map__canvas"
         data-camera-scope={cameraScopeId ?? 'pending'}
+        data-baseline-evidence={
+          impactFeatures !== undefined &&
+          impactFeatures.collection.features.some(({ properties }) => properties.baselineCount > 0)
+            ? 'true'
+            : 'false'
+        }
+        data-impact-feature-count={impactFeatures?.emittedFeatureCount ?? 0}
         data-map-loaded={loaded ? 'true' : 'false'}
         data-selected-scope={selectedScope.scope_id}
       >
@@ -115,6 +131,15 @@ export function OfflineWorldMap({
             <Layer {...TAXALENS_BOUNDARY_ONLY_LAYER} />
             <Layer {...TAXALENS_COUNTRY_LINE_LAYER} />
           </Source>
+          {impactFeatures === undefined ? null : (
+            <Source
+              id={TAXALENS_IMPACT_CELL_SOURCE_ID}
+              type="geojson"
+              data={impactFeatures.collection as unknown as FeatureCollection<Geometry>}
+            >
+              <Layer {...TAXALENS_BASELINE_EVIDENCE_LAYER} />
+            </Source>
+          )}
           <NavigationControl position="top-right" showCompass={false} visualizePitch={false} />
           <ScaleControl position="bottom-left" unit="metric" maxWidth={120} />
         </Map>
@@ -124,7 +149,9 @@ export function OfflineWorldMap({
             : 'Opening offline world map.'}
         </span>
       </div>
-      <MapCaption />
+      <MapCaption
+        {...(impactFeatures === undefined ? {} : { impactFeatures })}
+      />
     </figure>
   )
 }
@@ -155,9 +182,19 @@ export function browserSupportsWebGl(): boolean {
   }
 }
 
-function MapCaption() {
+function MapCaption({
+  impactFeatures,
+}: {
+  readonly impactFeatures?: BoundedGeographicImpactFeatures
+} = {}) {
   return (
     <figcaption id="taxalens-world-map-caption">
+      {impactFeatures === undefined ? null : (
+        <>
+          Blue bubbles show deduplicated, range-inference-eligible baseline occurrence evidence.{' '}
+          {GEOGRAPHIC_BUBBLE_SCALE_CAPTION}{' '}
+        </>
+      )}
       Low-resolution Natural Earth boundaries are for display and navigation only. Made with
       Natural Earth. Rendered locally with MapLibre GL JS; no external tiles, fonts, sprites,
       telemetry or analytics are requested.

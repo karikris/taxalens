@@ -35,6 +35,7 @@ vi.mock('@vis.gl/react-maplibre', () => ({
 }))
 
 import { GeographicImpactLens } from './GeographicImpactLens'
+import type { BoundedGeographicImpactFeatures } from './geographicImpactFeatureCollection'
 import { OfflineWorldMap, TAXALENS_MAP_ACCESSIBLE_NAME } from './OfflineWorldMap'
 
 describe('OfflineWorldMap', () => {
@@ -77,14 +78,51 @@ describe('OfflineWorldMap', () => {
     expect(screen.getByText(/synchronized table/u)).toBeInTheDocument()
   })
 
+  it('renders the baseline evidence layer from bounded local cell features', () => {
+    render(
+      <OfflineWorldMap
+        webGlSupported
+        impactFeatures={
+          {
+            collection: { type: 'FeatureCollection', features: [] },
+            bubbleScale: {
+              domainMinimum: 0,
+              domainMaximum: 10,
+              scaleMode: 'sqrt_absolute',
+              minimumVisibleRadius: 3,
+              maximumRadius: 28,
+              legendValues: [1, 3, 10],
+              zeroCountBehavior: 'hidden',
+              radiusForCount: () => 0,
+            },
+          } as unknown as BoundedGeographicImpactFeatures
+        }
+      />,
+    )
+
+    expect(screen.getAllByTestId('maplibre-source')).toHaveLength(2)
+    expect(
+      screen
+        .getAllByTestId('maplibre-layer')
+        .some((layer) =>
+          layer.getAttribute('data-layer-id')?.includes('baseline-occurrence-evidence'),
+        ),
+    ).toBe(true)
+    expect(
+      screen.getByText(/Blue bubbles show deduplicated, range-inference-eligible baseline/u),
+    ).toBeInTheDocument()
+    expect(screen.getByText(/Bubble radius uses a square-root count scale/u))
+      .toBeInTheDocument()
+  })
+
   it('keeps the cartographic foundation separate from unsupported impact claims', () => {
     render(<GeographicImpactLens webGlSupported={false} />)
 
     expect(
       screen.getByRole('heading', { name: 'TaxaLens Geographic Impact Lens' }),
     ).toBeInTheDocument()
-    expect(screen.getByText(/does not yet display an impact claim/u)).toBeInTheDocument()
-    expect(screen.getByText(/hosted v1 replay does not publish/u)).toBeInTheDocument()
+    expect(screen.getByText(/not occurrence or range claims/u)).toBeInTheDocument()
+    expect(screen.getByText(/does not invent v2 evidence sections/u)).toBeInTheDocument()
   })
 
   it('synchronizes an exact selectable map feature with scope controls and camera', () => {

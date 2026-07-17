@@ -1,4 +1,8 @@
 import type { GeographicImpactBrowserCell } from './geographicImpactAnalytics'
+import {
+  createGeographicBubbleScale,
+  type GeographicBubbleScale,
+} from './geographicBubbleScale'
 import type { GeographicImpactMetric } from './geographicImpactQuery'
 
 export const GEOGRAPHIC_IMPACT_MAX_MAP_FEATURES = 5_000
@@ -7,7 +11,9 @@ export interface GeographicImpactMapFeatureProperties {
   readonly spatialCellId: string
   readonly spatialResolution: number
   readonly baselineCount: number
+  readonly baselineRadius: number
   readonly flickrCandidateCount: number
+  readonly flickrRadius: number
   readonly reviewedPositiveCount: number
   readonly reviewedNegativeCount: number
   readonly uncertainCount: number
@@ -47,6 +53,7 @@ export interface BoundedGeographicImpactFeatures {
   readonly emittedFeatureCount: number
   readonly omittedFeatureCount: number
   readonly truncated: boolean
+  readonly bubbleScale: GeographicBubbleScale
 }
 
 /** Project preaggregated centroids only; raw occurrence/photo rows never enter GeoJSON. */
@@ -72,6 +79,12 @@ export function buildBoundedGeographicImpactFeatures(
       return left.spatialCellId.localeCompare(right.spatialCellId)
     })
     .slice(0, maximumFeatureCount)
+  const bubbleScale = createGeographicBubbleScale({
+    baselineCounts: cells.map(({ baselineRangeInferenceEligibleCount }) =>
+      baselineRangeInferenceEligibleCount
+    ),
+    flickrCounts: cells.map(({ flickrCandidateCount }) => flickrCandidateCount),
+  })
   const features = selected.map((cell) =>
     Object.freeze({
       type: 'Feature' as const,
@@ -84,7 +97,11 @@ export function buildBoundedGeographicImpactFeatures(
         spatialCellId: cell.spatialCellId,
         spatialResolution: cell.spatialResolution,
         baselineCount: cell.baselineRangeInferenceEligibleCount,
+        baselineRadius: bubbleScale.radiusForCount(
+          cell.baselineRangeInferenceEligibleCount,
+        ),
         flickrCandidateCount: cell.flickrCandidateCount,
+        flickrRadius: bubbleScale.radiusForCount(cell.flickrCandidateCount),
         reviewedPositiveCount: cell.reviewedPositiveCount,
         reviewedNegativeCount: cell.reviewedNegativeCount,
         uncertainCount: cell.uncertainCount,
@@ -114,6 +131,7 @@ export function buildBoundedGeographicImpactFeatures(
     emittedFeatureCount: features.length,
     omittedFeatureCount,
     truncated: omittedFeatureCount > 0,
+    bubbleScale,
   })
 }
 
