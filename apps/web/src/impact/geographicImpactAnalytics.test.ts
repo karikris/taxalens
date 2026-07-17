@@ -217,12 +217,7 @@ describe('browser geographic impact full outer join', () => {
       nearestBaselineDistanceKm: 18.25,
     })
     expect(duckDb.database.registerFileBuffer).toHaveBeenCalledTimes(4)
-    expect(duckDb.database.dropFiles).toHaveBeenCalledWith([
-      'baseline_occurrence_union.parquet',
-      'flickr_geography.parquet',
-      'geographic_impact_cells.parquet',
-      'geographic_impact_summary.parquet',
-    ])
+    expect(duckDb.database.dropFiles).not.toHaveBeenCalled()
     expect(duckDb.connection.close).toHaveBeenCalledOnce()
     expect(duckDb.database.terminate).toHaveBeenCalledOnce()
 
@@ -336,6 +331,8 @@ describe('browser geographic impact full outer join', () => {
     expect(sql).toContain(`scope_level = '${level}'`)
     expect(sql).toContain(`scope_id = '${id}'`)
     expect(sql).toContain(childClause)
+    expect(sql).toContain('combined_rollups AS')
+    expect(sql).toMatch(/FROM combined_rollups\s+ORDER BY/u)
   })
 })
 

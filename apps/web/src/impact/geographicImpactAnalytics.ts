@@ -180,9 +180,13 @@ export async function queryGeographicImpact(
     throwIfGeographicQueryAborted(signal)
     connection = await database.connect()
     throwIfGeographicQueryAborted(signal)
-    await connection.query(`SET autoinstall_known_extensions = false;
-      SET autoload_known_extensions = false;
-      LOAD ${sqlLiteral(parquetExtensionUrl)}`)
+    await executeGeographicSetupQuery(
+      connection,
+      'the local Parquet extension session',
+      `SET autoinstall_known_extensions = false;
+        SET autoload_known_extensions = false;
+        LOAD ${sqlLiteral(parquetExtensionUrl)}`,
+    )
     throwIfGeographicQueryAborted(signal)
     await createGeographicViews(connection, sources)
     throwIfGeographicQueryAborted(signal)
@@ -245,11 +249,13 @@ export async function queryGeographicImpact(
     if (signal.aborted) {
       await database.terminate()
     } else {
-      await connection?.close()
-      if (registration !== undefined) {
-        await database.dropFiles(registration.artifacts.map(({ fileName }) => fileName))
+      try {
+        await connection?.close()
+      } finally {
+        // This query owns a dedicated in-memory worker. Termination releases its
+        // registered files; dropFiles races DuckDB's Parquet handles during teardown.
+        await database.terminate()
       }
-      await database.terminate()
     }
   }
 }
@@ -428,10 +434,13 @@ export function buildGeographicRollupSql(sources: GeographicImpactQuerySources):
       SELECT 1::UTINYINT AS result_order, ${resultColumns}
       FROM materialized_geographic_summary
       ${childSelection}
+    ), combined_rollups AS (
+      SELECT result_order, ${resultColumns} FROM selected_rollup
+      UNION ALL BY NAME
+      SELECT result_order, ${resultColumns} FROM child_rollups
     )
-    SELECT result_order, ${resultColumns} FROM selected_rollup
-    UNION ALL BY NAME
-    SELECT result_order, ${resultColumns} FROM child_rollups
+    SELECT result_order, ${resultColumns}
+    FROM combined_rollups
     ORDER BY result_order,
       ${rollupOrderExpression(input.metric)} DESC NULLS LAST,
       scope_name,
@@ -463,10 +472,10 @@ async function createGeographicViews(
         spatial_cell_id,
         occurrence_count,
         range_inference_eligible_count`
-  await connection.query(`CREATE TEMP VIEW baseline_geographic_source AS
+  await executeGeographicSetupQuery(connection, 'baseline geographic source', `CREATE TEMP VIEW baseline_geographic_source AS
     SELECT ${baselineColumns}
     FROM read_parquet(${sqlLiteral(baselineFile)})`)
-  await connection.query(`CREATE TEMP VIEW flickr_geographic_source AS
+  await executeGeographicSetupQuery(connection, 'Flickr geographic source', `CREATE TEMP VIEW flickr_geographic_source AS
     SELECT
       project_id,
       run_id,
@@ -479,7 +488,7 @@ async function createGeographicViews(
       machine_screening_state,
       human_review_state
     FROM read_parquet('flickr_geography.parquet')`)
-  await connection.query(`CREATE TEMP VIEW materialized_geographic_impact AS
+  await executeGeographicSetupQuery(connection, 'materialized impact cells', `CREATE TEMP VIEW materialized_geographic_impact AS
     SELECT
       project_id,
       run_id,
@@ -513,7 +522,7 @@ async function createGeographicViews(
       nearest_baseline_distance_km,
       data_deficient_state
     FROM read_parquet('geographic_impact_cells.parquet')`)
-  await connection.query(`CREATE TEMP VIEW materialized_geographic_summary AS
+  await executeGeographicSetupQuery(connection, 'materialized impact summary', `CREATE TEMP VIEW materialized_geographic_summary AS
     SELECT
       project_id,
       run_id,
@@ -558,6 +567,19 @@ async function createGeographicViews(
       maximum_nearest_baseline_distance_km,
       data_deficient_state
     FROM read_parquet('geographic_impact_summary.parquet')`)
+}
+
+async function executeGeographicSetupQuery(
+  connection: AsyncDuckDBConnection,
+  label: string,
+  sql: string,
+): Promise<void> {
+  try {
+    await connection.query(sql)
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    throw new Error(`DuckDB could not create ${label}: ${message}`, { cause: error })
+  }
 }
 
 export function buildGeographicImpactSql(sources: GeographicImpactQuerySources): string {
