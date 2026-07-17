@@ -38,9 +38,9 @@ describe('public Geographic Impact map data', () => {
 
   it('takes public artifact expectations from the committed manifest', () => {
     expect(PUBLIC_GEOGRAPHIC_IMPACT_MAP_SOURCE).toMatchObject({
-      artifactBytes: 559_441,
+      artifactBytes: 639_681,
       artifactRows: 20_237,
-      artifactSha256: '97b2422657d79bc8e682c4e51358c0316f6c942a31fea9ed608ef2c4ba420d94',
+      artifactSha256: 'a02927ffbb4dc09fca582c61e6ceab51af6d12f8998cf0f7762ebfe26a4ea1c9',
       directInaturalistDeltaStatus: 'unavailable',
       reviewedPositiveCount: 0,
       releaseReadyCount: 0,

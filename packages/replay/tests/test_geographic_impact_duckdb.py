@@ -23,7 +23,7 @@ def test_duckdb_independently_reconciles_the_full_outer_join() -> None:
         "flickr_photo_count": 13_501,
         "supported_flickr_photo_count": 13_416,
         "mismatch_count": 0,
-        "manifest_id": "geographic-impact-manifest:7f6d74f020db6cc4b4ba93dd",
+        "manifest_id": "geographic-impact-manifest:e3c532a1c6310d2a0906cacc",
     }
 
 

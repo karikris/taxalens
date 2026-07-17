@@ -149,6 +149,9 @@ def build_geographic_impact_cells(
         "inaturalist_origin_through_gbif_count",
         "duplicates_removed_count",
         "unresolved_provider_duplicate_group_count",
+        "_preserved_or_fossil_count",
+        "_unknown_coordinate_uncertainty_count",
+        "_geospatial_issue_count",
         "flickr_candidate_count",
         "flickr_visually_eligible_count",
         "reviewed_positive_count",
@@ -177,10 +180,35 @@ def build_geographic_impact_cells(
         pl.when(pl.col("unresolved_provider_duplicate_group_count") > 0)
         .then(pl.lit("unresolved_provider_duplicates"))
         .otherwise(pl.lit(None, dtype=pl.String)),
+        pl.when(
+            (pl.col("baseline_union_count") > 0)
+            & (pl.col("_preserved_or_fossil_count") == pl.col("baseline_union_count"))
+        )
+        .then(pl.lit("preserved_specimen_or_fossil_only"))
+        .otherwise(pl.lit(None, dtype=pl.String)),
+        pl.when(
+            (pl.col("baseline_union_count") > 0)
+            & (pl.col("_unknown_coordinate_uncertainty_count") == pl.col("baseline_union_count"))
+        )
+        .then(pl.lit("coordinate_uncertainty_unavailable_for_all_baseline_rows"))
+        .otherwise(pl.lit(None, dtype=pl.String)),
+        pl.when(
+            (pl.col("baseline_union_count") > 0)
+            & (pl.col("_geospatial_issue_count") == pl.col("baseline_union_count"))
+        )
+        .then(pl.lit("all_baseline_rows_have_geospatial_issues"))
+        .otherwise(pl.lit(None, dtype=pl.String)),
+        pl.when(
+            (pl.col("baseline_range_inference_eligible_count") > 0)
+            & pl.col("latest_baseline_event_date").is_null()
+        )
+        .then(pl.lit("credible_baseline_date_unavailable"))
+        .otherwise(pl.lit(None, dtype=pl.String)),
         pl.when((pl.col("reviewed_positive_count") > 0) & pl.col("quality_snapshot_id").is_null())
         .then(pl.lit("reviewed_quality_snapshot_unavailable"))
         .otherwise(pl.lit(None, dtype=pl.String)),
     ).list.drop_nulls()
+    joined = joined.with_columns(data_deficient_reasons.alias("_data_deficient_reasons"))
 
     cells = (
         joined.with_columns(
@@ -216,8 +244,11 @@ def build_geographic_impact_cells(
             pl.col("nearest_baseline_cell_id"),
             pl.col("nearest_baseline_distance_method"),
             pl.lit(None, dtype=pl.Date).alias("latest_flickr_candidate_date"),
-            pl.lit("data_deficient").alias("data_deficient_state"),
-            data_deficient_reasons.alias("data_deficient_reasons"),
+            pl.when(pl.col("_data_deficient_reasons").list.len() > 0)
+            .then(pl.lit("data_deficient"))
+            .otherwise(pl.lit("sufficient"))
+            .alias("data_deficient_state"),
+            pl.col("_data_deficient_reasons").alias("data_deficient_reasons"),
         )
         .select(
             [pl.col(name).cast(dtype) for name, dtype in geographic_impact_cell_schema().items()]
@@ -574,6 +605,18 @@ def _aggregate_baseline(frame: pl.DataFrame) -> pl.DataFrame:
             .drop_nulls()
             .n_unique()
             .alias("unresolved_provider_duplicate_group_count"),
+            pl.col("canonical_observation_id")
+            .filter(canonical & (pl.col("preserved_specimen") | pl.col("fossil")))
+            .n_unique()
+            .alias("_preserved_or_fossil_count"),
+            pl.col("canonical_observation_id")
+            .filter(canonical & pl.col("coordinate_uncertainty_m").is_null())
+            .n_unique()
+            .alias("_unknown_coordinate_uncertainty_count"),
+            pl.col("canonical_observation_id")
+            .filter(canonical & pl.col("has_geospatial_issue"))
+            .n_unique()
+            .alias("_geospatial_issue_count"),
             pl.col("event_date").filter(eligible).max().alias("latest_baseline_event_date"),
         )
         .with_columns(
@@ -591,6 +634,9 @@ def _aggregate_baseline(frame: pl.DataFrame) -> pl.DataFrame:
             "inaturalist_origin_through_gbif_count",
             "duplicates_removed_count",
             "unresolved_provider_duplicate_group_count",
+            "_preserved_or_fossil_count",
+            "_unknown_coordinate_uncertainty_count",
+            "_geospatial_issue_count",
             "latest_baseline_event_date",
         )
     )

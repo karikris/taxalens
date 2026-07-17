@@ -3,6 +3,7 @@ from __future__ import annotations
 import polars as pl
 import pytest
 from packages.replay.src.geographic_impact_materializer import (
+    DEFAULT_BASELINE_UNION,
     NEAREST_BASELINE_DISTANCE_METHOD,
     _haversine_km,
     _with_nearest_baseline_distance,
@@ -149,6 +150,79 @@ def test_committed_candidate_only_cells_have_same_resolution_baseline_proximity(
         validate="m:1",
     )
     assert reconciled.filter(pl.col("nearest_eligible_count").fill_null(0) == 0).is_empty()
+
+
+def test_committed_data_deficiency_reasons_are_derived_from_canonical_evidence(
+    committed_cells: pl.DataFrame,
+) -> None:
+    assert committed_cells.get_column("data_deficient_state").unique().to_list() == [
+        "data_deficient"
+    ]
+    assert committed_cells.filter(
+        ~pl.col("data_deficient_reasons").list.contains("direct_inaturalist_delta_unavailable")
+    ).is_empty()
+    assert committed_cells.filter(
+        pl.col("data_deficient_reasons").list.contains("no_baseline_rows_in_cell")
+        != (pl.col("baseline_union_count") == 0)
+    ).is_empty()
+    assert committed_cells.filter(
+        pl.col("data_deficient_reasons").list.contains("no_range_inference_eligible_baseline")
+        != (
+            (pl.col("baseline_union_count") > 0)
+            & (pl.col("baseline_range_inference_eligible_count") == 0)
+        )
+    ).is_empty()
+    assert committed_cells.filter(
+        pl.col("data_deficient_reasons").list.contains("unresolved_provider_duplicates")
+        != (pl.col("unresolved_provider_duplicate_group_count") > 0)
+    ).is_empty()
+
+    baseline = pl.read_parquet(DEFAULT_BASELINE_UNION)
+    canonical = pl.col("canonical_flag")
+    expected = baseline.group_by(["spatial_resolution", "spatial_cell_id"]).agg(
+        pl.col("canonical_observation_id")
+        .filter(canonical & (pl.col("preserved_specimen") | pl.col("fossil")))
+        .n_unique()
+        .alias("preserved_or_fossil_count"),
+        pl.col("canonical_observation_id")
+        .filter(canonical & pl.col("coordinate_uncertainty_m").is_null())
+        .n_unique()
+        .alias("unknown_uncertainty_count"),
+        pl.col("canonical_observation_id")
+        .filter(canonical & pl.col("has_geospatial_issue"))
+        .n_unique()
+        .alias("geospatial_issue_count"),
+    )
+    reconciled = committed_cells.join(
+        expected,
+        on=["spatial_resolution", "spatial_cell_id"],
+        how="left",
+        validate="m:1",
+    ).with_columns(
+        pl.col("preserved_or_fossil_count").fill_null(0),
+        pl.col("unknown_uncertainty_count").fill_null(0),
+        pl.col("geospatial_issue_count").fill_null(0),
+    )
+    for reason, expected_condition in (
+        (
+            "preserved_specimen_or_fossil_only",
+            (pl.col("baseline_union_count") > 0)
+            & (pl.col("preserved_or_fossil_count") == pl.col("baseline_union_count")),
+        ),
+        (
+            "coordinate_uncertainty_unavailable_for_all_baseline_rows",
+            (pl.col("baseline_union_count") > 0)
+            & (pl.col("unknown_uncertainty_count") == pl.col("baseline_union_count")),
+        ),
+        (
+            "all_baseline_rows_have_geospatial_issues",
+            (pl.col("baseline_union_count") > 0)
+            & (pl.col("geospatial_issue_count") == pl.col("baseline_union_count")),
+        ),
+    ):
+        assert reconciled.filter(
+            pl.col("data_deficient_reasons").list.contains(reason) != expected_condition
+        ).is_empty()
 
 
 def test_nearest_baseline_distance_uses_haversine_and_lexical_tie_breaking() -> None:
