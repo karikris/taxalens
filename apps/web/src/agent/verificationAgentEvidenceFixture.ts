@@ -27,7 +27,7 @@ import {
   VERIFICATION_ARTIFACT_CITATION_VERSION,
   type VerificationArtifactCitation,
   type VerificationToolEvidence,
-} from '../agent/verificationTools'
+} from './verificationTools'
 
 export const VERIFICATION_AGENT_FIXTURE_TAXALENS_SHA =
   'bd2cb30a51a1f2e21b08e05060eccc24f238a905' as const

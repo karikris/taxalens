@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import judgeBundle from '../../../../../demo/fixture/papilio_pilot/judge_bundle.json'
-import { createVerificationAgentEvidenceFixture } from '../../test/verificationAgentEvidence'
+import { createVerificationAgentEvidenceFixture } from '../../agent/verificationAgentEvidenceFixture'
 import {
   VERIFICATION_SCHEMA_CONTRACTS,
   VerificationSchemaError,

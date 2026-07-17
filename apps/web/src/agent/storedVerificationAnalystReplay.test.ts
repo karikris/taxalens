@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { createVerificationAgentEvidenceFixture } from '../test/verificationAgentEvidence'
+import { createVerificationAgentEvidenceFixture } from './verificationAgentEvidenceFixture'
 import storedReplayJson from './fixtures/verificationAnalystStoredReplay.json'
 import {
   loadStoredVerificationAnalystReplay,

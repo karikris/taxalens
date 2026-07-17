@@ -1,4 +1,4 @@
-import { createVerificationAgentEvidenceFixture } from '../test/verificationAgentEvidence'
+import { createVerificationAgentEvidenceFixture } from './verificationAgentEvidenceFixture'
 import {
   deriveNextVerificationAction,
   deriveVerificationCampaignAnalysis,

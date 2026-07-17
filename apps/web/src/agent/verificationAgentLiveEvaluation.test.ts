@@ -2,7 +2,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { createVerificationAgentEvidenceFixture } from '../test/verificationAgentEvidence'
+import { createVerificationAgentEvidenceFixture } from './verificationAgentEvidenceFixture'
 import { runVerificationAnalyst } from './verificationAnalyst'
 import { createServerOpenAITransport } from './serverOpenAITransport'
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import migratedAvailability from '../../../../../demo/source/verification/verification-evidence-availability.json'
-import { createVerificationAgentEvidenceFixture } from '../../test/verificationAgentEvidence'
+import { createVerificationAgentEvidenceFixture } from '../../agent/verificationAgentEvidenceFixture'
 import {
   EVIDENCE_AVAILABILITY_SCHEMA_VERSION,
   EvidenceAvailabilityError,
