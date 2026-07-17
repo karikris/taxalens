@@ -3,8 +3,9 @@
 ## Frozen product boundary
 
 - Current reviewed BioMiner handoff SHA: `74a7d648a562efa744e6502ef504a23b63b4e02f` on `main`.
-- Current observed BioMiner `main` SHA: `94fa1f634ee3c63917c05d78181dd3cf9ceff940`.
+- Current observed BioMiner `main` SHA: `dcd494321abc0666ea692b5759f84bc4c7e08ba9` at 2026-07-17T07:52:44Z.
 - BioMiner `main` includes `a5bf11d74fb6a5a7eec7dc567197fabe18e8b171`, which removes the local five-image limit from the combined YOLOE + BioCLIP prototype smoke command. Historical five-image smoke manifests remain immutable records of the earlier bounded run and are not rewritten.
+- BioMiner `main` requires `reviewed-labels-v2` and, at `cdbde1036bc398c2ed654d7aa5669a3b53382f4e`, removed legacy reviewed-label v1 migration. The committed reviewed-label rows are synthetic test fixtures, not retained TaxaLens human outcomes. TaxaLens's existing commit-qualified interoperability check remains pinned to `94fa1f634ee3c63917c05d78181dd3cf9ceff940` until the current upstream contract is separately revalidated.
 - Boundary version: `artifact-first-product-boundary-v1.0.0`.
 - Broad BioMiner module copying is frozen. Existing copied modules remain as provenance-bound compatibility contracts; they are not precedent for more copies.
 - New integration order is: committed artifact, versioned schema, thin adapter, stable BioMiner command, small shared package, and copied source only after an explicit documented finding that every earlier option is unsuitable.
@@ -25,6 +26,37 @@ does not rewrite component provenance.
 - Provider verification and the 81 / 81 user-confirmed prototype-role suitability receipt are not independent taxonomic identity verification. The current independently human-taxonomically-verified support count remains zero.
 - Statistical quality requires representative, sufficiently independent, correctly weighted, leakage-safe review evidence. Targeted failure-discovery queues are not valid unweighted population-quality samples.
 - The credential-free public replay may prepare BioMiner-compatible exports, but must label them: “Prepared for BioMiner import; not imported in the public replay.”
+
+## Geographic Impact boundary
+
+- Flickr Workload Map remains the operational view of candidate clustering,
+  dispersion, outliers, and processing work. It does not calculate occurrence
+  contribution.
+- Geographic Impact Lens is a separate artifact-first comparison. TaxaLens
+  consumes exact committed baseline spread, provider-union, Flickr-geography,
+  verification, quality, release, and hierarchy artifacts through its product
+  facade; it does not copy the BioMiner geography engine while an artifact,
+  schema, or stable command remains viable.
+- Missing baseline evidence is unknown and may be described as absent from the
+  selected baseline snapshot or data-deficient baseline. It is not proof of
+  biological absence.
+- GBIF and direct iNaturalist rows require a canonical provider union. Known
+  iNaturalist-origin GBIF observations are not counted again, deterministic
+  provider relationships are retained, and unresolved duplicate groups remain
+  explicit.
+- When no committed direct iNaturalist occurrence snapshot exists, the direct
+  delta remains unavailable. TaxaLens does not fetch one to complete a display.
+- Unreviewed candidates, human-reviewed target positives, non-targets,
+  uncertain outcomes, and release-ready occurrence candidates remain distinct.
+  Skip and Can't view do not add spatial or temporal contribution.
+- Human-supported geographic evidence does not become release-ready without
+  the configured occurrence-release gates. Aggregate reviewed-contribution
+  claims remain bound to a valid `QualitySnapshot`, sampling design, and
+  release decision.
+- The committed BioMiner geographic contracts use the shared hierarchical H3
+  grid at pilot resolutions 3, 5, and 7. Exact baseline pilot Parquet bytes are
+  not currently committed in BioMiner `main`; report-only paths, row counts, or
+  checksums are not importable artifacts.
 
 ## Phase 13, Phase 14, and Phase 15 availability
 

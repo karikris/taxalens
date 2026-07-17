@@ -195,6 +195,53 @@ attributable human review, rights checks, immutable leakage-safe splits,
 calibration selection, and final-test publication are committed and
 independently verified.
 
+### Geographic workload and geographic impact remain separate
+
+Flickr Workload Map is an operational view of candidate acquisition clusters,
+outliers, dispersion, and processing work. It does not compare occurrence
+evidence or calculate scientific contribution.
+
+Geographic Impact Lens is a separate artifact-first comparison of one
+deduplicated baseline snapshot with one precision-aware Flickr candidate
+snapshot. Every read is scoped by project, run, accepted taxon, baseline
+snapshot, Flickr snapshot, grid, and resolution. Missing or incompatible
+artifacts remain unavailable.
+
+Zero baseline rows means absent from the selected baseline snapshot. It is not
+proof of biological absence. Product copy uses data-deficient baseline and
+potential coverage contribution where appropriate.
+
+### Provider double counting is prohibited
+
+GBIF rows and direct iNaturalist rows must not be added independently because
+GBIF can deliver iNaturalist-origin observations. A canonical provider union
+must retain every provider relationship, remove only deterministic duplicates,
+and keep unresolved duplicate groups explicit. When no direct iNaturalist
+occurrence snapshot exists, its delta remains unavailable and no display-only
+fetch is permitted.
+
+### Geographic review and release are distinct
+
+An unreviewed Flickr result is candidate evidence. A decisive target-positive
+human outcome can make it human-supported evidence. It becomes a release-ready
+occurrence candidate only after the configured coordinate, duplicate, quality,
+provenance, consensus, and occurrence-release gates pass.
+
+Skip and Can't view do not support spatial or temporal contribution. Can't
+tell and unresolved conflict remain uncertain. Failure-discovery reviews may
+show reviewed examples but do not authorize unweighted population inference.
+Every aggregate reviewed-contribution claim is bound to a valid
+`QualitySnapshot` and its sampling disclosures.
+
+### Reviewed-label contracts are not retained outcomes
+
+Current BioMiner `main` requires the `reviewed-labels-v2` contract and has
+removed legacy v1 migration. Its committed reviewed-label rows are explicitly
+synthetic test fixtures. Contract support, schema validation, and prototype-role
+suitability do not establish retained human taxonomic outcomes in the TaxaLens
+campaigns. The public campaign state remains zero until attributable review
+events are committed or imported through the declared workflow.
+
 ## Change control
 
 Changes to these decisions require explicit human approval and corresponding
