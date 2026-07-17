@@ -199,3 +199,152 @@ Impact as a separate evidence-comparison interface backed by generalized
 bundle contracts, baseline-provider deduplication, precision-aware shared
 cells, verification and release states, offline boundaries, and an accessible
 map/table interaction model.
+
+## Bundle and facade geography audit
+
+Subtask 0.1.2 extends this report from the interface into the current bundle,
+artifact, fixture, and product-loader boundary. It changes no runtime behavior.
+
+### Current judge-bundle contract
+
+The Python, TypeScript, and JSON Schema contracts all fix the bundle at
+`taxalens-judge-bundle:v1.0.0`. They require exactly 25 named evidence
+sections. The only geography-named section is `geographic_clusters`; the
+contract has no sections for:
+
+- `baseline_geographic_spread`;
+- `baseline_provider_union`;
+- `flickr_geography`;
+- `geographic_impact_cells`;
+- `geographic_impact_summary`;
+- `country_hierarchy`.
+
+Each v1 section has only availability, artifact IDs, reason, candidate
+semantics, verification status, human-review requirement, and a scientific
+claim flag. That is sufficient for evidence availability but cannot express a
+baseline snapshot, Flickr snapshot, provider-union deduplication receipt,
+spatial hierarchy, compatible cell resolutions, review-state reconciliation,
+or occurrence-release gate.
+
+Top-level identity contains bundle ID, one target, and TaxaLens/BioMiner source
+revisions. It does not scope geographic reads by project ID, run ID, baseline
+snapshot ID, and Flickr snapshot ID. Artifact inventory rows carry checksum,
+row count, schema version, repository, and commit, but no typed dependency
+relationships between baseline, Flickr, verification, hierarchy, and impact
+artifacts.
+
+`expected_ui_counts` repeats per-section and per-screen counts. The generic
+contract validates those declarations against the inventory, which is useful,
+but v1 cannot declare geographic rollup reconciliation or provider composition.
+There is no v1-to-v2 migration path; unknown schema versions fail validation.
+
+### Current fixture artifact geography
+
+The public fixture is
+`papilio-demoleus-prototype-74a7d648-v3`. Its manifest identifies TaxaLens
+`fab9d3f1605d28d4bbfc3a4d0074f40e5ffff023` and BioMiner
+`74a7d648a562efa744e6502ef504a23b63b4e02f`; its imported analytics come from
+the older committed BioMiner artifact source
+`75461d9c065af0cd96b41cd1f845c2e920f7ae34`.
+
+The 30-artifact inventory contains four geography-related entries:
+
+| Artifact | Role | Rows | Current use |
+| --- | --- | ---: | --- |
+| `biominer-flickr-geography-parquet` | `other` | 13,501 | Evidence Lens source-coordinate join |
+| `biominer-flickr-geo-assignments-parquet` | `other` | 13,501 | Workload cluster assignment query |
+| `biominer-flickr-geo-clusters-parquet` | `other` | 77 | Workload centroid query |
+| `geographic-clusters` | `geographic_clusters` | 1 | Aggregate replay boundary |
+
+The raw Flickr geography artifact already declares country code, admin1,
+coarse/regional/local cells, coordinate quality, and geography warnings. None
+of those fields is projected by the current Workload Map. Because all three
+Parquets use role `other`, they cannot be requested through the typed
+`loadSection` API; components select literal artifact IDs from the generic
+analytics payload instead.
+
+The fixture imports no `geographic_occurrence_evidence.parquet`,
+`taxon_geographic_spread.parquet`, or `taxon_geographic_summary.parquet`.
+Consequently, the public bundle contains no baseline occurrence rows and
+cannot calculate provider composition, duplicate removal, baseline-only or
+candidate-only cells, range-edge distance, temporal contribution, or data
+deficiency.
+
+The `geographic_clusters` section is partial, metadata-only, requires human
+review, and allows no scientific claim. It references only the one-row JSON
+summary, not the three Parquets.
+
+### Verification projections available to geography
+
+The public judge bundle contains one Commons campaign, three review items,
+three media assets, zero decision artifacts, and zero quality artifacts. The
+broader committed repository storage mirror contains four campaigns and 82
+items, including 49 Flickr audit items, but still zero assignments, events,
+consensus rows, quality snapshots, or retained human outcomes.
+
+Neither representation currently binds Flickr verification item identity to
+the Flickr geography row and spatial cells. The Workload Map therefore cannot
+show pending, positive, negative, uncertain, media-failure, or release-ready
+geographic states even though the campaign definitions now exist.
+
+### Evidence Facade coupling
+
+The frontend `EvidenceFacade` interface exposes only stored analyst replay,
+the four-artifact analytics input, the four-artifact discovery input, and a
+generic section loader. It has no typed geographic-impact input, summary,
+hierarchy, or record-context methods.
+
+`loadEvidenceFacade` is a fixture loader rather than a general project loader:
+
+- module constants pin the exact bundle ID, TaxaLens SHA, current BioMiner SHA,
+  legacy BioMiner SHA, verification manifest SHA, and verification-media SHA;
+- `assertManifestSemantics` rejects any bundle other than that truthful pilot;
+- one constant array names the four accepted analytics artifact IDs;
+- analytics receipt schema, origin commit, and source-manifest fingerprint are
+  hard-coded;
+- discovery selects another literal set of four artifact IDs;
+- projection functions assert exact Papilio artifact schemas, counts, states,
+  and prototype values;
+- the exported `replayEvidenceContract` repeats the fixture ID and SHAs.
+
+There are 39 textual Papilio or exact geographic/workload count references in
+the fixture builder, fixture verifier, and frontend facade search scope alone.
+Exact-count checks are appropriate in the frozen fixture validator, but they
+currently share files with reusable loading and projection logic.
+
+The Python repository also has two different concepts named `EvidenceFacade`:
+the earlier general JSON-demo facade in `taxalens/product/facade.py`, and the
+frontend judge-bundle facade. Neither is currently a bundle-version-neutral
+`TaxaLensProjectFacade` with typed geographic loaders.
+
+### Fixture builder and verifier coupling
+
+`truthful_demo.py` owns fixed Papilio bundle, target, created-at, source SHA,
+hero ID, verification-manifest SHA, media SHA, artifact allowlist, schemas,
+section counts, and generated replay outputs. `truthful_demo_verifier.py`
+correctly enforces the same closed fixture with exact artifact IDs, schema
+versions, checksums, source commits, rights, attribution, counts, stored replay,
+and blocked scientific semantics.
+
+This strictness is a strength for the competition replay but should become a
+`PapilioJudgeFixtureValidator`, invoked after the general bundle loader and
+v1-to-v2 migration. Moving exact values out of reusable loading must not weaken
+the frozen fixture checks.
+
+### Contract limitations to resolve in bundle v2
+
+1. Add the six required geographic-impact sections as typed roles rather than
+   `other` artifacts.
+2. Add project, run, target, baseline snapshot, and Flickr snapshot identity to
+   every geographic read boundary.
+3. Add typed provider-union and impact manifests that can prove input SHAs,
+   duplicate handling, compatible resolutions, and rollup reconciliation.
+4. Keep expected counts manifest-derived in reusable code; preserve exact
+   counts and admitted SHAs in the Papilio fixture validator.
+5. Add an explicit v1-to-v2 migration that retains every v1 artifact, right,
+   attribution, and source SHA while marking absent geographic-impact sections
+   unavailable.
+6. Fail reviewed contribution without retained review evidence and fail
+   release-ready contribution without complete occurrence-release evidence.
+7. Generalize artifact selection through typed section roles and loader methods
+   rather than component-owned literal ID filters.
