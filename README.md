@@ -125,14 +125,15 @@ inspectable, repeatable, and safer to hand between researchers.
 
 GPT-5.6 is central to the research workflow, not to species identification. The exact
 `gpt-5.6-sol` contract uses the Responses API, strict Structured Outputs, explicit standard
-reasoning, and 12 read-only evidence tools to plan research, inspect pipeline state, trace
-lineage, compare available candidate evidence, explain unavailable decisions, and prepare exports.
+reasoning, 12 core read-only evidence tools, and six deterministic geographic tools to plan
+research, inspect pipeline state, trace lineage, compare available candidate evidence, explain
+unavailable decisions, and prepare exports.
 
 The public Agent Trace shows only reviewable plans, tool parameters and results, citations,
 structured output, budgets, and status. It never exposes hidden reasoning. The default judge path
-replays one checksum-bound stored output and makes **no live model call**. Its deterministic
-evaluation contains 30 tool cases plus the stored public replay, with 247 named checks; it is not a
-scientific-accuracy benchmark.
+replays checksum-bound stored outputs and makes **no live model call**. The geographic evaluation
+adds 24 cases for provider double counting, maturity, data deficiency, release gates, citations,
+terminology, and model-memory arithmetic; it is not a scientific-accuracy benchmark.
 
 GPT-5.6 does not decide that a Flickr candidate is *Papilio demoleus*, infer an occurrence, replace
 human review, or manufacture a missing score, probability, competitor rank, reference, or image.
@@ -141,13 +142,16 @@ human review, or manufacture a missing score, probability, competitor rank, refe
 
 ```mermaid
 flowchart LR
-    B["Pinned BioMiner evidence artifacts"] --> J["Judge bundle<br/>25 inventoried artifacts"]
-    J --> V["Semantic + checksum verification"]
-    V --> F["Typed evidence facade"]
-    F --> Q["DuckDB-Wasm analytics"]
-    F --> T["12 read-only evidence tools"]
-    F --> U["Static React product"]
-    Q --> U
+    B["Pinned BioMiner baseline + Flickr artifacts"] --> C["Provider union + geographic impact cells"]
+    C --> J["Judge bundle v2 contract<br/>v1 replay migrates in memory"]
+    J --> V["Identity, semantic + checksum verification"]
+    V --> F["Scoped TaxaLens project facade"]
+    F --> Q["DuckDB-Wasm full-outer cell analytics"]
+    Q --> U["Offline map + synchronized exact table"]
+    H["Append-only human review events"] --> K["Consensus, QualitySnapshot + release gates"]
+    K --> C
+    F --> T["Core + geographic read-only tools"]
+    F --> U
     T --> G["GPT-5.6 server-only analyst contract"]
     G --> R["Stored public replay + evaluation"]
     R --> U
@@ -157,17 +161,36 @@ The public application is a static client over committed artifacts. It has no lo
 dependency. The Python CLI verifies and serves the same production build locally; GitHub Pages
 publishes it with an exact source SHA, static fallback, and SHA-256 file inventory.
 
+### Geographic evidence contract
+
+- **Blue** means deduplicated baseline occurrence evidence. The committed union contains 19,201
+  canonical observations: 4,017 GBIF-only and 15,184 iNaturalist-origin observations delivered
+  through GBIF. A direct iNaturalist snapshot is unavailable, so its delta is unavailable—not zero.
+- **Amber** means Flickr candidate evidence. Hollow rings are unreviewed hypotheses; fill, exclusion
+  marks, dashed strokes, and dark release strokes distinguish later maturity without relying on
+  colour alone.
+- A **candidate-only spatial cell** has Flickr candidates but no evidence in the selected baseline
+  snapshot. It represents potential coverage contribution, never proof of biological absence.
+- A **human-supported additional cell** requires retained target-positive review. A
+  **release-ready occurrence candidate** additionally requires every coordinate, duplicate,
+  quality, provenance, consensus, and occurrence-release gate.
+- Missing or unsuitable baseline evidence remains an explicit data-deficiency state. Skip and
+  Can’t view never add reviewed evidence.
+
 ## Honest pilot state
 
 | Boundary | Verified pilot state |
 | --- | --- |
 | Target | *Papilio demoleus* (`gbif:1938069`) |
 | Judge bundle | `papilio-demoleus-prototype-74a7d648-v3` |
-| Product evidence | 30 inventoried artifacts, 25 sections, 36 section records |
+| Product evidence | 30 inventoried artifacts; the stored v1 replay retains 25 sections and 36 section records, while the verified loader migrates it to the v2 contract without inventing geographic sections |
 | Discovery workload | 76,485 many-to-many query-hit associations and 13,501 canonical source-photo records |
+| Baseline provider union | 19,201 canonical observations; 0 cross-provider duplicates removed in this snapshot; 0 unresolved provider groups; direct iNaturalist delta unavailable |
+| Geographic Impact | Resolution 3: 2,155 full-outer cells, 13,416 geographically supported Flickr candidates, and 1,221 potential coverage-gap cells |
+| Geographic maturity | 0 retained human-reviewed Flickr outcomes, 0 human-supported additional cells, and 0 release-ready occurrence candidates |
 | Prototype evidence | 81 / 81 user-confirmed as suitable for their assigned prototype roles, 0 independently taxonomically verified; B13 raw-margin policy; 13,496 of 13,501 staged records processed |
 | Release gate | 14 / 14 prototype-entry gates pass; `GO_PROTOTYPE_ONLY` for explicit prototype mode |
-| Product route | Research Mission, 13-stage Observatory, Evidence Lens, Verification, Dashboard, Agent Trace, and six-step guided tour |
+| Product route | Research Mission, 13-stage Observatory, Evidence Lens with record mini-map, Verification, Flickr Workload Map, Geographic Impact Lens, Dashboard, Agent Trace, and six-step guided tour |
 | Hero record | 1 candidate in `awaiting_human_review` |
 | Media | 3 licensed Commons review images; the discovery replay and hero record still admit 0 scientific images |
 | Visual and decision output | 0 YOLOE-processed images, 0 calibrated decisions, and no strongest-competitor rank |
