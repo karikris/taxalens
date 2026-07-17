@@ -1,0 +1,45 @@
+{
+  "acceptedDecisiveOutcomes": [
+    "yes",
+    "no"
+  ],
+  "availableBoundItemCount": 49,
+  "campaignId": "flickr-audit-fa3dbbb5e5a678f38eb7e7cd",
+  "currentRetainedDecisiveItemCount": 0,
+  "firstDecisiveMilestone": 20,
+  "milestoneAchieved": false,
+  "nonDecisiveOutcomes": [
+    "cant_tell",
+    "cant_view",
+    "skipped"
+  ],
+  "readinessSha256": "c549a4b3b89edb2240dc6610d9e0da4178ed9abe3df8f505c23c3a5b997a85cf",
+  "remainingDecisiveItemCount": 20,
+  "requiredConsensusFields": [
+    "campaign_id",
+    "item_id",
+    "status",
+    "consensus_outcome",
+    "source_event_ids"
+  ],
+  "requiredEventFields": [
+    "event_id",
+    "campaign_id",
+    "item_id",
+    "outcome",
+    "reviewed_at",
+    "image_sha256",
+    "question_sha256",
+    "campaign_manifest_sha256"
+  ],
+  "schemaVersion": "taxalens-geographic-milestone-import-readiness:v1.0.0",
+  "scientificClaimAllowed": false,
+  "sources": {
+    "campaignPacketSha256": "0a2100ba90032a12b9bdfeac6810c4cf4129b1789c815f7796dfad1f0addf754",
+    "geographicQualitySnapshotFileSha256": "d40396ca47f16168aed55f3855d6c983fff022cc9099f144b21712aaf68cb905",
+    "geographicQualitySnapshotSha256": "423df881dd8a741e7f638739e4041d7105c87b9d43a621bcd69f42d5f6e05202"
+  },
+  "status": "ready_for_import",
+  "structuralImportReady": true,
+  "syntheticFixturePolicy": "Synthetic batches may validate importer capacity but never count toward retained human outcomes or milestone achievement."
+}

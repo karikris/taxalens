@@ -1,7 +1,7 @@
 {
   "bucket_alias": "taxalens-repository-fixture",
   "credentials_included": false,
-  "object_count": 100,
+  "object_count": 101,
   "objects": [
     {
       "bytes": 484,
@@ -859,6 +859,15 @@
       "sha256": "0a2100ba90032a12b9bdfeac6810c4cf4129b1789c815f7796dfad1f0addf754"
     },
     {
+      "bytes": 1442,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/source/verification/papilio-demoleus-flickr-geographic-milestone-readiness.json",
+      "repository_path": "demo/source/verification/papilio-demoleus-flickr-geographic-milestone-readiness.json",
+      "sha256": "b3166e3d31a78ca4cf825d668465ca456c1f01201340e1403f553975a866ce14"
+    },
+    {
       "bytes": 37122,
       "git_tracked_required": true,
       "immutable": true,
@@ -909,5 +918,5 @@
   "scientific_claim_allowed": false,
   "signed_urls_included": false,
   "storage_mode": "repository_mirror",
-  "total_bytes": 15602851
+  "total_bytes": 15604293
 }
