@@ -44,6 +44,25 @@ scientific_claim_gate: "blocked-until-reviewed-references-leakage-safe-splits-ca
 handoff_contract: "storage-handoff-inventory-v1.0.0-with-explicit-uri-sha256-source-sha-and-receipt"
 recorded_at: "2026-07-17"
 components:
+  - component_id: taxalens_flickr_geography_long
+    source_repository: karikris/BioMiner
+    source_commit: 75461d9c065af0cd96b41cd1f845c2e920f7ae34
+    source_path: src/biominer/flickr_fetch/geography.py
+    destination_path: demo/source/biominer_phase14/flickr_geography/flickr_geography_long.parquet
+    migration_kind: adapted
+    reason: Normalize the committed wide precision-aware Flickr geography artifact into complete, deterministic resolution-long evidence for scoped impact joins.
+    build_week_scope: new
+    source_license: MIT
+    changes:
+      - Added one row per Flickr photo at each declared H3 resolution for 40,503 deterministic rows.
+      - Preserved supported cell IDs and retained null cell IDs for all 6,129 unsupported precision rows.
+      - Added explicit cell-supported and support-status fields for downstream join filters.
+      - Preserved all source coordinate, quality, warning, country, admin, fingerprint, and candidate-semantics fields.
+      - Added project, run, target, Flickr snapshot, grid, origin, and source-artifact provenance.
+      - Performed no country or admin inference and made no occurrence claim.
+    tests:
+      - scripts/build_flickr_geography_long.py --check
+    status: migrated
   - component_id: biominer_flickr_geography_handoff
     source_repository: karikris/BioMiner
     source_commit: 75461d9c065af0cd96b41cd1f845c2e920f7ae34
