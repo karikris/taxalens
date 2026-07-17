@@ -25,6 +25,17 @@ with confident-looking output.
 
 ## Product preview
 
+![TaxaLens Geographic Impact Lens at global scope: bundled country boundaries behind blue baseline-occurrence bubbles, hollow amber Flickr-candidate rings, an evidence-state legend, exact scope metrics, and the synchronized accessible table](apps/web/e2e/geographic-impact.visual.spec.ts-snapshots/geographic-impact-global-1280x720-chromium-linux.png)
+
+This is the real 1280×720 Chromium regression capture from the credential-free replay. At the
+global resolution-3 scope, the pinned artifacts reconcile 2,155 spatial cells, 19,201 deduplicated
+baseline observations, 13,416 geographically supported Flickr candidates, and 1,221 potential
+coverage-gap cells. The retained campaigns currently contain **zero human-supported additional
+cells and zero release-ready occurrence candidates**; the amber rings are hypotheses awaiting
+review, not new occurrence records.
+
+### Human-verification preview
+
 ![TaxaLens human-verification workflow: a checksum-verified butterfly image beside optional reviewer fields and Yes, No, Can’t tell, Can’t view, and Skip controls](docs/assets/taxalens-verification-workflow.png)
 
 The screenshot is an actual local production-build capture after preparing the three-image Commons
