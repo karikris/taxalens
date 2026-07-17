@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Locator, type Page } from '@playwright/test'
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 
@@ -82,6 +82,7 @@ interface PerformanceSampleSummary {
 }
 
 const MAP_STARTUP_SAMPLE_COUNT = 5
+const MAP_INTERACTION_SAMPLE_COUNT = 5
 
 const benchmarkLogicalNames = Object.freeze([
   'baseline_geographic_spread',
@@ -474,6 +475,102 @@ test('measures repeated application map initialization', async ({ browser }) => 
   console.log(`GEOGRAPHIC_IMPACT_MAP_INITIALIZATION ${JSON.stringify(measurement)}`)
 })
 
+test('measures geographic drilldown and evidence filter latency', async ({ page }) => {
+  test.setTimeout(120_000)
+  await page.goto('/#dashboard', { waitUntil: 'domcontentloaded' })
+  const canvas = page.locator('.taxalens-world-map__canvas')
+  const continent = page.getByRole('combobox', { name: 'Continent' })
+  const country = page.getByRole('combobox', { name: 'Country' })
+  const reset = page.getByRole('button', { name: 'Reset to Global' })
+  const maturityStatus = page.locator('.geographic-evidence-filter [role="status"]')
+  const allEvidence = page.getByRole('radio', { name: 'All evidence' })
+  const flickrCandidates = page.getByRole('radio', { name: 'Flickr candidates' })
+  await expectCameraScope(canvas, 'global')
+  await expect(canvas).toHaveAttribute('data-impact-feature-count', '2155')
+
+  await continent.selectOption('continent:asia')
+  await expectCameraScope(canvas, 'continent:asia')
+  await country.selectOption('country:IN')
+  await expectCameraScope(canvas, 'country:IN')
+  await expectImpactTableCellCount(page, 2_526)
+  await reset.click()
+  await expectCameraScope(canvas, 'global')
+  await flickrCandidates.check()
+  await expect(maturityStatus).toContainText('match Flickr candidates')
+  await allEvidence.check()
+  await expect(maturityStatus).toContainText('match All evidence')
+
+  const continentSamples: number[] = []
+  const countrySamples: number[] = []
+  const filterSamples: number[] = []
+  const continentCellCounts: number[] = []
+  const filteredCellCounts: number[] = []
+
+  for (let sample = 0; sample < MAP_INTERACTION_SAMPLE_COUNT; sample += 1) {
+    const startedAt = performance.now()
+    await continent.selectOption('continent:asia')
+    await expect(page).toHaveURL(/#dashboard\?geo=continent%3Aasia$/u)
+    await expectCameraScope(canvas, 'continent:asia')
+    continentCellCounts.push(await readImpactTableCellCount(page))
+    continentSamples.push(performance.now() - startedAt)
+
+    await reset.click()
+    await expectCameraScope(canvas, 'global')
+  }
+
+  for (let sample = 0; sample < MAP_INTERACTION_SAMPLE_COUNT; sample += 1) {
+    await continent.selectOption('continent:asia')
+    await expectCameraScope(canvas, 'continent:asia')
+
+    const startedAt = performance.now()
+    await country.selectOption('country:IN')
+    await expect(page).toHaveURL(/#dashboard\?geo=country%3AIN$/u)
+    await expectCameraScope(canvas, 'country:IN')
+    await expectImpactTableCellCount(page, 2_526)
+    countrySamples.push(performance.now() - startedAt)
+
+    await reset.click()
+    await expectCameraScope(canvas, 'global')
+  }
+
+  for (let sample = 0; sample < MAP_INTERACTION_SAMPLE_COUNT; sample += 1) {
+    const startedAt = performance.now()
+    await flickrCandidates.check()
+    await expect(maturityStatus).toContainText('match Flickr candidates')
+    filteredCellCounts.push(await readImpactTableCellCount(page))
+    filterSamples.push(performance.now() - startedAt)
+
+    await allEvidence.check()
+    await expect(maturityStatus).toContainText('match All evidence')
+    await expectImpactTableCellCount(page, 2_155)
+  }
+
+  expect(new Set(continentCellCounts).size).toBe(1)
+  expect(continentCellCounts[0]).toBeGreaterThan(2_526)
+  expect(new Set(filteredCellCounts).size).toBe(1)
+  expect(filteredCellCounts[0]).toBeGreaterThan(0)
+  expect(filteredCellCounts[0]).toBeLessThan(2_155)
+  const measurement = {
+    sampleCount: MAP_INTERACTION_SAMPLE_COUNT,
+    continent: {
+      scopeId: 'continent:asia',
+      cellCount: continentCellCounts[0],
+      milliseconds: summarizePerformanceSamples(continentSamples),
+    },
+    country: {
+      scopeId: 'country:IN',
+      cellCount: 2_526,
+      milliseconds: summarizePerformanceSamples(countrySamples),
+    },
+    filter: {
+      evidenceMode: 'flickr_candidates',
+      cellCount: filteredCellCounts[0],
+      milliseconds: summarizePerformanceSamples(filterSamples),
+    },
+  }
+  console.log(`GEOGRAPHIC_IMPACT_INTERACTIONS ${JSON.stringify(measurement)}`)
+})
+
 function summarizePerformanceSamples(samples: readonly number[]): PerformanceSampleSummary {
   if (samples.length === 0) throw new Error('Performance samples must not be empty')
   const sorted = [...samples].sort((left, right) => left - right)
@@ -494,4 +591,33 @@ function summarizePerformanceSamples(samples: readonly number[]): PerformanceSam
 
 function roundMilliseconds(value: number): number {
   return Number(value.toFixed(2))
+}
+
+async function expectImpactTableCellCount(
+  page: Page,
+  expected: number,
+): Promise<void> {
+  await expect(
+    page.getByRole('table', {
+      name: `${expected.toLocaleString('en-AU')} exact preaggregated cells in the selected scope`,
+    }),
+  ).toBeVisible({ timeout: 60_000 })
+}
+
+async function readImpactTableCellCount(
+  page: Page,
+): Promise<number> {
+  const caption = await page
+    .locator('.geographic-impact-table caption')
+    .textContent()
+  const match = caption?.match(/^([\d,]+) exact preaggregated cells/u)
+  if (match?.[1] === undefined) {
+    throw new Error(`Geographic Impact table caption is not measurable: ${caption ?? 'missing'}`)
+  }
+  return Number(match[1].replaceAll(',', ''))
+}
+
+async function expectCameraScope(canvas: Locator, scopeId: string): Promise<void> {
+  await expect(canvas).toHaveAttribute('data-map-loaded', 'true', { timeout: 60_000 })
+  await expect(canvas).toHaveAttribute('data-camera-scope', scopeId, { timeout: 60_000 })
 }

@@ -91,7 +91,12 @@ export function OfflineWorldMap({
   }, [loaded, selectedScope])
 
   useEffect(() => {
-    if (!loaded || impactFeatures === undefined || mapRef.current === null) return
+    if (
+      !loaded ||
+      evidenceImagesReady ||
+      impactFeatures === undefined ||
+      mapRef.current === null
+    ) return
     try {
       registerGeographicEvidenceImages(mapRef.current.getMap())
       setEvidenceImagesReady(true)
@@ -100,7 +105,7 @@ export function OfflineWorldMap({
         error instanceof Error ? error.message : 'local evidence images could not be registered',
       )
     }
-  }, [impactFeatures, loaded])
+  }, [evidenceImagesReady, impactFeatures, loaded])
 
   useEffect(() => {
     if (
@@ -223,12 +228,12 @@ export function OfflineWorldMap({
               <Layer {...TAXALENS_BASELINE_EVIDENCE_LAYER} />
               <Layer {...TAXALENS_FLICKR_PENDING_LAYER} />
               <Layer {...TAXALENS_FLICKR_REVIEWED_POSITIVE_LAYER} />
-              {evidenceImagesReady ? (
-                <>
-                  <Layer {...TAXALENS_FLICKR_REVIEWED_NEGATIVE_LAYER} />
-                  <Layer {...TAXALENS_FLICKR_UNCERTAIN_LAYER} />
-                </>
-              ) : null}
+              {evidenceImagesReady
+                ? [
+                    <Layer key="reviewed-negative" {...TAXALENS_FLICKR_REVIEWED_NEGATIVE_LAYER} />,
+                    <Layer key="uncertain" {...TAXALENS_FLICKR_UNCERTAIN_LAYER} />,
+                  ]
+                : null}
               <Layer {...TAXALENS_FLICKR_RELEASE_READY_LAYER} />
               {selectedImpactFeature === null ? null : (
                 <Layer

@@ -51,6 +51,7 @@ vi.mock('@vis.gl/react-maplibre', () => ({
 
 import { GeographicImpactLens } from './GeographicImpactLens'
 import type { BoundedGeographicImpactFeatures } from './geographicImpactFeatureCollection'
+import { TAXALENS_GEOGRAPHIC_SCOPE_INDEX } from './geographicScope'
 import { OfflineWorldMap, TAXALENS_MAP_ACCESSIBLE_NAME } from './OfflineWorldMap'
 
 describe('OfflineWorldMap', () => {
@@ -136,7 +137,7 @@ describe('OfflineWorldMap', () => {
   })
 
   it('registers local evidence shapes and exposes every Flickr maturity layer', () => {
-    render(
+    const { rerender } = render(
       <OfflineWorldMap
         webGlSupported
         impactFeatures={syntheticImpactFeatures()}
@@ -173,6 +174,15 @@ describe('OfflineWorldMap', () => {
       layerIds.indexOf('taxalens-flickr-release-ready'),
     )
     expect(screen.getByText(/candidates remain hypotheses/u)).toBeInTheDocument()
+
+    rerender(
+      <OfflineWorldMap
+        webGlSupported
+        impactFeatures={syntheticImpactFeatures()}
+        selectedScope={TAXALENS_GEOGRAPHIC_SCOPE_INDEX.byId.get('country:IN')!}
+      />,
+    )
+    expect(mapMocks.camera.addImage).toHaveBeenCalledTimes(2)
   })
 
   it('opens exact cell counts without triggering country drilldown', () => {
