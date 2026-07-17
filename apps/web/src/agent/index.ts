@@ -9,6 +9,11 @@ export {
 export { AgentWorkspace } from './AgentWorkspace'
 export { AgentReplayWorkspace } from './AgentReplayWorkspace'
 export {
+  executeGeographicTool,
+  type GeographicReviewCandidateEvidence,
+  type GeographicToolAnalyticalEvidence,
+} from './geographicToolExecution'
+export {
   GEOGRAPHIC_ARTIFACT_CITATION_VERSION,
   GEOGRAPHIC_ARTIFACT_KINDS,
   GEOGRAPHIC_CONTRIBUTION_STATES,
