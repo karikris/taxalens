@@ -4,6 +4,7 @@ import { EvidenceState } from '../design-system'
 import { GeographicCountryRanking } from './GeographicCountryRanking'
 import { GeographicImpactAccessibleSummary } from './GeographicImpactAccessibleSummary'
 import { GeographicImpactExport } from './GeographicImpactExport'
+import { GeographicReviewProgress } from './GeographicReviewProgress'
 import { GeographicBreadcrumbs } from './GeographicBreadcrumbs'
 import { GeographicScopeSlicers } from './GeographicScopeSlicers'
 import { GeographicImpactLegend } from './GeographicImpactLegend'
@@ -20,8 +21,10 @@ import {
 } from './publicGeographicImpactMapData'
 
 export function GeographicImpactLens({
+  reviewProjection,
   webGlSupported,
 }: {
+  readonly reviewProjection?: import('./geographicReviewProjection').GeographicReviewProjection
   readonly webGlSupported?: boolean
 }) {
   const scope = useGeographicScopeState()
@@ -86,6 +89,12 @@ export function GeographicImpactLens({
       )}
       {mapData.status === 'available' ? (
         <>
+          {reviewProjection === undefined ? null : (
+            <GeographicReviewProgress
+              projection={reviewProjection}
+              spatialResolution={mapData.data.spatialResolution}
+            />
+          )}
           <GeographicImpactAccessibleSummary
             cells={mapData.data.cells}
             scope={scope.selected}

@@ -32,6 +32,45 @@
   border: 1px solid var(--tl-line);
 }
 
+.geographic-review-progress {
+  display: grid;
+  gap: var(--tl-space-2);
+  padding: var(--tl-space-3);
+  background: var(--tl-surface-subtle);
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.geographic-review-progress h4,
+.geographic-review-progress p {
+  margin: 0;
+}
+
+.geographic-review-progress dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  gap: var(--tl-space-2);
+  margin: 0;
+}
+
+.geographic-review-progress dl > div {
+  padding: var(--tl-space-2);
+  background: var(--tl-surface-paper);
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius-sm);
+}
+
+.geographic-review-progress dt {
+  color: var(--tl-ink-muted);
+  font-size: 0.78rem;
+}
+
+.geographic-review-progress dd {
+  margin: 0.2rem 0 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
 .geographic-impact-lens__scope > span,
 .geographic-impact-lens__scope > small {
   color: var(--tl-ink-muted);
