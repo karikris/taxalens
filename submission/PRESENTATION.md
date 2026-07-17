@@ -1,158 +1,169 @@
-# TaxaLens — verification-centered presentation
+# TaxaLens — Geographic Impact presentation
 
 Eight slides · recommended delivery: 2 minutes 40 seconds
 
 ---
 
-## Slide 1 — From candidate to evidence
+## Slide 1 — Where could candidate evidence add coverage?
 
-> TaxaLens turns machine-screened biodiversity candidates into statistically characterized, human-verifiable evidence.
+> TaxaLens compares existing biodiversity evidence with Flickr candidates, then keeps human review
+> and occurrence-release gates visible all the way to the map.
 
-**Show:** the actual TaxaLens verification capture from
-[`docs/assets/taxalens-verification-workflow.png`](../docs/assets/taxalens-verification-workflow.png).
+**Show:** the real global Chromium capture in
+[`apps/web/e2e/geographic-impact.visual.spec.ts-snapshots/geographic-impact-global-1280x720-chromium-linux.png`](../apps/web/e2e/geographic-impact.visual.spec.ts-snapshots/geographic-impact-global-1280x720-chromium-linux.png).
 
-**Say:** Social-media discovery can surface useful biodiversity candidates, but a search hit, model
-score, or provider label is not a verified occurrence. TaxaLens makes the evidence trail,
-human-review work, uncertainty, and release boundary inspectable.
-
----
-
-## Slide 2 — The problem is an evidence gap
-
-- 76,485 query-hit associations resolve to 13,501 canonical Flickr source-photo records.
-- 838 records are eligible source-media candidates.
-- The hero *Papilio demoleus* record is still `awaiting_human_review`.
-- No scientific image, calibrated decision, precision estimate, or confirmed occurrence is
-  committed for that hero.
-
-**Show:** Evidence Lens on `flickr:55081300254`, including its unavailable visual evidence.
-
-**Say:** TaxaLens does not turn workload into biological truth. It shows why the candidate exists,
-what can be inspected, and exactly which evidence is missing.
-
-**Evidence:** judge bundle and
-[`demo/source/verification/verification-evidence-availability.json`](../demo/source/verification/verification-evidence-availability.json).
+**Say:** Social-media discovery can expose promising geographic hypotheses, but a search hit,
+provider label, or model score is not an occurrence. TaxaLens asks where baseline evidence exists,
+where Flickr candidate evidence appears, and what remains before contribution can be supported.
 
 ---
 
-## Slide 3 — One coherent human-verification journey
+## Slide 2 — One evidence comparison, not two inflated datasets
+
+| Global resolution-3 view | Artifact-backed state |
+| --- | ---: |
+| Full-outer spatial cells | 2,155 |
+| Deduplicated baseline observations | 19,201 |
+| GBIF-only | 4,017 |
+| iNaturalist-origin through GBIF | 15,184 |
+| Direct iNaturalist delta | Unavailable |
+| Geographically supported Flickr candidates | 13,416 |
+
+**Show:** the legend and synchronized exact table.
+
+**Say:** Blue bubbles are a canonical provider union, not GBIF plus iNaturalist double counting.
+Amber markers are Flickr candidate evidence. Hollow, filled, dashed, excluded, and dark-stroked
+states make maturity legible without relying on colour alone. Both layers use one square-root count
+scale, and exact values remain in the table and tooltip.
+
+---
+
+## Slide 3 — Potential is not reviewed, and reviewed is not released
 
 ```text
-Mission → Evidence Lens → Verification → Quality → GPT-5.6 → Export
+1,221 potential coverage-gap cells
+              ↓ retained target-positive human review
+0 human-supported additional cells
+              ↓ coordinate + duplicate + quality + provenance + release gates
+0 release-ready additional cells
 ```
 
-- Plan an 80-decision budget, 40-owner audit sample, two reviewer labels, ±20-point planning
-  objective, and required reference review.
-- Route the exact Flickr candidate to verification.
-- Fail closed when its checksum-verified media is unavailable.
-- Use the separate three-image, CC-licensed Commons packet to exercise Yes, No, Can’t tell,
-  Can’t view, Skip, and an optional comment.
-- Preserve append-only reviewer events and prior decisions.
+**Show:** **Selected geography → Potential contribution** and the **Evidence maturity** controls.
 
-**Say:** A reviewer can only make a decisive taxonomic choice after verified media is displayed.
-Skip remains deferred work; Can’t view remains a media failure. The Commons packet demonstrates
-the workflow and does not verify the routed Flickr result.
+**Say:** A candidate-only spatial cell means Flickr evidence exists where the selected baseline
+snapshot has no eligible row. That is potential coverage contribution, never biological absence.
+The public campaigns contain zero retained human outcomes, so TaxaLens renders an honest empty
+human-reviewed layer and an unavailable quality snapshot.
 
 ---
 
-## Slide 4 — Characterize quality without inventing it
+## Slide 4 — Global to country to individual record
 
-| Current campaign inventory | Artifact-backed state |
+```text
+Global → Europe → Sweden → cell 87088660cffffff → flickr:55081300254
+```
+
+- The stored Sweden resolution-7 scope contains 529 Flickr candidates in 12 candidate-only cells.
+- It contains zero baseline rows in the selected snapshots and is explicitly data-deficient.
+- The Evidence Lens mini-map shows the candidate coordinate, same-resolution baseline context,
+  nearest distance, coordinate precision, and the link to Verification.
+
+**Show:** the fixed-time
+[`Geographic Impact journey`](../docs/assets/taxalens-geographic-impact-journey.gif), then hold on
+the individual record frame.
+
+**Say:** The same scope identity drives camera, slicers, breadcrumb, map, table, details, record
+context, stored analyst replay, and export. Coarse or unsupported coordinates never become false
+local points.
+
+---
+
+## Slide 5 — The human handoff fails closed
+
+- The exact Flickr result has no committed checksum-verified review image.
+- Yes, No, and Can’t tell remain unavailable for that result.
+- Can’t view records media failure; Skip records deferred work. Neither adds geographic support.
+- A separate three-image, CC-licensed Commons packet demonstrates the reviewer UI and optional
+  comment without verifying the Flickr source.
+- Append-only events, consensus, conflicts, sampling weights, and QualitySnapshot gates remain
+  distinct from scientific release.
+
+**Show:** Evidence Lens **Verify this result**, the exact-image warning, and the real verification
+capture in [`docs/assets/taxalens-verification-workflow.png`](../docs/assets/taxalens-verification-workflow.png).
+
+**Say:** TaxaLens has a mature verification system, but this public geographic campaign has no
+retained outcome. The map updates local review operations without silently creating an occurrence.
+
+---
+
+## Slide 6 — Quality and contribution stay bounded
+
+| Current state | Value |
 | --- | ---: |
-| Commons workflow fixtures | 3 |
-| Private Flickr audit items | 49 |
-| Private GBIF/iNaturalist reference items | 24 |
-| Reviewer-control assignments | 6 |
-| Total campaign assignments | 82 |
+| Flickr campaign assignments | 49 |
 | Inclusion-weighted decisive Flickr audit outcomes | 0 |
 | First quality checkpoint | 20 |
+| Human-supported additional cells | 0 |
+| Release-ready occurrence candidates | 0 |
+| Direct iNaturalist delta | Unavailable |
 
-**Show:** Dashboard cards for decisive coverage, reference readiness, conflicts, quality interval,
-and next milestone.
+**Show:** geographic review progress, QualitySnapshot disclosure, and release status.
 
-**Say:** One local Commons choice can change workflow coverage from 0 / 82 to 1 / 82. It cannot
-change Flickr precision or reference readiness. The target-precision interval therefore remains
-**Unavailable**, and reference readiness remains 0 / 24 independently reviewed.
-
----
-
-## Slide 5 — Acknowledging BioMiner’s human-verified data
-
-- BioMiner is the evidence engine for registry construction, Flickr metadata, deduplication,
-  YOLOE routing, BioCLIP screening, reference resolution, and scientific evaluation.
-- The current planning source is
-  `94fa1f634ee3c63917c05d78181dd3cf9ceff940`.
-- Its 81 / 81 receipt records direct-user confirmation that records suit their assigned
-  **prototype roles**.
-- TaxaLens acknowledges that human-verified suitability while keeping independent taxonomic
-  verification at 0.
-- YOLOE and BioCLIP screening have no local five-image cap; explicit campaign workloads remain
-  deliberately bounded.
-
-**Say:** This boundary matters: upstream human confirmation is real evidence for prototype-role
-suitability, but it is not silently promoted into a species label, reference decision, or accuracy
-result.
+**Say:** Targeted failure-discovery work cannot support an unweighted population claim. Skip and
+Can’t view cannot support contribution. Missing baseline evidence remains data deficiency, and a
+reviewed target-positive result still needs every occurrence-release gate.
 
 ---
 
-## Slide 6 — GPT-5.6 recommends; humans decide
+## Slide 7 — GPT-5.6 explains artifacts; it does not calculate novelty
 
-- The public product replays validated, stored `gpt-5.6-sol` outputs with no credential or live
-  model request.
-- Its verification analyst uses five read-only evidence tools across six stored response turns.
-- The visible next action is **adjudication** for one intentionally conflicted synthetic control.
-- The panel identifies artifact IDs and says **Synthetic evaluation evidence · not current browser
-  state**.
-- GPT-5.6 cannot identify a species from memory, fabricate a quality metric, or authorize release.
+- Six deterministic, read-only geographic tools inspect impact, compare scopes, list candidate-gap
+  cells, explain contribution, recommend review batches, and inspect the provider union.
+- Every result cites the baseline snapshot, Flickr snapshot, impact artifacts, country hierarchy,
+  campaign, quality state, and source SHAs.
+- The public Sweden replay uses two stored tool receipts and no credential or live request.
+- It reports 12 potential coverage-gap cells, 529 candidates, zero human-supported cells, and zero
+  release-ready cells.
+- Twenty-four geographic evaluations reject provider double counting, absence claims, invalid
+  quality inference, blocked release, missing citations, and model-memory arithmetic.
 
-**Show:** **Agent Trace → GPT-5.6 next review action**.
+**Show:** **Agent Trace → GPT-5.6 geographic analyst → Inspect geographic tool receipts**.
 
-**Say:** The model reads bounded evidence and prioritizes the next review; a human supplies the
-decision. Codex was the build-time engineering collaborator for code, tests, documentation, and
-provenance—not a runtime scientific reviewer.
-
----
-
-## Slide 7 — Measured impact, with the boundary attached
-
-| Same three-item scripted task | Manual protocol | TaxaLens-assisted |
-| --- | ---: | ---: |
-| Browser actions | 20 | 10 |
-| Active browser-protocol time | 753 ms | 2,752 ms |
-| Human participants | 0 | 0 |
-
-**Say:** One matched scripted Chromium pair reduced interaction count by 50%. The assisted
-automation was slower in elapsed execution time. With zero human participants, human time saved,
-human productivity, scientific-quality change, and population savings are unavailable.
-
-**Evidence:** [`docs/impact/verification-productivity-summary.md`](../docs/impact/verification-productivity-summary.md)
-and its checksum-bound raw JSON.
+**Say:** Deterministic code performs counts, joins, distances, and rankings. GPT-5.6 interprets
+those receipts; it cannot invent geographic contribution or authorize release.
 
 ---
 
-## Slide 8 — Inspect, decide, export
+## Slide 8 — Inspect, review, export
 
-- Six deterministic research outputs carry checksums and the evidence boundary.
-- The hosted replay is public, static, resettable, and credential-free.
-- `GO_PROTOTYPE_ONLY` permits explicit prototype integration only.
-- `scientificClaimAllowed: false` remains in the exported evaluation.
-- Independent review, a weighted quality interval, reference readiness, and scientific release
-  remain human work.
+- The hosted replay is public, static, resettable, credential-free, and uses no external map
+  request.
+- The Flickr Workload Map remains a separate operational view; Geographic Impact is the scientific
+  evidence-comparison view.
+- Seven geographic exports carry exact cells, scope summary, methodology, provenance, checksums,
+  snapshot IDs, and source SHAs.
+- `scientificClaimAllowed: false` remains explicit.
+- Real retained human outcomes, a valid quality snapshot, and occurrence-release decisions remain
+  human work.
 
-**Show:** prepare the six outputs, then end on the product URL:
+**Show:** prepare the geographic export, then end on
 <https://karikris.github.io/taxalens/>.
 
-**Close:** TaxaLens makes machine-screened candidates reviewable now, while making every missing
-scientific prerequisite impossible to overlook.
+**Close:** TaxaLens turns amber candidate-only cells into a reviewable research agenda—and makes it
+impossible to mistake that agenda for reviewed evidence added.
 
 ---
 
 ## Presenter fact check
 
-- Do not call a candidate an occurrence.
-- Do not call a raw model score a probability.
-- Do not call BioMiner’s 81 / 81 prototype-role suitability independent taxonomic verification.
-- Do not count Skip, Can’t view, or Can’t tell as a decisive reviewed label.
-- Do not claim the public Commons packet verifies the routed Flickr result.
-- Do not imply that a stored synthetic GPT-5.6 conflict is current human-review data.
-- Do not state a precision interval until inclusion-weighted decisive Flickr audit outcomes exist.
+- Say **baseline occurrence evidence**, **Flickr candidate evidence**, and **potential coverage
+  contribution**.
+- Do not call a candidate an occurrence or present a candidate-only cell as an established range
+  extension.
+- Do not describe missing baseline evidence as biological absence.
+- Do not add GBIF rows and iNaturalist-origin GBIF rows a second time.
+- Do not call provider taxon labels human review.
+- Do not count Skip, Can’t view, or Can’t tell as target-positive review.
+- Do not call a reviewed positive release-ready unless every occurrence-release gate passes.
+- State that direct iNaturalist delta and the quality snapshot are unavailable.
+- Keep the zero retained human outcomes visible whenever the human-supported layer is shown.
