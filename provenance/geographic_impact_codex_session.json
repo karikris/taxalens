@@ -1,0 +1,47 @@
+{
+  "schema_version": "taxalens-geographic-impact-codex-session:v1.0.0",
+  "recorded_at": "2026-07-17T23:59:39Z",
+  "session": {
+    "id": "019f65d0-3ca9-7870-9eb2-37c14ed02517",
+    "role": "majority-core-geographic-impact-build-session",
+    "source": "active Codex goal runtime",
+    "primary_model": "gpt-5.6-sol",
+    "reasoning_effort": "xhigh",
+    "reasoning_mode": "standard",
+    "supporting_models": []
+  },
+  "scope": {
+    "repository": "karikris/taxalens",
+    "branch": "main",
+    "starting_commit": "e85b0d225cfdad4932de95d745b936ae85a61097",
+    "implementation_endpoint": "6444a5af8acd0b1f6803f704f43e76d6af3a7c43",
+    "final_report_commit": "e4edc558683f621f5879b50379eccf6dd2ae77dd",
+    "pre_record_commit": "cc61d2a505b228de490d38f8fdebefd95cf849e4",
+    "objective": "Implement and release the TaxaLens Geographic Impact Lens while preserving provider provenance, human-review maturity, occurrence-release gates and a credential-free offline judge replay."
+  },
+  "goal_records": {
+    "task_count": 36,
+    "numbered_subtask_count": 132,
+    "githits_path": "provenance/githits.jsonl"
+  },
+  "commit_trailer_contract": {
+    "ai_assistance": "OpenAI Codex",
+    "ai_primary_model": "gpt-5.6-sol",
+    "ai_reasoning_effort": "xhigh",
+    "ai_reasoning_mode": "standard",
+    "ai_session": "019f65d0-3ca9-7870-9eb2-37c14ed02517",
+    "human_reviewed_by": "Kris Kari"
+  },
+  "feedback_command": {
+    "requested": true,
+    "executed": false,
+    "status": "unavailable-in-api-workspace",
+    "reason": "The Codex /feedback slash command is not exposed by this API workspace. GitHits feedback is a different service and was not substituted. This record does not claim that /feedback ran."
+  },
+  "claim_boundary": {
+    "build_time_engineering_identity_only": true,
+    "runtime_taxonomic_decision_maker": false,
+    "human_reviewer": false,
+    "scientific_release_authority": false
+  }
+}
