@@ -5,6 +5,7 @@ import type {
   EvidenceFacade,
   ReplayEvidence,
 } from '../data/evidenceFacade'
+import type { TaxaLensProjectFacade } from '../data/projectFacade'
 import { EvidenceDesignation, EvidenceState, EvidenceTier } from '../design-system'
 import { flickrCandidateRouteForSource } from '../review/routing/flickrCandidateRoute'
 import { shellHashForRoute, verificationShellRoute } from '../shell'
@@ -33,6 +34,7 @@ export type HumanVerificationEvidenceLoader =
   () => Promise<HumanVerificationEvidence>
 
 export type RecordGeographicContextLoader = (
+  project: TaxaLensProjectFacade,
   result: DiscoveryProvenanceResult,
   signal: AbortSignal,
 ) => Promise<RecordGeographicContext>
@@ -51,9 +53,9 @@ const defaultHumanVerificationEvidenceLoader: HumanVerificationEvidenceLoader =
   }
 
 const defaultRecordGeographicContextLoader: RecordGeographicContextLoader =
-  async (result, signal) => {
+  async (project, result, signal) => {
     const { loadRecordGeographicContext } = await import('./recordGeographicContext')
-    return loadRecordGeographicContext(result, signal)
+    return loadRecordGeographicContext(project, result, signal)
   }
 
 type InspectionState =
@@ -114,7 +116,7 @@ export function EvidenceLensWorkspace({
     }
     const controller = new AbortController()
     setRecordGeography({ status: 'loading' })
-    void loadRecordGeographicContext(inspection.result, controller.signal).then(
+    void loadRecordGeographicContext(facade.project, inspection.result, controller.signal).then(
       (context) => {
         if (!controller.signal.aborted) {
           setRecordGeography({ status: 'available', context })
@@ -133,7 +135,7 @@ export function EvidenceLensWorkspace({
       },
     )
     return () => controller.abort()
-  }, [inspection, loadRecordGeographicContext])
+  }, [facade.project, inspection, loadRecordGeographicContext])
 
   const inspectRecord = () => {
     setInspection({ kind: 'running' })

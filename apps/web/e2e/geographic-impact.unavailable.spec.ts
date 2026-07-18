@@ -36,7 +36,7 @@ test('shows zero baseline and review evidence without fabricating provider avail
   ).toBeVisible()
 })
 
-test('stops geographic evidence when the committed Parquet bytes are corrupted', async ({
+test('stops the verified replay when committed Geographic Impact bytes are corrupted', async ({
   page,
 }) => {
   await page.route('**/geographic_impact_cells*.parquet', async (route) => {
@@ -48,10 +48,12 @@ test('stops geographic evidence when the committed Parquet bytes are corrupted',
   })
   await page.goto('./#dashboard')
 
-  const stopped = page.getByText('Geographic evidence map stopped', { exact: true })
-  await expect(stopped).toBeVisible({ timeout: 60_000 })
-  await expect(stopped.locator('..')).toContainText(
-    'Geographic Impact map artifact byte count differs from its manifest',
+  const stopped = page.getByRole('alert', {
+    name: 'The static evidence bundle could not be opened',
+  })
+  await expect(stopped).toBeVisible()
+  await expect(stopped).toContainText(
+    'geographic-geographic-impact-cells byte count is 27; expected 639681',
   )
   await expect(
     page.getByRole('table', { name: /exact preaggregated cells in the selected scope/u }),
@@ -73,7 +75,7 @@ test('shows an explicit unavailable state when the local analytical worker canno
   const unavailable = page.getByText('Geographic evidence map unavailable', { exact: true })
   await expect(unavailable).toBeVisible()
   await expect(unavailable.locator('..')).toContainText(
-    'cannot start the local map-data worker',
+    'cannot start the local analytical worker',
   )
   await expect(
     page.getByRole('table', { name: /exact preaggregated cells in the selected scope/u }),

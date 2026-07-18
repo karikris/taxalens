@@ -28,6 +28,10 @@ The verification folder migration retained a root compatibility layer after all 
 | `review/privateMedia.ts` | Re-exports two media modules | No consumers | Canonical media modules |
 | `review/reviewStore.ts` | Aggregates five unrelated modules under a historical name | Tests are its only consumers and the name obscures ownership | Exact domain, export, media, and repository modules |
 | `review/index.ts` | Re-exports the entire subsystem and old alias | The application consumes only one component; the test consumes packet constants | Direct component and packet imports |
+| `impact/GeographicImpactMapCache` | Holds a second unbounded map-data cache | Duplicates the controller's bounded, scope-complete LRU and bypasses its cancellation metrics | `GeographicImpactQueryController` and `GeographicImpactQueryCache` |
+| `loadPublicGeographicImpactMapData` query/decoder | Starts a second DuckDB runtime over one materialized Parquet | Duplicates source registration, decoding, checks, and cleanup while skipping the full-outer analytical path | Adapt the verified `GeographicImpactBrowserResult` to the view model |
+| Record-context and review-projection `?url` Parquet imports | Re-emit Flickr geography and impact cells as Vite assets, then verify and query them again | The concrete v2 facade already loaded and checksum-verified the same bytes | Manifest-bound artifacts from `TaxaLensProjectFacade` |
+| DuckDB MVP bundle selection | Selects between only an MVP bundle and, temporarily, duplicated MVP/EH payloads | The shipped MVP worker hides SQL errors; selecting a known local EH runtime does not require a factory | One pinned local EH worker/Wasm bundle with explicit failure handling |
 
 The large workspace regression suite remains valuable, but its symbol and description should use the canonical `VerificationWorkspace` name.
 
@@ -63,7 +67,7 @@ Builder functions in evidence, impact, dashboard, and agent modules are determin
 
 The Vite, Vitest, Playwright, and performance Playwright files select different runtime and measurement policies; merging them would create conditional configuration rather than remove complexity. The repeated loopback URL is local, stable test configuration and does not justify another shared helper.
 
-One configuration mismatch requires correction: `tsconfig.node.json` type-checks the normal Playwright configuration but omits `playwright.performance.config.ts`. The performance configuration therefore sits outside the declared Node configuration even though it is executable project code. It should be added to the include list.
+One configuration mismatch was corrected: `tsconfig.node.json` type-checked the normal Playwright configuration but omitted `playwright.performance.config.ts`. The performance configuration is now included in the declared Node project.
 
 The Supabase migrations already use explicit authenticated grants, forced RLS, trusted `app_metadata` roles, append-only event constraints, and a service-role boundary. They already match the 2026 Supabase Data API grant posture; no compensating migration is needed.
 
@@ -74,17 +78,18 @@ The prior completion matrix, current source inspection, and current call-site au
 - Geographic contracts, bundle v2, v1 migration, artifact-first BioMiner handoffs, provider union, impact materialization, browser queries, offline map, verification projection, quality gates, Evidence Lens context, analyst tools, exports, browser coverage, rights, and provenance are implemented.
 - Pilot literals remain confined to the fixture validator, fixtures, stored replays, and fixture-specific tests. No `13_501` product-level guard was found.
 - Provider, release, verification, and unavailable-evidence terminology remains fail-closed. Deliberate unavailable states are evidence boundaries, not unfinished implementations.
-- The review root compatibility layer is the main redundant pre-uplift residue found in runtime source.
-- The Node type-check include omission is a concrete configuration quality gap.
-- A deeper runtime trace found a more important integration mismatch: `GeographicImpactQueryController`, its bounded cache, and the real DuckDB-Wasm full-outer source join are used by unit and performance tests, but not by `GeographicImpactLens`. The production lens instead owns a second cache and queries only the already-materialized impact-cell Parquet.
+- The review root compatibility layer was the main redundant pre-uplift residue found in runtime source. Its twelve forwarding modules have been removed, and consumers now use canonical domain, repository, export, media, and UI paths.
+- The Node type-check include omission has been corrected.
+- A deeper runtime trace found a more important integration mismatch: `GeographicImpactQueryController`, its bounded cache, and the real DuckDB-Wasm full-outer source join were used by unit and performance tests, but not by `GeographicImpactLens`. The production lens owned a second cache and queried only the already-materialized impact-cell Parquet. This duplicate path is now removed; production owns the same scoped controller and reconciled full-outer query exercised by tests.
 - The hosted judge fixture was upgraded during this audit to a concrete v2 bundle whose geographic artifacts are checksum-bound to the committed impact manifest. The v1 migration remains covered as a compatibility boundary and does not invent missing geography.
+- The DuckDB MVP worker masked SQL failures behind its own missing `_setThrew` runtime symbol. TaxaLens now uses the exception-handling worker directly, so SQL failures remain inspectable. Removing MVP fallback assets also removes roughly 40.2 MB of uncompressed duplicate production payload while preserving the explicit no-WASM unavailable state.
 
 ## Unfinished work classification
 
-No `TODO`, `FIXME`, or placeholder implementation was found in production source. Two prior technical deliverables are present but not connected end to end and therefore remain unfinished:
+No `TODO`, `FIXME`, or placeholder implementation was found in production source. The two technical integration gaps found by this audit are complete:
 
-- publish a concrete v2 hosted judge fixture containing the verified geographic artifacts rather than only a v2 contract and a v1 in-memory migration;
-- make the production Geographic Impact lens use the same scoped full-outer query controller, cache, cancellation, and engineering metrics exercised by tests and the performance harness.
+- the hosted judge fixture is a concrete v2 bundle containing verified baseline, Flickr, impact, summary, hierarchy, and impact-manifest artifacts;
+- the production Geographic Impact lens uses the scoped full-outer query controller, bounded cache, cancellation, and engineering metrics exercised by tests and the performance harness.
 
 Other remaining previous-goal items require real external or human evidence and must not be fabricated:
 
@@ -96,27 +101,34 @@ Other remaining previous-goal items require real external or human evidence and 
 
 The implementation may prepare and validate imports for those outcomes, but it cannot truthfully mark them complete without the evidence.
 
-## Planned remediation and gates
+## Remediation completed
 
-1. Remove the twelve unowned review compatibility modules and update tests and production imports to canonical modules.
-2. Rename the workspace regression test and symbols to `VerificationWorkspace` without reducing coverage.
-3. Add the performance Playwright configuration to the Node TypeScript project.
-4. Run focused review tests, TypeScript, Vitest, Python, contract/provenance/rights verifiers, production build, browser suites, visual regression, performance checks, audit/secret/large-file scans, and `git diff --check`.
-5. Re-run dead-path and unfinished-work searches after cleanup.
+1. Removed the twelve unowned review compatibility modules and updated tests and production imports to canonical modules.
+2. Renamed the workspace regression test and symbols to `VerificationWorkspace` without reducing coverage.
+3. Added the performance Playwright configuration to the Node TypeScript project.
+4. Published the concrete judge bundle v2 and retained fail-closed v1 migration coverage.
+5. Removed `GeographicImpactMapCache` and the standalone public Parquet query/decoder. The lens now adapts a single verified controller result for the map, accessible table, details, and export.
+6. Made export provenance derive from the verified bundle and impact manifest rather than fixture imports.
+7. Switched to the DuckDB exception-handling worker and removed the redundant MVP worker/Wasm production assets.
+8. Added a production-ownership test proving the dashboard facade supplies the verified project and the lens invokes the scoped controller.
+9. Reused facade-verified Flickr and impact bytes in record context and local review projection, removing two duplicate emitted Parquets and their second same-origin verification layer.
+10. Re-measured the complete v2 bundle: all geographic artifacts are now counted by the budget, while the total raw distribution is smaller than the pre-v2 baseline because duplicate runtime and evidence assets were removed.
 
 ## Audit extension: runtime ownership
 
 The initial thin-file scan correctly found the review compatibility layer, but a name-and-consumer scan also found that `GeographicImpactQueryController` appears only in its unit test and the performance E2E harness. This is not evidence that the class should be deleted. Its cancellation, cache-key scoping, bounded LRU policy, and full-outer source comparison implement explicit prior requirements.
 
-The mismatch is the opposite: production does not own the tested analytical path. `GeographicImpactLens` currently calls `loadPublicGeographicImpactMapData`, which verifies and filters `geographic_impact_cells.parquet`; it does not independently aggregate baseline and Flickr sources. The v1 hosted fixture cannot supply the v2 project facade because its six geographic sections are intentionally synthesized as unavailable during migration.
+The mismatch was the opposite: production did not own the tested analytical path. `GeographicImpactLens` called `loadPublicGeographicImpactMapData`, which verified and filtered `geographic_impact_cells.parquet`; it did not independently aggregate baseline and Flickr sources. The v1 hosted fixture also could not supply the v2 project facade because its six geographic sections are intentionally synthesized as unavailable during migration.
 
-Remediation must therefore proceed in dependency order:
+Remediation proceeded in dependency order:
 
 1. upgrade the committed hosted fixture to a concrete v2 bundle with checksum-bound baseline, Flickr, impact, summary, hierarchy, and impact-manifest artifacts while preserving v1 migration tests;
 2. expose the verified `TaxaLensProjectFacade` through the loaded evidence facade;
 3. extend the shared browser result with the inspected materialized provider and temporal fields;
 4. replace the production-only map loader/cache with `GeographicImpactQueryController`;
-5. keep the preaggregated loader only if it remains an explicit, verified fallback with distinct unavailable semantics; otherwise remove it after migration;
+5. remove the preaggregated loader and its second cache after migration because they had no distinct product semantics;
 6. run the production journey, query-cancellation, cache, no-WASM, offline-network, reconciliation, visual, and performance gates.
 
-This report records analysis before behavior-changing cleanup. Each remediation receives focused GitHits provenance and its own commit.
+The real-browser production path now reports 2,155 global resolution-3 cells, reconciles 19,201 baseline-union observations and 13,416 Flickr candidates, returns a country drilldown, uses the scoped memory cache, and makes zero external requests. These are fixture-backed execution results, not scientific release claims; retained human-reviewed and release-ready counts remain zero.
+
+This report records both the original analysis and completed behavior-changing cleanup. Each remediation has focused GitHits provenance and a scoped commit.

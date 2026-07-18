@@ -12,10 +12,10 @@ import {
 } from './geographicImpactExport'
 import { TAXALENS_GEOGRAPHIC_SCOPE_INDEX } from './geographicScope'
 import {
-  PUBLIC_GEOGRAPHIC_IMPACT_MAP_SOURCE,
   type PublicGeographicImpactMapCell,
   type PublicGeographicImpactMapData,
 } from './publicGeographicImpactMapData'
+import { TEST_GEOGRAPHIC_IMPACT_MAP_SOURCE } from '../test/geographicImpactMapFixture'
 
 const sourceParquet = Uint8Array.from(
   readFileSync(
@@ -247,7 +247,7 @@ function data(): PublicGeographicImpactMapData {
     ],
     spatialResolution: 7,
     scopeId: 'country:IN',
-    source: PUBLIC_GEOGRAPHIC_IMPACT_MAP_SOURCE,
+    source: TEST_GEOGRAPHIC_IMPACT_MAP_SOURCE,
     scientificClaimAllowed: false,
   }
 }

@@ -78,6 +78,14 @@ export interface GeographicImpactQuerySources {
   readonly maturitySources: readonly GeographicMaturitySource[]
 }
 
+export interface GeographicImpactProjectContext {
+  readonly evidenceScope: GeographicImpactQueryInput['evidenceScope']
+  readonly manifest: GeographicImpactManifestDocument
+  readonly manifestArtifact: VerifiedProjectArtifact
+  readonly impactCellsArtifact: VerifiedProjectArtifact
+  readonly flickrGeographyArtifact: VerifiedProjectArtifact
+}
+
 export interface GeographicFileRegistrationTarget {
   registerFileBuffer(fileName: string, bytes: Uint8Array<ArrayBuffer>): Promise<void>
 }
@@ -97,6 +105,50 @@ export interface GeographicSourceRegistrationResult {
   readonly registeredFileCount: number
   readonly registeredBytes: number
   readonly artifacts: readonly RegisteredGeographicArtifact[]
+}
+
+/** Resolve the stable project/snapshot identity and source cells from verified bundle bytes. */
+export function loadGeographicImpactProjectContext(
+  project: TaxaLensProjectFacade,
+): GeographicImpactProjectContext {
+  const manifests = project.artifactsForRole('geographic_impact_manifest')
+  if (manifests.length !== 1) {
+    throw new Error('geographic project requires one verified impact manifest')
+  }
+  const manifestArtifact = manifests[0]!
+  const manifest = readManifest(manifestArtifact)
+  const impactCells = project.artifactsForRole('geographic_impact_cells').filter(
+    (artifact) => artifact.descriptor.schema_version === GEOGRAPHIC_IMPACT_CELL_SCHEMA_VERSION,
+  )
+  if (impactCells.length !== 1) {
+    throw new Error('geographic project requires one compatible impact-cell artifact')
+  }
+  const impactCellsArtifact = impactCells[0]!
+  bindManifestEntry(manifest, 'geographic_impact_cells', impactCellsArtifact)
+  const flickrGeography = project.artifactsForRole('flickr_geography').filter(
+    (artifact) =>
+      FLICKR_GEOGRAPHY_SCHEMA_VERSIONS.includes(
+        artifact.descriptor.schema_version as (typeof FLICKR_GEOGRAPHY_SCHEMA_VERSIONS)[number],
+      ),
+  )
+  if (flickrGeography.length !== 1) {
+    throw new Error('geographic project requires one compatible Flickr geography artifact')
+  }
+  const flickrGeographyArtifact = flickrGeography[0]!
+  bindManifestEntry(manifest, 'flickr_geography', flickrGeographyArtifact)
+  return Object.freeze({
+    evidenceScope: Object.freeze({
+      projectId: manifest.project_id,
+      runId: manifest.run_id,
+      targetAcceptedTaxonKey: manifest.accepted_taxon_key,
+      baselineSnapshotId: manifest.baseline_snapshot_id,
+      flickrSnapshotId: manifest.flickr_snapshot_id,
+    }),
+    manifest,
+    manifestArtifact,
+    impactCellsArtifact,
+    flickrGeographyArtifact,
+  })
 }
 
 /** Resolve a query only from bundle-verified bytes and manifest-bound JSON. */

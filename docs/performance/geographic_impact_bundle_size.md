@@ -8,37 +8,43 @@ TaxaLens base revision: `9d7042d98fde4a0e53d6d6d2e8d56ed0d993d824`
 
 ## Result
 
-The self-contained production replay contains **51,239,420 uncompressed bytes across 71 files**. This is a measured static-distribution size, not a transferred-byte or startup-download claim. The build emits no source maps, so the measurement excludes zero files.
+The self-contained production replay contains **50,071,505 uncompressed bytes across 81 files**. This is a measured static-distribution size, not a transferred-byte or startup-download claim. The build emits no source maps, so the measurement excludes zero files.
 
 | Category | Files | Bytes | Share of distribution |
 | --- | ---: | ---: | ---: |
-| DuckDB-Wasm runtime and Parquet extension | 4 | 43,275,877 | 84.46% |
-| All Wasm | 2 | 42,229,955 | 82.42% |
-| All JavaScript, including worker | 25 | 4,047,216 | 7.90% |
-| All Parquet evidence | 6 | 3,228,629 | 6.30% |
-| Geographic evidence group | 8 | 3,017,829 | 5.89% |
-| MapLibre renderer vendor chunk | 1 | 1,027,752 | 2.01% |
-| Dashboard JavaScript and CSS chunks | 2 | 301,624 | 0.59% |
-| All CSS | 5 | 254,838 | 0.50% |
-| Verification media copied under its stable public paths | 3 | 470,490 | 0.92% |
+| DuckDB-Wasm runtime and Parquet extension | 5 | 38,012,035 | 75.92% |
+| All Wasm | 2 | 37,109,890 | 74.11% |
+| All JavaScript, including worker | 28 | 3,936,698 | 7.86% |
+| All Parquet evidence | 9 | 7,127,688 | 14.24% |
+| Geographic evidence group | 16 | 7,044,964 | 14.07% |
+| MapLibre renderer vendor chunk | 1 | 1,027,752 | 2.05% |
+| Dashboard JavaScript and CSS chunks | 2 | 342,724 | 0.68% |
+| All CSS | 5 | 254,838 | 0.51% |
+| Verification media copied under its stable public paths | 3 | 470,490 | 0.94% |
 
 Product groups overlap and must not be summed. For example, geographic Parquets are included in both the geographic-evidence group and the all-Parquet category. The DuckDB worker JavaScript is included in both the DuckDB runtime group and all JavaScript.
 
 ## Geographic files
 
-The 3,017,829-byte geographic-evidence group consists of:
+The 7,044,964-byte geographic-evidence group consists of:
 
 | File role | Bytes |
 | --- | ---: |
-| Flickr audit geography Parquet | 941,398 |
-| Flickr geography Parquet | 769,162 |
-| Flickr workload assignments Parquet | 633,625 |
-| Geographic Impact cells Parquet | 639,681 |
-| Flickr workload clusters Parquet | 22,573 |
-| Workload and verification JavaScript helpers | 9,826 |
+| Deduplicated baseline occurrence union | 3,343,827 |
+| Flickr verification geography | 941,398 |
+| Legacy Flickr geography | 769,162 |
+| Flickr workload assignments | 633,625 |
+| Geographic Impact cells | 639,681 |
+| Baseline geographic spread | 513,562 |
+| Country hierarchy | 102,491 |
+| Geographic Impact summary | 41,670 |
+| Flickr workload clusters | 22,573 |
+| Geographic impact/workload JavaScript | 27,469 |
+| Geographic Impact manifest | 7,330 |
 | Legacy geographic-cluster JSON | 1,564 |
+| Verification consensus and release decisions | 612 |
 
-The baseline provider union, hierarchy and summary artifacts remain committed in the repository and judge-bundle contracts. The public map path emits the materialized impact cells it actually requests; this report does not claim every committed provenance artifact is a separately downloaded production file.
+The group now includes every v2 baseline, Flickr, impact, hierarchy, consensus and release artifact carried by the credential-free bundle. Record context and review projection consume those already checksum-verified bundle bytes; Vite no longer emits duplicate Flickr-geography and impact-cell Parquets.
 
 ## Measurement method
 
@@ -61,10 +67,10 @@ Task 8.4.4 uses these exact measured bytes to set transparent regression ceiling
 
 | Budget | Baseline | Ceiling |
 | --- | ---: | ---: |
-| Total raw distribution | 51,239,420 bytes | 52,776,603 bytes |
-| Geographic evidence group | 3,017,829 bytes | 3,222,629 bytes |
+| Total raw distribution | 50,071,505 bytes | 51,573,650.15 bytes |
+| Geographic evidence group | 7,044,964 bytes | 7,397,212.2 bytes |
 | MapLibre renderer vendor | 1,027,752 bytes | 1,093,288 bytes |
-| Dashboard chunks | 301,624 bytes | 334,392 bytes |
+| Dashboard chunks | 342,724 bytes | 376,996.4 bytes |
 
 The ceiling is the measured baseline plus the larger of its recorded relative or absolute tolerance. This does not claim that 51.2 MB is an ideal product target or that every judge downloads all files before opening Geographic Impact.
 

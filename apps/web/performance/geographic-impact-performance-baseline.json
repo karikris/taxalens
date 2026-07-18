@@ -1,7 +1,7 @@
 {
   "schemaVersion": "taxalens-geographic-performance-baseline:v1.0.0",
-  "measuredAt": "2026-07-18T07:28:00+10:00",
-  "baseRevision": "e75e8bdbb1e5678f5e6bee82758a9366b00fde64",
+  "measuredAt": "2026-07-18T13:34:25+10:00",
+  "baseRevision": "f251eb0b0cccd9bcef874babf26fb32a0b75785f",
   "environment": {
     "browser": "Playwright Chromium 149.0.7827.55",
     "node": "22.22.1",
@@ -12,48 +12,48 @@
   "latency": {
     "mapInitialization": {
       "statistic": "p95",
-      "baseline": 2475.3,
+      "baseline": 2965.7,
       "relativeTolerance": 0.25,
       "absoluteTolerance": 750,
       "unit": "milliseconds",
-      "samples": [2475.3, 2326.8, 2465.8, 2434.4, 2312.4]
+      "samples": [2531.7, 2603, 2965.7, 2489.9, 2557.4]
     },
     "continentDrilldown": {
       "statistic": "median",
-      "baseline": 1312.36,
+      "baseline": 1039.38,
       "relativeTolerance": 0.5,
       "absoluteTolerance": 1500,
       "unit": "milliseconds",
-      "samples": [1312.36, 2395.46, 1102.33, 1423.7, 1072.92]
+      "samples": [1481.33, 1171.9, 1032.33, 1039.38, 1010.3]
     },
     "countryDrilldown": {
       "statistic": "median",
-      "baseline": 1227.21,
+      "baseline": 1027.25,
       "relativeTolerance": 0.5,
       "absoluteTolerance": 1000,
       "unit": "milliseconds",
-      "samples": [1253.86, 1180.23, 1227.21, 1320.12, 1207.09]
+      "samples": [1015.41, 1016, 1069.95, 1033.22, 1027.25]
     },
     "flickrCandidateFilter": {
       "statistic": "median",
-      "baseline": 187.57,
+      "baseline": 155.04,
       "relativeTolerance": 0.5,
       "absoluteTolerance": 750,
       "unit": "milliseconds",
-      "samples": [929.02, 238.32, 171.8, 160.37, 187.57]
+      "samples": [182.72, 163.01, 136.6, 135.46, 155.04]
     }
   },
   "bundle": {
     "totalDistribution": {
       "statistic": "raw_bytes",
-      "baseline": 51239420,
+      "baseline": 50071505,
       "relativeTolerance": 0.03,
       "absoluteTolerance": 1048576,
       "unit": "bytes"
     },
     "geographicEvidence": {
       "statistic": "raw_bytes",
-      "baseline": 3017829,
+      "baseline": 7044964,
       "relativeTolerance": 0.05,
       "absoluteTolerance": 204800,
       "unit": "bytes"
@@ -67,7 +67,7 @@
     },
     "dashboardChunks": {
       "statistic": "raw_bytes",
-      "baseline": 301624,
+      "baseline": 342724,
       "relativeTolerance": 0.1,
       "absoluteTolerance": 32768,
       "unit": "bytes"

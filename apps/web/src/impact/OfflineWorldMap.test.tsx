@@ -226,7 +226,7 @@ describe('OfflineWorldMap', () => {
       screen.getByRole('heading', { name: 'TaxaLens Geographic Impact Lens' }),
     ).toBeInTheDocument()
     expect(screen.getByText(/not occurrence or range claims/u)).toBeInTheDocument()
-    expect(screen.getByText(/does not invent v2 evidence sections/u)).toBeInTheDocument()
+    expect(screen.getByText(/No geographic evidence is invented/u)).toBeInTheDocument()
   })
 
   it('synchronizes an exact selectable map feature with scope controls and camera', () => {

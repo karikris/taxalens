@@ -1,37 +1,19 @@
 import type { AsyncDuckDBConnection } from '@duckdb/duckdb-wasm'
 
-import impactManifest from '../../../../demo/source/biominer_phase14/geographic_impact/geographic_impact_manifest.json'
-import impactCellsUrl from '../../../../demo/source/biominer_phase14/geographic_impact/geographic_impact_cells.parquet?url'
-import geographyManifest from '../../../../demo/source/biominer_phase14/flickr_geography/flickr_geography_verification_manifest.json'
-import geographyUrl from '../../../../demo/source/biominer_phase14/flickr_geography/flickr_geography_verification.parquet?url'
 import {
   createDuckDbRuntime,
   DUCKDB_ENGINE_VERSION,
   loadLocalParquetExtension,
 } from '../data/duckdbRuntime'
+import type { TaxaLensProjectFacade } from '../data/projectFacade'
+import type { GeographicImpactQueryInput } from '../impact/geographicImpactQuery'
+import { loadGeographicImpactProjectContext } from '../impact/geographicImpactSources'
 import type { DiscoveryProvenanceResult } from './discoveryProvenance'
 import { selectFinestSupportedPrecisionCell } from './recordPrecisionPolicy'
 
 const GEOGRAPHY_FILE_NAME = 'record_flickr_geography.parquet'
 const IMPACT_FILE_NAME = 'record_geographic_impact_cells.parquet'
 const MAXIMUM_NEARBY_BASELINE_CELLS = 8
-
-const geographyArtifact = geographyManifest.artifact
-const impactArtifact = impactManifest.artifacts.find(
-  ({ logical_name }) => logical_name === 'geographic_impact_cells',
-)
-if (
-  impactArtifact === undefined ||
-  impactArtifact.availability !== 'available' ||
-  impactArtifact.sha256 === null ||
-  impactArtifact.byte_size === null
-) {
-  throw new Error('Record Geographic Impact artifact is unavailable or incomplete')
-}
-const verifiedImpactArtifact = Object.freeze({
-  sha256: impactArtifact.sha256,
-  byteSize: impactArtifact.byte_size,
-})
 
 export interface RecordPrecisionCell {
   readonly spatialResolution: number
@@ -112,26 +94,16 @@ export type RecordGeographicContextLoadState =
   | { readonly status: 'available'; readonly context: RecordGeographicContext }
 
 export async function loadRecordGeographicContext(
+  project: TaxaLensProjectFacade,
   result: DiscoveryProvenanceResult,
   signal: AbortSignal,
 ): Promise<RecordGeographicContext> {
   throwIfAborted(signal)
-  const [geographyBytes, impactBytes] = await Promise.all([
-    verifiedSameOriginBytes(
-      geographyUrl,
-      geographyArtifact.sha256,
-      geographyArtifact.byte_count,
-      'Record Flickr geography artifact',
-      signal,
-    ),
-    verifiedSameOriginBytes(
-      impactCellsUrl,
-      verifiedImpactArtifact.sha256,
-      verifiedImpactArtifact.byteSize,
-      'Record Geographic Impact cells artifact',
-      signal,
-    ),
-  ])
+  const context = loadGeographicImpactProjectContext(project)
+  const geographyArtifact = context.flickrGeographyArtifact
+  const impactArtifact = context.impactCellsArtifact
+  const geographyBytes = geographyArtifact.bytes.slice()
+  const impactBytes = impactArtifact.bytes.slice()
   throwIfAborted(signal)
   const { database } = await createDuckDbRuntime()
   let connection: AsyncDuckDBConnection | undefined
@@ -147,9 +119,11 @@ export async function loadRecordGeographicContext(
       SET autoload_known_extensions = false;
       LOAD ${sqlLiteral(parquetExtensionUrl)}`)
     throwIfAborted(signal)
-    const cells = await connection.query(buildRecordGeographicContextSql(result))
+    const cells = await connection.query(
+      buildRecordGeographicContextSql(result, context.evidenceScope),
+    )
     throwIfAborted(signal)
-    if (cells.numRows === 0 || cells.numRows > impactManifest.spatial_resolutions.length) {
+    if (cells.numRows === 0 || cells.numRows > context.manifest.spatial_resolutions.length) {
       throw new Error('Record geography returned an invalid precision-cell set')
     }
     const decoded = decodePrecisionCells(cells, result)
@@ -158,7 +132,12 @@ export async function loadRecordGeographicContext(
       throw new Error('Record geography has no supported Geographic Impact cell')
     }
     const nearby = await connection.query(
-      buildNearbyBaselineCellsSql(result, selected.spatialResolution, selected.impact.nearestBaselineCellId),
+      buildNearbyBaselineCellsSql(
+        result,
+        selected.spatialResolution,
+        selected.impact.nearestBaselineCellId,
+        context.evidenceScope,
+      ),
     )
     throwIfAborted(signal)
     const nearbyBaselineCells = decodeNearbyBaselineCells(nearby)
@@ -198,10 +177,10 @@ export async function loadRecordGeographicContext(
       review: selected.review,
       nearbyBaselineCells,
       sources: Object.freeze({
-        flickrGeographySha256: geographyArtifact.sha256,
-        geographicImpactCellsSha256: verifiedImpactArtifact.sha256,
-        baselineSnapshotId: impactManifest.baseline_snapshot_id,
-        flickrSnapshotId: impactManifest.flickr_snapshot_id,
+        flickrGeographySha256: geographyArtifact.descriptor.sha256,
+        geographicImpactCellsSha256: impactArtifact.descriptor.sha256,
+        baselineSnapshotId: context.manifest.baseline_snapshot_id,
+        flickrSnapshotId: context.manifest.flickr_snapshot_id,
       }),
       scientificClaimAllowed: false,
     })
@@ -212,7 +191,10 @@ export async function loadRecordGeographicContext(
   }
 }
 
-export function buildRecordGeographicContextSql(result: DiscoveryProvenanceResult): string {
+export function buildRecordGeographicContextSql(
+  result: DiscoveryProvenanceResult,
+  evidenceScope: GeographicImpactQueryInput['evidenceScope'],
+): string {
   return `SELECT
       geography.spatial_resolution,
       geography.spatial_cell_id,
@@ -258,13 +240,13 @@ export function buildRecordGeographicContextSql(result: DiscoveryProvenanceResul
      AND geography.run_id = impact.run_id
      AND geography.target_accepted_taxon_key = impact.accepted_taxon_key
      AND geography.flickr_snapshot_id = impact.flickr_snapshot_id
-     AND impact.baseline_snapshot_id = ${sqlLiteral(impactManifest.baseline_snapshot_id)}
+     AND impact.baseline_snapshot_id = ${sqlLiteral(evidenceScope.baselineSnapshotId)}
      AND geography.spatial_resolution = impact.spatial_resolution
      AND geography.spatial_cell_id = impact.spatial_cell_id
-    WHERE geography.project_id = ${sqlLiteral(impactManifest.project_id)}
-      AND geography.run_id = ${sqlLiteral(impactManifest.run_id)}
-      AND geography.target_accepted_taxon_key = ${sqlLiteral(impactManifest.accepted_taxon_key)}
-      AND geography.flickr_snapshot_id = ${sqlLiteral(impactManifest.flickr_snapshot_id)}
+    WHERE geography.project_id = ${sqlLiteral(evidenceScope.projectId)}
+      AND geography.run_id = ${sqlLiteral(evidenceScope.runId)}
+      AND geography.target_accepted_taxon_key = ${sqlLiteral(evidenceScope.targetAcceptedTaxonKey)}
+      AND geography.flickr_snapshot_id = ${sqlLiteral(evidenceScope.flickrSnapshotId)}
       AND geography.source = ${sqlLiteral(result.source)}
       AND geography.flickr_photo_id = ${sqlLiteral(result.sourcePhotoId)}
       AND geography.source_record_hash = ${sqlLiteral(result.sourceRecordHash)}
@@ -275,6 +257,7 @@ export function buildNearbyBaselineCellsSql(
   result: DiscoveryProvenanceResult,
   spatialResolution: number,
   nearestBaselineCellId: string | null,
+  evidenceScope: GeographicImpactQueryInput['evidenceScope'],
 ): string {
   const nearestOrder =
     nearestBaselineCellId === null
@@ -286,11 +269,11 @@ export function buildNearbyBaselineCellsSql(
       centroid_longitude,
       baseline_range_inference_eligible_count
     FROM read_parquet(${sqlLiteral(IMPACT_FILE_NAME)})
-    WHERE project_id = ${sqlLiteral(impactManifest.project_id)}
-      AND run_id = ${sqlLiteral(impactManifest.run_id)}
-      AND accepted_taxon_key = ${sqlLiteral(impactManifest.accepted_taxon_key)}
-      AND baseline_snapshot_id = ${sqlLiteral(impactManifest.baseline_snapshot_id)}
-      AND flickr_snapshot_id = ${sqlLiteral(impactManifest.flickr_snapshot_id)}
+    WHERE project_id = ${sqlLiteral(evidenceScope.projectId)}
+      AND run_id = ${sqlLiteral(evidenceScope.runId)}
+      AND accepted_taxon_key = ${sqlLiteral(evidenceScope.targetAcceptedTaxonKey)}
+      AND baseline_snapshot_id = ${sqlLiteral(evidenceScope.baselineSnapshotId)}
+      AND flickr_snapshot_id = ${sqlLiteral(evidenceScope.flickrSnapshotId)}
       AND spatial_resolution = ${spatialResolution}
       AND baseline_range_inference_eligible_count > 0
     ORDER BY ${nearestOrder},
@@ -436,30 +419,6 @@ function decodeNearbyBaselineCells(
   )
 }
 
-async function verifiedSameOriginBytes(
-  assetUrl: string,
-  expectedSha256: string,
-  expectedByteCount: number,
-  label: string,
-  signal: AbortSignal,
-): Promise<Uint8Array<ArrayBuffer>> {
-  const url = new URL(assetUrl, window.location.href)
-  if (url.origin !== window.location.origin) throw new Error(`${label} must load locally`)
-  const response = await fetch(url, {
-    cache: 'force-cache',
-    credentials: 'same-origin',
-    signal,
-  })
-  if (!response.ok) throw new Error(`${label} returned HTTP ${response.status}`)
-  const bytes = new Uint8Array(await response.arrayBuffer())
-  if (bytes.byteLength !== expectedByteCount) {
-    throw new Error(`${label} byte count differs from its manifest`)
-  }
-  const digest = hex(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)))
-  if (digest !== expectedSha256) throw new Error(`${label} checksum differs from its manifest`)
-  return bytes
-}
-
 function requiredString(
   table: Awaited<ReturnType<AsyncDuckDBConnection['query']>>,
   column: string,
@@ -541,8 +500,4 @@ function throwIfAborted(signal: AbortSignal): void {
 
 function sqlLiteral(value: string): string {
   return `'${value.replaceAll("'", "''")}'`
-}
-
-function hex(bytes: Uint8Array): string {
-  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('')
 }

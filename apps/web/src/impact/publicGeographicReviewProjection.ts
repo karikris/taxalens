@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 
 import campaignUrl from '../../../../demo/source/verification/papilio-demoleus-flickr-audit.campaign.json?url'
 import geographyManifest from '../../../../demo/source/biominer_phase14/flickr_geography/flickr_geography_verification_manifest.json'
-import geographyUrl from '../../../../demo/source/biominer_phase14/flickr_geography/flickr_geography_verification.parquet?url'
+import type { TaxaLensProjectFacade } from '../data/projectFacade'
 import {
   validateReviewRequirement,
   validateSamplingPlan,
@@ -24,13 +24,13 @@ import {
   type GeographicReviewProjection,
   type GeographicReviewSpatialBinding,
 } from './geographicReviewProjection'
+import { loadGeographicImpactProjectContext } from './geographicImpactSources'
 
 const GEOGRAPHY_FILE_NAME = 'taxalens_flickr_geographic_review.parquet'
 const MAXIMUM_BINDING_ROWS = 1_000
 const CAMPAIGN_PACKET_SCHEMA_VERSION =
   'taxalens-flickr-audit-campaign-packet:v1.0.0'
 
-const geographyArtifact = geographyManifest.artifact
 const campaignInput = geographyManifest.inputs.verification_campaign
 
 export interface CommittedFlickrAuditPacket {
@@ -53,10 +53,12 @@ export type LocalGeographicReviewProjectionState =
 
 export function useLocalGeographicReviewProjection({
   enabled,
-  load = loadPublicGeographicReviewProjection,
+  load,
+  project,
 }: {
   readonly enabled: boolean
   readonly load?: (signal: AbortSignal) => Promise<LocalGeographicReviewProjectionState>
+  readonly project?: TaxaLensProjectFacade | undefined
 }): LocalGeographicReviewProjectionState {
   const [revision, setRevision] = useState(0)
   const [state, setState] = useState<LocalGeographicReviewProjectionState>(
@@ -78,16 +80,20 @@ export function useLocalGeographicReviewProjection({
     [enabled],
   )
   useEffect(() => {
-    if (!enabled) {
+    if (!enabled || (load === undefined && project === undefined)) {
       setState({
         status: 'unavailable',
-        reason: 'IndexedDB or the local analytical worker is unavailable.',
+        reason: 'Verified geography, IndexedDB, or the local analytical worker is unavailable.',
       })
       return
     }
     const controller = new AbortController()
     setState({ status: 'loading' })
-    void load(controller.signal).then(
+    const pending =
+      load === undefined
+        ? loadPublicGeographicReviewProjection(project!, controller.signal)
+        : load(controller.signal)
+    void pending.then(
       (next) => {
         if (!controller.signal.aborted) setState(next)
       },
@@ -104,16 +110,25 @@ export function useLocalGeographicReviewProjection({
       },
     )
     return () => controller.abort()
-  }, [enabled, load, revision])
+  }, [enabled, load, project, revision])
   return state
 }
 
 export async function loadPublicGeographicReviewProjection(
+  project: TaxaLensProjectFacade,
   signal: AbortSignal,
 ): Promise<LocalGeographicReviewProjectionState> {
   throwIfAborted(signal)
+  const context = loadGeographicImpactProjectContext(project)
   const packet = await loadCommittedFlickrAuditPacket(signal)
+  if (
+    packet.campaign.targetTaxon?.acceptedTaxonKey !==
+    context.evidenceScope.targetAcceptedTaxonKey
+  ) {
+    throw new Error('Flickr audit packet identity differs from the verified geography project')
+  }
   const bindings = await loadCommittedGeographicReviewBindings(
+    context.flickrGeographyArtifact.bytes,
     packet.campaign.campaignId,
     signal,
   )
@@ -170,12 +185,8 @@ export function parseCommittedFlickrAuditPacket(
     ...validateSamplingPlan(campaign.samplingPlan),
     ...items.flatMap((item) => validateVerificationItem(item, campaign)),
   ]
-  if (
-    campaign.kind !== 'flickr_target_verification' ||
-    campaign.targetTaxon?.acceptedTaxonKey !==
-      geographyManifest.target_accepted_taxon_key
-  ) {
-    failures.push('Flickr audit packet identity differs from the geography handoff')
+  if (campaign.kind !== 'flickr_target_verification') {
+    failures.push('Flickr audit packet is not a target-verification campaign')
   }
   if (
     campaign.samplingPlan.purpose !== 'quality_estimation' ||
@@ -213,16 +224,11 @@ async function loadCommittedFlickrAuditPacket(
 }
 
 async function loadCommittedGeographicReviewBindings(
+  verifiedGeographyBytes: Uint8Array<ArrayBuffer>,
   campaignId: string,
   signal: AbortSignal,
 ): Promise<readonly GeographicReviewSpatialBinding[]> {
-  const bytes = await verifiedSameOriginBytes(
-    geographyUrl,
-    geographyArtifact.sha256,
-    geographyArtifact.byte_count,
-    'Flickr geography verification artifact',
-    signal,
-  )
+  const bytes = verifiedGeographyBytes.slice()
   throwIfAborted(signal)
   const { database } = await createDuckDbRuntime()
   let connection: AsyncDuckDBConnection | undefined

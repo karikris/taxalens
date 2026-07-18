@@ -257,7 +257,10 @@ test('shows only checksum-verified evidence with explicit analytics and unavaila
 
   await page.getByRole('link', { name: 'Evidence Lens' }).click()
   await expect(page.getByRole('heading', { name: 'Explicitly unavailable evidence' })).toBeVisible()
-  await expect(page.locator('.unavailable-evidence-list > li')).toHaveCount(14)
+  const sectionCounts = await readBundleSectionCounts(page)
+  await expect(page.locator('.unavailable-evidence-list > li')).toHaveCount(
+    sectionCounts.unavailable,
+  )
 
   await page.getByRole('link', { name: 'Dashboard' }).click()
   await expect(page.getByRole('heading', { name: 'Verified local data boundary' })).toBeVisible()
@@ -1152,14 +1155,23 @@ test('reports only measured workflow efficiency without inferring avoided work',
   await expect(metric('Restart efficiency')).toContainText('Complete checkpoints22 of 22')
   await expect(metric('Restart efficiency')).toContainText('Checkpoint pages314')
   await expect(metric('Evidence completeness')).toContainText('39 of 39 artifacts verified')
-  await expect(metric('Evidence completeness')).toContainText('Available sections8')
-  await expect(metric('Evidence completeness')).toContainText('Partial sections9')
-  await expect(metric('Evidence completeness')).toContainText('Unavailable sections14')
+  const sectionCounts = await readBundleSectionCounts(page)
+  await expect(metric('Evidence completeness')).toContainText(
+    `Available sections${sectionCounts.available}`,
+  )
+  await expect(metric('Evidence completeness')).toContainText(
+    `Partial sections${sectionCounts.partial}`,
+  )
+  await expect(metric('Evidence completeness')).toContainText(
+    `Unavailable sections${sectionCounts.unavailable}`,
+  )
 
   const guardrail = report.getByRole('heading', { name: 'Integrity is not scientific completeness' })
     .locator('..')
     .locator('..')
-  await expect(guardrail).toContainText('8 are available, 9 partial, and 14 unavailable')
+  await expect(guardrail).toContainText(
+    `${sectionCounts.available} are available, ${sectionCounts.partial} partial, and ${sectionCounts.unavailable} unavailable`,
+  )
   await expect(guardrail).toContainText('No accuracy, readiness, or performance percentage')
   await report.getByText('Read the complete efficiency ledger as a table').click()
   await expect(report.getByRole('table').locator('tbody tr')).toHaveCount(6)
@@ -1335,3 +1347,26 @@ test('exports six deterministic research outputs without promoting blocked evide
   }))
   expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.clientWidth)
 })
+
+async function readBundleSectionCounts(page: Page): Promise<{
+  readonly available: number
+  readonly partial: number
+  readonly unavailable: number
+}> {
+  return page.evaluate(async () => {
+    const response = await fetch('./judge_bundle.json', {
+      cache: 'no-store',
+      credentials: 'same-origin',
+    })
+    if (!response.ok) throw new Error(`judge bundle returned HTTP ${response.status}`)
+    const candidate = (await response.json()) as {
+      sections: Record<string, { status: 'available' | 'partial' | 'unavailable' }>
+    }
+    const statuses = Object.values(candidate.sections).map(({ status }) => status)
+    return {
+      available: statuses.filter((status) => status === 'available').length,
+      partial: statuses.filter((status) => status === 'partial').length,
+      unavailable: statuses.filter((status) => status === 'unavailable').length,
+    }
+  })
+}

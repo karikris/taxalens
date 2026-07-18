@@ -126,6 +126,7 @@ describe('loadEvidenceFacade', () => {
     const facade = await loadEvidenceFacade(new AbortController().signal, fetcher)
 
     expect(facade.replay.bundleId).toBe(replayEvidenceContract.bundleId)
+    expect(facade.project.manifest.bundle_id).toBe(replayEvidenceContract.bundleId)
     expect(facade.replay.bundleCreatedAt).toBe('2026-07-16T11:57:54Z')
     expect(facade.replay.target.scientificName).toBe('Papilio demoleus')
     expect(facade.replay.artifactCount).toBe(39)

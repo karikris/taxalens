@@ -7,10 +7,7 @@ import {
   prepareGeographicImpactExportBundle,
   type GeographicImpactExportBundle,
 } from './geographicImpactExport'
-import {
-  loadVerifiedGeographicImpactParquetBytes,
-  type PublicGeographicImpactMapData,
-} from './publicGeographicImpactMapData'
+import type { PublicGeographicImpactMapData } from './publicGeographicImpactMapData'
 
 export type GeographicImpactExportPreparer = (
   data: PublicGeographicImpactMapData,
@@ -25,19 +22,27 @@ type ExportState =
 
 export function GeographicImpactExport({
   data,
-  prepare = prepareGeographicImpactExportForDownload,
+  prepare,
   scope,
+  sourceParquetBytes,
 }: {
   readonly data: PublicGeographicImpactMapData
   readonly prepare?: GeographicImpactExportPreparer
   readonly scope: CountryHierarchyNode
+  readonly sourceParquetBytes?: Uint8Array<ArrayBuffer>
 }) {
   const [state, setState] = useState<ExportState>({ kind: 'idle' })
   useEffect(() => setState({ kind: 'idle' }), [data, scope.scope_id])
 
   const prepareBundle = () => {
     setState({ kind: 'preparing' })
-    void prepare(data, scope).then(
+    const operation =
+      prepare === undefined
+        ? sourceParquetBytes === undefined
+          ? Promise.reject(new Error('The verified Geographic Impact source Parquet is unavailable.'))
+          : prepareGeographicImpactExportBundle(data, scope, sourceParquetBytes)
+        : prepare(data, scope)
+    void operation.then(
       (bundle) => setState({ kind: 'ready', bundle }),
       (error: unknown) =>
         setState({
@@ -112,14 +117,6 @@ export function GeographicImpactExport({
       )}
     </section>
   )
-}
-
-export async function prepareGeographicImpactExportForDownload(
-  data: PublicGeographicImpactMapData,
-  scope: CountryHierarchyNode,
-): Promise<GeographicImpactExportBundle> {
-  const sourceParquetBytes = await loadVerifiedGeographicImpactParquetBytes()
-  return prepareGeographicImpactExportBundle(data, scope, sourceParquetBytes)
 }
 
 function fileLabel(role: GeographicImpactExportBundle['files'][number]['role']): string {

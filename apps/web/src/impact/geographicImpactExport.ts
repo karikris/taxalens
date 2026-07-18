@@ -1,6 +1,5 @@
 import { canonicalExportJsonBytes, sha256Hex } from '../evidence/evidenceExport'
 import type { CountryHierarchyNode } from '../../../../packages/contracts/src/geographic_impact_contract'
-import impactManifest from '../../../../demo/source/biominer_phase14/geographic_impact/geographic_impact_manifest.json'
 import { buildSelectedGeographyDetails } from './SelectedGeographyDetails'
 import type {
   PublicGeographicImpactMapCell,
@@ -233,31 +232,31 @@ export function prepareGeographicImpactMethodology(
       spatialResolution: data.spatialResolution,
     },
     identities: {
-      geographicImpactManifestId: impactManifest.manifest_id,
-      geographicImpactBuildId: impactManifest.geographic_impact_build_id,
-      projectId: impactManifest.project_id,
-      runId: impactManifest.run_id,
-      registryVersion: impactManifest.registry_version,
-      acceptedTaxonKey: impactManifest.accepted_taxon_key,
-      scientificName: impactManifest.scientific_name,
-      baselineSnapshotId: impactManifest.baseline_snapshot_id,
-      flickrSnapshotId: impactManifest.flickr_snapshot_id,
-      countryHierarchyId: impactManifest.country_hierarchy_id,
-      sourceCommits: impactManifest.source_commits,
+      geographicImpactManifestId: data.source.manifestId,
+      geographicImpactBuildId: data.source.buildId,
+      projectId: data.source.projectId,
+      runId: data.source.runId,
+      registryVersion: data.source.registryVersion,
+      acceptedTaxonKey: data.source.acceptedTaxonKey,
+      scientificName: data.source.scientificName,
+      baselineSnapshotId: data.source.baselineSnapshotId,
+      flickrSnapshotId: data.source.flickrSnapshotId,
+      countryHierarchyId: data.source.countryHierarchyId,
+      sourceCommits: data.source.sourceCommits,
     },
     methods: {
       cellComparison: {
         operation: 'full_outer_join',
         keys: ['accepted_taxon_key', 'spatial_resolution', 'spatial_cell_id'],
         grid: 'hierarchical_global_grid',
-        supportedResolutions: impactManifest.spatial_resolutions,
+        supportedResolutions: data.source.spatialResolutions,
       },
       baselineProviderUnion: {
-        policyVersion: impactManifest.provider_union_policy_version,
+        policyVersion: data.source.providerUnionPolicyVersion,
         defaultCount: 'range-inference-eligible canonical observations',
         crossProviderDoubleCountingAllowed: false,
         unresolvedDuplicateGroupsPreserved: true,
-        directInaturalistDeltaStatus: impactManifest.direct_inaturalist_delta_status,
+        directInaturalistDeltaStatus: data.source.directInaturalistDeltaStatus,
       },
       candidateOnlyCell:
         'baseline range-inference-eligible count equals zero and Flickr candidate count is greater than zero',
@@ -284,7 +283,7 @@ export function prepareGeographicImpactMethodology(
         unsupportedThresholdsInvented: false,
       },
     },
-    sourceArtifacts: impactManifest.artifacts.map((artifact) => ({
+    sourceArtifacts: data.source.artifacts.map((artifact) => ({
       logicalName: artifact.logical_name,
       availability: artifact.availability,
       unavailableReason: artifact.unavailable_reason,
@@ -366,8 +365,8 @@ export async function prepareGeographicImpactExportBundle(
   const manifestBytes = canonicalExportJsonBytes({
     schemaVersion: 'taxalens-geographic-impact-export-manifest:v1.0.0',
     exportSchemaVersion: GEOGRAPHIC_IMPACT_EXPORT_SCHEMA_VERSION,
-    geographicImpactManifestId: impactManifest.manifest_id,
-    geographicImpactBuildId: impactManifest.geographic_impact_build_id,
+    geographicImpactManifestId: data.source.manifestId,
+    geographicImpactBuildId: data.source.buildId,
     scopeId: scope.scope_id,
     spatialResolution: data.spatialResolution,
     files: files.map(({ bytes, filename, mediaType, role, sha256 }) => ({

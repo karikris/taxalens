@@ -483,6 +483,7 @@ type VerifiedArtifact = VerifiedProjectArtifact
 
 export interface EvidenceFacade {
   readonly replay: ReplayEvidence
+  readonly project: TaxaLensProjectFacade
   loadStoredOpenAIReplay(): readonly StoredOpenAIReplayTrace[]
   loadAnalyticsReplayInput(): AnalyticsReplayInput
   loadDiscoveryProvenanceInput(): DiscoveryProvenanceInput
@@ -2456,15 +2457,18 @@ function projectStoredOpenAIReplay(
 
 class VerifiedEvidenceFacade implements EvidenceFacade {
   readonly replay: ReplayEvidence
+  readonly project: TaxaLensProjectFacade
   readonly #artifacts: ReadonlyMap<string, VerifiedArtifact>
   readonly #storedOpenAIReplay: readonly StoredOpenAIReplayTrace[]
 
   constructor(
     replay: ReplayEvidence,
+    project: TaxaLensProjectFacade,
     artifacts: ReadonlyMap<string, VerifiedArtifact>,
     storedOpenAIReplay: readonly StoredOpenAIReplayTrace[],
   ) {
     this.replay = replay
+    this.project = project
     this.#artifacts = artifacts
     this.#storedOpenAIReplay = storedOpenAIReplay
   }
@@ -2742,7 +2746,7 @@ export async function loadEvidenceFacade(
       bundleMigration: migration.receipt,
     },
   })
-  return Object.freeze(new VerifiedEvidenceFacade(replay, artifacts, storedOpenAIReplay))
+  return Object.freeze(new VerifiedEvidenceFacade(replay, project, artifacts, storedOpenAIReplay))
 }
 
 async function verifyBundleArtifact(

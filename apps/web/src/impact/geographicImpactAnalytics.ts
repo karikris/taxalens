@@ -39,6 +39,13 @@ export interface GeographicImpactBrowserCell {
   readonly longitude: number
   readonly baselineUnionCount: number
   readonly baselineRangeInferenceEligibleCount: number
+  readonly baselineExcludedOccurrenceCount: number
+  readonly gbifOnlyCount: number
+  readonly inaturalistOriginThroughGbifCount: number
+  readonly directInaturalistDeltaStatus: 'available' | 'unavailable'
+  readonly directInaturalistDeltaCount: number | null
+  readonly duplicatesRemovedCount: number
+  readonly unresolvedProviderDuplicateGroupCount: number
   readonly flickrCandidateCount: number
   readonly flickrVisuallyEligibleCount: number
   readonly reviewedPositiveCount: number
@@ -54,10 +61,15 @@ export interface GeographicImpactBrowserCell {
   readonly reviewedAdditionalCell: boolean
   readonly releaseReadyAdditionalCell: boolean
   readonly nearestBaselineDistanceKm: number | null
+  readonly latestBaselineEventDate: string | null
+  readonly latestFlickrCandidateDate: string | null
+  readonly latestReviewedPositiveDate: string | null
+  readonly latestReleaseReadyDate: string | null
   readonly dataDeficientState: 'sufficient' | 'data_deficient' | 'unavailable'
 }
 
 export interface GeographicImpactBrowserResult {
+  readonly input: GeographicImpactQuerySources['input']
   readonly backend: 'duckdb-wasm-parquet'
   readonly packageVersion: typeof DUCKDB_WASM_PACKAGE_VERSION
   readonly engineVersion: string
@@ -228,6 +240,7 @@ export async function queryGeographicImpact(
     })
 
     return Object.freeze({
+      input: sources.input,
       backend: 'duckdb-wasm-parquet',
       packageVersion: DUCKDB_WASM_PACKAGE_VERSION,
       engineVersion,
@@ -505,6 +518,13 @@ async function createGeographicViews(
       centroid_longitude,
       baseline_union_count,
       baseline_range_inference_eligible_count,
+      baseline_excluded_occurrence_count,
+      gbif_only_count,
+      inaturalist_origin_through_gbif_count,
+      direct_inaturalist_delta_status,
+      direct_inaturalist_delta_count,
+      duplicates_removed_count,
+      unresolved_provider_duplicate_group_count,
       flickr_candidate_count,
       flickr_visually_eligible_count,
       reviewed_positive_count,
@@ -520,6 +540,10 @@ async function createGeographicViews(
       reviewed_additional_cell,
       release_ready_additional_cell,
       nearest_baseline_distance_km,
+      latest_baseline_event_date,
+      latest_flickr_candidate_date,
+      latest_reviewed_positive_date,
+      latest_release_ready_date,
       data_deficient_state
     FROM read_parquet('geographic_impact_cells.parquet')`)
   await executeGeographicSetupQuery(connection, 'materialized impact summary', `CREATE TEMP VIEW materialized_geographic_summary AS
@@ -733,6 +757,17 @@ export function buildGeographicImpactSql(sources: GeographicImpactQuerySources):
         impact.centroid_latitude,
         impact.centroid_longitude,
         impact.nearest_baseline_distance_km,
+        impact.baseline_excluded_occurrence_count,
+        impact.gbif_only_count,
+        impact.inaturalist_origin_through_gbif_count,
+        impact.direct_inaturalist_delta_status,
+        impact.direct_inaturalist_delta_count,
+        impact.duplicates_removed_count,
+        impact.unresolved_provider_duplicate_group_count,
+        impact.latest_baseline_event_date,
+        impact.latest_flickr_candidate_date,
+        impact.latest_reviewed_positive_date,
+        impact.latest_release_ready_date,
         impact.data_deficient_state,
         impact.baseline_union_count AS materialized_baseline_union_count,
         impact.baseline_range_inference_eligible_count AS materialized_baseline_eligible_count,
@@ -791,6 +826,13 @@ export function buildGeographicImpactSql(sources: GeographicImpactQuerySources):
       centroid_longitude,
       baseline_union_count,
       baseline_eligible_count,
+      baseline_excluded_occurrence_count,
+      gbif_only_count,
+      inaturalist_origin_through_gbif_count,
+      direct_inaturalist_delta_status,
+      direct_inaturalist_delta_count,
+      duplicates_removed_count,
+      unresolved_provider_duplicate_group_count,
       flickr_candidate_count,
       flickr_visually_eligible_count,
       reviewed_positive_count,
@@ -806,6 +848,10 @@ export function buildGeographicImpactSql(sources: GeographicImpactQuerySources):
       reviewed_additional_cell,
       release_ready_additional_cell,
       nearest_baseline_distance_km,
+      CAST(latest_baseline_event_date AS VARCHAR) AS latest_baseline_event_date,
+      CAST(latest_flickr_candidate_date AS VARCHAR) AS latest_flickr_candidate_date,
+      CAST(latest_reviewed_positive_date AS VARCHAR) AS latest_reviewed_positive_date,
+      CAST(latest_release_ready_date AS VARCHAR) AS latest_release_ready_date,
       data_deficient_state,
       materialized_baseline_union_count,
       materialized_baseline_eligible_count,
@@ -1175,6 +1221,29 @@ function decodeAndReconcileCells(
       longitude: requiredFiniteNumber(table, 'centroid_longitude', index),
       baselineUnionCount,
       baselineRangeInferenceEligibleCount: baselineEligibleCount,
+      baselineExcludedOccurrenceCount: requiredCount(
+        table,
+        'baseline_excluded_occurrence_count',
+        index,
+      ),
+      gbifOnlyCount: requiredCount(table, 'gbif_only_count', index),
+      inaturalistOriginThroughGbifCount: requiredCount(
+        table,
+        'inaturalist_origin_through_gbif_count',
+        index,
+      ),
+      directInaturalistDeltaStatus: requiredDirectDeltaStatus(table, index),
+      directInaturalistDeltaCount: nullableCount(
+        table,
+        'direct_inaturalist_delta_count',
+        index,
+      ),
+      duplicatesRemovedCount: requiredCount(table, 'duplicates_removed_count', index),
+      unresolvedProviderDuplicateGroupCount: requiredCount(
+        table,
+        'unresolved_provider_duplicate_group_count',
+        index,
+      ),
       flickrCandidateCount,
       flickrVisuallyEligibleCount,
       reviewedPositiveCount,
@@ -1192,6 +1261,22 @@ function decodeAndReconcileCells(
       nearestBaselineDistanceKm: nullableFiniteNumber(
         table,
         'nearest_baseline_distance_km',
+        index,
+      ),
+      latestBaselineEventDate: nullableString(table, 'latest_baseline_event_date', index),
+      latestFlickrCandidateDate: nullableString(
+        table,
+        'latest_flickr_candidate_date',
+        index,
+      ),
+      latestReviewedPositiveDate: nullableString(
+        table,
+        'latest_reviewed_positive_date',
+        index,
+      ),
+      latestReleaseReadyDate: nullableString(
+        table,
+        'latest_release_ready_date',
         index,
       ),
       dataDeficientState: dataDeficientState as GeographicImpactBrowserCell['dataDeficientState'],
@@ -1246,6 +1331,17 @@ function nullableString(
   if (value === null) return null
   if (typeof value !== 'string' || value.length === 0) {
     throw new Error(`DuckDB geographic impact returned an invalid ${column}`)
+  }
+  return value
+}
+
+function requiredDirectDeltaStatus(
+  table: Awaited<ReturnType<AsyncDuckDBConnection['query']>>,
+  row: number,
+): GeographicImpactBrowserCell['directInaturalistDeltaStatus'] {
+  const value = requiredString(table, 'direct_inaturalist_delta_status', row)
+  if (value !== 'available' && value !== 'unavailable') {
+    throw new Error('DuckDB geographic impact returned an invalid direct iNaturalist delta status')
   }
   return value
 }

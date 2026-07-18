@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { EvidenceState } from '../design-system'
+import type { TaxaLensProjectFacade } from '../data/projectFacade'
 import { GeographicCountryRanking } from './GeographicCountryRanking'
 import { GeographicImpactAccessibleSummary } from './GeographicImpactAccessibleSummary'
 import { GeographicImpactExport } from './GeographicImpactExport'
@@ -24,7 +25,8 @@ import { SelectedGeographyDetails } from './SelectedGeographyDetails'
 import { useGeographicScopeState } from './geographicScope'
 import { OfflineWorldMap } from './OfflineWorldMap'
 import { buildBoundedGeographicImpactFeatures } from './geographicImpactFeatureCollection'
-import { GeographicImpactMapCache } from './geographicImpactMapCache'
+import { GeographicImpactQueryController } from './geographicImpactQueryController'
+import { loadGeographicImpactProjectContext } from './geographicImpactSources'
 import {
   useGeographicImpactRecordRouteState,
 } from './geographicImpactRecordRoute'
@@ -33,15 +35,18 @@ import type {
   GeographicImpactMetric,
 } from './geographicImpactQuery'
 import {
-  loadPublicGeographicImpactMapData,
-  PUBLIC_GEOGRAPHIC_IMPACT_MAP_SOURCE,
+  buildPublicGeographicImpactMapData,
+  geographicMapResolutionForScope,
+  verifiedGeographicImpactParquetBytes,
   type PublicGeographicImpactMapData,
 } from './publicGeographicImpactMapData'
 
 export function GeographicImpactLens({
+  project,
   reviewProjection,
   webGlSupported,
 }: {
+  readonly project?: TaxaLensProjectFacade
   readonly reviewProjection?: GeographicReviewProjection
   readonly webGlSupported?: boolean
 }) {
@@ -55,7 +60,9 @@ export function GeographicImpactLens({
   const [evidenceMode, setEvidenceMode] =
     useState<GeographicEvidenceMode>('comparison')
   const mapData = useGeographicImpactMapData(
+    project,
     scope.selected,
+    rankingMetric,
     typeof Worker !== 'undefined',
   )
   const localReview = useLocalGeographicReviewProjection({
@@ -64,6 +71,7 @@ export function GeographicImpactLens({
       mapData.status === 'available' &&
       typeof Worker !== 'undefined' &&
       typeof globalThis.indexedDB !== 'undefined',
+    project,
   })
   const activeReviewProjection =
     reviewProjection ??
@@ -221,7 +229,11 @@ export function GeographicImpactLens({
             selectedCellId={selectedCellId}
             onCellSelect={setSelectedCellId}
           />
-          <GeographicImpactExport data={mapData.data} scope={scope.selected} />
+          <GeographicImpactExport
+            data={mapData.data}
+            scope={scope.selected}
+            sourceParquetBytes={mapData.sourceParquetBytes}
+          />
         </>
       ) : null}
       <OfflineWorldMap
@@ -240,40 +252,59 @@ type GeographicImpactMapLoadState =
   | { readonly status: 'unavailable' }
   | { readonly status: 'loading' }
   | { readonly status: 'failure'; readonly message: string }
-  | { readonly status: 'available'; readonly data: PublicGeographicImpactMapData }
+  | {
+      readonly status: 'available'
+      readonly data: PublicGeographicImpactMapData
+      readonly sourceParquetBytes: Uint8Array<ArrayBuffer>
+    }
 
 function useGeographicImpactMapData(
-  scope: Parameters<typeof loadPublicGeographicImpactMapData>[0],
+  project: TaxaLensProjectFacade | undefined,
+  scope: ReturnType<typeof useGeographicScopeState>['selected'],
+  metric: GeographicImpactMetric,
   enabled: boolean,
 ): GeographicImpactMapLoadState {
-  const [cache] = useState(
-    () => new GeographicImpactMapCache<PublicGeographicImpactMapData>(),
-  )
+  const [controller] = useState(() => new GeographicImpactQueryController())
   const [state, setState] = useState<GeographicImpactMapLoadState>(
-    enabled ? { status: 'loading' } : { status: 'unavailable' },
+    enabled && project !== undefined ? { status: 'loading' } : { status: 'unavailable' },
   )
   useEffect(() => {
-    if (!enabled) {
+    if (!enabled || project === undefined) {
       setState({ status: 'unavailable' })
       return
     }
-    const cacheKey = `${scope.scope_id}:${scope.scope_level}`
-    const cached = cache.get(cacheKey)
-    if (cached !== undefined) {
-      setState({ status: 'available', data: cached })
+    let context: ReturnType<typeof loadGeographicImpactProjectContext>
+    try {
+      context = loadGeographicImpactProjectContext(project)
+    } catch (error) {
+      setState({
+        status: 'failure',
+        message: error instanceof Error ? error.message : 'unknown geographic project failure',
+      })
       return
     }
-    const controller = new AbortController()
+    let current = true
     setState({ status: 'loading' })
-    void loadPublicGeographicImpactMapData(scope, controller.signal).then(
-      (data) => {
-        if (!controller.signal.aborted) {
-          cache.set(cacheKey, data)
-          setState({ status: 'available', data })
+    void controller.run(project, {
+      evidenceScope: context.evidenceScope,
+      spatialResolution: geographicMapResolutionForScope(scope),
+      geographicScope: { level: scope.scope_level, id: scope.scope_id },
+      // The full comparison remains loaded so local append-only reviews can
+      // enter any maturity filter without manufacturing another source query.
+      evidenceMode: 'comparison',
+      metric,
+    }).then(
+      (result) => {
+        if (current) {
+          setState({
+            status: 'available',
+            data: buildPublicGeographicImpactMapData(project, result),
+            sourceParquetBytes: verifiedGeographicImpactParquetBytes(project),
+          })
         }
       },
       (error: unknown) => {
-        if (!controller.signal.aborted) {
+        if (current && !(error instanceof DOMException && error.name === 'AbortError')) {
           setState({
             status: 'failure',
             message: error instanceof Error ? error.message : 'unknown map-data failure',
@@ -281,8 +312,11 @@ function useGeographicImpactMapData(
         }
       },
     )
-    return () => controller.abort()
-  }, [cache, enabled, scope])
+    return () => {
+      current = false
+      controller.cancel()
+    }
+  }, [controller, enabled, metric, project, scope])
   return state
 }
 
@@ -297,15 +331,15 @@ function MapEvidenceState({
     case 'unavailable':
       return (
         <EvidenceState state="review" title="Geographic evidence map unavailable">
-          This runtime cannot start the local map-data worker. The hosted v1 judge fixture remains
-          truthful and does not invent v2 evidence sections.
+          This runtime cannot start the local analytical worker or has no verified geographic
+          project boundary. No geographic evidence is invented.
         </EvidenceState>
       )
     case 'loading':
       return (
         <EvidenceState state="loading" title="Verifying geographic impact cells">
-          TaxaLens is checking the committed artifact checksum before querying preaggregated map
-          cells locally.
+          TaxaLens is running the scoped full-outer comparison over checksum-verified baseline and
+          Flickr Parquets locally.
         </EvidenceState>
       )
     case 'failure':
@@ -318,10 +352,10 @@ function MapEvidenceState({
       const data = evidenceData ?? state.data
       return (
         <EvidenceState state="available" title="Baseline and Flickr evidence mapped">
-          {data.cells.length.toLocaleString()} preaggregated resolution-
-          {data.spatialResolution} cells are shown for this scope from artifact{' '}
-          <code>{PUBLIC_GEOGRAPHIC_IMPACT_MAP_SOURCE.artifactSha256.slice(0, 12)}</code>. Direct
-          iNaturalist delta is {PUBLIC_GEOGRAPHIC_IMPACT_MAP_SOURCE.directInaturalistDeltaStatus};
+          {data.cells.length.toLocaleString()} reconciled resolution-{data.spatialResolution} cells
+          are shown for this scope from artifact{' '}
+          <code>{data.source.artifactSha256.slice(0, 12)}</code>. Direct iNaturalist delta is{' '}
+          {data.source.directInaturalistDeltaStatus};
           {data.localReviewOverlayApplied
             ? ` ${data.localReviewEventCount ?? 0} local append-only review events are projected without changing retained release-ready evidence.`
             : ' committed human-review and release states are shown without a local overlay.'}

@@ -7,10 +7,8 @@ import {
 } from './GeographicImpactExport'
 import type { GeographicImpactExportBundle } from './geographicImpactExport'
 import { TAXALENS_GEOGRAPHIC_SCOPE_INDEX } from './geographicScope'
-import {
-  PUBLIC_GEOGRAPHIC_IMPACT_MAP_SOURCE,
-  type PublicGeographicImpactMapData,
-} from './publicGeographicImpactMapData'
+import { TEST_GEOGRAPHIC_IMPACT_MAP_SOURCE } from '../test/geographicImpactMapFixture'
+import type { PublicGeographicImpactMapData } from './publicGeographicImpactMapData'
 
 describe('GeographicImpactExport', () => {
   it('prepares and lists every independently checksummed local file', async () => {
@@ -85,7 +83,7 @@ function data(): PublicGeographicImpactMapData {
     cells: [],
     spatialResolution: 3,
     scopeId: 'global',
-    source: PUBLIC_GEOGRAPHIC_IMPACT_MAP_SOURCE,
+    source: TEST_GEOGRAPHIC_IMPACT_MAP_SOURCE,
     scientificClaimAllowed: false,
   }
 }

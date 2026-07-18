@@ -1,52 +1,71 @@
 import { describe, expect, it } from 'vitest'
 
 import {
-  buildPublicGeographicImpactMapSql,
+  createSyntheticGeographicProject,
+  syntheticGeographicQuery,
+} from '../test/geographicImpactProjectFixture'
+import type { GeographicImpactBrowserResult } from './geographicImpactAnalytics'
+import {
+  buildPublicGeographicImpactMapData,
   geographicMapResolutionForScope,
-  PUBLIC_GEOGRAPHIC_IMPACT_MAP_SOURCE,
+  verifiedGeographicImpactParquetBytes,
 } from './publicGeographicImpactMapData'
 import { TAXALENS_GEOGRAPHIC_SCOPE_INDEX } from './geographicScope'
 
 describe('public Geographic Impact map data', () => {
   it('selects only committed hierarchical resolutions', () => {
-    const global = TAXALENS_GEOGRAPHIC_SCOPE_INDEX.root
-    const asia = requiredScope('continent:asia')
-    const india = requiredScope('country:IN')
-
-    expect(geographicMapResolutionForScope(global)).toBe(3)
-    expect(geographicMapResolutionForScope(asia)).toBe(5)
-    expect(geographicMapResolutionForScope(india)).toBe(7)
+    expect(geographicMapResolutionForScope(TAXALENS_GEOGRAPHIC_SCOPE_INDEX.root)).toBe(3)
+    expect(geographicMapResolutionForScope(requiredScope('continent:asia'))).toBe(5)
+    expect(geographicMapResolutionForScope(requiredScope('country:IN'))).toBe(7)
   })
 
-  it('scopes every map query by evidence identity and exact geography', () => {
-    const sql = buildPublicGeographicImpactMapSql(requiredScope('country:IN'))
+  it('adapts source identity and bytes from the verified project rather than static imports', () => {
+    const project = createSyntheticGeographicProject()
+    const data = buildPublicGeographicImpactMapData(project, result())
 
-    expect(sql).toContain("project_id = 'taxalens-papilio-demoleus-judge-replay'")
-    expect(sql).toContain("run_id = 'papilio-demoleus-pilot-20260715'")
-    expect(sql).toContain("accepted_taxon_key = 'gbif:1938069'")
-    expect(sql).toContain("baseline_snapshot_id = 'gbif-occurrence-search-20260715'")
-    expect(sql).toContain("flickr_snapshot_id = 'flickr:2026-07-15'")
-    expect(sql).toContain('spatial_resolution = 7')
-    expect(sql).toContain("country_code = 'IN'")
-    expect(sql).toContain('baseline_range_inference_eligible_count')
-    expect(sql).toContain('gbif_only_count')
-    expect(sql).toContain('inaturalist_origin_through_gbif_count')
-    expect(sql).toContain('CAST(latest_baseline_event_date AS VARCHAR)')
-    expect(sql).toContain('LIMIT 5001')
-    expect(sql).not.toContain('SELECT *')
-  })
-
-  it('takes public artifact expectations from the committed manifest', () => {
-    expect(PUBLIC_GEOGRAPHIC_IMPACT_MAP_SOURCE).toMatchObject({
-      artifactBytes: 639_681,
-      artifactRows: 20_237,
-      artifactSha256: 'a02927ffbb4dc09fca582c61e6ceab51af6d12f8998cf0f7762ebfe26a4ea1c9',
-      directInaturalistDeltaStatus: 'unavailable',
-      reviewedPositiveCount: 0,
-      releaseReadyCount: 0,
+    expect(data).toMatchObject({
+      cells: [],
+      spatialResolution: 5,
+      scopeId: 'country:AU',
+      scientificClaimAllowed: false,
+      source: {
+        artifactBytes: 3,
+        artifactRows: 7,
+        artifactSha256: 'd'.repeat(64),
+        projectId: syntheticGeographicQuery.evidenceScope.projectId,
+        runId: syntheticGeographicQuery.evidenceScope.runId,
+        directInaturalistDeltaStatus: 'unavailable',
+      },
     })
+    const bytes = verifiedGeographicImpactParquetBytes(project)
+    expect(bytes).toHaveLength(3)
+    bytes[0] = 0
+    expect(verifiedGeographicImpactParquetBytes(project)[0]).not.toBe(0)
+  })
+
+  it('fails closed when a query result has another project identity', () => {
+    const mismatched = {
+      ...result(),
+      input: {
+        ...syntheticGeographicQuery,
+        evidenceScope: {
+          ...syntheticGeographicQuery.evidenceScope,
+          runId: 'run:other',
+        },
+      },
+    } as GeographicImpactBrowserResult
+
+    expect(() => buildPublicGeographicImpactMapData(createSyntheticGeographicProject(), mismatched))
+      .toThrow('differs from its verified project identity')
   })
 })
+
+function result(): GeographicImpactBrowserResult {
+  return {
+    input: syntheticGeographicQuery,
+    cells: Object.freeze([]),
+  } as unknown as GeographicImpactBrowserResult
+}
 
 function requiredScope(scopeId: string) {
   const scope = TAXALENS_GEOGRAPHIC_SCOPE_INDEX.byId.get(scopeId)

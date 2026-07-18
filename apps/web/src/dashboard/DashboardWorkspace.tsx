@@ -55,7 +55,7 @@ export function DashboardWorkspace({
 
       <FlickrWorkloadMap facade={facade} replay={replay} />
 
-      <GeographicImpactLens />
+      <GeographicImpactLens project={facade.project} />
 
       <ReviewPriorityWorklist replay={replay} />
 

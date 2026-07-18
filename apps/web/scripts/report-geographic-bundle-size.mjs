@@ -32,7 +32,7 @@ const report = Object.freeze({
       ),
     ),
     geographicEvidence: summarize(
-      productionFiles.filter(({ path }) => /(?:geographic|flickr_geo)/u.test(path)),
+      productionFiles.filter(({ path }) => isGeographicEvidencePath(path)),
     ),
     mapRendererVendor: summarize(
       productionFiles.filter(({ path }) => /^assets\/maplibre-gl-.*\.js$/u.test(path)),
@@ -69,6 +69,18 @@ async function collectFiles(root) {
 function extensionCategory({ path }) {
   const extension = extname(path).toLowerCase().slice(1)
   return extension === '' ? 'no_extension' : extension
+}
+
+function isGeographicEvidencePath(path) {
+  return [
+    /^analytics\/flickr_geo/u,
+    /^assets\/geographic/u,
+    /^data\/geographic_clusters\.json$/u,
+    /^demo\/source\/biominer_phase14\/(?:baseline_geography|baseline_provider_union|flickr_geography|geographic_impact)\//u,
+    /^demo\/source\/geography\/country_hierarchy\.json$/u,
+    /^demo\/repository_storage\/supabase\/verification_consensus\.json$/u,
+    /^demo\/source\/verification\/occurrence_release_decisions\.json$/u,
+  ].some((pattern) => pattern.test(path))
 }
 
 function summarize(records) {

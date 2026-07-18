@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
+import { TEST_GEOGRAPHIC_IMPACT_EVIDENCE_SCOPE } from '../test/geographicImpactMapFixture'
 import { RecordGeographicMiniMap } from './RecordGeographicMiniMap'
 import { RecordGeographicActions } from './RecordGeographicActions'
 import { RecordPrecisionBoundary } from './RecordPrecisionBoundary'
@@ -108,7 +109,10 @@ const context: RecordGeographicContext = {
 
 describe('record Geographic Impact context', () => {
   it('scopes the record-to-cell join by immutable identity and source record hash', () => {
-    const sql = buildRecordGeographicContextSql(discovery)
+    const sql = buildRecordGeographicContextSql(
+      discovery,
+      TEST_GEOGRAPHIC_IMPACT_EVIDENCE_SCOPE,
+    )
 
     expect(sql).toContain("geography.source = 'flickr'")
     expect(sql).toContain("geography.flickr_photo_id = '55081300254'")
@@ -118,7 +122,12 @@ describe('record Geographic Impact context', () => {
   })
 
   it('bounds nearby baseline context at the selected resolution and prioritizes the artifact cell', () => {
-    const sql = buildNearbyBaselineCellsSql(discovery, 7, '871968a00ffffff')
+    const sql = buildNearbyBaselineCellsSql(
+      discovery,
+      7,
+      '871968a00ffffff',
+      TEST_GEOGRAPHIC_IMPACT_EVIDENCE_SCOPE,
+    )
 
     expect(sql).toContain('spatial_resolution = 7')
     expect(sql).toContain('baseline_range_inference_eligible_count > 0')

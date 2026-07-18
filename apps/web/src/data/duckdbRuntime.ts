@@ -1,5 +1,5 @@
-import duckdbMvpWorker from '@duckdb/duckdb-wasm/dist/duckdb-browser-mvp.worker.js?url'
-import duckdbMvpWasm from '@duckdb/duckdb-wasm/dist/duckdb-mvp.wasm?url'
+import duckdbEhWorker from '@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js?url'
+import duckdbEhWasm from '@duckdb/duckdb-wasm/dist/duckdb-eh.wasm?url'
 import parquetExtensionUrl from './vendor/parquet.duckdb_extension.wasm?url'
 
 export const DUCKDB_RUNTIME_MODE = 'lazy-browser-only' as const
@@ -24,13 +24,12 @@ export async function loadDuckDbRuntime(): Promise<DuckDbWasmModule> {
 
 export async function createDuckDbRuntime() {
   const duckdb = await loadDuckDbRuntime()
-  const bundle = await duckdb.selectBundle({
-    mvp: { mainModule: duckdbMvpWasm, mainWorker: duckdbMvpWorker },
-  })
-  if (bundle.mainWorker === null) {
-    throw new Error('DuckDB-Wasm selected a bundle without a worker')
+  const bundle: import('@duckdb/duckdb-wasm').DuckDBBundle = {
+    mainModule: duckdbEhWasm,
+    mainWorker: duckdbEhWorker,
+    pthreadWorker: null,
   }
-  const worker = new Worker(bundle.mainWorker)
+  const worker = new Worker(duckdbEhWorker)
   const database = new duckdb.AsyncDuckDB(new duckdb.VoidLogger(), worker)
   try {
     await database.instantiate(bundle.mainModule, bundle.pthreadWorker)
