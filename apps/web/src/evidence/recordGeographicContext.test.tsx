@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { TEST_GEOGRAPHIC_IMPACT_EVIDENCE_SCOPE } from '../test/geographicImpactMapFixture'
+import { TAXALENS_GEOGRAPHIC_SCOPE_INDEX } from '../impact/geographicScope'
 import { RecordGeographicMiniMap } from './RecordGeographicMiniMap'
 import { RecordGeographicActions } from './RecordGeographicActions'
 import { RecordPrecisionBoundary } from './RecordPrecisionBoundary'
@@ -15,6 +16,8 @@ import {
   buildRecordGeographicContextSql,
   type RecordGeographicContext,
 } from './recordGeographicContext'
+
+const TEST_COUNTRY_SCOPE = TAXALENS_GEOGRAPHIC_SCOPE_INDEX.byLevel.country[0]!
 
 const discovery = {
   source: 'flickr',
@@ -52,9 +55,9 @@ const context: RecordGeographicContext = {
     spatialCellId: '87088660cffffff',
     latitude: 59.369,
     longitude: 18.03,
-    countryCode: 'SE',
-    country: 'Sweden',
-    admin1: 'Stockholm',
+    countryCode: TEST_COUNTRY_SCOPE.country_code,
+    country: TEST_COUNTRY_SCOPE.scope_name,
+    admin1: 'Example region',
   },
   impact: {
     baselineUnionCount: 0,
@@ -160,7 +163,7 @@ describe('record Geographic Impact context', () => {
       'flickr streetFlickr accuracy level 16',
     )
     expect(screen.getByText('Country and region').parentElement).toHaveTextContent(
-      'SwedenSE · Stockholm',
+      `${TEST_COUNTRY_SCOPE.scope_name}${TEST_COUNTRY_SCOPE.country_code} · Example region`,
     )
     expect(screen.getByText('Supported comparison cell').parentElement).toHaveTextContent(
       'H3 resolution 787088660cffffff',
@@ -185,13 +188,14 @@ describe('record Geographic Impact context', () => {
   it('links the exact country cell, verification item, and inline baseline provenance', () => {
     render(<RecordGeographicActions context={context} />)
 
+    const encodedScope = encodeURIComponent(TEST_COUNTRY_SCOPE.scope_id)
     expect(screen.getByRole('link', { name: 'Open Geographic Impact' })).toHaveAttribute(
       'href',
-      '#dashboard?geo=country%3ASE&geo-cell=87088660cffffff&geo-resolution=7&geo-focus=lens',
+      `#dashboard?geo=${encodedScope}&geo-cell=87088660cffffff&geo-resolution=7&geo-focus=lens`,
     )
     expect(screen.getByRole('link', { name: 'View records in this cell' })).toHaveAttribute(
       'href',
-      '#dashboard?geo=country%3ASE&geo-cell=87088660cffffff&geo-resolution=7&geo-focus=table',
+      `#dashboard?geo=${encodedScope}&geo-cell=87088660cffffff&geo-resolution=7&geo-focus=table`,
     )
     expect(screen.getByRole('link', { name: 'Verify this result' })).toHaveAttribute(
       'href',

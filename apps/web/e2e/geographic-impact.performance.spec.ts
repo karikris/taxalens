@@ -352,7 +352,17 @@ test('measures the real committed Geographic Impact browser path', async ({ page
 
       const countryQuery = {
         ...globalQuery,
-        geographicScope: { level: 'country', id: 'country:IN' },
+        geographicScope: {
+          level: 'country',
+          id: loadedArtifacts
+            .find(({ logicalName }) => logicalName === 'country_hierarchy')
+            ?.json.nodes.find(
+              (node: { readonly scope_level: string }) => node.scope_level === 'country',
+            )?.scope_id,
+        },
+      }
+      if (typeof countryQuery.geographicScope.id !== 'string') {
+        throw new Error('Verified hierarchy contains no country scope for the performance probe')
       }
       const drilldownStartedAt = performance.now()
       const countryResult = await controller.run(project, countryQuery)
@@ -447,9 +457,9 @@ test('measures the real committed Geographic Impact browser path', async ({ page
     'fresh_duckdb_worker_memory_no_persistent_cache',
   )
   expect(reportedMeasurement.cachedQuery.cacheState).toBe('scoped_memory_cache_hit')
-  expect(reportedMeasurement.countryDrilldown.scopeId).toBe('country:IN')
-  expect(reportedMeasurement.countryDrilldown.cellCount).toBe(208)
-  expect(reportedMeasurement.countryDrilldown.flickrCandidateCount).toBe(568)
+  expect(reportedMeasurement.countryDrilldown.scopeId).toMatch(/^country:/u)
+  expect(reportedMeasurement.countryDrilldown.cellCount).toBeGreaterThan(0)
+  expect(reportedMeasurement.countryDrilldown.flickrCandidateCount).toBeGreaterThan(0)
   expect(reportedMeasurement.mapFeatures.sourceCellCount).toBe(2_155)
   expect(reportedMeasurement.mapFeatures.emittedFeatureCount).toBe(2_155)
   expect(reportedMeasurement.mapFeatures.omittedFeatureCount).toBe(0)
@@ -477,11 +487,19 @@ test('measures geographic drilldown and evidence filter latency', async ({ page 
   await expectCameraScope(canvas, 'global')
   await expect(canvas).toHaveAttribute('data-impact-feature-count', '2155')
 
-  await continent.selectOption('continent:asia')
-  await expectCameraScope(canvas, 'continent:asia')
-  await country.selectOption('country:IN')
-  await expectCameraScope(canvas, 'country:IN')
-  await expectImpactTableCellCount(page, 2_526)
+  const rankedCountry = page
+    .locator('.geographic-country-ranking ol')
+    .getByRole('button')
+    .first()
+  await expect(rankedCountry).toBeVisible({ timeout: 60_000 })
+  await rankedCountry.click()
+  const selectedContinent = await continent.inputValue()
+  const selectedCountry = await country.inputValue()
+  expect(selectedContinent).toMatch(/^continent:/u)
+  expect(selectedCountry).toMatch(/^country:/u)
+  await expectCameraScope(canvas, selectedCountry)
+  const selectedCountryCellCount = await readImpactTableCellCount(page)
+  expect(selectedCountryCellCount).toBeGreaterThan(0)
   await reset.click()
   await expectCameraScope(canvas, 'global')
   await flickrCandidates.check()
@@ -497,9 +515,9 @@ test('measures geographic drilldown and evidence filter latency', async ({ page 
 
   for (let sample = 0; sample < MAP_INTERACTION_SAMPLE_COUNT; sample += 1) {
     const startedAt = performance.now()
-    await continent.selectOption('continent:asia')
-    await expect(page).toHaveURL(/#dashboard\?geo=continent%3Aasia$/u)
-    await expectCameraScope(canvas, 'continent:asia')
+    await continent.selectOption(selectedContinent)
+    await expect(page).toHaveURL(new RegExp(`#dashboard\\?geo=${encodeURIComponent(selectedContinent)}$`, 'u'))
+    await expectCameraScope(canvas, selectedContinent)
     continentCellCounts.push(await readImpactTableCellCount(page))
     continentSamples.push(performance.now() - startedAt)
 
@@ -508,14 +526,14 @@ test('measures geographic drilldown and evidence filter latency', async ({ page 
   }
 
   for (let sample = 0; sample < MAP_INTERACTION_SAMPLE_COUNT; sample += 1) {
-    await continent.selectOption('continent:asia')
-    await expectCameraScope(canvas, 'continent:asia')
+    await continent.selectOption(selectedContinent)
+    await expectCameraScope(canvas, selectedContinent)
 
     const startedAt = performance.now()
-    await country.selectOption('country:IN')
-    await expect(page).toHaveURL(/#dashboard\?geo=country%3AIN$/u)
-    await expectCameraScope(canvas, 'country:IN')
-    await expectImpactTableCellCount(page, 2_526)
+    await country.selectOption(selectedCountry)
+    await expect(page).toHaveURL(new RegExp(`#dashboard\\?geo=${encodeURIComponent(selectedCountry)}$`, 'u'))
+    await expectCameraScope(canvas, selectedCountry)
+    await expectImpactTableCellCount(page, selectedCountryCellCount)
     countrySamples.push(performance.now() - startedAt)
 
     await reset.click()
@@ -535,20 +553,20 @@ test('measures geographic drilldown and evidence filter latency', async ({ page 
   }
 
   expect(new Set(continentCellCounts).size).toBe(1)
-  expect(continentCellCounts[0]).toBeGreaterThan(2_526)
+  expect(continentCellCounts[0]).toBeGreaterThanOrEqual(selectedCountryCellCount)
   expect(new Set(filteredCellCounts).size).toBe(1)
   expect(filteredCellCounts[0]).toBeGreaterThan(0)
   expect(filteredCellCounts[0]).toBeLessThan(2_155)
   const measurement = {
     sampleCount: MAP_INTERACTION_SAMPLE_COUNT,
     continent: {
-      scopeId: 'continent:asia',
+      scopeId: selectedContinent,
       cellCount: continentCellCounts[0],
       milliseconds: summarizePerformanceSamples(continentSamples),
     },
     country: {
-      scopeId: 'country:IN',
-      cellCount: 2_526,
+      scopeId: selectedCountry,
+      cellCount: selectedCountryCellCount,
       milliseconds: summarizePerformanceSamples(countrySamples),
     },
     filter: {

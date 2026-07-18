@@ -28,7 +28,7 @@ describe('deterministic geographic tools', () => {
   it('executes all six tools from deterministic cells, rollups and candidate identities', () => {
     const calls = [
       ['inspect_geographic_impact', { ...common, scope_level: 'global', scope_id: 'global', evidence_mode: 'comparison', metric: 'record_count' }],
-      ['compare_geographic_scopes', { ...common, left_scope_level: 'global', left_scope_id: 'global', right_scope_level: 'country', right_scope_id: 'country:SE', metric: 'candidate_only_cells' }],
+      ['compare_geographic_scopes', { ...common, left_scope_level: 'global', left_scope_id: 'global', right_scope_level: 'country', right_scope_id: 'country:AA', metric: 'candidate_only_cells' }],
       ['list_candidate_gap_cells', { ...common, scope_level: 'global', scope_id: 'global', contribution_state: 'potential', limit: 10 }],
       ['explain_coverage_contribution', { ...common, scope_level: 'global', scope_id: 'global', spatial_cell_id: 'cell:a' }],
       ['recommend_geographic_review_batch', { ...common, scope_level: 'global', scope_id: 'global', review_objective: 'geographic_coverage_gap', batch_size: 10 }],
@@ -55,7 +55,7 @@ describe('deterministic geographic tools', () => {
       ...source,
       queryInput: {
         ...source.queryInput,
-        geographicScope: { level: 'country', id: 'country:SE' },
+        geographicScope: { level: 'country', id: 'country:AA' },
       },
       result: {
         ...source.result,
@@ -107,26 +107,26 @@ describe('deterministic geographic tools', () => {
 
   it('ranks selected countries by human-reviewable potential from pairwise receipts', () => {
     const source = analyticalEvidence()
-    const denmark = {
-      ...rollup('country:DK', 'Denmark'),
+    const comparisonCountry = {
+      ...rollup('country:BB', 'Example country B'),
       candidateOnlyCellCount: 3,
     }
     const analytical: GeographicToolAnalyticalEvidence = {
       ...source,
       result: {
         ...source.result,
-        childRollups: [...source.result.childRollups, denmark],
+        childRollups: [...source.result.childRollups, comparisonCountry],
       },
     }
     const workflow = compareCountryGeographicScopes(
       evidence,
       analytical,
-      ['country:SE', 'country:DK'],
+      ['country:AA', 'country:BB'],
     )
 
     expect(workflow.ranking.map(({ scopeId }) => scopeId)).toEqual([
-      'country:DK',
-      'country:SE',
+      'country:BB',
+      'country:AA',
     ])
     expect(workflow.toolResults.map(({ tool }) => tool)).toEqual([
       'compare_geographic_scopes',
@@ -138,11 +138,11 @@ describe('deterministic geographic tools', () => {
 
 function analyticalEvidence(): GeographicToolAnalyticalEvidence {
   const selected = rollup('global', 'Global')
-  const child = rollup('country:SE', 'Sweden')
+  const child = rollup('country:AA', 'Example country A')
   const result = {
     selectedRollup: selected,
     childRollups: [child],
-    cells: [{ spatialResolution: 7, spatialCellId: 'cell:a', continent: 'Europe', countryCode: 'SE', country: 'Sweden', admin1: null, latitude: 59, longitude: 18, baselineUnionCount: 0, baselineRangeInferenceEligibleCount: 0, flickrCandidateCount: 4, flickrVisuallyEligibleCount: 4, reviewedPositiveCount: 0, reviewedNegativeCount: 0, uncertainCount: 0, pendingCount: 4, mediaFailureCount: 0, skippedCount: 0, releaseReadyCount: 0, baselineOnlyCell: false, matchedCell: false, candidateOnlyCell: true, reviewedAdditionalCell: false, releaseReadyAdditionalCell: false, nearestBaselineDistanceKm: 100, dataDeficientState: 'data_deficient' }],
+    cells: [{ spatialResolution: 7, spatialCellId: 'cell:a', continent: 'Oceania', countryCode: 'AA', country: 'Example country A', admin1: null, latitude: 1, longitude: 2, baselineUnionCount: 0, baselineRangeInferenceEligibleCount: 0, flickrCandidateCount: 4, flickrVisuallyEligibleCount: 4, reviewedPositiveCount: 0, reviewedNegativeCount: 0, uncertainCount: 0, pendingCount: 4, mediaFailureCount: 0, skippedCount: 0, releaseReadyCount: 0, baselineOnlyCell: false, matchedCell: false, candidateOnlyCell: true, reviewedAdditionalCell: false, releaseReadyAdditionalCell: false, nearestBaselineDistanceKm: 100, dataDeficientState: 'data_deficient' }],
   } as unknown as GeographicImpactBrowserResult
   return {
     queryInput: { evidenceScope: { projectId: 'project:a', runId: 'run:a', targetAcceptedTaxonKey: 'gbif:1', baselineSnapshotId: 'baseline:a', flickrSnapshotId: 'flickr:a' }, spatialResolution: 7, geographicScope: { level: 'global', id: 'global' }, evidenceMode: 'comparison', metric: 'record_count' },
@@ -152,5 +152,6 @@ function analyticalEvidence(): GeographicToolAnalyticalEvidence {
 }
 
 function rollup(scopeId: string, scopeName: string): GeographicImpactRollup {
-  return { scopeLevel: scopeId === 'global' ? 'global' : 'country', scopeId, scopeName, parentScopeId: scopeId === 'global' ? null : 'continent:europe', continent: scopeId === 'global' ? null : 'Europe', countryCode: scopeId === 'global' ? null : 'SE', country: scopeId === 'global' ? null : 'Sweden', admin1: null, baselineEvidenceStatus: 'available', baselineUnionCount: 10, baselineRangeInferenceEligibleCount: 9, gbifOnlyCount: 8, inaturalistOriginThroughGbifCount: 2, directInaturalistDeltaStatus: 'unavailable', directInaturalistDeltaCount: null, duplicatesRemovedCount: 1, unresolvedProviderDuplicateGroupCount: 1, cellCount: 2, baselineOccupiedCellCount: 1, flickrCandidateCount: 4, flickrVisuallyEligibleCount: 4, reviewedPositiveCount: 0, reviewedNegativeCount: 0, uncertainCount: 0, pendingCount: 4, mediaFailureCount: 0, skippedCount: 0, releaseReadyCount: 0, flickrOccupiedCellCount: 1, baselineOnlyCellCount: 1, matchedCellCount: 0, candidateOnlyCellCount: 1, reviewedAdditionalCellCount: 0, releaseReadyAdditionalCellCount: 0, maximumNearestBaselineDistanceKm: 100, dataDeficientState: 'data_deficient' }
+  const suffix = scopeId.split(':').at(-1) ?? 'AA'
+  return { scopeLevel: scopeId === 'global' ? 'global' : 'country', scopeId, scopeName, parentScopeId: scopeId === 'global' ? null : 'continent:oceania', continent: scopeId === 'global' ? null : 'Oceania', countryCode: scopeId === 'global' ? null : suffix, country: scopeId === 'global' ? null : scopeName, admin1: null, baselineEvidenceStatus: 'available', baselineUnionCount: 10, baselineRangeInferenceEligibleCount: 9, gbifOnlyCount: 8, inaturalistOriginThroughGbifCount: 2, directInaturalistDeltaStatus: 'unavailable', directInaturalistDeltaCount: null, duplicatesRemovedCount: 1, unresolvedProviderDuplicateGroupCount: 1, cellCount: 2, baselineOccupiedCellCount: 1, flickrCandidateCount: 4, flickrVisuallyEligibleCount: 4, reviewedPositiveCount: 0, reviewedNegativeCount: 0, uncertainCount: 0, pendingCount: 4, mediaFailureCount: 0, skippedCount: 0, releaseReadyCount: 0, flickrOccupiedCellCount: 1, baselineOnlyCellCount: 1, matchedCellCount: 0, candidateOnlyCellCount: 1, reviewedAdditionalCellCount: 0, releaseReadyAdditionalCellCount: 0, maximumNearestBaselineDistanceKm: 100, dataDeficientState: 'data_deficient' }
 }

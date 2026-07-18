@@ -5,22 +5,23 @@ import {
   geographicImpactRecordHash,
   geographicImpactRecordRouteStateFromHash,
 } from './geographicImpactRecordRoute'
+import { TAXALENS_GEOGRAPHIC_SCOPE_INDEX } from './geographicScope'
+
+const TEST_COUNTRY_SCOPE = TAXALENS_GEOGRAPHIC_SCOPE_INDEX.byLevel.country[0]!
 
 describe('record Geographic Impact deep links', () => {
   it('round-trips an exact country-resolution cell and table focus', () => {
     const hash = geographicImpactRecordHash({
-      scopeId: 'country:SE',
+      scopeId: TEST_COUNTRY_SCOPE.scope_id,
       spatialCellId: '87088660cffffff',
       spatialResolution: 7,
       focus: 'table',
     })
 
-    expect(hash).toBe(
-      '#dashboard?geo=country%3ASE&geo-cell=87088660cffffff&geo-resolution=7&geo-focus=table',
-    )
+    expect(hash).toBe(`#dashboard?geo=${encodeURIComponent(TEST_COUNTRY_SCOPE.scope_id)}&geo-cell=87088660cffffff&geo-resolution=7&geo-focus=table`)
     expect(geographicImpactRecordRouteStateFromHash(hash)).toEqual({
       target: {
-        scopeId: 'country:SE',
+        scopeId: TEST_COUNTRY_SCOPE.scope_id,
         spatialCellId: '87088660cffffff',
         spatialResolution: 7,
         focus: 'table',
@@ -32,12 +33,12 @@ describe('record Geographic Impact deep links', () => {
   it('fails closed for an invalid cell or a resolution that differs from scope', () => {
     expect(
       geographicImpactRecordRouteStateFromHash(
-        '#dashboard?geo=country%3ASE&geo-cell=not-a-cell&geo-resolution=7&geo-focus=lens',
+        `#dashboard?geo=${encodeURIComponent(TEST_COUNTRY_SCOPE.scope_id)}&geo-cell=not-a-cell&geo-resolution=7&geo-focus=lens`,
       ),
     ).toMatchObject({ target: null, error: 'Record geographic link cell is invalid.' })
     expect(
       geographicImpactRecordRouteStateFromHash(
-        '#dashboard?geo=country%3ASE&geo-cell=87088660cffffff&geo-resolution=3&geo-focus=lens',
+        `#dashboard?geo=${encodeURIComponent(TEST_COUNTRY_SCOPE.scope_id)}&geo-cell=87088660cffffff&geo-resolution=3&geo-focus=lens`,
       ),
     ).toMatchObject({
       target: null,

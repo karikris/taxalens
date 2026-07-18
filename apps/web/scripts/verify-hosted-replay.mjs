@@ -156,46 +156,10 @@ async function verifiedGeographicImpact(page, root) {
     .waitFor({ state: 'visible', timeout: 60_000 })
   const geographicScope = page.locator('.geographic-impact-lens__scope')
   assert.match((await geographicScope.textContent()) ?? '', /Global/u)
-
-  const continent = page.getByRole('combobox', { name: 'Continent' })
-  const country = page.getByRole('combobox', { name: 'Country' })
-  await continent.selectOption('continent:europe')
-  assert.match(page.url(), /geo=continent%3Aeurope/u)
-  assert.match((await geographicScope.textContent()) ?? '', /Europe/u)
-  await country.selectOption('country:SE')
-  assert.match(page.url(), /geo=country%3ASE/u)
-  assert.match((await geographicScope.textContent()) ?? '', /Sweden/u)
-
-  const selectedCellId = '87088660cffffff'
-  const selectedRow = page.getByRole('rowheader', { name: selectedCellId }).locator('..')
-  await selectedRow.getByRole('button', { name: `Select ${selectedCellId}` }).click()
-  assert.equal(
-    await selectedRow
-      .getByRole('button', { name: `Selected ${selectedCellId}` })
-      .getAttribute('aria-pressed'),
-    'true',
-  )
-
-  await page.getByRole('link', { name: 'Evidence Lens' }).click()
-  await page.getByRole('button', { name: 'Inspect verified discovery record' }).click()
-  await page
-    .getByRole('heading', { name: 'Source flickr:55081300254' })
-    .waitFor({ state: 'visible', timeout: 60_000 })
-  await page
-    .getByRole('img', { name: /Record geographic context mini-map/u })
-    .waitFor({ state: 'visible' })
-  await page
-    .locator('.geography-reference')
-    .getByRole('link', { name: 'Verify this result' })
-    .click()
-  await page.getByText('Exact Flickr result cannot be viewed yet').waitFor({ state: 'visible' })
-
-  await page.goto(new URL('#dashboard?geo=country%3ASE', root).href, {
-    waitUntil: 'networkidle',
-  })
-  await page
-    .getByText('Baseline and Flickr evidence mapped', { exact: true })
-    .waitFor({ state: 'visible', timeout: 60_000 })
+  assert.doesNotMatch(page.url(), /[?&]geo=/u)
+  const summary = page.getByRole('heading', { name: 'Geographic evidence at a glance' }).locator('..')
+  assert.match((await summary.textContent()) ?? '', /Global contains/u)
+  assert.match((await summary.textContent()) ?? '', /Flickr candidates/u)
   await page.getByRole('button', { name: 'Prepare geographic export' }).click()
   await page
     .getByText('Seven geographic export files prepared', { exact: true })
@@ -205,22 +169,19 @@ async function verifiedGeographicImpact(page, root) {
   const download = await downloadPromise
   assert.match(
     download.suggestedFilename(),
-    /^taxalens-papilio-demoleus-country-se-r7\.manifest\.json$/u,
+    /^taxalens-papilio-demoleus-global-r3\.manifest\.json$/u,
   )
   const downloadPath = await download.path()
   assert.ok(downloadPath)
   const manifest = JSON.parse(await readFile(downloadPath, 'utf8'))
-  assert.equal(manifest.scopeId, 'country:SE')
+  assert.equal(manifest.scopeId, 'global')
   assert.equal(manifest.signature.status, 'unavailable')
   assert.equal(manifest.scientificClaimAllowed, false)
 
   return {
     global: 'passed',
-    continent: 'Europe',
-    country: 'Sweden',
-    selected_cell_id: selectedCellId,
-    record_source: 'flickr:55081300254',
-    verification_link: 'passed',
+    canonical_scope: 'global',
+    named_scope_hard_coded: false,
     export_filename: download.suggestedFilename(),
     export_signature: manifest.signature.status,
     scientific_claim_allowed: manifest.scientificClaimAllowed,
@@ -371,9 +332,7 @@ async function main() {
       static_fallback: 'passed',
       build_fingerprint: 'passed',
       geographic_impact: 'passed',
-      geographic_drilldown: 'passed',
-      geographic_record_link: 'passed',
-      geographic_verification_link: 'passed',
+      geographic_global_framing: 'passed',
       geographic_export: 'passed',
     },
   }

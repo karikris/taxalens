@@ -42,8 +42,18 @@ test('loads Geographic Impact evidence and its accessible alternative in every b
     await expect(table).toBeVisible()
   }
 
-  await page.getByRole('combobox', { name: 'Continent' }).selectOption('continent:asia')
-  await expect(page).toHaveURL(/geo=continent%3Aasia/u)
-  await expect(page.locator('.geographic-impact-lens__scope')).toContainText('Asia')
+  const continent = page.getByRole('combobox', { name: 'Continent' })
+  const selected = await continent.locator('option').evaluateAll((options) => {
+    const option = options.find(
+      (candidate) => candidate instanceof HTMLOptionElement && candidate.value !== 'global',
+    )
+    return option instanceof HTMLOptionElement
+      ? { label: option.textContent?.trim() ?? '', value: option.value }
+      : null
+  })
+  expect(selected).not.toBeNull()
+  await continent.selectOption(selected!.value)
+  await expect(page).toHaveURL(new RegExp(`geo=${encodeURIComponent(selected!.value)}`, 'u'))
+  await expect(page.locator('.geographic-impact-lens__scope')).toContainText(selected!.label)
   await expect(table.locator('tbody tr').first()).toBeVisible()
 })

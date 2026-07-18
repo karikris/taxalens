@@ -34,11 +34,9 @@ coverage-gap cells. The retained campaigns currently contain **zero human-suppor
 cells and zero release-ready occurrence candidates**; the amber rings are hypotheses awaiting
 review, not new occurrence records.
 
-![Animated TaxaLens Geographic Impact journey from the global evidence comparison through Europe and Sweden, the Flickr-candidate layer, a selected candidate-only cell, the empty human-reviewed layer, and an individual candidate's geographic context](docs/assets/taxalens-geographic-impact-journey.gif)
-
-The seven-frame journey is generated from the same fixed-time local production build. Its
-human-reviewed frame deliberately renders the exact zero retained outcomes; the animation does not
-invent a review, release decision, or occurrence claim.
+The canonical public presentation stays at global scope. Regional drilldown remains available to a
+researcher, but no named country or unreviewed candidate is promoted as the project's representative
+geography.
 
 ### Human-verification preview
 
@@ -206,7 +204,7 @@ occurrences or classifications.
 Use the numbered product navigation:
 
 1. **Mission** — inspect the deterministic human-verification plan and its planning objective.
-2. **Evidence Lens** — inspect `flickr:55081300254`, then choose **Verify this result**.
+2. **Evidence Lens** — inspect the artifact-selected discovery record, then choose **Verify this result**.
 3. **Verify Flickr** — confirm the exact result has no displayable committed media and cannot be
    labelled; the actionable Commons cache is explicitly separate.
 4. **Verify references** — check the empty public GBIF and iNaturalist routes, return to **All**,

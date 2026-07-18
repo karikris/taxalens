@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "build": "node scripts/verify-review-assets.mjs && tsc -b && vite build && node scripts/verify-map-distribution.mjs && node scripts/verify-public-review-media.mjs",
+    "build": "node scripts/verify-global-geographic-framing.mjs && node scripts/verify-review-assets.mjs && tsc -b && vite build && node scripts/verify-map-distribution.mjs && node scripts/verify-public-review-media.mjs",
     "check": "tsc -b --pretty false",
     "preview": "vite preview --host 127.0.0.1",
     "test": "vitest run",
@@ -17,6 +17,7 @@
     "test:agent-live": "vitest run src/agent/verificationAgentLiveEvaluation.test.ts",
     "test:deployment": "node --test scripts/static-deployment.test.mjs",
     "test:hosted": "node scripts/verify-hosted-replay.mjs",
+    "test:global-geographic-framing": "node scripts/verify-global-geographic-framing.mjs",
     "test:media-static": "node --test scripts/public-review-media.test.mjs",
     "test:map-dependencies": "node scripts/verify-map-dependencies.mjs",
     "test:map-distribution": "node scripts/verify-map-distribution.mjs",

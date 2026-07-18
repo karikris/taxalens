@@ -63,60 +63,44 @@ Expected: blue is deduplicated baseline occurrence evidence. Amber is Flickr can
 Stroke, fill, dash, and exclusion marks distinguish maturity without colour alone. Bubble radius
 uses the shared square-root count scale; exact counts appear in the tooltip and table.
 
-### 20–30 seconds — Inspect potential coverage gaps
+### 20–35 seconds — Inspect global potential coverage gaps
 
 1. In **Selected geography**, find **Candidate-only spatial cells**.
-2. In the exact table, select a row whose baseline-eligible count is zero and Flickr count is
-   positive.
+2. Confirm the scope remains **Global** and read the exact synchronized table.
 
-Expected: the detail panel calls it a candidate-only spatial cell with potential coverage
-contribution. It does not claim biological absence, an occurrence, or a range extension.
+Expected: the global resolution-3 rollup reports 1,221 potential coverage-gap cells. It does not
+claim biological absence, an occurrence, or a range extension.
 
-### 30–40 seconds — Drill into a continent
+### 35–50 seconds — Compare evidence maturity
 
-1. Set **Continent** to **Europe**.
-2. Confirm the breadcrumb reads **Global › Europe** and the camera updates.
+1. Choose **Flickr candidates**.
+2. Choose **Human reviewed**.
 
-Expected: map, table, ranking, metrics, and accessible summary share the same continent scope.
+Expected: the first filter shows candidate hypotheses globally. The human-reviewed layer contains
+zero retained outcomes. Neither filter changes the global scope or creates review evidence.
 
-### 40–50 seconds — Drill into a country
-
-1. Set **Country** to **Sweden**.
-2. Confirm **Global › Europe › Sweden** and select cell `87088660cffffff`.
-
-Expected: the selected-cell panel preserves zero baseline evidence as unknown, shows pending
-Flickr candidates, and keeps human-supported and release-ready contribution at zero.
-
-### 50–60 seconds — Open one candidate record
-
-1. Open **03 Evidence Lens**.
-2. Choose **Inspect verified discovery record** and find source `flickr:55081300254`.
-
-Expected: the record mini-map shows its supported coordinate, nearby same-resolution baseline
-cells, and distance context. The panel says **Candidate location, not occurrence**.
-
-### 60–70 seconds — Inspect the verification handoff
-
-1. Choose **Verify this result**.
-2. Confirm **Exact Flickr result cannot be viewed yet**.
-
-Expected: Yes, No, and Can’t tell remain unavailable for the exact source because no
-checksum-verified review image is committed. Can’t view and Skip are workflow outcomes and never
-count as human-supported geographic contribution.
-
-### 70–82 seconds — Ask GPT-5.6 what the evidence could add
+### 50–65 seconds — Inspect the global GPT-5.6 replay
 
 1. Open **06 Agent Trace**.
-2. Find **GPT-5.6 geographic analyst** and inspect the Sweden answer and tool receipts.
+2. Find **GPT-5.6 geographic analyst** and inspect its tool receipt.
 
-Expected: the credential-free stored replay cites the baseline union, Flickr snapshot, impact
-cells, hierarchy, campaign, quality state, and source SHAs. It reports 12 candidate-only cells and
-529 Flickr candidates for the stored Sweden resolution-7 scope, with zero human-supported and
-release-ready additional cells. **Live request: No** and **Credential: Not required** remain visible.
+Expected: the credential-free replay cites the baseline union, Flickr snapshot, impact cells,
+campaign, quality state, and source SHAs. It reports the global resolution-3 totals: 19,201
+baseline rows, 13,416 geographically supported Flickr candidates, and 1,221 potential coverage-gap
+cells. Human-supported and release-ready additional cells remain zero. **Live request: No** and
+**Credential: Not required** remain visible.
 
-### 82–90 seconds — Export the selected scope
+### 65–78 seconds — Verify the scientific boundary
 
-1. Return to **05 Dashboard** and the Sweden scope.
+1. Read the agent limitations and the map disclosure.
+2. Confirm the quality snapshot remains unavailable.
+
+Expected: candidate-only cells remain potential contribution. No named location is promoted as an
+occurrence, and zero retained human outcomes cannot support an aggregate quality claim.
+
+### 78–90 seconds — Export the global scope
+
+1. Return to **05 Dashboard**; confirm the scope is **Global**.
 2. Choose **Prepare geographic export**.
 
 Expected: seven local files are prepared: JSON, CSV, Parquet, scope summary, methodology,
@@ -124,7 +108,8 @@ provenance, and checksum manifest. The manifest remains unsigned and
 `scientificClaimAllowed: false`.
 
 Use **Reset replay** to restore the initial state. The exact map counts and source identities are
-listed below; the animated README journey shows the same fixed-time path.
+listed below. Regional controls remain optional researcher tools and are not the canonical judge
+story.
 
 ## Verification-first route
 
@@ -142,7 +127,7 @@ objective, not an observed interval; reviewer labels are not proof of independen
 
 1. Open **03 Evidence Lens**.
 2. Choose **Inspect verified discovery record**.
-3. Find source `flickr:55081300254` and choose **Verify this result**.
+3. Inspect the artifact-selected discovery record and choose **Verify this result**.
 
 Expected: the source has two query associations but remains a candidate. Current local consensus,
 quality contribution, reference state, and event lineage are visible. No scientific result is
@@ -254,7 +239,7 @@ facts.
 | Global resolution 3 | 2,155 cells; 19,201 baseline observations; 13,416 Flickr candidates; 1,221 candidate-only cells |
 | Global resolution 5 | 7,163 cells; 19,201 baseline observations; 13,026 Flickr candidates; 3,075 candidate-only cells |
 | Global resolution 7 | 10,919 cells; 19,201 baseline observations; 7,932 Flickr candidates; 2,468 candidate-only cells |
-| Sweden stored replay, resolution 7 | 0 baseline rows; 529 Flickr candidates; 12 candidate-only cells |
+| Stored analyst replay, global resolution 3 | 19,201 baseline rows; 13,416 Flickr candidates; 1,221 candidate-only cells |
 | Human-supported state | 0 retained human outcomes; 0 human-supported additional cells |
 | Release state | 0 release-ready occurrence candidates; 0 release-ready additional cells; quality snapshot unavailable |
 | Offline hierarchy | `country-hierarchy:natural-earth-v5.1.2-110m`; 183 country/continent nodes |
@@ -342,7 +327,7 @@ Open **Agent Trace** and confirm:
 - the research trace contains two stored response turns, one `resolve_taxon` tool call, and a
   citation to `query-definitions`;
 - the verification trace contains six stored response turns and five read-only tool calls;
-- the geographic trace uses two deterministic tool receipts for Sweden at resolution 7 and cites
+- the geographic trace uses one deterministic global inspection receipt at resolution 3 and cites
   every baseline, Flickr, impact, hierarchy, campaign, quality-state, and source-commit identity;
 - the geographic trace reports zero retained human outcomes and no release-ready contribution;
 - the verification recommendation is adjudication for an intentionally conflicted synthetic

@@ -57,24 +57,22 @@ human-reviewed layer and an unavailable quality snapshot.
 
 ---
 
-## Slide 4 — Global to country to individual record
+## Slide 4 — One global evidence comparison
 
 ```text
-Global → Europe → Sweden → cell 87088660cffffff → flickr:55081300254
+Global baseline evidence ↔ global Flickr candidate evidence
 ```
 
-- The stored Sweden resolution-7 scope contains 529 Flickr candidates in 12 candidate-only cells.
-- It contains zero baseline rows in the selected snapshots and is explicitly data-deficient.
-- The Evidence Lens mini-map shows the candidate coordinate, same-resolution baseline context,
-  nearest distance, coordinate precision, and the link to Verification.
+- The global resolution-3 scope contains 19,201 baseline rows, 13,416 geographically supported
+  Flickr candidates, and 1,221 potential coverage-gap cells.
+- It contains zero human-supported additional cells and zero release-ready additional cells.
+- Regional drilldown remains available to researchers, but no named country or candidate record is
+  promoted as the representative project geography.
 
-**Show:** the fixed-time
-[`Geographic Impact journey`](../docs/assets/taxalens-geographic-impact-journey.gif), then hold on
-the individual record frame.
+**Show:** the fixed-time global 1280×720 Geographic Impact regression capture.
 
-**Say:** The same scope identity drives camera, slicers, breadcrumb, map, table, details, record
-context, stored analyst replay, and export. Coarse or unsupported coordinates never become false
-local points.
+**Say:** The same global scope identity drives the map, table, details, stored analyst replay, and
+export. A candidate location is never elevated merely because it is convenient for a demo.
 
 ---
 
@@ -121,9 +119,9 @@ reviewed target-positive result still needs every occurrence-release gate.
   cells, explain contribution, recommend review batches, and inspect the provider union.
 - Every result cites the baseline snapshot, Flickr snapshot, impact artifacts, country hierarchy,
   campaign, quality state, and source SHAs.
-- The public Sweden replay uses two stored tool receipts and no credential or live request.
-- It reports 12 potential coverage-gap cells, 529 candidates, zero human-supported cells, and zero
-  release-ready cells.
+- The public global replay uses one stored inspection receipt and no credential or live request.
+- It reports 1,221 potential coverage-gap cells, 13,416 candidates, zero human-supported cells, and
+  zero release-ready cells.
 - Twenty-four geographic evaluations reject provider double counting, absence claims, invalid
   quality inference, blocked release, missing citations, and model-memory arithmetic.
 

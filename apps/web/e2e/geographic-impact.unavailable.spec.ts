@@ -1,18 +1,16 @@
 import { expect, test } from '@playwright/test'
 
-test('shows zero baseline and review evidence without fabricating provider availability', async ({
+test('shows global review evidence without fabricating provider availability', async ({
   page,
 }) => {
-  await page.goto(
-    './#dashboard?geo=country%3ASE&geo-cell=87088660cffffff&geo-resolution=7&geo-focus=lens',
-  )
+  await page.goto('./#dashboard')
   await expect(
     page.getByText('Baseline and Flickr evidence mapped', { exact: true }),
   ).toBeVisible({ timeout: 60_000 })
 
   const details = page.locator('.selected-geography-details')
-  await expect(details.getByRole('heading', { name: '87088660cffffff' })).toBeVisible()
-  await expect(details.getByText('Baseline union').locator('..')).toContainText('0')
+  await expect(details.getByRole('heading', { name: 'Global' })).toBeVisible()
+  await expect(details.getByText('Baseline union').locator('..')).toContainText('19,201')
   await expect(details.getByText('Direct iNaturalist delta').locator('..')).toContainText(
     'Unavailable',
   )
@@ -25,15 +23,11 @@ test('shows zero baseline and review evidence without fabricating provider avail
   await expect(details).toContainText(
     'Missing baseline evidence is unknown, not proof of biological absence.',
   )
-  await expect(
-    page
-      .getByRole('region', { name: 'Geographic evidence at a glance' })
-      .locator('p')
-      .filter({
-        hasText: 'This is a candidate-only spatial cell, not a biological absence claim.',
-      })
-      .first(),
-  ).toBeVisible()
+  const summary = page.getByRole('region', { name: 'Geographic evidence at a glance' })
+  await expect(summary).toContainText(
+    'No spatial cell is selected. Use the map or exact evidence table to inspect one cell.',
+  )
+  await expect(summary).toBeVisible()
 })
 
 test('stops the verified replay when committed Geographic Impact bytes are corrupted', async ({

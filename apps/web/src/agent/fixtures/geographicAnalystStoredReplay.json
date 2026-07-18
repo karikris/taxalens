@@ -4,17 +4,17 @@
   "reasoningEffort": "xhigh",
   "mode": "stored_credential_free",
   "capturedAt": "2026-07-17T19:58:49Z",
-  "request": "What evidence could Flickr add to this country?",
+  "request": "What is the global potential geographic coverage contribution?",
   "scope": {
     "projectId": "taxalens-papilio-demoleus-judge-replay",
     "runId": "papilio-demoleus-pilot-20260715",
     "acceptedTaxonKey": "gbif:1938069",
     "baselineSnapshotId": "gbif-occurrence-search-20260715",
     "flickrSnapshotId": "flickr:2026-07-15",
-    "spatialResolution": 7,
-    "scopeLevel": "country",
-    "scopeId": "country:SE",
-    "scopeName": "Sweden"
+    "spatialResolution": 3,
+    "scopeLevel": "global",
+    "scopeId": "global",
+    "scopeName": "Global"
   },
   "sourceFingerprintSha256": "e3c532a1c6310d2a0906cacc20c51318b8f379eab37f4cd5f4e234ab694946d2",
   "sources": [
@@ -31,35 +31,16 @@
       "tool": "inspect_geographic_impact",
       "status": "available",
       "facts": {
-        "baseline_union_count": 0,
-        "flickr_candidate_count": 529,
-        "candidate_only_cells": 12,
+        "baseline_union_count": 19201,
+        "flickr_candidate_count": 13416,
+        "candidate_only_cells": 1221,
         "reviewed_additional_cells": 0,
         "release_ready_additional_cells": 0,
         "data_deficient_state": "data_deficient"
       }
-    },
-    {
-      "sequence": 2,
-      "tool": "list_candidate_gap_cells",
-      "status": "available",
-      "records": [
-        {"spatialCellId":"87088660cffffff","flickrCandidateCount":414},
-        {"spatialCellId":"8708a820affffff","flickrCandidateCount":100},
-        {"spatialCellId":"871f25048ffffff","flickrCandidateCount":3},
-        {"spatialCellId":"8708a820bffffff","flickrCandidateCount":2},
-        {"spatialCellId":"8708a8252ffffff","flickrCandidateCount":2},
-        {"spatialCellId":"871f2e915ffffff","flickrCandidateCount":2},
-        {"spatialCellId":"87081b75cffffff","flickrCandidateCount":1},
-        {"spatialCellId":"87081e019ffffff","flickrCandidateCount":1},
-        {"spatialCellId":"870895b4cffffff","flickrCandidateCount":1},
-        {"spatialCellId":"8708a344affffff","flickrCandidateCount":1},
-        {"spatialCellId":"871f25055ffffff","flickrCandidateCount":1},
-        {"spatialCellId":"871f25ad4ffffff","flickrCandidateCount":1}
-      ]
     }
   ],
-  "answer": "Sweden has zero baseline occurrence-evidence rows and 529 Flickr candidate-evidence rows at H3 resolution 7 in the selected snapshots. Twelve spatial cells are potential coverage-gap cells. Zero cells are human-supported additional cells and zero are release-ready additional cells. Candidate-only cells describe potential coverage contribution, not biological absence or new occurrences.",
+  "answer": "At global scope, the selected snapshots contain 19,201 baseline occurrence-evidence rows and 13,416 geographically supported Flickr candidate-evidence rows at H3 resolution 3. There are 1,221 potential coverage-gap cells. Zero cells are human-supported additional cells and zero are release-ready additional cells. Candidate-only cells describe potential coverage contribution, not biological absence or new occurrences.",
   "limitations": [
     "No retained human review outcome or quality snapshot is available.",
     "Direct iNaturalist delta is unavailable.",
@@ -67,5 +48,5 @@
   ],
   "externalActionsExecuted": false,
   "scientificClaimAllowed": false,
-  "replaySha256": "090c21029302d95e0a8eb7af22e8ee93ed6b27be0f021c72547bc654fe5f2628"
+  "replaySha256": "4725486a7d7af23eb29794c76f100d63c68dc514a6699faea0bb529f8ea541c7"
 }

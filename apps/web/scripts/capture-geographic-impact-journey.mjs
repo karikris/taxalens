@@ -34,44 +34,13 @@ try {
   await expectMapScope('global')
   await captureMap('01-global.png', 'Global • baseline + Flickr candidates')
 
-  await page.getByRole('combobox', { name: 'Continent' }).selectOption('continent:europe')
-  await expectMapScope('continent:europe')
-  await captureMap('02-europe.png', 'Global › Europe')
-
-  await page.getByRole('combobox', { name: 'Country' }).selectOption('country:SE')
-  await expectMapScope('country:SE')
-  await captureMap('03-sweden.png', 'Global › Europe › Sweden')
-
   await page.getByRole('radio', { name: 'Flickr candidates' }).check()
   await page.getByText(/cells match Flickr candidates/u).waitFor()
-  await captureMap('04-flickr-candidates.png', 'Flickr candidate evidence • hypotheses')
-
-  const selectedCellId = '87088660cffffff'
-  const row = page.getByRole('rowheader', { name: selectedCellId }).locator('..')
-  await row.getByRole('button', { name: `Select ${selectedCellId}` }).click()
-  await page
-    .locator('.selected-geography-details')
-    .getByRole('heading', { name: selectedCellId })
-    .waitFor()
-  await captureMap('05-candidate-cell.png', 'Candidate-only spatial cell selected • not an occurrence')
+  await captureMap('02-flickr-candidates.png', 'Global Flickr candidate evidence • hypotheses')
 
   await page.getByRole('radio', { name: 'Human reviewed' }).check()
   await page.getByText(/0 of [\d,]+ cells match Human reviewed\./u).waitFor()
-  await captureMap('06-human-reviewed.png', 'Human reviewed • zero retained outcomes')
-
-  await page.getByRole('link', { name: 'Evidence Lens' }).click()
-  await page.getByRole('button', { name: 'Inspect verified discovery record' }).click()
-  await page.getByRole('heading', { name: 'Source flickr:55081300254' }).waitFor({
-    timeout: 60_000,
-  })
-  await page.getByRole('img', { name: /Record geographic context mini-map/u }).waitFor({
-    timeout: 60_000,
-  })
-  await captureRegion(
-    '.geography-reference',
-    '07-record-context.png',
-    'Individual Flickr candidate • geographic context',
-  )
+  await captureMap('03-human-reviewed.png', 'Global human-reviewed evidence • zero retained outcomes')
 
   if (externalOrigins.size > 0) {
     throw new Error(`Capture requested external origins: ${[...externalOrigins].sort().join(', ')}`)

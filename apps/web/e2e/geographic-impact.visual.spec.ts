@@ -21,28 +21,6 @@ test('protects the global Geographic Impact map at 1280 by 720', async ({ page }
   await expectGeographicScreenshot(page, 'geographic-impact-global-1280x720.png')
 })
 
-for (const scope of [
-  {
-    baselineEvidence: true,
-    id: 'continent:asia',
-    route: './#dashboard?geo=continent%3Aasia',
-    snapshot: 'geographic-impact-asia-1280x720.png',
-  },
-  {
-    baselineEvidence: false,
-    id: 'country:SE',
-    route: './#dashboard?geo=country%3ASE',
-    snapshot: 'geographic-impact-sweden-1280x720.png',
-  },
-] as const) {
-  test(`protects the ${scope.id} Geographic Impact drilldown`, async ({ page }) => {
-    await page.goto(scope.route)
-    await expectGeographicMapReady(page, scope.id, scope.baselineEvidence)
-
-    await expectGeographicScreenshot(page, scope.snapshot)
-  })
-}
-
 async function expectGeographicScreenshot(page: Page, snapshot: string): Promise<void> {
   await page.evaluate(async () => {
     await document.fonts.ready

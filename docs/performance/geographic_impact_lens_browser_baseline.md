@@ -92,8 +92,8 @@ Task 8.4 added five fresh-context startup observations plus five in-session obse
 | Operation | Gated statistic | Committed baseline | Regression ceiling | Completion signal |
 | --- | --- | ---: | ---: | --- |
 | Global map initialization | p95 | 2,475.30 ms | 3,225.30 ms | map loaded, global camera, 2,155 features, blue and amber evidence present |
-| Global → Asia | median | 1,312.36 ms | 2,812.36 ms | URL, camera scope and 2,879-cell table agree |
-| Asia → India | median | 1,227.21 ms | 2,227.21 ms | URL, camera scope and 2,526-cell table agree |
+| Global → first verified continent | median | 1,312.36 ms | 2,812.36 ms | runtime-selected hierarchy scope, URL, camera and table agree |
+| Verified continent → first verified country | median | 1,227.21 ms | 2,227.21 ms | runtime-selected child scope, URL, camera and table agree |
 | All evidence → Flickr candidates | median | 187.57 ms | 937.57 ms | exact live status and 1,319-cell table agree |
 
 Each ceiling equals the measured baseline plus the larger of its recorded relative or absolute tolerance. Fresh-context startup uses p95. Interaction gates use the median of five samples because p95 over five observations is the single maximum and proved dominated by nondeterministic headless-WebGL scheduling on this WSL host; minimum, median, p95 and maximum remain emitted for diagnosis. A sustained interaction regression still moves the median and fails the gate. These are regression tripwires for this replay and test host class, not universal service-level objectives.

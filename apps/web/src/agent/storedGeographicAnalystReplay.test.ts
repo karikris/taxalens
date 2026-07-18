@@ -7,13 +7,14 @@ describe('stored geographic analyst replay', () => {
   it('loads a credential-free artifact-grounded GPT-5.6 replay', async () => {
     const replay = await loadStoredGeographicAnalystReplay()
     expect(replay).toMatchObject({ model: 'gpt-5.6-sol', reasoningEffort: 'xhigh', mode: 'stored_credential_free', externalActionsExecuted: false, scientificClaimAllowed: false })
-    expect(replay.toolReceipts).toHaveLength(2)
+    expect(replay.scope).toMatchObject({ scopeLevel: 'global', scopeId: 'global', scopeName: 'Global' })
+    expect(replay.toolReceipts).toHaveLength(1)
     expect(replay.answer).toContain('Zero cells are human-supported additional cells')
   })
 
   it('rejects changed facts, prose, and fingerprints', async () => {
     const facts = structuredClone(storedReplay) as any
-    facts.toolReceipts[0].facts.flickr_candidate_count = 530
+    facts.toolReceipts[0].facts.flickr_candidate_count = 13_417
     await expect(loadStoredGeographicAnalystReplay(facts)).rejects.toThrow('inspection facts differ')
     const prose = structuredClone(storedReplay) as any
     prose.answer = 'These are new Flickr records.'

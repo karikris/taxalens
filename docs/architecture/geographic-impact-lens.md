@@ -170,6 +170,19 @@ country boundary does not manufacture a cell identity.
 
 ## Drilldown scopes
 
+The canonical public and judge-facing scope is **global**. Stored analyst
+replays, hosted release checks, README captures, judge routes, and presentation
+copy do not hard-code a named country or candidate record as the project's
+representative geography. This prevents an unreviewed search result from being
+mistaken for a biological occurrence merely because it made a convenient test
+fixture.
+
+Administrative drilldown remains available as an optional researcher action.
+Automated browser coverage selects any required regional scope from the
+checksum-verified hierarchy at runtime; isolated contract tests use clearly
+synthetic identities. A named place shown after an artifact-backed user
+selection is evidence context, not a TaxaLens occurrence claim.
+
 The scope hierarchy is:
 
 1. global;

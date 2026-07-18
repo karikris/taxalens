@@ -233,6 +233,20 @@ show reviewed examples but do not authorize unweighted population inference.
 Every aggregate reviewed-contribution claim is bound to a valid
 `QualitySnapshot` and its sampling disclosures.
 
+### Geographic presentation remains globally framed
+
+Global is the canonical public, judge, capture, hosted-check, and stored-agent
+scope. TaxaLens does not hard-code a named country, ISO country code, candidate
+cell, or candidate record as the representative project geography. Doing so
+would give an unreviewed search result narrative weight that its evidence does
+not support.
+
+Country and regional drilldown remain optional researcher controls. Tests
+derive those scopes from the verified hierarchy or use clearly synthetic
+contract identities. A real named place may be displayed when selected from
+artifact-backed evidence, but it remains context and does not establish an
+occurrence or biological range.
+
 ### Reviewed-label contracts are not retained outcomes
 
 Current BioMiner `main` requires the `reviewed-labels-v2` contract and has

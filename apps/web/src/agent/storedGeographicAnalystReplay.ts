@@ -37,10 +37,10 @@ export async function loadStoredGeographicAnalystReplay(
     acceptedTaxonKey: impactManifest.accepted_taxon_key,
     baselineSnapshotId: impactManifest.baseline_snapshot_id,
     flickrSnapshotId: impactManifest.flickr_snapshot_id,
-    spatialResolution: 7,
-    scopeLevel: 'country',
-    scopeId: 'country:SE',
-    scopeName: 'Sweden',
+    spatialResolution: 3,
+    scopeLevel: 'global',
+    scopeId: 'global',
+    scopeName: 'Global',
   }
   for (const [field, value] of Object.entries(expectedScope)) {
     if (scope[field] !== value) throw new Error(`Stored geographic replay scope differs: ${field}`)
@@ -64,16 +64,13 @@ export async function loadStoredGeographicAnalystReplay(
     }
   }
   const receipts = array(replay.toolReceipts, 'stored geographic tool receipts').map((value) => record(value, 'stored geographic tool receipt'))
-  if (receipts.length !== 2 || receipts[0]?.sequence !== 1 || receipts[0]?.tool !== 'inspect_geographic_impact' || receipts[1]?.sequence !== 2 || receipts[1]?.tool !== 'list_candidate_gap_cells') {
+  if (receipts.length !== 1 || receipts[0]?.sequence !== 1 || receipts[0]?.tool !== 'inspect_geographic_impact') {
     throw new Error('Stored geographic replay tool sequence differs')
   }
   const facts = record(receipts[0]?.facts, 'stored geographic inspection facts')
-  if (facts.baseline_union_count !== 0 || facts.flickr_candidate_count !== 529 || facts.candidate_only_cells !== 12 || facts.reviewed_additional_cells !== 0 || facts.release_ready_additional_cells !== 0 || facts.data_deficient_state !== 'data_deficient') {
+  if (facts.baseline_union_count !== 19_201 || facts.flickr_candidate_count !== 13_416 || facts.candidate_only_cells !== 1_221 || facts.reviewed_additional_cells !== 0 || facts.release_ready_additional_cells !== 0 || facts.data_deficient_state !== 'data_deficient') {
     throw new Error('Stored geographic replay inspection facts differ')
   }
-  const records = array(receipts[1]?.records, 'stored geographic gap records').map((value) => record(value, 'stored geographic gap record'))
-  const candidateTotal = records.reduce((total, value) => total + integer(value.flickrCandidateCount, 'stored cell candidate count'), 0)
-  if (records.length !== 12 || candidateTotal !== 529) throw new Error('Stored geographic gap records do not reconcile')
   const answer = string(replay.answer, 'stored geographic answer')
   if (!answer.includes('potential coverage contribution') || /new Flickr records|confirmed knowledge gain|new range|species absent from GBIF|records added to science/iu.test(answer)) {
     throw new Error('Stored geographic replay answer violates scientific terminology')
@@ -93,5 +90,4 @@ export async function loadStoredGeographicAnalystReplay(
 function record(value: unknown, label: string): Record<string, unknown> { if (typeof value !== 'object' || value === null || Array.isArray(value)) throw new Error(`${label} must be an object`); return value as Record<string, unknown> }
 function array(value: unknown, label: string): unknown[] { if (!Array.isArray(value)) throw new Error(`${label} must be an array`); return value }
 function string(value: unknown, label: string): string { if (typeof value !== 'string') throw new Error(`${label} must be a string`); return value }
-function integer(value: unknown, label: string): number { if (!Number.isInteger(value) || (value as number) < 0) throw new Error(`${label} must be a non-negative integer`); return value as number }
 function deepFreeze<Value>(value: Value): Value { if (value !== null && typeof value === 'object' && !Object.isFrozen(value)) { Object.freeze(value); for (const child of Object.values(value as Record<string, unknown>)) deepFreeze(child) } return value }

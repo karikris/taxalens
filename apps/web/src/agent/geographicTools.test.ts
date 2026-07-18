@@ -97,7 +97,7 @@ describe('geographic tool contracts', () => {
       flickr_snapshot_id: 'flickr:a',
       spatial_resolution: 7,
       scope_level: 'country',
-      scope_id: 'country:SE',
+      scope_id: 'country:EX',
       contribution_state: 'potential',
       limit: 25,
     }
