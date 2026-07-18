@@ -51,15 +51,27 @@ def test_exported_sections_validate_and_absence_remains_explicit() -> None:
     )
 
     assert validation.valid, validation
-    for name in ("verification_decisions", "verification_quality"):
-        assert sections[name]["status"] == "unavailable"
-        assert sections[name]["artifact_ids"] == []
-        assert sections[name]["reason"]
-        assert sections[name]["scientific_claim_allowed"] is False
-    assert not any(
-        artifact["role"] in {"verification_decisions", "verification_quality"}
-        for artifact in bundle["artifact_inventory"]
-    )
+    expected_empty_artifacts = {
+        "verification_decisions": (
+            "geographic-verification-consensus",
+            "verification_decisions",
+        ),
+        "verification_quality": (
+            "geographic-release-decisions",
+            "verification_quality",
+        ),
+    }
+    artifacts = {artifact["artifact_id"]: artifact for artifact in bundle["artifact_inventory"]}
+    for name, (artifact_id, role) in expected_empty_artifacts.items():
+        section = sections[name]
+        assert section["status"] == "partial"
+        assert section["artifact_ids"] == [artifact_id]
+        assert section["reason"]
+        assert section["verification_status"] == "human_review_pending"
+        assert section["human_review_required"] is True
+        assert section["scientific_claim_allowed"] is False
+        assert artifacts[artifact_id]["role"] == role
+        assert artifacts[artifact_id]["record_count"] == 0
 
 
 def _normalize_source_item(item: dict[str, object]) -> dict[str, object]:

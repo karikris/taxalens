@@ -412,9 +412,7 @@ def _v1_fixture() -> dict[str, object]:
         if item["artifact_id"] not in geographic_artifact_ids
     ]
     bundle["schema_version"] = JUDGE_BUNDLE_V1_SCHEMA_VERSION
-    bundle["sections"] = {
-        name: bundle["sections"][name] for name in JUDGE_BUNDLE_V1_SECTION_NAMES
-    }
+    bundle["sections"] = {name: bundle["sections"][name] for name in JUDGE_BUNDLE_V1_SECTION_NAMES}
     bundle["sections"]["verification_decisions"] = _unavailable("verification_decisions")
     bundle["sections"]["verification_quality"] = _unavailable("verification_quality")
     for item in bundle["rights"]["items"]:
@@ -423,9 +421,7 @@ def _v1_fixture() -> dict[str, object]:
             for artifact_id in item["artifact_ids"]
             if artifact_id not in geographic_artifact_ids
         ]
-    bundle["rights"]["items"] = [
-        item for item in bundle["rights"]["items"] if item["artifact_ids"]
-    ]
+    bundle["rights"]["items"] = [item for item in bundle["rights"]["items"] if item["artifact_ids"]]
     for entry in bundle["attribution"]["entries"]:
         entry["artifact_ids"] = [
             artifact_id

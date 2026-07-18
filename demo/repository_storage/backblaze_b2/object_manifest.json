@@ -1,7 +1,7 @@
 {
   "bucket_alias": "taxalens-repository-fixture",
   "credentials_included": false,
-  "object_count": 103,
+  "object_count": 112,
   "objects": [
     {
       "bytes": 484,
@@ -58,13 +58,13 @@
       "sha256": "95448f3145d903f7f042fe41d74561475ef050f8df21b318ebacb252484e4f0b"
     },
     {
-      "bytes": 3926,
+      "bytes": 4776,
       "git_tracked_required": true,
       "immutable": true,
       "media_type": "application/json",
       "object_key": "taxalens/demo/fixture/papilio_pilot/attribution_manifest.json",
       "repository_path": "demo/fixture/papilio_pilot/attribution_manifest.json",
-      "sha256": "bb95ce41af7f39fac40d1928270611f5a254fa32b796ada91589fa6a68c4ecf9"
+      "sha256": "100b78ebad4767b3dc348d8e03693412f742376284581a33a7b768bfaf8cb812"
     },
     {
       "bytes": 6241,
@@ -193,22 +193,103 @@
       "sha256": "7241cfdcc50d4a4316acc85214237f299c2b5cf974b4de34720baaa9725df778"
     },
     {
-      "bytes": 37191,
+      "bytes": 313,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/demo/repository_storage/supabase/verification_consensus.json",
+      "repository_path": "demo/fixture/papilio_pilot/demo/repository_storage/supabase/verification_consensus.json",
+      "sha256": "358afaf053c095b275e6189632fd22b4bd10b266953d57fd40e606163e194e0f"
+    },
+    {
+      "bytes": 513562,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/vnd.apache.parquet",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/demo/source/biominer_phase14/baseline_geography/taxon_geographic_spread.parquet",
+      "repository_path": "demo/fixture/papilio_pilot/demo/source/biominer_phase14/baseline_geography/taxon_geographic_spread.parquet",
+      "sha256": "46f38228cb5e7ba58f5f38f79a38dd87ae8fab80cf987e916f620d5cc4b9e83c"
+    },
+    {
+      "bytes": 3343827,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/vnd.apache.parquet",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/demo/source/biominer_phase14/baseline_provider_union/baseline_occurrence_union.parquet",
+      "repository_path": "demo/fixture/papilio_pilot/demo/source/biominer_phase14/baseline_provider_union/baseline_occurrence_union.parquet",
+      "sha256": "242e280b78a75b79dffb2012d24163d7ce62d07eeac908a31f55510afc486445"
+    },
+    {
+      "bytes": 941398,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/vnd.apache.parquet",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/demo/source/biominer_phase14/flickr_geography/flickr_geography_verification.parquet",
+      "repository_path": "demo/fixture/papilio_pilot/demo/source/biominer_phase14/flickr_geography/flickr_geography_verification.parquet",
+      "sha256": "c414d2db442acc372029a4cc6d0a02d57a7f4e8495efd93ef2faa2499c32084d"
+    },
+    {
+      "bytes": 639681,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/vnd.apache.parquet",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/demo/source/biominer_phase14/geographic_impact/geographic_impact_cells.parquet",
+      "repository_path": "demo/fixture/papilio_pilot/demo/source/biominer_phase14/geographic_impact/geographic_impact_cells.parquet",
+      "sha256": "a02927ffbb4dc09fca582c61e6ceab51af6d12f8998cf0f7762ebfe26a4ea1c9"
+    },
+    {
+      "bytes": 7330,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/demo/source/biominer_phase14/geographic_impact/geographic_impact_manifest.json",
+      "repository_path": "demo/fixture/papilio_pilot/demo/source/biominer_phase14/geographic_impact/geographic_impact_manifest.json",
+      "sha256": "d2ad9e8fd5314a26bd73fd27b7ead00d7e85e0f962a44319d5e0910c567a3b22"
+    },
+    {
+      "bytes": 41670,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/vnd.apache.parquet",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/demo/source/biominer_phase14/geographic_impact/geographic_impact_summary.parquet",
+      "repository_path": "demo/fixture/papilio_pilot/demo/source/biominer_phase14/geographic_impact/geographic_impact_summary.parquet",
+      "sha256": "526d1b9d1acec52226d1fbff7af6941267fcc31cb32af73c46e92d4f8f97a8b2"
+    },
+    {
+      "bytes": 102491,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/demo/source/geography/country_hierarchy.json",
+      "repository_path": "demo/fixture/papilio_pilot/demo/source/geography/country_hierarchy.json",
+      "sha256": "f7181eff58f5d68cf0c9987c320b10bb4d9e22220f45af30e33f4de4cb198a54"
+    },
+    {
+      "bytes": 299,
+      "git_tracked_required": true,
+      "immutable": true,
+      "media_type": "application/json",
+      "object_key": "taxalens/demo/fixture/papilio_pilot/demo/source/verification/occurrence_release_decisions.json",
+      "repository_path": "demo/fixture/papilio_pilot/demo/source/verification/occurrence_release_decisions.json",
+      "sha256": "3cc571646b54b66b301edb3427d925f7bcf3f330ece57021b945d430a5164c19"
+    },
+    {
+      "bytes": 46766,
       "git_tracked_required": true,
       "immutable": true,
       "media_type": "application/json",
       "object_key": "taxalens/demo/fixture/papilio_pilot/judge_bundle.json",
       "repository_path": "demo/fixture/papilio_pilot/judge_bundle.json",
-      "sha256": "54211d3f5e69f7edcc117b878ce79b993b06c09964687dbccb2e5c4dd777bd7a"
+      "sha256": "a6b0aa6b60723c5aaed17a2a5573d581931f5e3b9b3dbcae9f1d34f8e741afc3"
     },
     {
-      "bytes": 6529,
+      "bytes": 7444,
       "git_tracked_required": true,
       "immutable": true,
       "media_type": "application/json",
       "object_key": "taxalens/demo/fixture/papilio_pilot/rights_manifest.json",
       "repository_path": "demo/fixture/papilio_pilot/rights_manifest.json",
-      "sha256": "633f38db680ee1310d25ed5ea77fe71ac2911043381a7ea77e086bd2112026d5"
+      "sha256": "309e449f4313bb3299ccc08c1441c360477ac55b5ccc2ae40c13273df73ea7c2"
     },
     {
       "bytes": 4371,
@@ -936,5 +1017,5 @@
   "scientific_claim_allowed": false,
   "signed_urls_included": false,
   "storage_mode": "repository_mirror",
-  "total_bytes": 15608817
+  "total_bytes": 21210728
 }

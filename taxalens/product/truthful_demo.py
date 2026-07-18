@@ -68,9 +68,7 @@ _VERIFICATION_ITEMS_SCHEMA_VERSION = "taxalens-verification-items:v1.0.0"
 _VERIFICATION_MEDIA_SCHEMA_VERSION = "taxalens-verification-media:v1.0.0"
 _GEOGRAPHIC_IMPACT_MANIFEST_ARTIFACT_ID = "geographic-impact-manifest"
 _GEOGRAPHIC_IMPACT_MANIFEST_SOURCE_COMMIT = "ce05ac9fdecff46008d6dbe93f9741edcfd5388b"
-_GEOGRAPHIC_IMPACT_MANIFEST_SCHEMA_VERSION = (
-    "taxalens-geographic-impact-manifest:v1.0.0"
-)
+_GEOGRAPHIC_IMPACT_MANIFEST_SCHEMA_VERSION = "taxalens-geographic-impact-manifest:v1.0.0"
 _GEOGRAPHIC_ARTIFACT_ROLES = {
     "baseline_geographic_spread": "baseline_geographic_spread",
     "baseline_occurrence_union": "baseline_provider_union",

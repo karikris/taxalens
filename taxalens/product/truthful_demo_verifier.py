@@ -845,8 +845,9 @@ def _verify_counts(
         payloads["geographic-impact-manifest"], "geographic impact manifest"
     )
     geographic_counts = {
-        _required_text(_object(row, "geographic artifact").get("path"), "path"):
-        _required_nonnegative_int(
+        _required_text(
+            _object(row, "geographic artifact").get("path"), "path"
+        ): _required_nonnegative_int(
             _object(row, "geographic artifact").get("row_count"), "row_count"
         )
         for row in _array(geographic_manifest.get("artifacts"), "geographic artifacts")
