@@ -242,7 +242,7 @@ facts.
 
 | Geographic evidence | Expected value |
 | --- | --- |
-| Stored judge bundle | `papilio-demoleus-prototype-74a7d648-v3`; raw schema `taxalens-judge-bundle:v1.0.0` |
+| Stored judge bundle | `papilio-demoleus-prototype-74a7d648-v3`; schema `taxalens-judge-bundle:v2.0.0` |
 | Canonical bundle contract | `taxalens-judge-bundle:v2.0.0`; the v1 fixture is migrated in memory with six unavailable geographic descriptors and no invented rows |
 | Geographic Impact manifest | `geographic-impact-manifest:e3c532a1c6310d2a0906cacc`; build `geographic-impact:84b8d1b69c3dae1e329a3f6b` |
 | Baseline snapshot | `gbif-occurrence-search-20260715` |
@@ -287,11 +287,11 @@ substitute another fixture.
 Open [`demo/fixture/papilio_pilot/judge_bundle.json`](demo/fixture/papilio_pilot/judge_bundle.json)
 and verify:
 
-- stored schema `taxalens-judge-bundle:v1.0.0`, validated before its canonical in-memory v2
-  migration;
+- stored schema `taxalens-judge-bundle:v2.0.0`, validated directly; the tested v1 migration remains
+  available for older bundles;
 - inventory checksum `7bbb1c9f28d23e5b87abc8c6139182fff683c2ae4873f5bc2a17fe91b0784acc`;
 - payload root `9e6b4660d7d6ea885c0a231cca63e7237bf59cc8a8c4eae84a2f3fd701124974`;
-- all 30 artifacts are rights-covered and attribution-complete;
+- all 39 artifacts are rights-covered and attribution-complete;
 - media-rights verification covers three CC BY-SA 4.0 Commons review images, while their
   provider-supplied taxonomic identities remain unreviewed.
 
@@ -478,7 +478,7 @@ label. It must never replace or mutate the deterministic fixture expectations ab
 - [ ] Public hosted replay opened without login or installation.
 - [ ] Target, bundle ID, TaxaLens source, and BioMiner source were visible.
 - [ ] Seven-step route completed and reset worked.
-- [ ] Observatory showed 30 / 30 verified artifacts and 13 stages.
+- [ ] Observatory showed 39 / 39 verified artifacts and 13 stages.
 - [ ] One record highlighted 13 stages and 12 artifacts.
 - [ ] Evidence Lens kept transformed media, scores, competitor rank, uncertainty, and calibration
       unavailable.

@@ -122,14 +122,14 @@ describe('prepareResearchOutputs', () => {
       payloadFileCount: 5,
     })
     expect(provenance.exportTimestamp).toBeNull()
-    expect(provenance.artifacts).toHaveLength(30)
+    expect(provenance.artifacts).toHaveLength(39)
     expect(provenance.generation).toEqual(expect.objectContaining({
       networkRequestsRequired: 0,
       scientificClaimsAdded: false,
     }))
     expect(summary.bundleVerification).toEqual(expect.objectContaining({
-      artifactCount: 30,
-      verifiedArtifactCount: 30,
+      artifactCount: 39,
+      verifiedArtifactCount: 39,
     }))
     expect(summary.evidenceFunnel.stages).toHaveLength(7)
     expect(summary.scientificClaimAllowed).toBe(false)

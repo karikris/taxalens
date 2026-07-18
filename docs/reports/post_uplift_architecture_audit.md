@@ -77,7 +77,7 @@ The prior completion matrix, current source inspection, and current call-site au
 - The review root compatibility layer is the main redundant pre-uplift residue found in runtime source.
 - The Node type-check include omission is a concrete configuration quality gap.
 - A deeper runtime trace found a more important integration mismatch: `GeographicImpactQueryController`, its bounded cache, and the real DuckDB-Wasm full-outer source join are used by unit and performance tests, but not by `GeographicImpactLens`. The production lens instead owns a second cache and queries only the already-materialized impact-cell Parquet.
-- The hosted judge fixture remains v1 and is migrated in memory to v2 with geographic sections marked unavailable. Geographic Impact assets are bundled separately, so the real v2 geographic project facade cannot currently supply the production map query.
+- The hosted judge fixture was upgraded during this audit to a concrete v2 bundle whose geographic artifacts are checksum-bound to the committed impact manifest. The v1 migration remains covered as a compatibility boundary and does not invent missing geography.
 
 ## Unfinished work classification
 

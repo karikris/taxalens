@@ -18,7 +18,9 @@
         "biominer-flickr-query-hits-parquet",
         "biominer-flickr-geography-parquet",
         "biominer-flickr-geo-assignments-parquet",
-        "biominer-flickr-geo-clusters-parquet"
+        "biominer-flickr-geo-clusters-parquet",
+        "geographic-baseline-geographic-spread",
+        "geographic-flickr-geography"
       ],
       "attribution_id": "biominer-pilot-metadata",
       "creator": "Kris Kari",
@@ -39,6 +41,12 @@
         "stored-analyst-run",
         "verification-campaign-manifest",
         "verification-items",
+        "geographic-impact-manifest",
+        "geographic-baseline-occurrence-union",
+        "geographic-verification-consensus",
+        "geographic-release-decisions",
+        "geographic-geographic-impact-cells",
+        "geographic-geographic-impact-summary",
         "rights-manifest",
         "attribution-manifest"
       ],
@@ -49,6 +57,18 @@
       "license_uri": "https://opensource.org/license/mit",
       "source_title": "TaxaLens",
       "source_url": "https://github.com/karikris/TaxaLens"
+    },
+    {
+      "artifact_ids": [
+        "geographic-country-hierarchy"
+      ],
+      "attribution_id": "natural-earth-boundaries",
+      "creator": "Natural Earth",
+      "display_text": "Country hierarchy derived from Natural Earth public-domain data.",
+      "license_name": "Public domain",
+      "license_uri": "https://www.naturalearthdata.com/about/terms-of-use/",
+      "source_title": "Natural Earth 1:110m Admin 0 Countries",
+      "source_url": "https://www.naturalearthdata.com/"
     },
     {
       "artifact_ids": [

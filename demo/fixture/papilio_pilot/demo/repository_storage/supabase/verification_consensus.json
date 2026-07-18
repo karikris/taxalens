@@ -1,0 +1,9 @@
+{
+  "empty_reason": "Consensus remains a deterministic projection because no retained events exist.",
+  "row_count": 0,
+  "rows": [],
+  "schema_version": "taxalens-repository-supabase-table:v1.0.0",
+  "scientific_claim_allowed": false,
+  "storage_mode": "repository_mirror",
+  "table": "verification_consensus"
+}

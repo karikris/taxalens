@@ -14,7 +14,7 @@ import {
   type JudgeBundleContract,
   type JudgeBundleSection,
 } from '../../../../packages/contracts/src/judge_bundle_contract'
-import { committedJudgeBundle } from '../test/fixtures'
+import { committedV1JudgeBundle } from '../test/fixtures'
 import { migrateJudgeBundleToCurrent, type JsonValue } from './evidenceFacade'
 import {
   loadCountryHierarchy,
@@ -92,7 +92,7 @@ describe('geographic project facade', () => {
 
   it('reports v1-migrated geography as unavailable without inventing empty evidence', async () => {
     const migration = await migrateJudgeBundleToCurrent(
-      structuredClone(committedJudgeBundle) as JsonValue,
+      committedV1JudgeBundle() as JsonValue,
     )
     const project = new TaxaLensProjectFacade(migration, new Map())
     const migratedScope = {

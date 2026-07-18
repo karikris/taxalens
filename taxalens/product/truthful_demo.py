@@ -24,7 +24,8 @@ from packages.replay.src.biominer_prototype_release_gate import (
 )
 
 from taxalens.product.judge_bundle import (
-    JUDGE_BUNDLE_V1_SCHEMA_VERSION,
+    JUDGE_BUNDLE_SCHEMA_VERSION,
+    JUDGE_BUNDLE_SECTION_NAMES,
     JUDGE_BUNDLE_V1_SECTION_NAMES,
     compute_inventory_sha256,
     compute_payload_root_sha256,
@@ -54,6 +55,9 @@ DEFAULT_VERIFICATION_CAMPAIGN_MANIFEST = _REPOSITORY_ROOT / (
     "demo/source/verification/papilio-demoleus-commons.campaign.json"
 )
 DEFAULT_VERIFICATION_MEDIA_ROOT = _REPOSITORY_ROOT / "apps/web/src/review/assets"
+DEFAULT_GEOGRAPHIC_IMPACT_MANIFEST = _REPOSITORY_ROOT / (
+    "demo/source/biominer_phase14/geographic_impact/geographic_impact_manifest.json"
+)
 
 _BIOMINER_REPOSITORY = "karikris/BioMiner"
 _TAXALENS_REPOSITORY = "karikris/TaxaLens"
@@ -62,6 +66,21 @@ _VERIFICATION_CAMPAIGN_MANIFEST_SCHEMA_VERSION = "taxalens-verification-campaign
 _VERIFICATION_ITEMS_ARTIFACT_ID = "verification-items"
 _VERIFICATION_ITEMS_SCHEMA_VERSION = "taxalens-verification-items:v1.0.0"
 _VERIFICATION_MEDIA_SCHEMA_VERSION = "taxalens-verification-media:v1.0.0"
+_GEOGRAPHIC_IMPACT_MANIFEST_ARTIFACT_ID = "geographic-impact-manifest"
+_GEOGRAPHIC_IMPACT_MANIFEST_SOURCE_COMMIT = "ce05ac9fdecff46008d6dbe93f9741edcfd5388b"
+_GEOGRAPHIC_IMPACT_MANIFEST_SCHEMA_VERSION = (
+    "taxalens-geographic-impact-manifest:v1.0.0"
+)
+_GEOGRAPHIC_ARTIFACT_ROLES = {
+    "baseline_geographic_spread": "baseline_geographic_spread",
+    "baseline_occurrence_union": "baseline_provider_union",
+    "flickr_geography": "flickr_geography",
+    "verification_consensus": "verification_decisions",
+    "release_decisions": "verification_quality",
+    "geographic_impact_cells": "geographic_impact_cells",
+    "geographic_impact_summary": "geographic_impact_summary",
+    "country_hierarchy": "country_hierarchy",
+}
 
 
 @dataclass(frozen=True, slots=True)
@@ -89,6 +108,93 @@ class _VerificationMediaAsset:
     license_uri: str
     attribution: str
     use_scope: str
+
+
+def _geographic_payloads(
+    manifest_path: str | Path = DEFAULT_GEOGRAPHIC_IMPACT_MANIFEST,
+) -> tuple[list[_ArtifactSpec], dict[str, dict[str, str]]]:
+    manifest_file = Path(manifest_path).resolve()
+    manifest_bytes = manifest_file.read_bytes()
+    manifest = json.loads(manifest_bytes)
+    if not isinstance(manifest, dict):
+        raise ValueError("geographic impact manifest must be an object")
+    if manifest.get("schema_version") != _GEOGRAPHIC_IMPACT_MANIFEST_SCHEMA_VERSION:
+        raise ValueError("geographic impact manifest schema differs")
+    artifacts = manifest.get("artifacts")
+    if not isinstance(artifacts, list):
+        raise ValueError("geographic impact manifest artifacts must be an array")
+
+    by_logical_name: dict[str, dict[str, object]] = {}
+    for raw_entry in artifacts:
+        if not isinstance(raw_entry, dict):
+            raise ValueError("geographic impact artifact entry must be an object")
+        logical_name = raw_entry.get("logical_name")
+        if not isinstance(logical_name, str) or logical_name in by_logical_name:
+            raise ValueError("geographic impact artifact logical names must be unique")
+        by_logical_name[logical_name] = raw_entry
+    if set(_GEOGRAPHIC_ARTIFACT_ROLES) - set(by_logical_name):
+        raise ValueError("geographic impact manifest is missing required artifacts")
+
+    specs: list[_ArtifactSpec] = [
+        _ArtifactSpec(
+            artifact_id=_GEOGRAPHIC_IMPACT_MANIFEST_ARTIFACT_ID,
+            path="demo/source/biominer_phase14/geographic_impact/geographic_impact_manifest.json",
+            role="geographic_impact_manifest",
+            schema_version=_GEOGRAPHIC_IMPACT_MANIFEST_SCHEMA_VERSION,
+            source_repository=_TAXALENS_REPOSITORY,
+            source_commit=_GEOGRAPHIC_IMPACT_MANIFEST_SOURCE_COMMIT,
+            payload=manifest_bytes,
+            record_count=1,
+        )
+    ]
+    metadata: dict[str, dict[str, str]] = {}
+    for logical_name, role in _GEOGRAPHIC_ARTIFACT_ROLES.items():
+        entry = by_logical_name[logical_name]
+        if entry.get("availability") != "available":
+            raise ValueError(f"required geographic artifact is unavailable: {logical_name}")
+        relative = entry.get("path")
+        if not isinstance(relative, str) or PurePosixPath(relative).is_absolute():
+            raise ValueError(f"geographic artifact path is unsafe: {logical_name}")
+        source_path = (_REPOSITORY_ROOT / relative).resolve()
+        if not source_path.is_relative_to(_REPOSITORY_ROOT):
+            raise ValueError(f"geographic artifact path escapes the repository: {logical_name}")
+        payload = source_path.read_bytes()
+        expected_sha = entry.get("sha256")
+        expected_bytes = entry.get("byte_size")
+        record_count = entry.get("row_count")
+        schema_version = entry.get("schema_version")
+        media_type = entry.get("media_type")
+        source_repository = entry.get("source_repository")
+        source_commit = entry.get("source_commit")
+        rights_id = entry.get("rights_id")
+        if hashlib.sha256(payload).hexdigest() != expected_sha or len(payload) != expected_bytes:
+            raise ValueError(f"geographic artifact bytes differ from manifest: {logical_name}")
+        if not isinstance(record_count, int) or record_count < 0:
+            raise ValueError(f"geographic artifact row count is invalid: {logical_name}")
+        if not all(
+            isinstance(value, str) and value
+            for value in (schema_version, media_type, source_repository, source_commit, rights_id)
+        ):
+            raise ValueError(f"geographic artifact identity is incomplete: {logical_name}")
+        artifact_id = f"geographic-{logical_name.replace('_', '-')}"
+        specs.append(
+            _ArtifactSpec(
+                artifact_id=artifact_id,
+                path=relative,
+                role=role,
+                schema_version=schema_version,
+                source_repository=source_repository,
+                source_commit=source_commit,
+                payload=payload,
+                record_count=record_count,
+                media_type=media_type,
+            )
+        )
+        metadata[logical_name] = {
+            "artifact_id": artifact_id,
+            "rights_id": rights_id,
+        }
+    return specs, metadata
 
 
 def _pilot_contract(pilot: dict[str, Any], name: str) -> dict[str, Any]:
@@ -1142,6 +1248,78 @@ def _sections(
     return sections
 
 
+def _add_geographic_sections(
+    sections: dict[str, dict[str, object]],
+    metadata: dict[str, dict[str, str]],
+) -> None:
+    section_contracts = {
+        "baseline_geographic_spread": (
+            "baseline_geographic_spread",
+            "not_applicable",
+            "machine_verified_contract",
+            False,
+        ),
+        "baseline_occurrence_union": (
+            "baseline_provider_union",
+            "not_applicable",
+            "machine_verified_contract",
+            False,
+        ),
+        "flickr_geography": (
+            "flickr_geography",
+            "hypothesis_not_occurrence",
+            "unreviewed",
+            True,
+        ),
+        "geographic_impact_cells": (
+            "geographic_impact_cells",
+            "hypothesis_not_occurrence",
+            "unreviewed",
+            True,
+        ),
+        "geographic_impact_summary": (
+            "geographic_impact_summary",
+            "hypothesis_not_occurrence",
+            "unreviewed",
+            True,
+        ),
+        "country_hierarchy": (
+            "country_hierarchy",
+            "not_applicable",
+            "machine_verified_contract",
+            False,
+        ),
+    }
+    for logical_name, (
+        section_name,
+        candidate_semantics,
+        verification_status,
+        human_review_required,
+    ) in section_contracts.items():
+        sections[section_name] = _section(
+            status="available",
+            artifact_ids=[metadata[logical_name]["artifact_id"]],
+            reason=None,
+            candidate_semantics=candidate_semantics,
+            verification_status=verification_status,
+            human_review_required=human_review_required,
+        )
+    sections["verification_decisions"] = _section(
+        status="partial",
+        artifact_ids=[metadata["verification_consensus"]["artifact_id"]],
+        reason="The committed consensus table is empty because no human outcomes are retained.",
+        candidate_semantics="not_applicable",
+        verification_status="human_review_pending",
+    )
+    sections["verification_quality"] = _section(
+        status="partial",
+        artifact_ids=[metadata["release_decisions"]["artifact_id"]],
+        reason="Release decisions are explicitly empty and no quality snapshot is retained.",
+        candidate_semantics="not_applicable",
+        verification_status="human_review_pending",
+    )
+
+
 def build_truthful_demo_fixture(
     destination: str | Path = DEFAULT_TRUTHFUL_DEMO_ROOT,
     *,
@@ -1195,6 +1373,7 @@ def build_truthful_demo_fixture(
                 "scientificClaimAllowed": False,
             }
         )
+    geographic_specs, geographic_metadata = _geographic_payloads()
 
     root = Path(destination)
     if root.exists():
@@ -1231,15 +1410,27 @@ def build_truthful_demo_fixture(
             record_count=len(verification_item_records),
         ),
         *(asset.spec for asset in verification_media),
+        *geographic_specs,
     ]
     biominer_ids = [
-        spec.artifact_id for spec in specs if spec.source_repository == _BIOMINER_REPOSITORY
+        spec.artifact_id
+        for spec in specs
+        if spec.source_repository.lower() == _BIOMINER_REPOSITORY.lower()
     ]
     taxalens_ids = [
-        spec.artifact_id for spec in specs if spec.source_repository == _TAXALENS_REPOSITORY
+        spec.artifact_id
+        for spec in specs
+        if spec.source_repository.lower() == _TAXALENS_REPOSITORY.lower()
+    ]
+    natural_earth_ids = [
+        value["artifact_id"]
+        for value in geographic_metadata.values()
+        if value["rights_id"] == "natural-earth-public-domain-boundaries"
     ]
     taxalens_fixture_ids = [
-        artifact_id for artifact_id in taxalens_ids if artifact_id not in verification_media_ids
+        artifact_id
+        for artifact_id in taxalens_ids
+        if artifact_id not in verification_media_ids and artifact_id not in natural_earth_ids
     ]
     media_rights_items = [
         {
@@ -1312,6 +1503,17 @@ def build_truthful_demo_fixture(
                 "permitted_use": "TaxaLens judge replay and redistribution under MIT",
                 "attribution_required": True,
             },
+            {
+                "rights_id": "natural-earth-public-domain-boundaries",
+                "artifact_ids": natural_earth_ids,
+                "license_name": "Public domain",
+                "license_uri": "https://www.naturalearthdata.com/about/terms-of-use/",
+                "creator_or_owner": "Natural Earth",
+                "source_url": "https://www.naturalearthdata.com/",
+                "derivative_status": "TaxaLens country hierarchy derived from Natural Earth",
+                "permitted_use": "TaxaLens offline geographic replay and redistribution",
+                "attribution_required": False,
+            },
             *media_rights_items,
         ],
         "notes": [
@@ -1356,6 +1558,16 @@ def build_truthful_demo_fixture(
                 "source_url": "https://github.com/karikris/TaxaLens",
                 "license_name": "MIT",
                 "license_uri": "https://opensource.org/license/mit",
+            },
+            {
+                "attribution_id": "natural-earth-boundaries",
+                "artifact_ids": natural_earth_ids,
+                "display_text": "Country hierarchy derived from Natural Earth public-domain data.",
+                "creator": "Natural Earth",
+                "source_title": "Natural Earth 1:110m Admin 0 Countries",
+                "source_url": "https://www.naturalearthdata.com/",
+                "license_name": "Public domain",
+                "license_uri": "https://www.naturalearthdata.com/about/terms-of-use/",
             },
             *media_attribution_entries,
         ],
@@ -1409,7 +1621,7 @@ def build_truthful_demo_fixture(
                 "required": True,
             }
         )
-        if spec.role in JUDGE_BUNDLE_V1_SECTION_NAMES:
+        if spec.role in JUDGE_BUNDLE_SECTION_NAMES:
             record_counts[spec.role] = record_counts.get(spec.role, 0) + spec.record_count
 
     sections = _sections(
@@ -1417,7 +1629,8 @@ def build_truthful_demo_fixture(
         _VERIFICATION_ITEMS_ARTIFACT_ID,
         verification_media_ids,
     )
-    section_records = {name: record_counts.get(name, 0) for name in JUDGE_BUNDLE_V1_SECTION_NAMES}
+    _add_geographic_sections(sections, geographic_metadata)
+    section_records = {name: record_counts.get(name, 0) for name in JUDGE_BUNDLE_SECTION_NAMES}
     all_ids = [row["artifact_id"] for row in inventory]
     request_descriptor = next(
         row for row in inventory if row["artifact_id"] == "stored-analyst-request"
@@ -1426,7 +1639,7 @@ def build_truthful_demo_fixture(
         row for row in inventory if row["artifact_id"] == "stored-analyst-run"
     )
     bundle = {
-        "schema_version": JUDGE_BUNDLE_V1_SCHEMA_VERSION,
+        "schema_version": JUDGE_BUNDLE_SCHEMA_VERSION,
         "bundle_id": TRUTHFUL_DEMO_BUNDLE_ID,
         "title": "Truthful Papilio demoleus prototype evidence pilot",
         "created_at": TRUTHFUL_DEMO_CREATED_AT,
@@ -1464,7 +1677,9 @@ def build_truthful_demo_fixture(
                     "artifact_ids": [
                         item
                         for item in all_ids
-                        if item not in biominer_ids and item not in verification_media_ids
+                        if item not in biominer_ids
+                        and item not in verification_media_ids
+                        and item not in natural_earth_ids
                     ],
                     "status": "license_checked",
                     "license_name": "MIT",
@@ -1476,6 +1691,18 @@ def build_truthful_demo_fixture(
                     "notes": [
                         "Commons verification media is covered by its own per-asset rights items."
                     ],
+                },
+                {
+                    "rights_id": "natural-earth-public-domain-boundaries",
+                    "artifact_ids": natural_earth_ids,
+                    "status": "license_checked",
+                    "license_name": "Public domain",
+                    "license_uri": "https://www.naturalearthdata.com/about/terms-of-use/",
+                    "creator_or_owner": "Natural Earth",
+                    "source_url": "https://www.naturalearthdata.com/",
+                    "use_scope": "offline country hierarchy and geographic drilldown",
+                    "attribution_required": False,
+                    "notes": ["Natural Earth data is in the public domain."],
                 },
                 *[
                     {

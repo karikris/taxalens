@@ -821,13 +821,16 @@ function assertRecordCount(artifact: JudgeBundleArtifact, value: JsonValue): voi
   }
   let actual = Array.isArray(value) ? value.length : 1
   if (
-    artifact.role === 'attribution' &&
     typeof value === 'object' &&
     value !== null &&
-    !Array.isArray(value) &&
-    Array.isArray(value.entries)
+    !Array.isArray(value)
   ) {
-    actual = value.entries.length
+    for (const key of ['rows', 'entries', 'nodes'] as const) {
+      if (Array.isArray(value[key])) {
+        actual = value[key].length
+        break
+      }
+    }
   }
   if (actual !== artifact.record_count) {
     throw new EvidenceFacadeError(

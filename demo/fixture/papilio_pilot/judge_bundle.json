@@ -2,14 +2,14 @@
   "artifact_inventory": [
     {
       "artifact_id": "attribution-manifest",
-      "bytes": 3926,
+      "bytes": 4776,
       "media_type": "application/json",
       "path": "attribution_manifest.json",
-      "record_count": 5,
+      "record_count": 6,
       "required": true,
       "role": "attribution",
       "schema_version": "truthful-demo-attribution-manifest:v1.1.0",
-      "sha256": "bb95ce41af7f39fac40d1928270611f5a254fa32b796ada91589fa6a68c4ecf9",
+      "sha256": "100b78ebad4767b3dc348d8e03693412f742376284581a33a7b768bfaf8cb812",
       "source_commit": "fab9d3f1605d28d4bbfc3a4d0074f40e5ffff023",
       "source_repository": "karikris/TaxaLens"
     },
@@ -131,6 +131,32 @@
       "source_repository": "karikris/BioMiner"
     },
     {
+      "artifact_id": "geographic-baseline-geographic-spread",
+      "bytes": 513562,
+      "media_type": "application/vnd.apache.parquet",
+      "path": "demo/source/biominer_phase14/baseline_geography/taxon_geographic_spread.parquet",
+      "record_count": 16678,
+      "required": true,
+      "role": "baseline_geographic_spread",
+      "schema_version": "taxon-geographic-spread-v1.0.0",
+      "sha256": "46f38228cb5e7ba58f5f38f79a38dd87ae8fab80cf987e916f620d5cc4b9e83c",
+      "source_commit": "247b42f3206d48bb79e2dbf97c5a92e4f207ae71",
+      "source_repository": "karikris/BioMiner"
+    },
+    {
+      "artifact_id": "geographic-baseline-occurrence-union",
+      "bytes": 3343827,
+      "media_type": "application/vnd.apache.parquet",
+      "path": "demo/source/biominer_phase14/baseline_provider_union/baseline_occurrence_union.parquet",
+      "record_count": 57603,
+      "required": true,
+      "role": "baseline_provider_union",
+      "schema_version": "taxalens-baseline-occurrence-union:v1.0.0",
+      "sha256": "242e280b78a75b79dffb2012d24163d7ce62d07eeac908a31f55510afc486445",
+      "source_commit": "cdee00c9e16e349d722733cd951709abce8d0fee",
+      "source_repository": "karikris/taxalens"
+    },
+    {
       "artifact_id": "geographic-clusters",
       "bytes": 1564,
       "media_type": "application/json",
@@ -142,6 +168,97 @@
       "sha256": "7e66e5979100d7a4565d51498f9d60ba1b0eb9ca7daab047ec0dd60a0220e4d3",
       "source_commit": "75461d9c065af0cd96b41cd1f845c2e920f7ae34",
       "source_repository": "karikris/BioMiner"
+    },
+    {
+      "artifact_id": "geographic-country-hierarchy",
+      "bytes": 102491,
+      "media_type": "application/json",
+      "path": "demo/source/geography/country_hierarchy.json",
+      "record_count": 183,
+      "required": true,
+      "role": "country_hierarchy",
+      "schema_version": "taxalens-country-hierarchy:v1.0.0",
+      "sha256": "f7181eff58f5d68cf0c9987c320b10bb4d9e22220f45af30e33f4de4cb198a54",
+      "source_commit": "6b2eb94d8998ce07d4ebd93e1613fcb0126dd0c0",
+      "source_repository": "karikris/taxalens"
+    },
+    {
+      "artifact_id": "geographic-flickr-geography",
+      "bytes": 941398,
+      "media_type": "application/vnd.apache.parquet",
+      "path": "demo/source/biominer_phase14/flickr_geography/flickr_geography_verification.parquet",
+      "record_count": 40503,
+      "required": true,
+      "role": "flickr_geography",
+      "schema_version": "taxalens-flickr-geography-verification:v1.0.0",
+      "sha256": "c414d2db442acc372029a4cc6d0a02d57a7f4e8495efd93ef2faa2499c32084d",
+      "source_commit": "75461d9c065af0cd96b41cd1f845c2e920f7ae34",
+      "source_repository": "karikris/BioMiner"
+    },
+    {
+      "artifact_id": "geographic-geographic-impact-cells",
+      "bytes": 639681,
+      "media_type": "application/vnd.apache.parquet",
+      "path": "demo/source/biominer_phase14/geographic_impact/geographic_impact_cells.parquet",
+      "record_count": 20237,
+      "required": true,
+      "role": "geographic_impact_cells",
+      "schema_version": "taxalens-geographic-impact-cell:v1.0.0",
+      "sha256": "a02927ffbb4dc09fca582c61e6ceab51af6d12f8998cf0f7762ebfe26a4ea1c9",
+      "source_commit": "ffef38ec4abc289d31011f8c74b762524c0caeec",
+      "source_repository": "karikris/taxalens"
+    },
+    {
+      "artifact_id": "geographic-geographic-impact-summary",
+      "bytes": 41670,
+      "media_type": "application/vnd.apache.parquet",
+      "path": "demo/source/biominer_phase14/geographic_impact/geographic_impact_summary.parquet",
+      "record_count": 385,
+      "required": true,
+      "role": "geographic_impact_summary",
+      "schema_version": "taxalens-geographic-impact-summary:v1.0.0",
+      "sha256": "526d1b9d1acec52226d1fbff7af6941267fcc31cb32af73c46e92d4f8f97a8b2",
+      "source_commit": "b399cd4fe92640ad9a219142f8a77ac2122e632e",
+      "source_repository": "karikris/taxalens"
+    },
+    {
+      "artifact_id": "geographic-impact-manifest",
+      "bytes": 7330,
+      "media_type": "application/json",
+      "path": "demo/source/biominer_phase14/geographic_impact/geographic_impact_manifest.json",
+      "record_count": 1,
+      "required": true,
+      "role": "geographic_impact_manifest",
+      "schema_version": "taxalens-geographic-impact-manifest:v1.0.0",
+      "sha256": "d2ad9e8fd5314a26bd73fd27b7ead00d7e85e0f962a44319d5e0910c567a3b22",
+      "source_commit": "ce05ac9fdecff46008d6dbe93f9741edcfd5388b",
+      "source_repository": "karikris/TaxaLens"
+    },
+    {
+      "artifact_id": "geographic-release-decisions",
+      "bytes": 299,
+      "media_type": "application/json",
+      "path": "demo/source/verification/occurrence_release_decisions.json",
+      "record_count": 0,
+      "required": true,
+      "role": "verification_quality",
+      "schema_version": "taxalens-occurrence-release-decisions:v1.0.0",
+      "sha256": "3cc571646b54b66b301edb3427d925f7bcf3f330ece57021b945d430a5164c19",
+      "source_commit": "ffef38ec4abc289d31011f8c74b762524c0caeec",
+      "source_repository": "karikris/taxalens"
+    },
+    {
+      "artifact_id": "geographic-verification-consensus",
+      "bytes": 313,
+      "media_type": "application/json",
+      "path": "demo/repository_storage/supabase/verification_consensus.json",
+      "record_count": 0,
+      "required": true,
+      "role": "verification_decisions",
+      "schema_version": "taxalens-repository-supabase-table:v1.0.0",
+      "sha256": "358afaf053c095b275e6189632fd22b4bd10b266953d57fd40e606163e194e0f",
+      "source_commit": "e85b0d225cfdad4932de95d745b936ae85a61097",
+      "source_repository": "karikris/taxalens"
     },
     {
       "artifact_id": "logical-associations",
@@ -236,14 +353,14 @@
     },
     {
       "artifact_id": "rights-manifest",
-      "bytes": 6529,
+      "bytes": 7444,
       "media_type": "application/json",
       "path": "rights_manifest.json",
       "record_count": 1,
       "required": true,
       "role": "rights",
       "schema_version": "truthful-demo-rights-manifest:v1.1.0",
-      "sha256": "633f38db680ee1310d25ed5ea77fe71ac2911043381a7ea77e086bd2112026d5",
+      "sha256": "309e449f4313bb3299ccc08c1441c360477ac55b5ccc2ae40c13273df73ea7c2",
       "source_commit": "fab9d3f1605d28d4bbfc3a4d0074f40e5ffff023",
       "source_repository": "karikris/TaxaLens"
     },
@@ -411,7 +528,9 @@
           "biominer-flickr-query-hits-parquet",
           "biominer-flickr-geography-parquet",
           "biominer-flickr-geo-assignments-parquet",
-          "biominer-flickr-geo-clusters-parquet"
+          "biominer-flickr-geo-clusters-parquet",
+          "geographic-baseline-geographic-spread",
+          "geographic-flickr-geography"
         ],
         "attribution_id": "biominer-pilot-metadata",
         "creator": "Kris Kari",
@@ -432,6 +551,12 @@
           "stored-analyst-run",
           "verification-campaign-manifest",
           "verification-items",
+          "geographic-impact-manifest",
+          "geographic-baseline-occurrence-union",
+          "geographic-verification-consensus",
+          "geographic-release-decisions",
+          "geographic-geographic-impact-cells",
+          "geographic-geographic-impact-summary",
           "rights-manifest",
           "attribution-manifest"
         ],
@@ -442,6 +567,18 @@
         "license_uri": "https://opensource.org/license/mit",
         "source_title": "TaxaLens",
         "source_url": "https://github.com/karikris/TaxaLens"
+      },
+      {
+        "artifact_ids": [
+          "geographic-country-hierarchy"
+        ],
+        "attribution_id": "natural-earth-boundaries",
+        "creator": "Natural Earth",
+        "display_text": "Country hierarchy derived from Natural Earth public-domain data.",
+        "license_name": "Public domain",
+        "license_uri": "https://www.naturalearthdata.com/about/terms-of-use/",
+        "source_title": "Natural Earth 1:110m Admin 0 Countries",
+        "source_url": "https://www.naturalearthdata.com/"
       },
       {
         "artifact_ids": [
@@ -485,13 +622,13 @@
   "checksums": {
     "algorithm": "sha256",
     "canonicalization": "json-sorted-keys-utf8-v1",
-    "inventory_sha256": "7bbb1c9f28d23e5b87abc8c6139182fff683c2ae4873f5bc2a17fe91b0784acc",
-    "payload_root_sha256": "9e6b4660d7d6ea885c0a231cca63e7237bf59cc8a8c4eae84a2f3fd701124974"
+    "inventory_sha256": "54cb6f3c3025a6f003c68d57dff7287a715af9e6df67d2e7945f35be74de0205",
+    "payload_root_sha256": "937b7a6bd97d756de6585da5f60da74f7b8058e1f35d4f5ede4ee0af27be8166"
   },
   "created_at": "2026-07-16T11:57:54Z",
   "expected_ui_counts": {
-    "artifact_count": 30,
-    "attribution_count": 5,
+    "artifact_count": 39,
+    "attribution_count": 6,
     "openai_replay_trace_count": 1,
     "screen_items": {
       "butterfly_dashboard": 1,
@@ -500,15 +637,21 @@
       "research_mission": 10
     },
     "section_records": {
+      "baseline_geographic_spread": 16678,
+      "baseline_provider_union": 57603,
       "biological_negatives": 1,
       "candidate_revisions": 0,
       "candidate_sets": 5,
       "comments": 0,
+      "country_hierarchy": 183,
       "duplicate_summaries": 1,
       "evaluation_summaries": 0,
       "flickr_candidate_summaries": 1,
+      "flickr_geography": 40503,
       "full_frame_visual_input_metadata": 0,
       "geographic_clusters": 1,
+      "geographic_impact_cells": 20237,
+      "geographic_impact_summary": 385,
       "logical_associations": 2,
       "pipeline_stages": 8,
       "query_definitions": 1,
@@ -526,7 +669,7 @@
       "visual_domain_negatives": 1,
       "yoloe_evidence": 0
     },
-    "unavailable_section_count": 8
+    "unavailable_section_count": 6
   },
   "openai_replay": {
     "credentials_required": false,
@@ -570,7 +713,9 @@
           "biominer-flickr-query-hits-parquet",
           "biominer-flickr-geography-parquet",
           "biominer-flickr-geo-assignments-parquet",
-          "biominer-flickr-geo-clusters-parquet"
+          "biominer-flickr-geo-clusters-parquet",
+          "geographic-baseline-geographic-spread",
+          "geographic-flickr-geography"
         ],
         "attribution_required": true,
         "creator_or_owner": "Kris Kari",
@@ -588,6 +733,12 @@
         "artifact_ids": [
           "attribution-manifest",
           "biominer-analytics-import-receipt",
+          "geographic-baseline-occurrence-union",
+          "geographic-geographic-impact-cells",
+          "geographic-geographic-impact-summary",
+          "geographic-impact-manifest",
+          "geographic-release-decisions",
+          "geographic-verification-consensus",
           "pipeline-stages",
           "prototype-evidence-snapshot",
           "rights-manifest",
@@ -609,6 +760,22 @@
         "source_url": "https://github.com/karikris/TaxaLens",
         "status": "license_checked",
         "use_scope": "truthful fixture structure and replay metadata"
+      },
+      {
+        "artifact_ids": [
+          "geographic-country-hierarchy"
+        ],
+        "attribution_required": false,
+        "creator_or_owner": "Natural Earth",
+        "license_name": "Public domain",
+        "license_uri": "https://www.naturalearthdata.com/about/terms-of-use/",
+        "notes": [
+          "Natural Earth data is in the public domain."
+        ],
+        "rights_id": "natural-earth-public-domain-boundaries",
+        "source_url": "https://www.naturalearthdata.com/",
+        "status": "license_checked",
+        "use_scope": "offline country hierarchy and geographic drilldown"
       },
       {
         "artifact_ids": [
@@ -661,8 +828,30 @@
     ],
     "status": "license_checked"
   },
-  "schema_version": "taxalens-judge-bundle:v1.0.0",
+  "schema_version": "taxalens-judge-bundle:v2.0.0",
   "sections": {
+    "baseline_geographic_spread": {
+      "artifact_ids": [
+        "geographic-baseline-geographic-spread"
+      ],
+      "candidate_semantics": "not_applicable",
+      "human_review_required": false,
+      "reason": null,
+      "scientific_claim_allowed": false,
+      "status": "available",
+      "verification_status": "machine_verified_contract"
+    },
+    "baseline_provider_union": {
+      "artifact_ids": [
+        "geographic-baseline-occurrence-union"
+      ],
+      "candidate_semantics": "not_applicable",
+      "human_review_required": false,
+      "reason": null,
+      "scientific_claim_allowed": false,
+      "status": "available",
+      "verification_status": "machine_verified_contract"
+    },
     "biological_negatives": {
       "artifact_ids": [
         "biological-negatives"
@@ -703,6 +892,17 @@
       "status": "unavailable",
       "verification_status": "unavailable"
     },
+    "country_hierarchy": {
+      "artifact_ids": [
+        "geographic-country-hierarchy"
+      ],
+      "candidate_semantics": "not_applicable",
+      "human_review_required": false,
+      "reason": null,
+      "scientific_claim_allowed": false,
+      "status": "available",
+      "verification_status": "machine_verified_contract"
+    },
     "duplicate_summaries": {
       "artifact_ids": [
         "duplicate-summaries"
@@ -734,6 +934,17 @@
       "status": "available",
       "verification_status": "metadata_only"
     },
+    "flickr_geography": {
+      "artifact_ids": [
+        "geographic-flickr-geography"
+      ],
+      "candidate_semantics": "hypothesis_not_occurrence",
+      "human_review_required": true,
+      "reason": null,
+      "scientific_claim_allowed": false,
+      "status": "available",
+      "verification_status": "unreviewed"
+    },
     "full_frame_visual_input_metadata": {
       "artifact_ids": [],
       "candidate_semantics": "diagnostic_only",
@@ -753,6 +964,28 @@
       "scientific_claim_allowed": false,
       "status": "partial",
       "verification_status": "metadata_only"
+    },
+    "geographic_impact_cells": {
+      "artifact_ids": [
+        "geographic-geographic-impact-cells"
+      ],
+      "candidate_semantics": "hypothesis_not_occurrence",
+      "human_review_required": true,
+      "reason": null,
+      "scientific_claim_allowed": false,
+      "status": "available",
+      "verification_status": "unreviewed"
+    },
+    "geographic_impact_summary": {
+      "artifact_ids": [
+        "geographic-geographic-impact-summary"
+      ],
+      "candidate_semantics": "hypothesis_not_occurrence",
+      "human_review_required": true,
+      "reason": null,
+      "scientific_claim_allowed": false,
+      "status": "available",
+      "verification_status": "unreviewed"
     },
     "logical_associations": {
       "artifact_ids": [
@@ -863,13 +1096,15 @@
       "verification_status": "machine_verified_contract"
     },
     "verification_decisions": {
-      "artifact_ids": [],
+      "artifact_ids": [
+        "geographic-verification-consensus"
+      ],
       "candidate_semantics": "not_applicable",
       "human_review_required": true,
-      "reason": "No exported append-only verification decision artifact is committed.",
+      "reason": "The committed consensus table is empty because no human outcomes are retained.",
       "scientific_claim_allowed": false,
-      "status": "unavailable",
-      "verification_status": "unavailable"
+      "status": "partial",
+      "verification_status": "human_review_pending"
     },
     "verification_items": {
       "artifact_ids": [
@@ -896,13 +1131,15 @@
       "verification_status": "unreviewed"
     },
     "verification_quality": {
-      "artifact_ids": [],
+      "artifact_ids": [
+        "geographic-release-decisions"
+      ],
       "candidate_semantics": "not_applicable",
       "human_review_required": true,
-      "reason": "No consensus or statistically valid verification-quality artifact is committed.",
+      "reason": "Release decisions are explicitly empty and no quality snapshot is retained.",
       "scientific_claim_allowed": false,
-      "status": "unavailable",
-      "verification_status": "unavailable"
+      "status": "partial",
+      "verification_status": "human_review_pending"
     },
     "visual_domain_negatives": {
       "artifact_ids": [

@@ -56,10 +56,10 @@ def test_prepare_local_replay_verifies_source_build_and_provenance(
     assert prepared.current_taxalens_sha == "a" * 40
     assert prepared.fixture_taxalens_sha == "fab9d3f1605d28d4bbfc3a4d0074f40e5ffff023"
     assert prepared.biominer_sha == "74a7d648a562efa744e6502ef504a23b63b4e02f"
-    assert prepared.artifact_count == 30
-    assert prepared.section_count == 25
-    assert prepared.unavailable_section_count == 8
-    assert prepared.total_section_record_count == 36
+    assert prepared.artifact_count == 39
+    assert prepared.section_count == 31
+    assert prepared.unavailable_section_count == 6
+    assert prepared.total_section_record_count == 135_625
     assert prepared.media_asset_count == 3
 
 

@@ -6,7 +6,6 @@ from pathlib import Path
 import pytest
 from taxalens.product import (
     JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES,
-    JUDGE_BUNDLE_V1_SCHEMA_VERSION,
     JUDGE_BUNDLE_V2_SCHEMA_VERSION,
     TRUTHFUL_DEMO_BIOMINER_SHA,
     TRUTHFUL_DEMO_BUNDLE_ID,
@@ -30,16 +29,17 @@ def test_committed_fixture_is_a_valid_checksum_verified_judge_bundle() -> None:
     loaded = load_judge_bundle(MANIFEST_PATH, verify_files=True)
 
     assert loaded.validation.bundle_id == TRUTHFUL_DEMO_BUNDLE_ID
-    assert loaded.validation.artifact_count == 30
+    assert loaded.validation.artifact_count == 39
     assert loaded.validation.section_count == 31
-    assert loaded.validation.unavailable_section_count == 14
+    assert loaded.validation.unavailable_section_count == 6
     assert loaded.validation.replay_trace_count == 1
-    assert loaded.source_schema_version == JUDGE_BUNDLE_V1_SCHEMA_VERSION
+    assert loaded.source_schema_version == JUDGE_BUNDLE_V2_SCHEMA_VERSION
     assert loaded.data["schema_version"] == JUDGE_BUNDLE_V2_SCHEMA_VERSION
-    assert loaded.migration_receipt is not None
-    assert loaded.migration_receipt.applied is True
-    assert loaded.migration_receipt.stored_files_rewritten is False
-    assert loaded.migration_receipt.added_sections == JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES
+    assert loaded.migration_receipt is None
+    assert all(
+        loaded.data["sections"][name]["status"] == "available"
+        for name in JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES
+    )
     assert loaded.data["source_revisions"]["biominer_sha"] == TRUTHFUL_DEMO_BIOMINER_SHA
     assert loaded.data["target"] == {
         "accepted_taxon_key": "gbif:1938069",
@@ -139,8 +139,8 @@ def test_rights_manifest_registers_commons_review_media_and_covers_every_payload
     assert all(item["sha256"] and item["bytes"] > 0 for item in media_rights)
     assert all("human-verification" in item["use_scope"] for item in media_rights)
     media_types = [artifact["media_type"] for artifact in loaded.data["artifact_inventory"]]
-    assert media_types.count("application/json") == 23
-    assert media_types.count("application/vnd.apache.parquet") == 4
+    assert media_types.count("application/json") == 27
+    assert media_types.count("application/vnd.apache.parquet") == 9
     assert media_types.count("image/jpeg") == 3
     media_section = loaded.data["sections"]["verification_media"]
     assert media_section["status"] == "available"
@@ -258,9 +258,6 @@ def test_unavailable_real_pipeline_outputs_are_named_and_empty() -> None:
         "comments",
         "candidate_revisions",
         "evaluation_summaries",
-        "verification_decisions",
-        "verification_quality",
-        *JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES,
     }
     observed = {
         name
@@ -276,8 +273,8 @@ def test_unavailable_real_pipeline_outputs_are_named_and_empty() -> None:
         assert section["verification_status"] == "unavailable"
         assert section["human_review_required"] is True
     for name in JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES:
-        assert loaded.data["expected_ui_counts"]["section_records"][name] == 0
-        assert "did not invent geographic evidence" in loaded.data["sections"][name]["reason"]
+        assert loaded.data["expected_ui_counts"]["section_records"][name] > 0
+        assert loaded.data["sections"][name]["status"] == "available"
 
 
 def test_builder_reproduces_every_committed_fixture_byte(tmp_path: Path) -> None:

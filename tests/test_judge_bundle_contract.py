@@ -396,8 +396,58 @@ def _set_manifest_artifact_row_count(
 
 
 def _project_v1_fixture_to_v2_shape() -> dict[str, object]:
+    return migrate_judge_bundle_v1_to_v2(_v1_fixture()).data
+
+
+def _v1_fixture() -> dict[str, object]:
     bundle = json.loads(TRUTHFUL_FIXTURE_PATH.read_text(encoding="utf-8"))
-    return migrate_judge_bundle_v1_to_v2(bundle).data
+    geographic_artifact_ids = {
+        item["artifact_id"]
+        for item in bundle["artifact_inventory"]
+        if str(item["path"]).startswith("demo/source/")
+    }
+    bundle["artifact_inventory"] = [
+        item
+        for item in bundle["artifact_inventory"]
+        if item["artifact_id"] not in geographic_artifact_ids
+    ]
+    bundle["schema_version"] = JUDGE_BUNDLE_V1_SCHEMA_VERSION
+    bundle["sections"] = {
+        name: bundle["sections"][name] for name in JUDGE_BUNDLE_V1_SECTION_NAMES
+    }
+    bundle["sections"]["verification_decisions"] = _unavailable("verification_decisions")
+    bundle["sections"]["verification_quality"] = _unavailable("verification_quality")
+    for item in bundle["rights"]["items"]:
+        item["artifact_ids"] = [
+            artifact_id
+            for artifact_id in item["artifact_ids"]
+            if artifact_id not in geographic_artifact_ids
+        ]
+    bundle["rights"]["items"] = [
+        item for item in bundle["rights"]["items"] if item["artifact_ids"]
+    ]
+    for entry in bundle["attribution"]["entries"]:
+        entry["artifact_ids"] = [
+            artifact_id
+            for artifact_id in entry["artifact_ids"]
+            if artifact_id not in geographic_artifact_ids
+        ]
+    bundle["attribution"]["entries"] = [
+        entry for entry in bundle["attribution"]["entries"] if entry["artifact_ids"]
+    ]
+    expected = bundle["expected_ui_counts"]
+    expected["section_records"] = {
+        name: expected["section_records"][name] for name in JUDGE_BUNDLE_V1_SECTION_NAMES
+    }
+    expected["section_records"]["verification_decisions"] = 0
+    expected["section_records"]["verification_quality"] = 0
+    expected["artifact_count"] = len(bundle["artifact_inventory"])
+    expected["attribution_count"] = len(bundle["attribution"]["entries"])
+    expected["unavailable_section_count"] = sum(
+        section["status"] == "unavailable" for section in bundle["sections"].values()
+    )
+    _refresh_bundle_checksums(bundle)
+    return bundle
 
 
 def test_schema_declares_every_required_judge_bundle_section() -> None:
@@ -624,7 +674,7 @@ def test_release_ready_contribution_requires_release_gate_evidence(tmp_path: Pat
 
 
 def test_v1_migration_preserves_evidence_and_adds_only_unavailable_geography() -> None:
-    source = json.loads(TRUTHFUL_FIXTURE_PATH.read_text(encoding="utf-8"))
+    source = _v1_fixture()
     source_before = json.loads(json.dumps(source))
 
     migrated = migrate_judge_bundle_v1_to_v2(source)
@@ -669,7 +719,7 @@ def test_v1_migration_preserves_evidence_and_adds_only_unavailable_geography() -
 
 
 def test_v1_migration_rejects_invalid_source_before_projection() -> None:
-    source = json.loads(TRUTHFUL_FIXTURE_PATH.read_text(encoding="utf-8"))
+    source = _v1_fixture()
     del source["sections"]["run_summary"]
 
     with pytest.raises(JudgeBundleError, match="sections must match"):

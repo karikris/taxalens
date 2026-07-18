@@ -3,6 +3,10 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import verificationCampaignManifest from '../../../../demo/source/verification/papilio-demoleus-commons.campaign.json'
+import {
+  JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES,
+  JUDGE_BUNDLE_V1_SCHEMA_VERSION,
+} from '../../../../packages/contracts/src/judge_bundle_contract'
 
 const FIXTURE_PREFIX = '../../../../demo/fixture/papilio_pilot/'
 
@@ -15,12 +19,6 @@ const fixtureModules = import.meta.glob<string>(
   },
 )
 
-const parquetPaths = [
-  'analytics/flickr_geo_assignments.parquet',
-  'analytics/flickr_geo_clusters.parquet',
-  'analytics/flickr_geography.parquet',
-  'analytics/flickr_query_hits.parquet',
-] as const
 const verificationMediaPaths = verificationCampaignManifest.items.map(
   ({ previewAsset }) => `verification/media/${previewAsset}`,
 )
@@ -29,8 +27,29 @@ const fixtureDirectory = resolve(
   '../../../../demo/fixture/papilio_pilot',
 )
 
+const rawCommittedManifest = fixtureModules[`${FIXTURE_PREFIX}judge_bundle.json`]
+if (rawCommittedManifest === undefined) {
+  throw new Error('Committed judge bundle JSON fixture is missing')
+}
+const parsedCommittedManifest = JSON.parse(rawCommittedManifest) as Record<string, unknown>
+const artifactInventory = parsedCommittedManifest.artifact_inventory
+if (!Array.isArray(artifactInventory)) {
+  throw new Error('Committed judge bundle artifact inventory is missing')
+}
+const binaryArtifactPaths = artifactInventory.flatMap((candidate) => {
+  if (
+    typeof candidate !== 'object' ||
+    candidate === null ||
+    !('path' in candidate) ||
+    typeof candidate.path !== 'string' ||
+    candidate.path.endsWith('.json')
+  ) {
+    return []
+  }
+  return [candidate.path]
+})
 const binaryFixtureFiles = Object.fromEntries(
-  [...parquetPaths, ...verificationMediaPaths].map((path) => [
+  [...new Set([...binaryArtifactPaths, ...verificationMediaPaths])].map((path) => [
     path,
     Uint8Array.from(readFileSync(resolve(fixtureDirectory, path))),
   ]),
@@ -53,9 +72,39 @@ if (typeof committedManifest !== 'string') {
   throw new Error('Committed judge bundle JSON fixture is missing')
 }
 
-export const committedJudgeBundle = JSON.parse(
-  committedManifest,
-) as Record<string, unknown>
+export const committedJudgeBundle = JSON.parse(committedManifest) as Record<string, unknown>
+
+/** Project the committed v2 fixture to its evidence-preserving v1 compatibility shape. */
+export function committedV1JudgeBundle(): Record<string, unknown> {
+  const projected = structuredClone(committedJudgeBundle)
+  const sections = projected.sections as Record<string, Record<string, unknown>>
+  const expected = projected.expected_ui_counts as Record<string, unknown>
+  const sectionRecords = expected.section_records as Record<string, number>
+  for (const name of JUDGE_BUNDLE_GEOGRAPHIC_SECTION_NAMES) {
+    delete sections[name]
+    delete sectionRecords[name]
+  }
+  for (const name of ['verification_decisions', 'verification_quality'] as const) {
+    sections[name] = {
+      status: 'unavailable',
+      artifact_ids: [],
+      reason: 'No retained human review outcome is committed in the v1 fixture.',
+      candidate_semantics: 'not_applicable',
+      verification_status: 'unavailable',
+      human_review_required: true,
+      scientific_claim_allowed: false,
+    }
+  }
+  const inventory = projected.artifact_inventory as Record<string, unknown>[]
+  projected.artifact_inventory = inventory.filter(
+    ({ artifact_id: artifactId }) =>
+      typeof artifactId !== 'string' || !artifactId.startsWith('geographic-'),
+  )
+  projected.schema_version = JUDGE_BUNDLE_V1_SCHEMA_VERSION
+  expected.artifact_count = (projected.artifact_inventory as unknown[]).length
+  expected.unavailable_section_count = 8
+  return projected
+}
 
 export function createCommittedFixtureFetcher(
   overrides: Readonly<Record<string, string | Uint8Array<ArrayBuffer>>> = {},

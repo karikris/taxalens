@@ -149,11 +149,30 @@ export class PapilioJudgeFixtureValidator {
     verificationMediaTaxalensSha: 'ff96b7f8f6feaf8197000b0f5265110a7d331e08',
     analyticsSourceManifestSha256:
       'a62abef7cbac8638da219e53e08ab6760bedcd4f49d6396bfa0d1891d96e5cf2',
+    geographicImpactManifestSha256:
+      'd2ad9e8fd5314a26bd73fd27b7ead00d7e85e0f962a44319d5e0910c567a3b22',
+    geographicSourceCommits: Object.freeze([
+      'karikris/biominer:247b42f3206d48bb79e2dbf97c5a92e4f207ae71',
+      'karikris/biominer:75461d9c065af0cd96b41cd1f845c2e920f7ae34',
+      'karikris/taxalens:6b2eb94d8998ce07d4ebd93e1613fcb0126dd0c0',
+      'karikris/taxalens:b399cd4fe92640ad9a219142f8a77ac2122e632e',
+      'karikris/taxalens:cdee00c9e16e349d722733cd951709abce8d0fee',
+      'karikris/taxalens:ce05ac9fdecff46008d6dbe93f9741edcfd5388b',
+      'karikris/taxalens:e85b0d225cfdad4932de95d745b936ae85a61097',
+      'karikris/taxalens:ffef38ec4abc289d31011f8c74b762524c0caeec',
+    ]),
   })
 
   verify(project: TaxaLensProjectFacade): void {
     const { manifest } = project
     const expected = PapilioJudgeFixtureValidator.identity
+    const geographicManifests = manifest.artifact_inventory.filter(
+      ({ role }) => role === 'geographic_impact_manifest',
+    )
+    const hasFrozenGeographicManifest =
+      geographicManifests.length === 1 &&
+      geographicManifests[0]?.sha256 === expected.geographicImpactManifestSha256
+    const geographicSourceCommits = new Set(expected.geographicSourceCommits)
     if (
       manifest.bundle_id !== expected.bundleId ||
       manifest.source_revisions.taxalens_sha !== expected.taxalensSha ||
@@ -162,6 +181,7 @@ export class PapilioJudgeFixtureValidator {
       throw new Error('judge_bundle identity does not match the frozen Papilio fixture')
     }
     for (const artifact of manifest.artifact_inventory) {
+      const sourceIdentity = `${artifact.source_repository.toLowerCase()}:${artifact.source_commit}`
       const admitted =
         (artifact.source_repository === 'karikris/TaxaLens' &&
           (artifact.source_commit === manifest.source_revisions.taxalens_sha ||
@@ -174,7 +194,8 @@ export class PapilioJudgeFixtureValidator {
               artifact.source_commit === expected.verificationMediaTaxalensSha))) ||
         (artifact.source_repository === 'karikris/BioMiner' &&
           (artifact.source_commit === manifest.source_revisions.biominer_sha ||
-            artifact.source_commit === expected.legacyBiominerSha))
+            artifact.source_commit === expected.legacyBiominerSha)) ||
+        (hasFrozenGeographicManifest && geographicSourceCommits.has(sourceIdentity))
       if (!admitted) {
         throw new Error(`${artifact.artifact_id} source revision is outside the Papilio fixture`)
       }

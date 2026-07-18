@@ -7,7 +7,7 @@ import { buildEvidenceLedger } from '../evidence/evidenceLedgerModel'
 import { createMissionDraft, generateEvidencePlan } from '../mission/missionPlan'
 
 export const RESEARCH_TOOL_RESULT_VERSION = 'taxalens-research-tool-result:v1.0.0' as const
-const MAX_ARTIFACT_CITATIONS = 32
+const MAX_ARTIFACT_CITATIONS = 64
 
 export const RESEARCH_TOOL_NAMES = Object.freeze([
   'resolve_taxon',

@@ -4,6 +4,7 @@ import type { JudgeBundleContract } from '../../../../packages/contracts/src/jud
 import {
   committedFixtureFiles,
   committedJudgeBundle,
+  committedV1JudgeBundle,
   createCommittedFixtureFetcher,
 } from '../test/fixtures'
 import {
@@ -127,33 +128,24 @@ describe('loadEvidenceFacade', () => {
     expect(facade.replay.bundleId).toBe(replayEvidenceContract.bundleId)
     expect(facade.replay.bundleCreatedAt).toBe('2026-07-16T11:57:54Z')
     expect(facade.replay.target.scientificName).toBe('Papilio demoleus')
-    expect(facade.replay.artifactCount).toBe(30)
-    expect(facade.replay.verifiedArtifactCount).toBe(30)
-    expect(facade.replay.unavailableSections).toHaveLength(14)
+    expect(facade.replay.artifactCount).toBe(39)
+    expect(facade.replay.verifiedArtifactCount).toBe(39)
+    expect(facade.replay.unavailableSections).toHaveLength(6)
     expect(facade.replay.sections.yoloe_evidence.status).toBe('unavailable')
     expect(facade.replay.sections.baseline_provider_union).toMatchObject({
-      status: 'unavailable',
-      artifactIds: [],
+      status: 'available',
+      artifactIds: ['geographic-baseline-occurrence-union'],
       scientificClaimAllowed: false,
     })
     expect(facade.replay.verification.bundleMigration).toMatchObject({
-      sourceSchemaVersion: 'taxalens-judge-bundle:v1.0.0',
+      sourceSchemaVersion: 'taxalens-judge-bundle:v2.0.0',
       targetSchemaVersion: 'taxalens-judge-bundle:v2.0.0',
-      applied: true,
+      applied: false,
       storedFilesRewritten: false,
-      addedSections: [
-        'baseline_geographic_spread',
-        'baseline_provider_union',
-        'flickr_geography',
-        'geographic_impact_cells',
-        'geographic_impact_summary',
-        'country_hierarchy',
-      ],
+      addedSections: [],
+      preservedV1FingerprintSha256: null,
     })
-    expect(facade.replay.verification.bundleMigration.preservedV1FingerprintSha256).toMatch(
-      /^[0-9a-f]{64}$/,
-    )
-    expect(facade.replay.artifactInventory).toHaveLength(30)
+    expect(facade.replay.artifactInventory).toHaveLength(39)
     expect(facade.replay.artifactInventory.every(({ verified }) => verified)).toBe(true)
     expect(facade.loadStoredOpenAIReplay()).toMatchObject([
       {
@@ -551,7 +543,7 @@ describe('loadEvidenceFacade', () => {
 
 describe('migrateJudgeBundleToCurrent', () => {
   it('does not mutate the stored v1 manifest or invent geographic evidence', async () => {
-    const source = structuredClone(committedJudgeBundle)
+    const source = committedV1JudgeBundle()
     const before = canonicalJson(source)
 
     const result = await migrateJudgeBundleToCurrent(source as JsonValue)
@@ -571,7 +563,7 @@ describe('migrateJudgeBundleToCurrent', () => {
   })
 
   it('rejects an invalid v1 source before projection', async () => {
-    const source = structuredClone(committedJudgeBundle)
+    const source = committedV1JudgeBundle()
     const sections = source.sections as Record<string, unknown>
     delete sections.run_summary
 

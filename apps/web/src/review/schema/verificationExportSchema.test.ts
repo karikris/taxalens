@@ -61,15 +61,15 @@ describe('committed verification exports', () => {
       failures: [],
     })
     expect(judgeBundle.sections.verification_decisions).toMatchObject({
-      status: 'unavailable',
-      artifact_ids: [],
-      verification_status: 'unavailable',
+      status: 'partial',
+      artifact_ids: ['geographic-verification-consensus'],
+      verification_status: 'human_review_pending',
       scientific_claim_allowed: false,
     })
     expect(judgeBundle.sections.verification_quality).toMatchObject({
-      status: 'unavailable',
-      artifact_ids: [],
-      verification_status: 'unavailable',
+      status: 'partial',
+      artifact_ids: ['geographic-release-decisions'],
+      verification_status: 'human_review_pending',
       scientific_claim_allowed: false,
     })
     expect(
@@ -78,7 +78,7 @@ describe('committed verification exports', () => {
           role === 'verification_decisions' ||
           role === 'verification_quality',
       ),
-    ).toBe(false)
+    ).toBe(true)
   })
 })
 

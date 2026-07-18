@@ -20,7 +20,9 @@
         "biominer-flickr-query-hits-parquet",
         "biominer-flickr-geography-parquet",
         "biominer-flickr-geo-assignments-parquet",
-        "biominer-flickr-geo-clusters-parquet"
+        "biominer-flickr-geo-clusters-parquet",
+        "geographic-baseline-geographic-spread",
+        "geographic-flickr-geography"
       ],
       "attribution_required": true,
       "creator_or_owner": "Kris Kari",
@@ -42,6 +44,12 @@
         "stored-analyst-run",
         "verification-campaign-manifest",
         "verification-items",
+        "geographic-impact-manifest",
+        "geographic-baseline-occurrence-union",
+        "geographic-verification-consensus",
+        "geographic-release-decisions",
+        "geographic-geographic-impact-cells",
+        "geographic-geographic-impact-summary",
         "rights-manifest",
         "attribution-manifest"
       ],
@@ -53,6 +61,19 @@
       "permitted_use": "TaxaLens judge replay and redistribution under MIT",
       "rights_id": "taxalens-mit-fixture",
       "source_url": "https://github.com/karikris/TaxaLens"
+    },
+    {
+      "artifact_ids": [
+        "geographic-country-hierarchy"
+      ],
+      "attribution_required": false,
+      "creator_or_owner": "Natural Earth",
+      "derivative_status": "TaxaLens country hierarchy derived from Natural Earth",
+      "license_name": "Public domain",
+      "license_uri": "https://www.naturalearthdata.com/about/terms-of-use/",
+      "permitted_use": "TaxaLens offline geographic replay and redistribution",
+      "rights_id": "natural-earth-public-domain-boundaries",
+      "source_url": "https://www.naturalearthdata.com/"
     },
     {
       "artifact_ids": [

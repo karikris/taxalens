@@ -17,8 +17,8 @@ from packages.replay.src.biominer_prototype_release_gate import (
 )
 
 from taxalens.product.judge_bundle import (
-    JUDGE_BUNDLE_V1_SCHEMA_VERSION,
-    JUDGE_BUNDLE_V1_SECTION_NAMES,
+    JUDGE_BUNDLE_SCHEMA_VERSION,
+    JUDGE_BUNDLE_SECTION_NAMES,
     JudgeBundleError,
     compute_inventory_sha256,
     compute_payload_root_sha256,
@@ -110,6 +110,15 @@ _EXPECTED_ARTIFACT_VERSIONS = {
     "duplicate-summaries": "truthful-demo-duplicate-summary:v1.0.0",
     "flickr-candidate-summaries": "truthful-demo-flickr-candidate-summary:v1.0.0",
     "geographic-clusters": "truthful-demo-geographic-cluster-summary:v1.0.0",
+    "geographic-baseline-geographic-spread": "taxon-geographic-spread-v1.0.0",
+    "geographic-baseline-occurrence-union": "taxalens-baseline-occurrence-union:v1.0.0",
+    "geographic-country-hierarchy": "taxalens-country-hierarchy:v1.0.0",
+    "geographic-flickr-geography": "taxalens-flickr-geography-verification:v1.0.0",
+    "geographic-geographic-impact-cells": "taxalens-geographic-impact-cell:v1.0.0",
+    "geographic-geographic-impact-summary": "taxalens-geographic-impact-summary:v1.0.0",
+    "geographic-impact-manifest": "taxalens-geographic-impact-manifest:v1.0.0",
+    "geographic-release-decisions": "taxalens-occurrence-release-decisions:v1.0.0",
+    "geographic-verification-consensus": "taxalens-repository-supabase-table:v1.0.0",
     "logical-associations": "truthful-demo-logical-association:v1.0.0",
     "pilot-metadata-snapshot": "taxalens-phase14-pilot-metadata:v1.1.0",
     "pipeline-stages": "truthful-demo-pipeline-stage:v1.0.0",
@@ -133,6 +142,13 @@ _EXPECTED_ARTIFACT_VERSIONS = {
     ),
     "verification-media-commons-papilio-demoleus-open-wing": ("taxalens-verification-media:v1.0.0"),
     "visual-domain-negatives": "truthful-demo-visual-domain-negative-plan:v1.0.0",
+}
+_EXPECTED_GEOGRAPHIC_MANIFEST_SHA256 = (
+    "d2ad9e8fd5314a26bd73fd27b7ead00d7e85e0f962a44319d5e0910c567a3b22"
+)
+_GEOGRAPHIC_BIOMINER_COMMITS = {
+    "247b42f3206d48bb79e2dbf97c5a92e4f207ae71",
+    "75461d9c065af0cd96b41cd1f845c2e920f7ae34",
 }
 _PLACEHOLDER_PATTERN = re.compile(
     r"\$\{[^}]+\}|<\s*(?:todo|fixme|placeholder)\s*>|"
@@ -187,7 +203,7 @@ def verify_truthful_demo(
         biominer_sha=TRUTHFUL_DEMO_BIOMINER_SHA,
         taxalens_sha=TRUTHFUL_DEMO_TAXALENS_SHA,
         artifact_count=len(artifacts),
-        section_count=len(JUDGE_BUNDLE_V1_SECTION_NAMES),
+        section_count=len(JUDGE_BUNDLE_SECTION_NAMES),
         unavailable_section_count=_required_nonnegative_int(
             _object(bundle["expected_ui_counts"], "expected_ui_counts").get(
                 "unavailable_section_count"
@@ -201,7 +217,7 @@ def verify_truthful_demo(
                 ],
                 f"expected_ui_counts.section_records.{name}",
             )
-            for name in JUDGE_BUNDLE_V1_SECTION_NAMES
+            for name in JUDGE_BUNDLE_SECTION_NAMES
         ),
         media_asset_count=_required_nonnegative_int(
             rights.get("media_asset_count"), "rights_manifest.media_asset_count"
@@ -212,10 +228,10 @@ def verify_truthful_demo(
 
 
 def _verify_bundle_identity(bundle: Mapping[str, Any]) -> None:
-    if bundle.get("schema_version") != JUDGE_BUNDLE_V1_SCHEMA_VERSION:
+    if bundle.get("schema_version") != JUDGE_BUNDLE_SCHEMA_VERSION:
         _fail(
             TruthfulDemoFailure.STALE_ARTIFACT_VERSION,
-            f"expected stored fixture version {JUDGE_BUNDLE_V1_SCHEMA_VERSION}",
+            f"expected stored fixture version {JUDGE_BUNDLE_SCHEMA_VERSION}",
             "judge_bundle.schema_version",
         )
     if bundle.get("bundle_id") != TRUTHFUL_DEMO_BUNDLE_ID:
@@ -371,6 +387,13 @@ def _verify_versions(
                 ),
                 f"artifact:{artifact_id}.source_commit",
             )
+    geographic_manifest = artifacts["geographic-impact-manifest"]
+    if geographic_manifest.get("sha256") != _EXPECTED_GEOGRAPHIC_MANIFEST_SHA256:
+        _fail(
+            TruthfulDemoFailure.STALE_ARTIFACT_VERSION,
+            "geographic impact manifest differs from the frozen fixture",
+            "artifact:geographic-impact-manifest.sha256",
+        )
         if artifact_id in {
             "verification-campaign-manifest",
             "verification-items",
@@ -412,6 +435,7 @@ def _verify_biominer_sha(
             if artifact.get("source_commit") not in {
                 TRUTHFUL_DEMO_BIOMINER_SHA,
                 TRUTHFUL_DEMO_LEGACY_BIOMINER_SHA,
+                *_GEOGRAPHIC_BIOMINER_COMMITS,
             }:
                 _fail(
                     TruthfulDemoFailure.MISSING_BIOMINER_SHA,
@@ -723,7 +747,7 @@ def _verify_references(
 ) -> None:
     known_artifacts = set(artifacts)
     sections = _object(bundle.get("sections"), "sections")
-    if set(sections) != set(JUDGE_BUNDLE_V1_SECTION_NAMES):
+    if set(sections) != set(JUDGE_BUNDLE_SECTION_NAMES):
         _fail(
             TruthfulDemoFailure.ORPHANED_ID,
             "section IDs do not match the judge contract",
@@ -817,12 +841,26 @@ def _verify_counts(
         )
         for row in _array(analytics_receipt.get("artifacts"), "analytics artifacts")
     }
+    geographic_manifest = _object(
+        payloads["geographic-impact-manifest"], "geographic impact manifest"
+    )
+    geographic_counts = {
+        _required_text(_object(row, "geographic artifact").get("path"), "path"):
+        _required_nonnegative_int(
+            _object(row, "geographic artifact").get("row_count"), "row_count"
+        )
+        for row in _array(geographic_manifest.get("artifacts"), "geographic artifacts")
+        if _object(row, "geographic artifact").get("availability") == "available"
+    }
     for artifact_id, artifact in artifacts.items():
         declared = _required_nonnegative_int(
             artifact.get("record_count"), f"artifact:{artifact_id}.record_count"
         )
         payload = payloads[artifact_id]
-        if isinstance(payload, bytes):
+        geographic_count = geographic_counts.get(str(artifact.get("path")))
+        if geographic_count is not None:
+            observed = geographic_count
+        elif isinstance(payload, bytes):
             observed = (
                 1
                 if artifact.get("role") == "verification_media"
@@ -841,12 +879,12 @@ def _verify_counts(
                 str(artifact["path"]),
             )
         role = str(artifact.get("role"))
-        if role in JUDGE_BUNDLE_V1_SECTION_NAMES:
+        if role in JUDGE_BUNDLE_SECTION_NAMES:
             observed_counts[role] = observed_counts.get(role, 0) + observed
 
     expected = _object(bundle.get("expected_ui_counts"), "expected_ui_counts")
     section_records = _object(expected.get("section_records"), "section_records")
-    for name in JUDGE_BUNDLE_V1_SECTION_NAMES:
+    for name in JUDGE_BUNDLE_SECTION_NAMES:
         declared = _required_nonnegative_int(section_records.get(name), f"section_records.{name}")
         if declared != observed_counts.get(name, 0):
             _fail(

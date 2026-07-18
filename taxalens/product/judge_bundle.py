@@ -388,17 +388,18 @@ def _validate_geographic_bundle_evidence(
         "accepted_taxon_key"
     ) or manifest.scientific_name != target.get("scientific_name"):
         raise JudgeBundleError("geographic impact manifest target identity mismatch")
-    revisions = _mapping(bundle.get("source_revisions"), "source_revisions")
-    expected_commits = {
-        "karikris/taxalens": revisions["taxalens_sha"],
-        "karikris/biominer": revisions["biominer_sha"],
+    declared_source_commits = {
+        (source.repository.lower(), source.commit_sha) for source in manifest.source_commits
     }
-    for source in manifest.source_commits:
-        expected = expected_commits.get(source.repository.lower())
-        if expected is None or source.commit_sha != expected:
-            raise JudgeBundleError(
-                "geographic impact manifest source commit does not match bundle revisions"
-            )
+    artifact_source_commits = {
+        (str(entry.source_repository).lower(), str(entry.source_commit))
+        for entry in manifest.artifacts
+        if entry.availability == "available"
+    }
+    if declared_source_commits != artifact_source_commits:
+        raise JudgeBundleError(
+            "geographic impact manifest source commits do not match available artifacts"
+        )
 
     inventory_by_path = {str(item["path"]): item for item in artifacts.values()}
     manifest_artifacts = {item.logical_name: item for item in manifest.artifacts}

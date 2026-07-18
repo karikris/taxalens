@@ -31,7 +31,7 @@ describe('provenance-bound replay launch', () => {
 
     const fingerprint = await fingerprintEvidencePlan(plan)
     expect(fingerprint).toBe(
-      'sha256:b8d0da12fa1383a07b077563c433905522a075afe2d189730b4a8238747e48f8',
+      'sha256:48312396d2042696b5aaec485143385b3ca45305df2cd7c3953a00e64aa09a9f',
     )
     expect(await fingerprintEvidencePlan(clone)).toBe(fingerprint)
     expect(await fingerprintEvidencePlan(changed)).not.toBe(fingerprint)
@@ -51,8 +51,8 @@ describe('provenance-bound replay launch', () => {
       planFingerprint: ready.planFingerprint,
       bundle: {
         bundleId: 'papilio-demoleus-prototype-74a7d648-v3',
-        verifiedArtifactCount: 30,
-        artifactCount: 30,
+        verifiedArtifactCount: 39,
+        artifactCount: 39,
       },
       sourceRegistry: {
         version: 'butterflies-v2-20260712',
