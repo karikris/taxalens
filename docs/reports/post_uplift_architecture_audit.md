@@ -51,6 +51,7 @@ The following superficially similar abstractions carry real boundaries and shoul
 | `FlickrWorkloadMap` | Preserved operational workload semantics distinct from scientific Geographic Impact semantics |
 | `review/domain`, `review/repositories`, `review/exports`, `review/routing`, and `review/ui` indexes | Consumed subsystem boundaries; callers import a coherent capability rather than a historical root compatibility path |
 | `taxalens.__main__` and package `__init__` modules | Standard Python package and CLI entry points |
+| Python `taxalens.product` facade functions | Thin convenience wrappers, but explicitly exported and smoke-tested as the public package boundary; remove only through a versioned deprecation |
 
 ## Factories and helpers
 
@@ -74,11 +75,18 @@ The prior completion matrix, current source inspection, and current call-site au
 - Pilot literals remain confined to the fixture validator, fixtures, stored replays, and fixture-specific tests. No `13_501` product-level guard was found.
 - Provider, release, verification, and unavailable-evidence terminology remains fail-closed. Deliberate unavailable states are evidence boundaries, not unfinished implementations.
 - The review root compatibility layer is the main redundant pre-uplift residue found in runtime source.
-- The Node type-check include omission is the clearest configuration quality gap.
+- The Node type-check include omission is a concrete configuration quality gap.
+- A deeper runtime trace found a more important integration mismatch: `GeographicImpactQueryController`, its bounded cache, and the real DuckDB-Wasm full-outer source join are used by unit and performance tests, but not by `GeographicImpactLens`. The production lens instead owns a second cache and queries only the already-materialized impact-cell Parquet.
+- The hosted judge fixture remains v1 and is migrated in memory to v2 with geographic sections marked unavailable. Geographic Impact assets are bundled separately, so the real v2 geographic project facade cannot currently supply the production map query.
 
 ## Unfinished work classification
 
-No `TODO`, `FIXME`, placeholder implementation, or unimplemented technical phase was found in production source. Remaining previous-goal items require real external or human evidence and must not be fabricated:
+No `TODO`, `FIXME`, or placeholder implementation was found in production source. Two prior technical deliverables are present but not connected end to end and therefore remain unfinished:
+
+- publish a concrete v2 hosted judge fixture containing the verified geographic artifacts rather than only a v2 contract and a v1 in-memory migration;
+- make the production Geographic Impact lens use the same scoped full-outer query controller, cache, cancellation, and engineering metrics exercised by tests and the performance harness.
+
+Other remaining previous-goal items require real external or human evidence and must not be fabricated:
 
 - decisive human Flickr audit outcomes;
 - independently reviewed scientific evaluation and valid population estimates;
@@ -95,5 +103,20 @@ The implementation may prepare and validate imports for those outcomes, but it c
 3. Add the performance Playwright configuration to the Node TypeScript project.
 4. Run focused review tests, TypeScript, Vitest, Python, contract/provenance/rights verifiers, production build, browser suites, visual regression, performance checks, audit/secret/large-file scans, and `git diff --check`.
 5. Re-run dead-path and unfinished-work searches after cleanup.
+
+## Audit extension: runtime ownership
+
+The initial thin-file scan correctly found the review compatibility layer, but a name-and-consumer scan also found that `GeographicImpactQueryController` appears only in its unit test and the performance E2E harness. This is not evidence that the class should be deleted. Its cancellation, cache-key scoping, bounded LRU policy, and full-outer source comparison implement explicit prior requirements.
+
+The mismatch is the opposite: production does not own the tested analytical path. `GeographicImpactLens` currently calls `loadPublicGeographicImpactMapData`, which verifies and filters `geographic_impact_cells.parquet`; it does not independently aggregate baseline and Flickr sources. The v1 hosted fixture cannot supply the v2 project facade because its six geographic sections are intentionally synthesized as unavailable during migration.
+
+Remediation must therefore proceed in dependency order:
+
+1. upgrade the committed hosted fixture to a concrete v2 bundle with checksum-bound baseline, Flickr, impact, summary, hierarchy, and impact-manifest artifacts while preserving v1 migration tests;
+2. expose the verified `TaxaLensProjectFacade` through the loaded evidence facade;
+3. extend the shared browser result with the inspected materialized provider and temporal fields;
+4. replace the production-only map loader/cache with `GeographicImpactQueryController`;
+5. keep the preaggregated loader only if it remains an explicit, verified fallback with distinct unavailable semantics; otherwise remove it after migration;
+6. run the production journey, query-cancellation, cache, no-WASM, offline-network, reconciliation, visual, and performance gates.
 
 This report records analysis before behavior-changing cleanup. Each remediation receives focused GitHits provenance and its own commit.
