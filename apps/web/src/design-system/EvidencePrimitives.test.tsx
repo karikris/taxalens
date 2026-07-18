@@ -29,23 +29,37 @@ describe('scientific evidence semantics', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('Display is stopped')
   })
 
-  it('distinguishes candidate, occurrence, raw score, and calibrated output in text', () => {
+  it('keeps candidate and release-ready occurrence-candidate designations distinct', () => {
     render(
       <div>
         <EvidenceDesignation kind="candidate" />
-        <EvidenceDesignation kind="occurrence" verification="human-verified" />
+        <EvidenceDesignation
+          kind="release-ready-occurrence-candidate"
+          releaseGateEvidenceId="release-decision:fixture"
+        />
         <ScoreSemantics kind="raw" />
         <ScoreSemantics kind="calibrated" calibrationEvidence="Calibration artifact v1" />
       </div>,
     )
 
     expect(screen.getByText('Candidate — not an occurrence')).toBeInTheDocument()
-    expect(screen.getByText('Human-verified occurrence')).toBeInTheDocument()
+    expect(screen.getByText('Release-ready occurrence candidate')).toBeInTheDocument()
     expect(screen.getByText('Raw similarity — not a probability')).toBeInTheDocument()
     expect(screen.getByText('Calibrated probability')).toHaveAttribute(
       'title',
       'Calibration artifact v1',
     )
+  })
+
+  it('rejects a release-ready designation without gate evidence', () => {
+    expect(() =>
+      render(
+        <EvidenceDesignation
+          kind="release-ready-occurrence-candidate"
+          releaseGateEvidenceId=" "
+        />,
+      ),
+    ).toThrow('Release-ready designation requires occurrence-release gate evidence')
   })
 
   it('labels unavailable tiers and uncertainty without relying on color', () => {

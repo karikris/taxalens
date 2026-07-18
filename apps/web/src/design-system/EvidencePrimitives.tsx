@@ -74,16 +74,22 @@ export function EvidenceTier({ tier }: { readonly tier: EvidenceTierKind }) {
 type EvidenceDesignationProps =
   | { readonly kind: 'candidate'; readonly label?: string }
   | {
-      readonly kind: 'occurrence'
-      readonly verification: 'human-verified'
+      readonly kind: 'release-ready-occurrence-candidate'
+      readonly releaseGateEvidenceId: string
       readonly label?: string
     }
 
 export function EvidenceDesignation(props: EvidenceDesignationProps) {
+  if (
+    props.kind === 'release-ready-occurrence-candidate' &&
+    props.releaseGateEvidenceId.trim().length === 0
+  ) {
+    throw new Error('Release-ready designation requires occurrence-release gate evidence')
+  }
   const text =
     props.kind === 'candidate'
       ? (props.label ?? 'Candidate — not an occurrence')
-      : (props.label ?? 'Human-verified occurrence')
+      : (props.label ?? 'Release-ready occurrence candidate')
 
   return (
     <span className="tl-designation" data-kind={props.kind}>

@@ -142,7 +142,7 @@ export function buildGeographyReferenceModel(
       reason:
         result === null
           ? inspectionReason
-          : `${result.cluster.memberImageCount.toLocaleString('en-US')} source candidates share the assigned cluster; they are not verified occurrences or reference images.`,
+          : `${result.cluster.memberImageCount.toLocaleString('en-US')} source candidates share the assigned cluster; they are not release-ready occurrence candidates or reference images.`,
     }),
     competitorEvidence: Object.freeze({
       candidateCount: replay.mission.candidatePolicy.candidateCount,
