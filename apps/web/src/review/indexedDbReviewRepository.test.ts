@@ -5,7 +5,7 @@ import {
   IndexedDbReviewRepository,
   REVIEW_SYNC_STATUS_SCHEMA_VERSION,
   type ReviewSyncStatus,
-} from './indexedDbReviewRepository'
+} from './repositories/indexedDbReviewRepository'
 import {
   HUMAN_REVIEW_CAMPAIGN,
   HUMAN_REVIEW_ITEMS,
@@ -14,8 +14,8 @@ import {
   emptyHumanReviewSession,
   withDecision,
   withReviewerId,
-} from './reviewStore'
-import { REVIEW_REPOSITORY_RECEIPT_SCHEMA_VERSION } from './reviewRepository'
+} from './domain/reviewSession'
+import { REVIEW_REPOSITORY_RECEIPT_SCHEMA_VERSION } from './repositories/reviewRepository'
 import { subscribeToLocalReviewLedgerChanges } from './repositories/localReviewLedgerEvents'
 
 describe('IndexedDB review repository', () => {

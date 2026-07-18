@@ -8,11 +8,11 @@ import {
   emptyHumanReviewSession,
   withDecision,
   withReviewerId,
-} from './reviewStore'
+} from './domain/reviewSession'
 import {
   InMemoryReviewRepository,
-} from './inMemoryReviewRepository'
-import { REVIEW_REPOSITORY_RECEIPT_SCHEMA_VERSION } from './reviewRepository'
+} from './repositories/inMemoryReviewRepository'
+import { REVIEW_REPOSITORY_RECEIPT_SCHEMA_VERSION } from './repositories/reviewRepository'
 
 describe('in-memory review repository', () => {
   it('loads a seeded campaign and projects appended events idempotently', async () => {

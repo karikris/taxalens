@@ -6,7 +6,7 @@ import { App } from './App'
 import {
   HUMAN_REVIEW_CAMPAIGN,
   HUMAN_REVIEW_ITEMS,
-} from './review'
+} from './review/reviewPacket'
 import { createCommittedFixtureFetcher, jsonResponse } from './test/fixtures'
 
 describe('TaxaLens scaffold', () => {

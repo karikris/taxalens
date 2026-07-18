@@ -6,9 +6,11 @@ import { HUMAN_REVIEW_CAMPAIGN, HUMAN_REVIEW_ITEMS } from './reviewPacket'
 import {
   SupabaseReviewRepository,
   SupabaseReviewRepositoryError,
+} from './repositories/supabaseReviewRepository'
+import {
   SUPABASE_VERIFICATION_ITEM_PAYLOAD_SCHEMA_VERSION,
   verificationEventToSupabaseInsert,
-} from './supabaseReviewRepository'
+} from './repositories/supabaseReviewRows'
 
 describe('Supabase review repository', () => {
   it('loads validated rows and persists a domain event through the publishable client', async () => {

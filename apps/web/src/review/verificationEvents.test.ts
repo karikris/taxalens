@@ -9,7 +9,7 @@ import {
   projectCurrentVerificationEvents,
   validateVerificationEvent,
   type VerificationEvent,
-} from './verificationEvents'
+} from './domain/verificationEvents'
 
 describe('append-only verification event contract', () => {
   it('binds a decision to reviewer, media, question, manifest, and source revisions', () => {

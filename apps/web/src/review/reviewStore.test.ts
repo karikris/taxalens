@@ -8,21 +8,23 @@ import {
   type HumanReviewPacket,
 } from './reviewPacket'
 import {
-  browserReviewMediaCache,
   canRecordHumanReviewOutcome,
   currentHumanReviewDecisions,
   emptyHumanReviewSession,
-  humanReviewReceiptBytes,
-  loadHumanReviewSession,
-  loadHumanReviewSessionResult,
   restoreHumanReviewEvents,
-  ReviewPersistenceError,
-  saveHumanReviewSession,
   type HumanReviewSession,
   withDecision,
   withImageInspection,
   withReviewerId,
-} from './reviewStore'
+} from './domain/reviewSession'
+import { ReviewPersistenceError } from './domain/reviewErrors'
+import { humanReviewReceiptBytes } from './exports/reviewReceipt'
+import { browserReviewMediaCache } from './media/reviewMediaCache'
+import {
+  loadHumanReviewSession,
+  loadHumanReviewSessionResult,
+  saveHumanReviewSession,
+} from './repositories/legacyReviewSession'
 
 describe('human review local session', () => {
   it('round-trips only decisions belonging to the current packet', () => {

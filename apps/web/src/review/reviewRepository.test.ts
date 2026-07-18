@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import type { ReviewRepository } from './reviewRepository'
+import type { ReviewRepository } from './repositories/reviewRepository'
 
 describe('review repository contract', () => {
   it('exposes campaign, item, event, projection, consensus, export, and clear operations', async () => {

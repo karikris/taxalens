@@ -21,7 +21,7 @@ const DashboardWorkspace = lazy(async () => {
 })
 
 const VerificationWorkspace = lazy(async () => {
-  const module = await import('./review')
+  const module = await import('./review/VerificationWorkspace')
   return { default: module.VerificationWorkspace }
 })
 

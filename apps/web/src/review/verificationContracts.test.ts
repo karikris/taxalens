@@ -11,7 +11,7 @@ import {
   type TaxonIdentity,
   type VerificationCampaign,
   type VerificationItem,
-} from './verificationContracts'
+} from './domain/verificationContracts'
 
 describe('verification campaign contracts', () => {
   it('recognizes the five closed campaign kinds', () => {

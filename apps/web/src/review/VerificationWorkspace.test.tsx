@@ -3,8 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { loadEvidenceFacade, type ReplayEvidence } from '../data/evidenceFacade'
 import { createCommittedFixtureFetcher } from '../test/fixtures'
-import { HumanReviewWorkspace } from './HumanReviewWorkspace'
-import { InMemoryReviewRepository } from './inMemoryReviewRepository'
+import { VerificationWorkspace } from './VerificationWorkspace'
+import { ReviewPersistenceError } from './domain/reviewErrors'
 import {
   VERIFICATION_EVENT_SCHEMA_VERSION,
   type VerificationEvent,
@@ -15,10 +15,12 @@ import {
 } from './reviewPacket'
 import {
   HUMAN_REVIEW_SESSION_STORAGE_KEY,
-  ReviewPersistenceError,
+} from './repositories/legacyReviewSession'
+import { InMemoryReviewRepository } from './repositories/inMemoryReviewRepository'
+import {
   type ReviewCacheStatus,
   type ReviewMediaCache,
-} from './reviewStore'
+} from './media/reviewMediaCache'
 
 let replay: ReplayEvidence
 
@@ -36,12 +38,12 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-describe('HumanReviewWorkspace', () => {
+describe('VerificationWorkspace', () => {
   it('keeps scientific outcomes disabled until the verified image is displayed', async () => {
     const cache = fakeCache()
     const repository = reviewRepository()
     const { container } = render(
-      <HumanReviewWorkspace
+      <VerificationWorkspace
         cache={cache}
         now={() => new Date('2026-07-16T12:00:00Z')}
         replay={replay}
@@ -106,7 +108,7 @@ describe('HumanReviewWorkspace', () => {
     const cache = fakeCache()
     const repository = reviewRepository()
     render(
-      <HumanReviewWorkspace
+      <VerificationWorkspace
         cache={cache}
         now={() => new Date('2026-07-16T12:00:00Z')}
         replay={replay}
@@ -155,7 +157,7 @@ describe('HumanReviewWorkspace', () => {
   })
 
   it('records yes and no as replaceable item-level judgments', async () => {
-    render(<HumanReviewWorkspace cache={fakeCache(true)} replay={replay} />)
+    render(<VerificationWorkspace cache={fakeCache(true)} replay={replay} />)
 
     await screen.findByRole('img', {
       name: /Does this image show an adult Papilio demoleus/u,
@@ -196,7 +198,7 @@ describe('HumanReviewWorkspace', () => {
       },
     ])
     render(
-      <HumanReviewWorkspace
+      <VerificationWorkspace
         cache={fakeCache(true)}
         now={() => new Date('2026-07-16T15:02:00.000Z')}
         replay={replay}
@@ -269,7 +271,7 @@ describe('HumanReviewWorkspace', () => {
   it('appends structured reference annotations to a scientific event', async () => {
     const repository = reviewRepository()
     render(
-      <HumanReviewWorkspace
+      <VerificationWorkspace
         cache={fakeCache(true)}
         replay={replay}
         repository={repository}
@@ -361,7 +363,7 @@ describe('HumanReviewWorkspace', () => {
       ),
     }
     const rendered = render(
-      <HumanReviewWorkspace cache={cache} replay={replay} />,
+      <VerificationWorkspace cache={cache} replay={replay} />,
     )
 
     fireEvent.click(
@@ -403,7 +405,7 @@ describe('HumanReviewWorkspace', () => {
       ),
     }
     rendered.rerender(
-      <HumanReviewWorkspace cache={secondCache} replay={replay} />,
+      <VerificationWorkspace cache={secondCache} replay={replay} />,
     )
     fireEvent.click(
       await screen.findByRole('button', { name: 'Prepare review cache' }),
@@ -417,7 +419,7 @@ describe('HumanReviewWorkspace', () => {
       ...fakeCache(),
       clear: vi.fn().mockRejectedValue(new Error('Cache deletion denied')),
     }
-    render(<HumanReviewWorkspace cache={cache} replay={replay} />)
+    render(<VerificationWorkspace cache={cache} replay={replay} />)
 
     const cantView = screen.getByRole('button', { name: 'Can’t view' })
     await waitFor(() => expect(cantView).toBeEnabled())
@@ -442,7 +444,7 @@ describe('HumanReviewWorkspace', () => {
       ),
     )
     render(
-      <HumanReviewWorkspace
+      <VerificationWorkspace
         cache={fakeCache()}
         replay={replay}
         repository={repository}
@@ -470,7 +472,7 @@ describe('HumanReviewWorkspace', () => {
       persistentBrowserCache: false,
       itemFailures: {},
     })
-    render(<HumanReviewWorkspace cache={cache} replay={replay} />)
+    render(<VerificationWorkspace cache={cache} replay={replay} />)
 
     expect(
       await screen.findByText('Persistent media cache is unavailable'),

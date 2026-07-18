@@ -12,7 +12,7 @@ import {
   emptyHumanReviewSession,
   withDecision,
   withReviewerId,
-} from './reviewStore'
+} from './domain/reviewSession'
 
 describe('offline review synchronization', () => {
   it('commits locally while offline and drains the IndexedDB queue after reconnect', async () => {

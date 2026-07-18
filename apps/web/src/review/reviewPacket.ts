@@ -7,7 +7,7 @@ import {
   type TaxonIdentity,
   type VerificationCampaign,
   type VerificationItem,
-} from './verificationContracts'
+} from './domain/verificationContracts'
 
 export const VERIFICATION_CAMPAIGN_MANIFEST_SCHEMA_VERSION =
   'taxalens-verification-campaign-manifest:v1.0.0' as const

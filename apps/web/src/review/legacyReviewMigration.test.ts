@@ -1,13 +1,13 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { InMemoryReviewRepository } from './inMemoryReviewRepository'
+import { InMemoryReviewRepository } from './repositories/inMemoryReviewRepository'
 import {
   HUMAN_REVIEW_CAMPAIGN,
   HUMAN_REVIEW_ITEMS,
   HUMAN_REVIEW_PACKET,
 } from './reviewPacket'
-import { HUMAN_REVIEW_SESSION_STORAGE_KEY } from './reviewStore'
-import { migrateLegacyHumanReviewSession } from './legacyReviewMigration'
+import { HUMAN_REVIEW_SESSION_STORAGE_KEY } from './repositories/legacyReviewSession'
+import { migrateLegacyHumanReviewSession } from './repositories/legacyReviewMigration'
 
 describe('legacy local review migration', () => {
   it('moves decisions, comments, timestamps, reviewer, and inspections once', async () => {

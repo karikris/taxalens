@@ -6,7 +6,7 @@ import {
   HUMAN_REVIEW_PACKET,
   VERIFICATION_CAMPAIGN_MANIFEST,
 } from './reviewPacket'
-import { validateVerificationItem } from './verificationContracts'
+import { validateVerificationItem } from './domain/verificationContracts'
 
 describe('Commons verification campaign fixture', () => {
   it('loads the three existing images through generic campaign contracts', () => {
