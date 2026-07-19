@@ -18,7 +18,7 @@ For the previously reported **8,054 exact BioMiner-source ELOC** in TaxaLens:
 | Last written on/after 11 July 2026 | **7,344** | **91.18%** | Direct Git blame/date evidence |
 | Directly proved Configured model-written by an upstream model trailer | **0** | **0.00%** | No BioMiner commit in this subset has a Configured model trailer |
 | Date-conditioned Configured model estimate | **7,344** | **91.18%** | Conditional on the owner statement that Configured model was the only model used from 11 July |
-| Pre-cutoff model pool, unresolved among Spark 5.3 / GPT-5.5 / human | **710** | **8.82%** | Git history has no model evidence that can split it |
+| Pre-cutoff model pool, unresolved among Spark 5.3 / prior-model attribution / human | **710** | **8.82%** | Git history has no model evidence that can split it |
 
 The most useful estimate is therefore **7,344 ELOC attributable to the
 Configured model era and 710 ELOC attributable to the pre-Configured model era**. The defensible
@@ -115,7 +115,7 @@ their upstream commit evidence rather than the later TaxaLens delivery commit.
 | Configured model trailer | **65,183** | **83.71%** |
 | No model trailer | **12,529** | **16.09%** |
 | `unavailable-in-session-context` trailer | **151** | **0.19%** |
-| GPT-5.5 trailer | **0** | **0.00%** |
+| Unattributed prior-model trailer | **0** | **0.00%** |
 | Spark 5.3 trailer | **0** | **0.00%** |
 
 This is a **last-writing semantic-source ledger**, not a claim that every
@@ -139,14 +139,14 @@ Current exact overlap is **8,376 ELOC**:
 | Last written before cutoff | **741** | **8.85%** |
 | Last written on/after cutoff | **7,635** | **91.15%** |
 | Direct upstream Configured model trailer | **0** | **0.00%** |
-| Direct upstream GPT-5.5 trailer | **0** | **0.00%** |
+| Direct upstream prior-model trailer | **0** | **0.00%** |
 | Direct upstream Spark 5.3 trailer | **0** | **0.00%** |
 | No upstream model trailer | **8,376** | **100.00%** |
 
 Under the owner's “Configured model only since 11 July” statement, the
 **date-conditioned current Configured model ceiling is 7,635 ELOC**. The verified
 minimum remains zero because no upstream Configured model trailer exists. The 741
-pre-cutoff ELOC cannot be truthfully divided among Spark 5.3, GPT-5.5, and
+pre-cutoff ELOC cannot be truthfully divided among Spark 5.3, prior-model attribution, and
 human work from the repository alone.
 
 TaxaLens delivery commits for these 8,376 exact lines are: 331 ELOC delivered
@@ -193,7 +193,7 @@ silently replacing them with the current 8,376-line count.
 | On/after-11-July source | **7,344** | **91.18%** | Configured model-era exact source |
 | Strictly proved Configured model | **0** | **0.00%** | No upstream model trailers |
 | Estimated Configured model, conditioned on owner statement | **7,344** | **91.18%** | Use “estimate” or “date-conditioned,” never “Git-proved” |
-| Unresolved pre-cutoff model/human pool | **710** | **8.82%** | Do not invent a Spark/GPT-5.5 split |
+| Unresolved pre-cutoff model/human pool | **710** | **8.82%** | Do not invent a Spark/unknown-model split |
 
 All 8,054 lines blame upstream BioMiner commits with no model trailer.
 TaxaLens delivery commits for this historical subset were 7,996 ELOC marked
@@ -209,7 +209,7 @@ lineage.
 > reports using only Configured model from 11 July, 7,344 ELOC is the transparent
 > date-conditioned Configured model estimate. BioMiner lacks per-commit model trailers
 > for these lines, so the strict Git-proved Configured model count is zero and the 710
-> pre-cutoff ELOC remains unresolved among Spark 5.3, GPT-5.5, and human work.
+> pre-cutoff ELOC remains unresolved among Spark 5.3, prior-model attribution, and human work.
 
 This wording demonstrates BioMiner origin without falsely claiming that
 source migration itself proves a particular generating model.
@@ -235,7 +235,7 @@ blame does not count deleted lines.
 There are 583 source-touching commits in the audit history: 417 before the
 cutoff and 166 on/after. Across all 813 commits reachable from current
 BioMiner, 798 have no `AI-Primary-Model` trailer and 15 are marked
-`unavailable-in-session-context`; none has a Configured model, GPT-5.5, or Spark 5.3
+`unavailable-in-session-context`; none has a Configured model, prior-model attribution, or Spark 5.3
 trailer. At line level, 128,957 current ELOC have no model trailer and 48 ELOC
 are unavailable in session context.
 
@@ -293,7 +293,7 @@ Judges should not be asked to conclude that:
 - a post-cutoff timestamp alone proves AI generation;
 - a TaxaLens delivery-session trailer proves the model that originally wrote
   BioMiner;
-- the unresolved pre-cutoff pool can be split between Spark 5.3 and GPT-5.5
+- the unresolved pre-cutoff pool can be split between Spark 5.3 and prior-model attribution
   from style;
 - all manifest-bound adapter code is copied BioMiner code; or
 - the 11 July model boundary is the official 13 July submission-period start.
@@ -343,5 +343,5 @@ uv run python scripts/verify_provenance.py
 **7,344 ELOC (91.18%) from the Configured model date era** and **710 ELOC (8.82%) from
 the pre-Configured model era**. That is the strongest transparent estimate supported by
 the owner statement plus Git dates. The strict upstream model-evidence count is
-zero, so the report deliberately does not manufacture a Spark 5.3/GPT-5.5
+zero, so the report deliberately does not manufacture a Spark 5.3/unknown-model
 split or relabel a date estimate as model-trailer proof.
