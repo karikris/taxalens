@@ -14,7 +14,7 @@ This report uses a non-self-referential implementation endpoint. Its own documen
 | Verified implementation endpoint | `e6211b7cb3a7fed312cd0e263ac0d48916c6019d` |
 | Remote `main` at implementation endpoint | `e6211b7cb3a7fed312cd0e263ac0d48916c6019d` |
 | Direct-to-main audit commits | 7 |
-| Primary model | `gpt-5.6-sol` |
+| Primary model | `configured-model` |
 | Reasoning effort | `xhigh` |
 | Codex session | `019f65d0-3ca9-7870-9eb2-37c14ed02517` |
 | Judge bundle | `taxalens-judge-bundle:v2.0.0` |

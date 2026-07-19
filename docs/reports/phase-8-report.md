@@ -1,4 +1,4 @@
-# Phase 8 report — GPT-5.6 research analyst
+# Phase 8 report — Configured model research analyst
 
 Phase 8 was completed on **2026-07-15** from the Phase 7 report at
 `ce73e71e8f466df6ae202e013ae0f78dff0aeb0b` through the final numbered task at
@@ -7,7 +7,7 @@ Phase 8 was completed on **2026-07-15** from the Phase 7 report at
 ## Outcome
 
 TaxaLens now has an evidence-bound research-analyst foundation centred visibly and technically on
-the exact `gpt-5.6-sol` model. The implementation defines a server-only Responses API loop, nine
+the exact `configured-model` model. The implementation defines a server-only Responses API loop, nine
 strict read-only tools, a strict structured final-output contract, an auditable public trace, one
 checksum-bound stored analyst run, and a deterministic initial workflow evaluation.
 
@@ -20,9 +20,9 @@ re-executes its recorded tool exchange locally before displaying it.
 
 | Task | Commit | Delivered boundary |
 | --- | --- | --- |
-| 8.1 | `52fb3c1592874544b799f2104895b36b4ce17d4c` | Official GPT-5.6, Responses, Structured Outputs, function-tool, Programmatic Tool Calling, security, and replay contract |
+| 8.1 | `52fb3c1592874544b799f2104895b36b4ce17d4c` | Official Configured model, Responses, Structured Outputs, function-tool, Programmatic Tool Calling, security, and replay contract |
 | 8.2 | `a75dc6656fa2b663527cfcfaf1063e8aa578d18b` | Nine deterministic evidence tools over the checksum-verified replay |
-| 8.3 | `a857a9e28ba90d0d9368cc525c477626e19756b6` | Bounded `gpt-5.6-sol` Responses analyst and server-only transport adapter |
+| 8.3 | `a857a9e28ba90d0d9368cc525c477626e19756b6` | Bounded `configured-model` Responses analyst and server-only transport adapter |
 | 8.4 | `77cd51e7a61945ffef9f0603b9ecd960460abaa9` | Public audit projection and fifth lazy Agent workspace |
 | 8.5 | `552e75c7e612c48681e79d2d5609578b575477ee` | Credential-free stored request and run with local deterministic replay validation |
 | 8.6 | `018599d72182b2a04dccb4c63bd3a75681e53100` | Initial 19-case research-workflow evaluation with an explicit pass threshold |
@@ -36,7 +36,7 @@ human-decision, test, and AI-assistance disclosures.
 The implementation decision was frozen only after checking current official OpenAI documentation
 on 2026-07-15:
 
-- exact model ID `gpt-5.6-sol` rather than a moving alias;
+- exact model ID `configured-model` rather than a moving alias;
 - Responses API at `POST /v1/responses`;
 - explicit standard reasoning mode with `medium` or `high` effort;
 - strict Structured Outputs under `text.format`;
@@ -80,7 +80,7 @@ visual scores leave abstention and strongest-competitor claims unevaluated.
 
 ## Bounded analyst loop
 
-The server-transport-injected analyst uses exact `gpt-5.6-sol`, explicit standard reasoning,
+The server-transport-injected analyst uses exact `configured-model`, explicit standard reasoning,
 `store: false`, disabled parallel tool calls, strict final JSON, and explicit response-turn and tool
 budgets. Default limits are eight tool calls and six response turns; accepted requests may not
 exceed twelve calls or ten turns.
@@ -107,7 +107,7 @@ adapter; that adapter rejects browser construction and is not exported into the 
 
 ## Public trace and stored replay
 
-The fifth lazy workspace makes the GPT-5.6 contract visible in the product and displays only
+The fifth lazy workspace makes the Configured model contract visible in the product and displays only
 reviewable public fields: request, public plan, validated tool parameters, complete deterministic
 tool results, verified artifacts, strict structured output, answer, model, effort, statuses, and
 measured tool/turn budgets.
@@ -122,7 +122,7 @@ artifacts:
 - `agent/stored_analyst_request.json`;
 - `agent/stored_analyst_run.json`.
 
-The stored run names `gpt-5.6-sol`, uses medium standard reasoning, records a completed two-turn,
+The stored run names `configured-model`, uses medium standard reasoning, records a completed two-turn,
 one-tool target-resolution exchange, and cites `query-definitions`. It states that target identity
 is neither an occurrence, an image classification, nor a scientific result. It uses explicit
 stored-replay response IDs and claims no occurrence time.
@@ -160,7 +160,7 @@ cardinality, inventory-resolved citations, the scientific non-promotion flag, re
 language, and forbidden unsupported language. The evaluation makes no network, model, clock, or
 random call and returns the same immutable report on repeat execution.
 
-This is an initial deterministic research-workflow evaluation. It does **not** measure live GPT-5.6
+This is an initial deterministic research-workflow evaluation. It does **not** measure live Configured model
 answer quality, and it is not BioMiner Phase 14 scientific evaluation. No precision, accuracy,
 calibration, biological performance, or classification metric is inferred from it.
 

@@ -29,7 +29,7 @@ assets and makes no live scientific or model request.
 | What is the product? | An auditable research workflow over social-media biodiversity evidence |
 | What is the pilot? | One *Papilio demoleus* replay with aggregate prototype evidence and no public image |
 | Does it identify the species in the candidate photo? | No; the hero is `awaiting_human_review` |
-| Does GPT-5.6 run live? | No; the judge path replays one stored structured output |
+| Does Configured model run live? | No; the judge path replays one stored structured output |
 | Does BioMiner run live? | No; TaxaLens reads a bounded checksum-verified artifact import |
 | Is a backend required? | No; the hosted product is static |
 | Can it be reset? | Yes; **Reset replay** clears client state and returns to Research Mission |
@@ -79,10 +79,10 @@ claim biological absence, an occurrence, or a range extension.
 Expected: the first filter shows candidate hypotheses globally. The human-reviewed layer contains
 zero retained outcomes. Neither filter changes the global scope or creates review evidence.
 
-### 50–65 seconds — Inspect the global GPT-5.6 replay
+### 50–65 seconds — Inspect the global Configured model replay
 
 1. Open **06 Agent Trace**.
-2. Find **GPT-5.6 geographic analyst** and inspect its tool receipt.
+2. Find **Configured model geographic analyst** and inspect its tool receipt.
 
 Expected: the credential-free replay cites the baseline union, Flickr snapshot, impact cells,
 campaign, quality state, and source SHAs. It reports the global resolution-3 totals: 19,201
@@ -168,10 +168,10 @@ campaign assignments. Reference readiness remains blocked, and the target-precis
 remains **Unavailable** because there are zero inclusion-weighted decisive Flickr audit outcomes.
 The first quality checkpoint is 20.
 
-### 70–82 seconds — 6. Ask GPT-5.6 for the next action
+### 70–82 seconds — 6. Ask Configured model for the next action
 
 1. Open **06 Agent Trace**.
-2. Find **GPT-5.6 next review action**.
+2. Find **Configured model next review action**.
 3. Confirm the stored recommendation is **adjudication** for one intentionally conflicted control
    item and inspect its artifact IDs.
 
@@ -205,7 +205,7 @@ available as a slower orientation route.
 | Observatory stages | 13 |
 | DuckDB-Wasm replay operations | 8 |
 | Regional candidate plans | 5 |
-| Stored GPT-5.6 traces | 3 |
+| Stored Configured model traces | 3 |
 | Research replay response turns / tool calls | 2 / 1 |
 | Verification replay response turns / tool calls | 6 / 5 |
 | Core deterministic evaluation cases / named checks | 31 / 247 |
@@ -318,11 +318,11 @@ eight real operations over committed Parquet and JSON evidence:
 Engineering mode exposes keys, cardinality, rows, nulls, elapsed time, bytes, artifacts, checksums,
 and an inspectable DuckDB `EXPLAIN` plan. A matrix score is never called a hash join.
 
-### 4. Inspect the stored GPT-5.6 traces
+### 4. Inspect the stored Configured model traces
 
 Open **Agent Trace** and confirm:
 
-- the research analyst uses model `gpt-5.6-sol` with medium standard reasoning;
+- the research analyst uses model `configured-model` with medium standard reasoning;
 - both panels say **Stored output · no live call**;
 - the research trace contains two stored response turns, one `resolve_taxon` tool call, and a
   citation to `query-definitions`;
@@ -386,7 +386,7 @@ copied screenshot or stale guide value, are authoritative.
 | Judge bundle | `papilio-demoleus-prototype-74a7d648-v3` | Supported replay fixture |
 | Source registry | `butterflies-v2-20260712` | Registry contract displayed in Mission |
 | Source snapshot | `gbif-reference-search-20260715` | Reference-search planning snapshot |
-| Research analyst | `gpt-5.6-sol` | Stored by default; server-only live contract |
+| Research analyst | `configured-model` | Stored by default; server-only live contract |
 | OpenAI JavaScript SDK | `6.47.0` | Server transport dependency; absent from the live judge route |
 | DuckDB-Wasm | `1.32.0` | Same-origin local Parquet analytics |
 | React | `19.2.7` | Static judge product |
@@ -406,7 +406,7 @@ deduplication, YOLOE routing, BioCLIP screening, reference workflows, and the un
 scientific-evaluation path. Its screening output is evidence, never taxonomic validation; missing
 geography is unknown, never biological absence.
 
-TaxaLens is the product, replay, planning, analytics, audit, GPT-5.6 explanation, dashboard, export,
+TaxaLens is the product, replay, planning, analytics, audit, Configured model explanation, dashboard, export,
 and judge surface. It consumes only the pinned committed artifacts and narrowly documented replay
 contracts. It does not require, modify, or launch the BioMiner repository during judging.
 
@@ -414,7 +414,7 @@ contracts. It does not require, modify, or launch the BioMiner repository during
 
 There is no supported live judge command in this slice.
 
-- The repository contains a server-only, transport-injected GPT-5.6 analyst contract, but no
+- The repository contains a server-only, transport-injected Configured model analyst contract, but no
   production server route, secret-store integration, approval workflow, or live-model E2E test.
 - Live Flickr acquisition, licensed media download, new YOLOE/BioCLIP execution, calibration, and
   independently reviewed scientific evaluation remain BioMiner work and require a separate approved
@@ -438,7 +438,7 @@ label. It must never replace or mutate the deterministic fixture expectations ab
 - Geographic data describes candidate workload and planning evidence, not confirmed occurrences.
 - Source-media candidates remain unverified support leads with a 247-item sourcing shortfall and a
   490-item human-verification shortfall.
-- The 31-case agent evaluation tests deterministic workflow and policy behaviour, not live GPT-5.6
+- The 31-case agent evaluation tests deterministic workflow and policy behaviour, not live Configured model
   answer quality or biodiversity accuracy.
 - Browser E2E requires the Playwright host libraries. Local Chromium results are recorded by the
   release gate; Firefox, WebKit, and CI remain separate browser environments and must not be

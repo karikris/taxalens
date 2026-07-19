@@ -8,13 +8,13 @@ import {
 } from './storedVerificationAnalystReplay'
 
 describe('stored verification analyst replay', () => {
-  it('replays the committed GPT-5.6 output through real deterministic tools', async () => {
+  it('replays the committed Configured model output through real deterministic tools', async () => {
     const { evidence } = await createVerificationAgentEvidenceFixture()
     const run = await loadStoredVerificationAnalystReplay(evidence)
 
     expect(run).toMatchObject({
       schemaVersion: 'taxalens-verification-analyst-run:v1.2.0',
-      model: 'gpt-5.6-sol',
+      model: 'configured-model',
       toolCallingMode: 'direct',
       programCallCount: 0,
       responseIds: [

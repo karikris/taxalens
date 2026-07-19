@@ -108,11 +108,11 @@ scientific impact.
   historical five-image smoke remains labelled as historical evidence; review
   campaign sizes remain explicit scientific workload bounds.
 
-### GPT-5.6 and judge experience
+### Configured model and judge experience
 
 - Five deterministic, read-only verification evidence tools and bounded
   workflows for next action, quality change and campaign analysis.
-- A credential-free stored `gpt-5.6-sol` replay and 28-case deterministic
+- A credential-free stored `configured-model` replay and 28-case deterministic
   evaluation; neither is a live taxonomic or scientific evaluation.
 - A verification-centered README preview, 90-second judge route, eight-slide
   presentation and 165-second video storyboard.
@@ -163,7 +163,7 @@ scientific impact.
   genuine-human usability protocol are committed, but both retain zero human
   results.
 - Six deterministic geographic analyst tools, a stored credential-free
-  `gpt-5.6-sol`/`xhigh` country explanation and 24-case safety/grounding
+  `configured-model`/`xhigh` country explanation and 24-case safety/grounding
   evaluation.
 - Candidate-only cells remain potential coverage contribution. Human-supported
   and release-ready contribution remain zero until genuine review and release
@@ -207,7 +207,7 @@ lineage.
   rows already delivered through GBIF.
 - No live Supabase project, private B2 campaign or production collaboration
   credential.
-- No live GPT-5.6 quality evaluation or model-authorised scientific decision.
+- No live Configured model quality evaluation or model-authorised scientific decision.
 
 The exact current tests, hosted receipt, rights state, review counts and blocked
 claims are in

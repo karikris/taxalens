@@ -16,7 +16,7 @@ Status: complete and pushed to `main`
 - BioMiner `main` at the final boundary check:
   `7b81a954943a2fca46a13dfbd0e06b1a711439c7`
 - Codex session: `019f65d0-3ca9-7870-9eb2-37c14ed02517`
-- Primary model: `gpt-5.6-sol`
+- Primary model: `configured-model`
 - Reasoning effort: `xhigh`
 
 BioMiner advanced during the task and its working tree contained three staged

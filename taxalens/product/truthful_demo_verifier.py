@@ -596,7 +596,7 @@ def _verify_openai_replay(
     if (
         trace.get("trace_id") != "papilio-target-resolution-stored-replay"
         or trace.get("sequence") != 1
-        or trace.get("model") != "gpt-5.6-sol"
+        or trace.get("model") != "configured-model"
         or trace.get("occurred_at") is not None
         or trace.get("stored_output_only") is not True
         or request_id != "stored-analyst-request"
@@ -632,7 +632,7 @@ def _verify_openai_replay(
         or request_target.get("acceptedTaxonKey") != target.get("accepted_taxon_key")
         or request_target.get("scientificName") != target.get("scientific_name")
         or run.get("schemaVersion") != "taxalens-research-analyst-run:v1.0.0"
-        or run.get("model") != "gpt-5.6-sol"
+        or run.get("model") != "configured-model"
         or run.get("reasoningEffort") != request.get("reasoningEffort")
         or run.get("responseStatus") != "completed"
         or output.get("requestKind") != request.get("requestKind")

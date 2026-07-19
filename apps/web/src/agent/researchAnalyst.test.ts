@@ -34,7 +34,7 @@ beforeAll(async () => {
   ).replay
 })
 
-describe('GPT-5.6 research analyst', () => {
+describe('Configured model research analyst', () => {
   it('builds the exact stateless Responses request with strict tools and output', () => {
     const request = buildResponsesRequest(
       [{ role: 'user', content: 'Plan the verified replay.' }],
@@ -44,7 +44,7 @@ describe('GPT-5.6 research analyst', () => {
     )
 
     expect(request).toMatchObject({
-      model: 'gpt-5.6-sol',
+      model: 'configured-model',
       store: false,
       stream: false,
       include: ['reasoning.encrypted_content'],

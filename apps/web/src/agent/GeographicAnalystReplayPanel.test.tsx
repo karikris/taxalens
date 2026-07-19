@@ -9,7 +9,7 @@ describe('GeographicAnalystReplayPanel', () => {
     const replay = await loadStoredGeographicAnalystReplay()
     render(<GeographicAnalystReplayPanel state={{ kind: 'ready', replay }} />)
 
-    expect(screen.getByText('GPT-5.6 geographic analyst')).toBeVisible()
+    expect(screen.getByText('Configured model geographic analyst')).toBeVisible()
     expect(screen.getByText('Stored output · no live call')).toBeVisible()
     expect(screen.getByText('Not required')).toBeVisible()
     expect(screen.getByText(/13,416 geographically supported Flickr candidate-evidence rows/)).toBeVisible()

@@ -62,17 +62,17 @@ describe('TaxaLens scaffold', () => {
       expect(
         await screen.findByRole(
           'heading',
-          { name: 'GPT-5.6 Sol research analyst' },
+          { name: 'Configured model Sol research analyst' },
           { timeout: 5_000 },
         ),
       ).toBeInTheDocument()
-      expect(screen.getByText('gpt-5.6-sol')).toBeInTheDocument()
+      expect(screen.getByText('configured-model')).toBeInTheDocument()
       expect(
         await screen.findByRole('heading', { name: 'Replayed analyst session' }),
       ).toBeInTheDocument()
       expect(screen.getAllByText('Stored output · no live call')).toHaveLength(2)
       expect(
-        screen.getByRole('heading', { name: 'GPT-5.6 geographic analyst' }),
+        screen.getByRole('heading', { name: 'Configured model geographic analyst' }),
       ).toBeInTheDocument()
       expect(screen.getByRole('heading', { name: 'resolve_taxon' })).toBeInTheDocument()
       expect(

@@ -11,7 +11,7 @@ topic documents only when relevant.
 | [`SCIENCE_AND_PRODUCT.md`](SCIENCE_AND_PRODUCT.md) | Scientific evidence, BioMiner boundary, product semantics |
 | [`GEOGRAPHIC_IMPACT_AND_VERIFICATION.md`](GEOGRAPHIC_IMPACT_AND_VERIFICATION.md) | Map, provider union, review, quality, active goal |
 | [`DATA_REPLAY_AND_STORAGE.md`](DATA_REPLAY_AND_STORAGE.md) | Judge bundle, facade, Parquet, repository mirror, local/cloud adapters |
-| [`WEB_OPENAI_AND_ACCESSIBILITY.md`](WEB_OPENAI_AND_ACCESSIBILITY.md) | React, map UX, accessibility, GPT-5.6 analyst |
+| [`WEB_OPENAI_AND_ACCESSIBILITY.md`](WEB_OPENAI_AND_ACCESSIBILITY.md) | React, map UX, accessibility, Configured model analyst |
 | [`TESTING_AND_RELEASE.md`](TESTING_AND_RELEASE.md) | Tests, E2E, static deployment, competition release |
 | [`TASK_TEMPLATE.md`](TASK_TEMPLATE.md) | Task plan and completion report |
 

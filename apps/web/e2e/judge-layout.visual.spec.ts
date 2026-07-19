@@ -31,7 +31,7 @@ const JUDGE_ROUTES = [
   },
   {
     id: 'agent',
-    heading: 'GPT-5.6 Sol research analyst',
+    heading: 'Configured model Sol research analyst',
     snapshot: 'agent-trace-1280x720.png',
   },
 ] as const

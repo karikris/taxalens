@@ -868,7 +868,7 @@ def _stored_agent_payloads() -> list[_ArtifactSpec]:
     }
     run = {
         "schemaVersion": "taxalens-research-analyst-run:v1.0.0",
-        "model": "gpt-5.6-sol",
+        "model": "configured-model",
         "reasoningEffort": "medium",
         "responseStatus": "completed",
         "output": output,
@@ -1742,7 +1742,7 @@ def build_truthful_demo_fixture(
                     "trace_id": "papilio-target-resolution-stored-replay",
                     "sequence": 1,
                     "stage_id": "agent-evidence-explanation",
-                    "model": "gpt-5.6-sol",
+                    "model": "configured-model",
                     "occurred_at": None,
                     "request_artifact_id": "stored-analyst-request",
                     "response_artifact_id": "stored-analyst-run",

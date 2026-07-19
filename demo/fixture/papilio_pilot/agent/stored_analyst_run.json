@@ -6,7 +6,7 @@
     "usedResponseTurns": 2,
     "usedToolCalls": 1
   },
-  "model": "gpt-5.6-sol",
+  "model": "configured-model",
   "output": {
     "answer": "The stored replay verifies that Papilio demoleus (gbif:1938069) is the declared research target. This target resolution is not an occurrence, image classification, or scientific result.",
     "approvalBoundary": {

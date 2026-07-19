@@ -26,7 +26,7 @@ describe('loadStoredAnalystReplay', () => {
 
     expect(trace).toMatchObject({
       mode: 'stored_replay',
-      model: 'gpt-5.6-sol',
+      model: 'configured-model',
       source: {
         kind: 'stored_replay',
         traceId: 'papilio-target-resolution-stored-replay',

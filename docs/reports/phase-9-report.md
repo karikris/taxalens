@@ -191,7 +191,7 @@ the TaxaLens evidence boundary.
 - The 404 fallback returns an HTTP 404 before its browser redirect, as expected for static Pages.
 - No rights-cleared image, detector result, transformed frame, embedding, visual score, calibrated
   probability, reviewed label, ranked competitor, or final scientific evidence record is committed.
-- The stored GPT-5.6 session remains a stored output with no live call.
+- The stored Configured model session remains a stored output with no live call.
 
 Phase 10 should now make this completed product slice legible to judges: lead the README with the
 problem and product, document the 90-second and technical routes, preserve the no-credential and

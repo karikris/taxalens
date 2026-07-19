@@ -18,9 +18,9 @@ export function VerificationRecommendationPanel({
       className="detail-panel agent-verification-recommendation"
       aria-labelledby="verification-recommendation-title"
     >
-      <p className="eyebrow">Stored GPT-5.6 verification replay</p>
+      <p className="eyebrow">Stored Configured model verification replay</p>
       <h2 id="verification-recommendation-title">
-        GPT-5.6 next review action
+        Configured model next review action
       </h2>
       <p>
         The verification analyst calls five bounded evidence tools and returns

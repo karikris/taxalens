@@ -19,7 +19,7 @@ This report uses a non-self-referential implementation endpoint. The report and 
 | BioMiner baseline-geography SHA consumed | `247b42f3206d48bb79e2dbf97c5a92e4f207ae71` |
 | BioMiner Flickr-geography SHA consumed | `75461d9c065af0cd96b41cd1f845c2e920f7ae34` |
 | BioMiner live `main` observed at release | `c7eaa9bf3696a25a0c8229837819dccec4fb9d66` (context only, not substituted for artifact pins) |
-| Primary model recorded for the goal | `gpt-5.6-sol` |
+| Primary model recorded for the goal | `configured-model` |
 | Reasoning effort | `xhigh` |
 | Codex session | `019f65d0-3ca9-7870-9eb2-37c14ed02517` |
 
@@ -119,7 +119,7 @@ Yes and No may become decisive evidence only under each campaign's independent-r
 
 A reviewed target-positive result is still not release-ready. Release requires decisive positive consensus, valid coordinates, duplicate gate, valid quality snapshot, complete provenance and the configured occurrence-release policy. The committed occurrence-release decision file contains zero rows and explicitly forbids a scientific claim.
 
-## GPT-5.6 geographic analyst
+## Configured model geographic analyst
 
 Six deterministic read-only geographic tools are available:
 
@@ -130,7 +130,7 @@ Six deterministic read-only geographic tools are available:
 - `recommend_geographic_review_batch`; and
 - `inspect_baseline_provider_union`.
 
-Counts, joins, rankings and distances come from deterministic code and cite the baseline snapshot, Flickr snapshot, impact artifacts, quality state, campaign and source commits. The stored credential-free replay uses `gpt-5.6-sol` with `xhigh` reasoning and records replay SHA-256 `090c21029302d95e0a8eb7af22e8ee93ed6b27be0f021c72547bc654fe5f2628`. It makes no live OpenAI request and allows no scientific claim.
+Counts, joins, rankings and distances come from deterministic code and cite the baseline snapshot, Flickr snapshot, impact artifacts, quality state, campaign and source commits. The stored credential-free replay uses `configured-model` with `xhigh` reasoning and records replay SHA-256 `090c21029302d95e0a8eb7af22e8ee93ed6b27be0f021c72547bc654fe5f2628`. It makes no live OpenAI request and allows no scientific claim.
 
 Twenty-four deterministic evaluation cases pass at a 1.0 pass rate. They cover provider double counting, candidate/reviewed/release maturity, unavailable direct iNaturalist data, data deficiency, no-geo, range-edge candidates, invalid samples, blocked release, artifact citations, prohibited terminology and model-memory arithmetic. This is a grounding and safety evaluation, not a live-model accuracy or human-productivity result.
 

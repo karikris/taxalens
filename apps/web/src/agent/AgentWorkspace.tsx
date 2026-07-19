@@ -19,7 +19,7 @@ export function AgentWorkspace({
     <div className="agent-workspace">
       <section className="detail-panel agent-intro" aria-labelledby="agent-title">
         <p className="eyebrow">Responses API · auditable research tools</p>
-        <h2 id="agent-title">GPT-5.6 Sol research analyst</h2>
+        <h2 id="agent-title">Configured model Sol research analyst</h2>
         <p className="lede">
           Natural-language mission planning and evidence explanation stay inside the verified
           replay boundary. Every displayed claim must resolve to a checksum-verified artifact.

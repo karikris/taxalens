@@ -14,7 +14,7 @@ Status: complete and pushed to `main`
 - BioMiner local `main` at the task gate:
   `725e77539da279332d4c8fd256a99eee44de545e`
 - Codex session: `019f65d0-3ca9-7870-9eb2-37c14ed02517`
-- Primary model: `gpt-5.6-sol`
+- Primary model: `configured-model`
 - Reasoning effort: `xhigh`
 
 BioMiner advanced independently during the geographic implementation. No moving

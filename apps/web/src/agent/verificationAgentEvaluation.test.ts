@@ -63,7 +63,7 @@ describe('verification analyst evaluation', () => {
       expect(ids.has(requiredId)).toBe(true)
     }
     expect(report.limitations.join(' ')).toContain(
-      'does not score live GPT-5.6 response quality',
+      'does not score live Configured model response quality',
     )
     expect(report.limitations.join(' ')).toContain(
       'not a BioMiner Phase 14 scientific evaluation',

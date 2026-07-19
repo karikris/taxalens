@@ -12,7 +12,7 @@ policy:
 attestation_creation:
   reviewer: "Kris Kari"
   ai_assistance: "OpenAI Codex"
-  ai_primary_model: "gpt-5.6-sol"
+  ai_primary_model: "configured-model"
   ai_session: "019f65d0-3ca9-7870-9eb2-37c14ed02517"
   note: "These current values describe creation of this ledger, not historical migrations."
 

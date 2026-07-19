@@ -13,7 +13,7 @@ Status: complete and pushed to `main`
 - BioMiner `main` at the final boundary check:
   `3dbdb0ce118478e8a1eac16b1b50b0e76e39d5b4`
 - Codex session: `019f65d0-3ca9-7870-9eb2-37c14ed02517`
-- Primary model: `gpt-5.6-sol`
+- Primary model: `configured-model`
 - Reasoning effort: `xhigh`
 
 BioMiner advanced during the task. The build did not silently consume its moving

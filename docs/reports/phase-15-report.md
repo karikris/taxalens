@@ -102,5 +102,5 @@ the same commit.
   deliverables.
 
 Every numbered Phase 15 task records GitHits availability, exact upstream
-origin, the human decision, tests, GPT-5.6 Codex provenance, and a direct-main
+origin, the human decision, tests, Configured model Codex provenance, and a direct-main
 pushed commit.

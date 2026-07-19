@@ -113,7 +113,7 @@ reviewed target-positive result still needs every occurrence-release gate.
 
 ---
 
-## Slide 7 — GPT-5.6 explains artifacts; it does not calculate novelty
+## Slide 7 — Configured model explains artifacts; it does not calculate novelty
 
 - Six deterministic, read-only geographic tools inspect impact, compare scopes, list candidate-gap
   cells, explain contribution, recommend review batches, and inspect the provider union.
@@ -125,9 +125,9 @@ reviewed target-positive result still needs every occurrence-release gate.
 - Twenty-four geographic evaluations reject provider double counting, absence claims, invalid
   quality inference, blocked release, missing citations, and model-memory arithmetic.
 
-**Show:** **Agent Trace → GPT-5.6 geographic analyst → Inspect geographic tool receipts**.
+**Show:** **Agent Trace → Configured model geographic analyst → Inspect geographic tool receipts**.
 
-**Say:** Deterministic code performs counts, joins, distances, and rankings. GPT-5.6 interprets
+**Say:** Deterministic code performs counts, joins, distances, and rankings. Configured model interprets
 those receipts; it cannot invent geographic contribution or authorize release.
 
 ---

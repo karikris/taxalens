@@ -11,7 +11,7 @@ TaxaLens end SHA: the commit containing this report
 BioMiner context SHA: `94fa1f634ee3c63917c05d78181dd3cf9ceff940`
 
 AI session: `019f65d0-3ca9-7870-9eb2-37c14ed02517`, OpenAI Codex,
-`gpt-5.6-sol`, standard reasoning mode, `xhigh` reasoning effort, no supporting
+`configured-model`, standard reasoning mode, `xhigh` reasoning effort, no supporting
 model.
 
 ## Outcome

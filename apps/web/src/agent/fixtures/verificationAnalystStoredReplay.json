@@ -14,7 +14,7 @@
   "responses": [
     {
       "id": "stored-verification-turn-01",
-      "model": "gpt-5.6-sol",
+      "model": "configured-model",
       "status": "completed",
       "output": [
         {
@@ -33,7 +33,7 @@
     },
     {
       "id": "stored-verification-turn-02",
-      "model": "gpt-5.6-sol",
+      "model": "configured-model",
       "status": "completed",
       "output": [
         {
@@ -52,7 +52,7 @@
     },
     {
       "id": "stored-verification-turn-03",
-      "model": "gpt-5.6-sol",
+      "model": "configured-model",
       "status": "completed",
       "output": [
         {
@@ -71,7 +71,7 @@
     },
     {
       "id": "stored-verification-turn-04",
-      "model": "gpt-5.6-sol",
+      "model": "configured-model",
       "status": "completed",
       "output": [
         {
@@ -90,7 +90,7 @@
     },
     {
       "id": "stored-verification-turn-05",
-      "model": "gpt-5.6-sol",
+      "model": "configured-model",
       "status": "completed",
       "output": [
         {
@@ -109,7 +109,7 @@
     },
     {
       "id": "stored-verification-turn-06",
-      "model": "gpt-5.6-sol",
+      "model": "configured-model",
       "status": "completed",
       "output": [],
       "output_text": "{\"schemaVersion\":\"taxalens-verification-analyst-output:v1.2.0\",\"requestKind\":\"next_review_action\",\"campaign\":{\"campaignId\":\"verification-agent-quality-campaign-v1\",\"title\":\"Verification analyst quality campaign\",\"target\":{\"acceptedTaxonKey\":\"gbif:1938069\",\"scientificName\":\"Papilio demoleus\"}},\"recommendation\":{\"action\":\"adjudication\",\"basis\":\"unresolved_review_conflict\",\"nextItemIds\":[\"commons-papilio-demoleus-open-wing\"],\"why\":\"One recorded reviewer disagreement remains unresolved, so an independent adjudication directly addresses the current decision blocker while preserving both source reviews.\",\"artifactIds\":[\"verification-campaign-manifest\",\"verification-item-manifest\",\"verification-event-ledger\",\"verification-consensus\",\"verification-quality-before\",\"verification-quality-after\",\"provider-support-goal-verification\"]},\"qualityChange\":null,\"campaignAnalysis\":null,\"evidenceBackedClaims\":[{\"id\":\"unresolved-conflict\",\"claim\":\"The immutable consensus projection retains one unresolved disagreement for the recommended campaign item.\",\"artifactIds\":[\"verification-campaign-manifest\",\"verification-item-manifest\",\"verification-event-ledger\",\"verification-consensus\",\"verification-quality-before\",\"verification-quality-after\",\"provider-support-goal-verification\"]}],\"unavailableEvidence\":[],\"answer\":\"Assign the conflicted item to an independent adjudicator and retain the complete dissenting event history.\",\"limitations\":[\"This action addresses a recorded blocker and does not predict a quality, taxonomic, or release outcome.\"],\"artifactIds\":[\"verification-campaign-manifest\",\"verification-item-manifest\",\"verification-event-ledger\",\"verification-consensus\",\"verification-quality-before\",\"verification-quality-after\",\"provider-support-goal-verification\"],\"externalActionsExecuted\":false,\"unsupportedClaimsRejected\":true,\"scientificClaimAllowed\":false}",

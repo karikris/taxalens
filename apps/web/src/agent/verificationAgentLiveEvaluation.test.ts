@@ -10,7 +10,7 @@ const LIVE_EVALUATION_ALLOWED =
   process.env.TAXALENS_ALLOW_LIVE_OPENAI_EVAL === '1'
 const describeLive = LIVE_EVALUATION_ALLOWED ? describe : describe.skip
 
-describeLive('live GPT-5.6 verification analyst evaluation', () => {
+describeLive('live Configured model verification analyst evaluation', () => {
   it('runs only with explicit permission and a server-owned credential', async () => {
     const apiKey = process.env.OPENAI_API_KEY?.trim() ?? ''
     if (apiKey.length === 0) {
@@ -33,7 +33,7 @@ describeLive('live GPT-5.6 verification analyst evaluation', () => {
       createServerOpenAITransport({ apiKey }),
     )
 
-    expect(run.model).toBe('gpt-5.6-sol')
+    expect(run.model).toBe('configured-model')
     expect(run.output.recommendation).toMatchObject({
       action: 'adjudication',
       basis: 'unresolved_review_conflict',

@@ -38,7 +38,7 @@ const CAMPAIGN_ID = 'verification-analyst-campaign-v1'
 const CONFLICT_ITEM_ID = 'verification-item-conflict'
 const PENDING_ITEM_ID = 'verification-item-pending'
 
-describe('GPT-5.6 verification analyst next action', () => {
+describe('Configured model verification analyst next action', () => {
   it('builds a stateless direct-tool request with strict verification schemas', () => {
     const request = buildVerificationResponsesRequest(
       [{ role: 'user', content: 'What should a reviewer do next?' }],
@@ -48,7 +48,7 @@ describe('GPT-5.6 verification analyst next action', () => {
     )
 
     expect(request).toMatchObject({
-      model: 'gpt-5.6-sol',
+      model: 'configured-model',
       store: false,
       stream: false,
       include: ['reasoning.encrypted_content'],

@@ -11,7 +11,7 @@ Status: complete and pushed to `main`
 - BioMiner verification-campaign revision consumed: `94fa1f634ee3c63917c05d78181dd3cf9ceff940`
 - BioMiner `main` observed at the completion gate: `282696d8d094a1af8c2be63ea0afa6d972e73e47`
 - Codex session: `019f65d0-3ca9-7870-9eb2-37c14ed02517`
-- Primary model: `gpt-5.6-sol`
+- Primary model: `configured-model`
 - Reasoning effort: `xhigh`
 
 The handoff is commit-qualified. Later BioMiner reference-workflow changes do not alter the imported Flickr geography bytes, and unrelated staged and untracked BioMiner work was excluded.

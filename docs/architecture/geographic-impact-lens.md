@@ -352,7 +352,7 @@ it does not silently enable a remote service.
 
 Deterministic code calculates counts, deduplication, full outer cell joins,
 distances, dates, rollups, rankings, and gate state from verified artifacts.
-GPT-5.6 may explain those results but does not calculate novelty from model
+Configured model may explain those results but does not calculate novelty from model
 memory. Every explanation cites the baseline snapshot, Flickr snapshot,
 impact-cell artifact, verification campaign, quality snapshot, and source
 revisions it used.

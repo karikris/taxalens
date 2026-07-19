@@ -27,7 +27,7 @@ The TaxaLens Geographic Impact Lens compares two evidence layers on a shared spa
 
 Researchers can drill from global to continent to country, select an exact cell, inspect the same
 values in an accessible table, open an individual candidate in Evidence Lens, follow its
-coordinate-precision and nearest-baseline context, begin verification, ask a stored GPT-5.6
+coordinate-precision and nearest-baseline context, begin verification, ask a stored Configured model
 analyst to explain the artifact receipts, and export the selected scope with provenance and
 checksums.
 
@@ -51,7 +51,7 @@ BioMiner supplies immutable, checksum-bound baseline and Flickr geography artifa
    tiles, fonts, sprites, telemetry, or analytics;
 7. synchronizes the map with exact tables, slicers, breadcrumbs, record mini-maps, verification,
    QualitySnapshot gates, and deterministic exports; and
-8. exposes six strict read-only geographic tools to a stored `gpt-5.6-sol` analyst replay.
+8. exposes six strict read-only geographic tools to a stored `configured-model` analyst replay.
 
 The hosted judge route is static and credential-free. Supabase and Backblaze B2 remain optional
 adapter contracts; committed repository mirrors make the replay inspectable without a cloud
@@ -84,7 +84,7 @@ interface, not a fallback footnote.
 - A mature append-only verification system with Can’t view, Skip, optional comments, consensus,
   conflicts, weighted sampling, confidence intervals, QualitySnapshot gates, and local event
   projection.
-- Six deterministic GPT-5.6 geographic tools, artifact citations, a credential-free stored replay,
+- Six deterministic Configured model geographic tools, artifact citations, a credential-free stored replay,
   and 24 safety evaluations.
 - Chromium, Firefox, and WebKit coverage; visual and accessibility regression; bounded performance;
   and an external-network guard for the map.

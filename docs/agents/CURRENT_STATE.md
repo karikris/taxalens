@@ -11,7 +11,7 @@ Generated from public `karikris/taxalens` on 2026-07-17.
 - Active goal family: Geographic Impact Lens
 - Primary observed Codex session:
   `019f65d0-3ca9-7870-9eb2-37c14ed02517`
-- Primary observed model: `gpt-5.6-sol`, reasoning `xhigh`
+- Primary observed model: `configured-model`, reasoning `xhigh`
 - Public replay: `https://karikris.github.io/taxalens/`
 
 This is a GitHub baseline, not a statement about uncommitted local work. The
@@ -114,7 +114,7 @@ The prior Verification goal is implementation-complete and hosted. It provides:
 - audit and failure-discovery sampling;
 - statistical quality snapshots;
 - BioMiner-compatible exports;
-- GPT-5.6 verification tools and stored replay.
+- Configured model verification tools and stored replay.
 
 The completion report states **82 campaign assignments and zero retained human
 outcomes**. Therefore:

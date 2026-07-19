@@ -16,7 +16,7 @@ Phase 0 audited the current TaxaLens product gap, reviewed the latest committed 
 | BioMiner reviewed handoff pin | `75461d9c065af0cd96b41cd1f845c2e920f7ae34` |
 | BioMiner branch | `main` |
 | `AGENTS.md` SHA-256 | `39d8bf1df80402d0cfb135d1093618b120f288f525a516196c3ceb6f3eb04ccb` |
-| Primary Codex model | `gpt-5.6-sol` |
+| Primary Codex model | `configured-model` |
 | Reasoning effort | `high` |
 | Codex session | `019f65d0-3ca9-7870-9eb2-37c14ed02517` |
 

@@ -9,7 +9,7 @@ scientific validation and live operation.
 TaxaLens has advanced from a tested collection of migrated BioMiner contracts into one coherent,
 public, resettable product experience. A judge can open Research Mission, follow the evidence
 pipeline, inspect one record and its uncertainty, analyse the committed artifacts in the browser,
-review the research workload, inspect a stored GPT-5.6 tool trace, and export deterministic evidence
+review the research workload, inspect a stored Configured model tool trace, and export deterministic evidence
 without a login, key, backend, GPU, model download, or live third-party service.
 
 This completion decision applies to the product slice only. It is not a claim that *Papilio
@@ -26,7 +26,7 @@ that the reference bank is reviewed, or that Phase 14 scientific evaluation succ
 | Commits after starting SHA | 66 | `3b4e64e…0c8f941` Git range |
 | Branch | `main` | Explicit user-directed direct-main workflow recorded since Phase 0 |
 | Approved `AGENTS.md` SHA-256 | `39d8bf1df80402d0cfb135d1093618b120f288f525a516196c3ceb6f3eb04ccb` | Direct SHA-256 verification |
-| Primary Codex model | `gpt-5.6-sol` | Required commit trailers and OpenAI implementation contract |
+| Primary Codex model | `configured-model` | Required commit trailers and OpenAI implementation contract |
 | Reasoning effort / mode | `high` / `standard` | Required commit trailers |
 | Codex session | `019f65d0-3ca9-7870-9eb2-37c14ed02517` | Required commit trailers |
 | GitHits numbered-task coverage | 53 of 53 | `provenance/githits.jsonl`, Tasks 0.1 through 10.3 |
@@ -83,7 +83,7 @@ decision, or reviewed label. Missing evidence is represented structurally as una
 | Evidence Observatory | Renders all 13 evidence stages; executes eight real DuckDB-Wasm operations; separates Research and Engineering inspection; shows only measured avoided work; highlights 13 contributing stages and 12 artifacts for the hero record |
 | Evidence Lens | Shows many-to-many discovery provenance, explicit YOLOE route absence, full-frame input contracts, five regional candidate plans, selective-decision blockers, geography/reference context, lifecycle ledger, and five-file audit export without inventing media or scores |
 | Butterfly Dashboard | Shows the evidence funnel, 76-cluster candidate workload, review priority boundary, query yield, measured versus unavailable efficiency, blocked reviewed evaluation, and five deterministic research outputs |
-| Agent Trace | Makes exact `gpt-5.6-sol`, bounded tools, artifact citations, public structured output, budgets, and stored no-live-call state visible without hidden reasoning or browser credentials |
+| Agent Trace | Makes exact `configured-model`, bounded tools, artifact citations, public structured output, budgets, and stored no-live-call state visible without hidden reasoning or browser credentials |
 | Guided judge route | Provides exactly five timed steps totalling 90 seconds, with skip, previous, reset, finish, completion, and replay; Export focuses the research-output panel |
 | Hosted and local replay | Public Pages route and one-command loopback route both serve the same production client and verified fixture; reset is client-local and reproducible |
 
@@ -123,7 +123,7 @@ and unsupported target, record, or claim rejection.
 
 The evaluator calls only deterministic evidence tools and the stored public replay. It makes no live
 model or scientific request. Its result is evidence about tool, policy, replay, and citation
-behaviour; it is not evidence of GPT-5.6 answer quality, biodiversity accuracy, calibration, or
+behaviour; it is not evidence of Configured model answer quality, biodiversity accuracy, calibration, or
 human release approval.
 
 ## Test and verification matrix
@@ -225,7 +225,7 @@ deployment record.
 5. Evaluate B0–B16, select calibration without using final-test evidence, run the untouched final
    evaluation, and record reviewed scientific metrics or an explicit abstention.
 6. Decide whether to implement a separately approved server route, secret handling, and live-model
-   evaluation for GPT-5.6. The credential-free replay must remain the primary judge path.
+   evaluation for Configured model. The credential-free replay must remain the primary judge path.
 7. Capture product screenshots and produce the final submission deck and video without changing the
    fixture claims.
 8. Refresh the AI code-origin census if a final whole-repository ELOC percentage is required.
@@ -241,7 +241,7 @@ The product-slice completion claim excludes:
 - verified target or competitor reference banks;
 - global butterfly coverage;
 - measured productivity, performance, or cost optimization;
-- a production OpenAI route or live GPT-5.6 quality evaluation;
+- a production OpenAI route or live Configured model quality evaluation;
 - signed artifacts or a software supply-chain attestation;
 - the final deck, screenshots, and competition video.
 

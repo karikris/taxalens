@@ -1,4 +1,4 @@
-# Web product, accessibility, and GPT-5.6
+# Web product, accessibility, and Configured model
 
 ## Web stack
 
@@ -87,13 +87,13 @@ Review requirements:
 - blind context remains hidden before the event;
 - errors are actionable and do not discard entered comments silently.
 
-## GPT-5.6 role
+## Configured model role
 
-GPT-5.6 is the research analyst, not the species classifier.
+Configured model is the research analyst, not the species classifier.
 
 Current public contract uses:
 
-- `gpt-5.6-sol`;
+- `configured-model`;
 - Responses API;
 - strict Structured Outputs;
 - read-only evidence tools;
@@ -144,7 +144,7 @@ Deterministic code calculates:
 - statistical intervals;
 - release gates.
 
-GPT-5.6 interprets those results.
+Configured model interprets those results.
 
 ## Current and planned analyst state
 

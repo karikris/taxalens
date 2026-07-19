@@ -22,8 +22,8 @@ describe('AgentWorkspace', () => {
   it('shows the exact model contract and a truthful no-session state', () => {
     render(<AgentWorkspace replay={replay} />)
 
-    expect(screen.getByRole('heading', { name: 'GPT-5.6 Sol research analyst' })).toBeInTheDocument()
-    expect(screen.getByText('gpt-5.6-sol')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Configured model Sol research analyst' })).toBeInTheDocument()
+    expect(screen.getByText('configured-model')).toBeInTheDocument()
     expect(screen.getByText('9 read-only')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'No analyst session loaded' })).toBeInTheDocument()
     expect(screen.getByRole('status')).toHaveTextContent('No live call or stored output')

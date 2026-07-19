@@ -329,7 +329,7 @@ TaxaLens remains authoritative for:
 - current-state, consensus, conflict, and quality presentation;
 - credential-free replay;
 - deterministic handoff preparation;
-- evidence-ledger and GPT-5.6 workflow integration.
+- evidence-ledger and Configured model workflow integration.
 
 TaxaLens may calculate a local preview projection for immediate user feedback,
 but only BioMiner’s validated imported artifacts authorize reference-bank

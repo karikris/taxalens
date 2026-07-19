@@ -1,6 +1,6 @@
 {
   "schemaVersion": "taxalens-geographic-analyst-stored-replay:v1.0.0",
-  "model": "gpt-5.6-sol",
+  "model": "configured-model",
   "reasoningEffort": "xhigh",
   "mode": "stored_credential_free",
   "capturedAt": "2026-07-17T19:58:49Z",
@@ -44,7 +44,7 @@
   "limitations": [
     "No retained human review outcome or quality snapshot is available.",
     "Direct iNaturalist delta is unavailable.",
-    "This stored replay demonstrates deterministic GPT-5.6 interpretation; it is not a live API call."
+    "This stored replay demonstrates deterministic Configured model interpretation; it is not a live API call."
   ],
   "externalActionsExecuted": false,
   "scientificClaimAllowed": false,

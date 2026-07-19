@@ -4,9 +4,9 @@ import storedReplay from './fixtures/geographicAnalystStoredReplay.json'
 import { loadStoredGeographicAnalystReplay } from './storedGeographicAnalystReplay'
 
 describe('stored geographic analyst replay', () => {
-  it('loads a credential-free artifact-grounded GPT-5.6 replay', async () => {
+  it('loads a credential-free artifact-grounded Configured model replay', async () => {
     const replay = await loadStoredGeographicAnalystReplay()
-    expect(replay).toMatchObject({ model: 'gpt-5.6-sol', reasoningEffort: 'xhigh', mode: 'stored_credential_free', externalActionsExecuted: false, scientificClaimAllowed: false })
+    expect(replay).toMatchObject({ model: 'configured-model', reasoningEffort: 'xhigh', mode: 'stored_credential_free', externalActionsExecuted: false, scientificClaimAllowed: false })
     expect(replay.scope).toMatchObject({ scopeLevel: 'global', scopeId: 'global', scopeName: 'Global' })
     expect(replay.toolReceipts).toHaveLength(1)
     expect(replay.answer).toContain('Zero cells are human-supported additional cells')

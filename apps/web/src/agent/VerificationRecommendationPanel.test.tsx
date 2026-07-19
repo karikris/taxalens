@@ -20,7 +20,7 @@ describe('VerificationRecommendationPanel', () => {
     )
 
     expect(
-      screen.getByRole('heading', { name: 'GPT-5.6 next review action' }),
+      screen.getByRole('heading', { name: 'Configured model next review action' }),
     ).toBeInTheDocument()
     expect(screen.getByText('Stored recommendation · no live call')).toBeInTheDocument()
     expect(screen.getByText('adjudication')).toBeInTheDocument()

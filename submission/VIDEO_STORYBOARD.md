@@ -26,7 +26,7 @@ Core message:
 | 0:09–0:14 | Set **Continent: Europe**, then **Country: Sweden**. Keep the breadcrumb visible. | “The same evidence model drills from global to continent to country.” Caption: **Global › Europe › Sweden**. |
 | 0:14–0:18 | Toggle **Human reviewed**. Hold on the empty Sweden map. | “The reviewed-only layer is empty because the public campaigns retain zero human outcomes.” Caption: **0 human-supported additional cells**. |
 | 0:18–0:25 | Return to **Flickr candidates**, select cell `87088660cffffff`, then cut to **Evidence Lens → flickr:55081300254** and its loaded mini-map. | “A candidate-only cell opens to one record, its supported coordinate, baseline context, precision, and distance.” Caption: **Candidate location · not occurrence**. |
-| 0:25–0:32 | Open **06 Agent Trace → GPT-5.6 geographic analyst**. Frame the Sweden answer and artifact receipts. | “GPT-5.6 explains deterministic receipts: 12 potential coverage-gap cells, 529 candidates, zero human-supported cells, and zero release-ready cells.” Caption: **Stored output · no live call · credential not required**. |
+| 0:25–0:32 | Open **06 Agent Trace → Configured model geographic analyst**. Frame the Sweden answer and artifact receipts. | “Configured model explains deterministic receipts: 12 potential coverage-gap cells, 529 candidates, zero human-supported cells, and zero release-ready cells.” Caption: **Stored output · no live call · credential not required**. |
 
 The hero is 32 seconds. Use direct cuts or the committed fixed-time frames; do not animate markers
 between states or imply that a candidate matured during the sequence.
@@ -63,7 +63,7 @@ release-ready marker additionally requires every occurrence-release gate.
 
 ## Model and engineering roles
 
-**GPT-5.6 at runtime**
+**Configured model at runtime**
 
 - reads checksum-bound evidence through bounded, read-only tools;
 - interprets deterministic counts, joins, rankings, distances, and release state;

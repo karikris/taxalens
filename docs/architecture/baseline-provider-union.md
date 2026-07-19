@@ -364,7 +364,7 @@ part of a provider-union build.
 - Every removed row remains discoverable through provider relationships.
 - Coincident independent observations remain separate unless strong identity
   evidence links them.
-- The map, table, export, and GPT-5.6 tools can expose the same reconciled
+- The map, table, export, and Configured model tools can expose the same reconciled
   provider composition and unavailable states.
 
 ## Rejected alternatives

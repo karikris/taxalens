@@ -198,7 +198,7 @@ Release must include:
 - README/Judge Guide;
 - video under three minutes;
 - exact Codex `/feedback` Session ID;
-- Codex/GPT-5.6 explanation;
+- Codex/Configured model explanation;
 - Build Week delta;
 - repository/source and rights evidence;
 - every public number artifact-backed.

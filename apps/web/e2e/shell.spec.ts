@@ -65,10 +65,10 @@ test('navigates the evidence views and guided tour from the keyboard', async ({ 
   await page.keyboard.press('Enter')
   await expect(agentTrace).toHaveAttribute('aria-current', 'page')
   await expect(
-    page.getByRole('heading', { name: 'GPT-5.6 Sol research analyst' }),
+    page.getByRole('heading', { name: 'Configured model Sol research analyst' }),
   ).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Replayed analyst session' })).toBeVisible()
-  await expect(page.getByText('gpt-5.6-sol', { exact: true }).first()).toBeVisible()
+  await expect(page.getByText('configured-model', { exact: true }).first()).toBeVisible()
   await expect(
     page
       .getByRole('heading', { name: 'Replayed analyst session' })

@@ -3,7 +3,7 @@ import type {
   VerificationToolResult,
 } from './verificationTools'
 
-export const VERIFICATION_ANALYST_MODEL = 'gpt-5.6-sol' as const
+export const VERIFICATION_ANALYST_MODEL = 'configured-model' as const
 export const VERIFICATION_ANALYST_OUTPUT_VERSION =
   'taxalens-verification-analyst-output:v1.2.0' as const
 export const VERIFICATION_ANALYST_RUN_VERSION =

@@ -1512,7 +1512,7 @@ components:
     source_path: "src/biominer/references/review.py;docs/schemas/target_aware_few_shot_contracts.md"
     destination_path: "apps/web/src/agent/verificationTools.ts;apps/web/src/agent/index.ts"
     migration_kind: "adapter"
-    reason: "Expose deterministic read-only verification analytics to the future GPT-5.6 verification analyst while retaining BioMiner conflict, second-review, immutable-ledger, and reference-readiness semantics."
+    reason: "Expose deterministic read-only verification analytics to the future Configured model verification analyst while retaining BioMiner conflict, second-review, immutable-ledger, and reference-readiness semantics."
     build_week_scope: "new"
     source_license: "MIT License, copyright 2026 Kris Kari"
     changes:
@@ -1573,7 +1573,7 @@ components:
       - "Asserted execution makes no fetch wall-clock or randomness calls"
       - "Asserted evidence creation and execution do not mutate caller-owned inputs"
       - "Changed the evidence factory to clone plain evidence before freezing its internal validated copy"
-      - "Ran existing research tool and GPT-5.6 analyst tests alongside the new suite"
+      - "Ran existing research tool and Configured model analyst tests alongside the new suite"
     tests:
       - "apps/web/src/agent/verificationTools.test.ts"
       - "apps/web/src/agent/researchTools.test.ts"
@@ -1585,7 +1585,7 @@ components:
     source_path: "src/biominer/references/review.py;docs/schemas/target_aware_few_shot_contracts.md"
     destination_path: "apps/web/src/agent/verificationAnalystContract.ts;apps/web/src/agent/verificationAnalyst.ts;apps/web/src/agent/verificationAnalyst.test.ts;apps/web/src/agent/index.ts"
     migration_kind: "adapter"
-    reason: "Let GPT-5.6 explain the next bounded human verification action without allowing model prose to choose a campaign item, overwrite reviewer disagreement, or manufacture a scientific outcome."
+    reason: "Let Configured model explain the next bounded human verification action without allowing model prose to choose a campaign item, overwrite reviewer disagreement, or manufacture a scientific outcome."
     build_week_scope: "new"
     source_license: "MIT License, copyright 2026 Kris Kari"
     changes:
@@ -1600,7 +1600,7 @@ components:
       - "Required the complete returned artifact chain on the recommendation"
       - "Rejected guarantee accuracy release and independent-taxonomic-verification claims"
       - "Executed no review write download inference publication or other external action"
-      - "Added scripted GPT-5.6 request continuation action-policy citation and failure-boundary tests"
+      - "Added scripted Configured model request continuation action-policy citation and failure-boundary tests"
     tests:
       - "apps/web/src/agent/verificationAnalyst.test.ts"
       - "apps/web/src/agent/verificationTools.test.ts"
@@ -1613,7 +1613,7 @@ components:
     source_path: "src/biominer/references/review.py;docs/schemas/target_aware_few_shot_contracts.md"
     destination_path: "apps/web/src/agent/verificationAnalystContract.ts;apps/web/src/agent/verificationAnalyst.ts;apps/web/src/agent/verificationAnalyst.test.ts;apps/web/src/agent/index.ts"
     migration_kind: "adapter"
-    reason: "Explain recorded verification quality changes between immutable snapshots without allowing GPT-5.6 to calculate deltas, reverse evidence chronology, or assign a causal effect to one human review."
+    reason: "Explain recorded verification quality changes between immutable snapshots without allowing Configured model to calculate deltas, reverse evidence chronology, or assign a causal effect to one human review."
     build_week_scope: "new"
     source_license: "MIT License, copyright 2026 Kris Kari"
     changes:
@@ -1637,7 +1637,7 @@ components:
     source_path: "src/biominer/references/review.py;docs/schemas/target_aware_few_shot_contracts.md"
     destination_path: "apps/web/src/agent/verificationAnalystContract.ts;apps/web/src/agent/verificationAnalyst.ts;apps/web/src/agent/verificationAnalyst.test.ts;apps/web/src/agent/index.ts"
     migration_kind: "adapter"
-    reason: "Use GPT-5.6 Programmatic Tool Calling to orchestrate bounded campaign analytics while keeping review-event joins, blocker calculations, conflict aggregation, and priority ranking in deterministic TaxaLens code."
+    reason: "Use Configured model Programmatic Tool Calling to orchestrate bounded campaign analytics while keeping review-event joins, blocker calculations, conflict aggregation, and priority ranking in deterministic TaxaLens code."
     build_week_scope: "new"
     source_license: "MIT License, copyright 2026 Kris Kari"
     changes:
@@ -1666,13 +1666,13 @@ components:
     source_path: "src/biominer/references/review.py;examples/species/papilio_demoleus/pilot_provider_support_goal_verification.json;docs/schemas/target_aware_few_shot_contracts.md"
     destination_path: "apps/web/src/test/verificationAgentEvidence.ts;apps/web/src/agent/fixtures/verificationAnalystStoredReplay.json;apps/web/src/agent/storedVerificationAnalystReplay.ts;apps/web/src/agent/storedVerificationAnalystReplay.test.ts;apps/web/src/agent/verificationAgentEvaluation.ts;apps/web/src/agent/verificationAgentEvaluation.test.ts;apps/web/src/agent/verificationAgentLiveEvaluation.test.ts;apps/web/src/agent/verificationAnalyst.ts;apps/web/src/agent/index.ts;apps/web/package.json"
     migration_kind: "contract-test"
-    reason: "Evaluate the GPT-5.6 verification analyst against a committed credential-free replay and at least twenty deterministic human-review risks while keeping any live model call explicitly opt in."
+    reason: "Evaluate the Configured model verification analyst against a committed credential-free replay and at least twenty deterministic human-review risks while keeping any live model call explicitly opt in."
     build_week_scope: "new"
     source_license: "MIT License, copyright 2026 Kris Kari"
     changes:
       - "Added a reusable synthetic evaluation packet built through real campaign item event consensus inspection quality-snapshot and citation validators"
       - "Used the exact BioMiner provider support goal artifact digest and source commit"
-      - "Committed a stored GPT-5.6 next-action response sequence with no private reasoning or credential"
+      - "Committed a stored Configured model next-action response sequence with no private reasoning or credential"
       - "Replayed every stored call through the production verification analyst and real deterministic tools"
       - "Rejected private stored fields changed campaign bindings and changed final action policy"
       - "Added 28 deterministic evaluation cases exceeding the required twenty"
@@ -1680,7 +1680,7 @@ components:
       - "Covered representative versus failure-discovery sampling unresolved conflict missing interval uninspected media reference shortfall and reviewer disagreement"
       - "Covered no taxon guessing role-suitability boundaries majority preservation snapshot ordering campaign joins blockers conflicts priorities citations and scientific boundaries"
       - "Reported deterministic stored-replay evaluation separately from live model-output quality"
-      - "Added a Node-only live gpt-5.6-sol test gated by TAXALENS_ALLOW_LIVE_OPENAI_EVAL=1 and a server-owned OPENAI_API_KEY"
+      - "Added a Node-only live configured-model test gated by TAXALENS_ALLOW_LIVE_OPENAI_EVAL=1 and a server-owned OPENAI_API_KEY"
       - "Kept the live test skipped and network-free in default CI"
       - "Added focused default and explicitly live agent test scripts"
     tests:

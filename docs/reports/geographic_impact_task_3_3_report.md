@@ -11,7 +11,7 @@ Status: complete and pushed to `main`
 - BioMiner Flickr evidence origin: `75461d9c065af0cd96b41cd1f845c2e920f7ae34`
 - BioMiner local `main` at the task gate: `d71bceabf75748a25df39d0025e8da907f295f8c`
 - Codex session: `019f65d0-3ca9-7870-9eb2-37c14ed02517`
-- Primary model: `gpt-5.6-sol`
+- Primary model: `configured-model`
 - Reasoning effort: `xhigh`
 
 BioMiner advanced independently during this task. No moving BioMiner `main`

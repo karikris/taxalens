@@ -152,7 +152,7 @@ describe('loadEvidenceFacade', () => {
       {
         traceId: 'papilio-target-resolution-stored-replay',
         sequence: 1,
-        model: 'gpt-5.6-sol',
+        model: 'configured-model',
         occurredAt: null,
         storedOutputOnly: true,
         credentialsRequired: false,

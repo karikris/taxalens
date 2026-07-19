@@ -42,7 +42,7 @@ quality-gated product states rather than fabricated completion claims.
 | I | `geographicContributionMetrics.ts`, materializer and tests: potential, human-supported and release-ready cells/uplift, same-resolution distance, temporal contribution and explicit deficiency states. |
 | J | `geographicReviewProjection.ts`, `publicGeographicReviewProjection.ts`, QualitySnapshot and progress panels: append-only local refresh, Skip/Can’t view exclusion, sampling disclosure and independent release gates. |
 | K | Evidence Lens geographic context modules: precision-aware mini-map, exact facts, nearby baseline cells, Geographic Impact/cell/Verification actions and baseline provenance. |
-| L | Six deterministic geographic analyst tools, stored credential-free `gpt-5.6-sol`/`xhigh` replay and 25-case evaluation with a 1.0 pass rate and no live OpenAI call. |
+| L | Six deterministic geographic analyst tools, stored credential-free `configured-model`/`xhigh` replay and 25-case evaluation with a 1.0 pass rate and no live OpenAI call. |
 | M | Current gates: 914 Python passed; 545 Vitest passed and 1 intentional skip; TypeScript and native Ruff passed; browser 67 passed and 1 explicit human-study skip; visual 20 passed; performance 3 passed. |
 | N | Network, rights and distribution gates: zero external map requests, Natural Earth/public-domain and dependency licence verification, 73-file static build, npm audit zero, no tracked secret signature and no tracked file above 5 MiB. |
 | O | README screenshot/GIF, Judge Guide route, presentation, 32-second hero sequence, Devpost copy and Build Week delta use artifact-backed potential-contribution language. |
@@ -117,7 +117,7 @@ quality-gated product states rather than fabricated completion claims.
 | 60 | Review events update local map state | Proven | J/M; local events never create release state |
 | 61 | Geographic read-only tools exist | Proven | L |
 | 62 | Every analyst answer cites artifacts | Proven | L |
-| 63 | GPT-5.6 does not calculate novelty from memory | Proven | L |
+| 63 | Configured model does not calculate novelty from memory | Proven | L |
 | 64 | Stored replay remains credential-free | Proven | L |
 | 65 | Evaluations reject double counting and overclaims | Proven | L/M |
 | 66 | Chromium full journey passes | Proven | M |

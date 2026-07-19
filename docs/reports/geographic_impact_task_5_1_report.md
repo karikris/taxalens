@@ -17,7 +17,7 @@ Status: complete and pushed to `main`
 - Baseline snapshot: `gbif-occurrence-search-20260715`
 - Flickr snapshot: `flickr:2026-07-15`
 - Codex session: `019f65d0-3ca9-7870-9eb2-37c14ed02517`
-- Primary model: `gpt-5.6-sol`
+- Primary model: `configured-model`
 - Reasoning effort: `xhigh`
 
 BioMiner advanced independently during this task and had modified and

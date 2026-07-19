@@ -617,7 +617,7 @@ export async function runInitialAgentEvaluation(
     modelOutputEvaluated: false as const,
     scientificEvaluation: false as const,
     limitations: [
-      'This evaluates the deterministic public replay and research-tool policy, not live GPT-5.6 response quality.',
+      'This evaluates the deterministic public replay and research-tool policy, not live Configured model response quality.',
       'This is not a BioMiner Phase 14 scientific evaluation and reports no precision, accuracy, or calibration metric.',
     ],
     cases,
@@ -636,8 +636,8 @@ async function evaluateStoredReplay(facade: EvidenceFacade): Promise<AgentEvalua
     ),
     check(
       'exact-model',
-      trace?.model === 'gpt-5.6-sol',
-      'The stored public contract must name exact gpt-5.6-sol.',
+      trace?.model === 'configured-model',
+      'The stored public contract must name exact configured-model.',
     ),
     check(
       'target-resolved-first',

@@ -3,7 +3,7 @@
 ## Scope
 
 Task 7.2 adds artifact-grounded geographic analyst workflows, a public
-credential-free GPT-5.6 replay and deterministic safety evaluations. TaxaLens
+credential-free Configured model replay and deterministic safety evaluations. TaxaLens
 started the task at `7e80ec8b2fe72440aa609435b6943675b6ec2f32`.
 
 ## Workflows

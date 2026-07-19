@@ -1,7 +1,7 @@
 import { executeGeographicTool, type GeographicToolAnalyticalEvidence } from './geographicToolExecution'
 import type { GeographicReviewObjective, GeographicToolEvidence, GeographicToolResult } from './geographicTools'
 
-export const GEOGRAPHIC_ANALYST_MODEL = 'gpt-5.6-sol' as const
+export const GEOGRAPHIC_ANALYST_MODEL = 'configured-model' as const
 export const GEOGRAPHIC_CONTRIBUTION_WORKFLOW_VERSION =
   'taxalens-geographic-contribution-workflow:v1.0.0' as const
 

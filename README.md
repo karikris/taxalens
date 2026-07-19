@@ -112,17 +112,17 @@ TaxaLens is research decision support for evidence-heavy review work:
 - **Prioritize the human handoff:** the Dashboard separates measured workload from unavailable
   scientific metrics and prepares six deterministic, provenance-bearing research outputs,
   including the explicit prototype boundary.
-- **Explain without guessing:** the GPT-5.6 analyst reads the same verified evidence through bounded
+- **Explain without guessing:** the Configured model analyst reads the same verified evidence through bounded
   tools and is required to cite artifacts, disclose missing evidence, and reject unsupported claims.
 
 The pilot does not claim measured human time saved, accuracy gained, or fieldwork avoided. It
 demonstrates a measured reduction in one scripted action count and shows how to make the work
 inspectable, repeatable, and safer to hand between researchers.
 
-## What GPT-5.6 does
+## What Configured model does
 
-GPT-5.6 is central to the research workflow, not to species identification. The exact
-`gpt-5.6-sol` contract uses the Responses API, strict Structured Outputs, explicit standard
+Configured model is central to the research workflow, not to species identification. The exact
+`configured-model` contract uses the Responses API, strict Structured Outputs, explicit standard
 reasoning, 12 core read-only evidence tools, and six deterministic geographic tools to plan
 research, inspect pipeline state, trace lineage, compare available candidate evidence, explain
 unavailable decisions, and prepare exports.
@@ -133,7 +133,7 @@ replays checksum-bound stored outputs and makes **no live model call**. The geog
 adds 24 cases for provider double counting, maturity, data deficiency, release gates, citations,
 terminology, and model-memory arithmetic; it is not a scientific-accuracy benchmark.
 
-GPT-5.6 does not decide that a Flickr candidate is *Papilio demoleus*, infer an occurrence, replace
+Configured model does not decide that a Flickr candidate is *Papilio demoleus*, infer an occurrence, replace
 human review, or manufacture a missing score, probability, competitor rank, reference, or image.
 
 ## Concise architecture
@@ -150,7 +150,7 @@ flowchart LR
     K --> C
     F --> T["Core + geographic read-only tools"]
     F --> U
-    T --> G["GPT-5.6 server-only analyst contract"]
+    T --> G["Configured model server-only analyst contract"]
     G --> R["Stored public replay + evaluation"]
     R --> U
 ```
@@ -211,7 +211,7 @@ Use the numbered product navigation:
    prepare the rights-cleared cache, and record one workflow decision.
 5. **Watch quality** — see decisive campaign coverage change while reference readiness remains
    0 / 24 and the target-precision interval remains unavailable.
-6. **Ask GPT-5.6** — inspect its stored, validated adjudication recommendation for a synthetic
+6. **Ask Configured model** — inspect its stored, validated adjudication recommendation for a synthetic
    conflicted control, clearly separated from current browser state.
 7. **Export** — prepare six checksum-bearing local research outputs, including the prototype
    boundary.

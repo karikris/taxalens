@@ -300,7 +300,7 @@ export async function runVerificationAgentEvaluation(): Promise<VerificationAgen
     storedReplayEvaluated: true as const,
     scientificEvaluation: false as const,
     limitations: [
-      'This evaluates deterministic verification tools, policy guards, campaign projections, and a committed stored replay; it does not score live GPT-5.6 response quality.',
+      'This evaluates deterministic verification tools, policy guards, campaign projections, and a committed stored replay; it does not score live Configured model response quality.',
       'The fixture is synthetic evaluation evidence and is not a BioMiner Phase 14 scientific evaluation or a public quality claim.',
     ],
     cases,
@@ -370,8 +370,8 @@ function evaluateCase(
       checks = [
         check(
           'exact-model',
-          storedRun.model === 'gpt-5.6-sol',
-          'Stored replay must name exact gpt-5.6-sol.',
+          storedRun.model === 'configured-model',
+          'Stored replay must name exact configured-model.',
         ),
         check(
           'credential-free-output',

@@ -21,7 +21,7 @@ TaxaLens owns:
 - Verification UX and repository adapters;
 - Geographic Impact UX;
 - exports;
-- GPT-5.6 research tools;
+- Configured model research tools;
 - judge experience.
 
 Integration order:

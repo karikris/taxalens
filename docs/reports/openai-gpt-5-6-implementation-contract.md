@@ -1,4 +1,4 @@
-# OpenAI GPT-5.6 implementation contract
+# OpenAI Configured model implementation contract
 
 Verified against current official OpenAI documentation on **2026-07-15** before any TaxaLens agent
 implementation.
@@ -13,7 +13,7 @@ TaxaLens will implement its live research analyst with:
 
 | Concern | Frozen implementation choice |
 | --- | --- |
-| Model | Exact model ID `gpt-5.6-sol` |
+| Model | Exact model ID `configured-model` |
 | API | Responses API, `POST /v1/responses` |
 | Reasoning | Standard mode with explicit `reasoning.effort: "medium"` or `"high"` |
 | Final output | Strict Structured Outputs through `text.format` |
@@ -24,7 +24,7 @@ TaxaLens will implement its live research analyst with:
 | Credential-free path | Committed replay trace, clearly labelled as replay rather than a live call |
 | Browser security | No OpenAI API key or direct OpenAI request in browser code |
 
-The `gpt-5.6` alias currently routes to `gpt-5.6-sol`, but TaxaLens will use the exact required model
+The `configured-model` alias currently routes to `configured-model`, but TaxaLens will use the exact required model
 ID so model provenance is explicit. The model may plan and explain the evidence workflow. It may not
 guess a species, manufacture evidence, replace BioMiner decisions, or turn candidate metadata into a
 scientific result.
@@ -33,8 +33,8 @@ scientific result.
 
 | Surface | Verified official result | Source |
 | --- | --- | --- |
-| Latest model guidance | `gpt-5.6-sol` is the flagship capability model; the `gpt-5.6` alias routes to it. GPT-5.6 supports `none`, `low`, `medium`, `high`, `xhigh`, and `max` reasoning effort. | [Using GPT-5.6](https://developers.openai.com/api/docs/guides/latest-model) |
-| Model contract | The exact model ID is `gpt-5.6-sol`; it is a reasoning model supporting Responses, Structured Outputs, function calling, streaming, text/image input, and text output. | [GPT-5.6 Sol model](https://developers.openai.com/api/docs/models/gpt-5.6-sol) |
+| Latest model guidance | `configured-model` is the flagship capability model; the `configured-model` alias routes to it. Configured model supports `none`, `low`, `medium`, `high`, `xhigh`, and `max` reasoning effort. | [Using Configured model](https://developers.openai.com/api/docs/guides/latest-model) |
+| Model contract | The exact model ID is `configured-model`; it is a reasoning model supporting Responses, Structured Outputs, function calling, streaming, text/image input, and text output. | [Configured model Sol model](https://developers.openai.com/api/docs/models/configured-model) |
 | Responses API | Responses is recommended for new projects and uses typed output items for messages, reasoning, function calls, and function-call outputs. | [Migrate to the Responses API](https://developers.openai.com/api/docs/guides/migrate-to-responses) |
 | Structured Outputs | Responses uses `text.format`; strict JSON Schema output is distinct from JSON mode, and refusals must be handled separately. | [Structured model outputs](https://developers.openai.com/api/docs/guides/structured-outputs) |
 | Tool calling | Function tools use JSON Schema definitions; returned `function_call` items carry `name`, JSON-encoded `arguments`, and `call_id`, and applications return `function_call_output` items. | [Function calling](https://developers.openai.com/api/docs/guides/function-calling) |
@@ -122,7 +122,7 @@ are not exposed as private reasoning in the product trace.
 
 ## Programmatic Tool Calling contract
 
-Programmatic Tool Calling is verified for GPT-5.6, but it is not the default route. Use it only for a
+Programmatic Tool Calling is verified for Configured model, but it is not the default route. Use it only for a
 bounded stage where JavaScript can filter, join, deduplicate, aggregate, or validate several
 deterministic tool results and emit a materially smaller structured result.
 

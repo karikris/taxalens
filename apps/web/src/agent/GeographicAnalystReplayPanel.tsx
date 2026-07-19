@@ -10,7 +10,7 @@ export function GeographicAnalystReplayPanel({ state }: { readonly state: Geogra
   return (
     <section className="detail-panel" aria-labelledby="geographic-analyst-replay-title">
       <p className="eyebrow">Geographic Impact · credential-free stored replay</p>
-      <h2 id="geographic-analyst-replay-title">GPT-5.6 geographic analyst</h2>
+      <h2 id="geographic-analyst-replay-title">Configured model geographic analyst</h2>
       {state.kind === 'loading' ? (
         <EvidenceState state="loading" title="Validating geographic replay">Checking source fingerprints, tool receipts and scientific terminology.</EvidenceState>
       ) : state.kind === 'error' ? (

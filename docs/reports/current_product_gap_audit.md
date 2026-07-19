@@ -22,7 +22,7 @@ The existing code can support the first slice as a scientific compatibility laye
 | BioMiner worktree | locally untracked configuration, notes, logs, and query counters; none are accepted as committed evidence |
 | Approved instruction file | `AGENTS.md` |
 | `AGENTS.md` SHA-256 | `39d8bf1df80402d0cfb135d1093618b120f288f525a516196c3ceb6f3eb04ccb` |
-| Primary Codex model required by the task | `gpt-5.6-sol` |
+| Primary Codex model required by the task | `configured-model` |
 | Reasoning effort required by the user | `high` |
 | Codex session | `019f65d0-3ca9-7870-9eb2-37c14ed02517` |
 
@@ -120,7 +120,7 @@ The current `contract_smoke` data is intentionally synthetic schema evidence. A 
 
 ### Missing OpenAI integration
 
-No deterministic research tool layer, Responses API integration, stored tool trace, credential-free analyst replay, agent trace UI, or agent evaluation suite exists. Current official OpenAI model/API documentation has not yet been recorded in this repository. GPT-5.6 must plan and explain the research workflow; it must not guess species or replace BioMiner evidence.
+No deterministic research tool layer, Responses API integration, stored tool trace, credential-free analyst replay, agent trace UI, or agent evaluation suite exists. Current official OpenAI model/API documentation has not yet been recorded in this repository. Configured model must plan and explain the research workflow; it must not guess species or replace BioMiner evidence.
 
 ### Missing deployment
 

@@ -13,7 +13,7 @@ reviewed biological conclusion.
 | BioMiner integration | Demonstrated, artifact-first | 20 pinned prototype JSON artifacts, four pinned analytics Parquet artifacts, thin adapters, and migration manifest |
 | Prototype evidence | Demonstrated with limitations | 81 provider-supported frozen references, B0–B16 retrieval experiments, B13 raw-margin policy, and staged inference metadata |
 | Release decision | Demonstrated, prototype-only | 14 / 14 entry gates and `GO_PROTOTYPE_ONLY` for `explicit_prototype` |
-| Research analyst | Demonstrated as stored replay | Exact `gpt-5.6-sol` contract, 12 read-only tools, and 31 deterministic evaluation cases |
+| Research analyst | Demonstrated as stored replay | Exact `configured-model` contract, 12 read-only tools, and 31 deterministic evaluation cases |
 | Production scientific result | Not demonstrated | Hero remains `awaiting_human_review`; reviewed accuracy, calibration, and final evaluation are unavailable |
 
 ## Scientific limitations
@@ -44,7 +44,7 @@ reviewed biological conclusion.
 - No production Supabase or Backblaze control/data plane is required or
   demonstrated by the judge replay.
 - The public analyst is a checksum-verified stored output. The repository has a
-  server-only live GPT-5.6 contract, but no public secret-bearing backend route.
+  server-only live Configured model contract, but no public secret-bearing backend route.
 - Live Flickr, GBIF, iNaturalist, OpenAI, YOLOE, BioCLIP, calibration, and
   publication workflows require a separate approved environment.
 - The pilot covers one taxon and one stored analyst session.

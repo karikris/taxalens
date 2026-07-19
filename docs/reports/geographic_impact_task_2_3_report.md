@@ -10,7 +10,7 @@ Status: complete and pushed to `main`
 - Natural Earth source commit: `f1890d9f152c896d250a77557a5751a93d494776`
 - Natural Earth release: `v5.1.2`
 - Codex session: `019f65d0-3ca9-7870-9eb2-37c14ed02517`
-- Primary model: `gpt-5.6-sol`
+- Primary model: `configured-model`
 - Reasoning effort: `xhigh`
 
 Task 2.3 is not a BioMiner engine migration. It consumes a commit-pinned,

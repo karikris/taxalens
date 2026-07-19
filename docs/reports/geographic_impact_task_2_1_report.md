@@ -10,7 +10,7 @@ Status: complete and pushed to `main`
 - BioMiner revision consumed: `247b42f3206d48bb79e2dbf97c5a92e4f207ae71`
 - BioMiner `main` observed after the handoff was frozen: `c666eef04ef7f292562ef51acf54f05b8e91c6ab`
 - Codex session: `019f65d0-3ca9-7870-9eb2-37c14ed02517`
-- Primary model: `gpt-5.6-sol`
+- Primary model: `configured-model`
 - Reasoning effort: `xhigh`
 
 The later BioMiner commits add reference-workflow performance evidence and do not alter the geographic builders or the imported bytes. The handoff deliberately retains the exact consumed commit instead of following ambient upstream `HEAD`.

@@ -32,7 +32,7 @@ describe('buildPublicAgentTrace', () => {
     expect(trace).toMatchObject({
       schemaVersion: 'taxalens-public-agent-trace:v1.0.0',
       mode: 'live',
-      model: 'gpt-5.6-sol',
+      model: 'configured-model',
       reasoningEffort: 'medium',
       responseStatus: 'completed',
       request: {

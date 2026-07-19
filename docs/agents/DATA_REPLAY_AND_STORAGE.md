@@ -92,7 +92,7 @@ It uses:
 - checksum verification;
 - static product build;
 - IndexedDB/local review events;
-- stored GPT-5.6 tool replay;
+- stored Configured model tool replay;
 - local deterministic exports;
 - resettable state.
 

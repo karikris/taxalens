@@ -8,7 +8,7 @@ rights-admitted, checksum-verified media; record Yes, No, Can’t tell, Can’t
 view, Skip, comments and structured corrections; retain append-only reviewer
 events; project consensus and conflicts; export BioMiner-compatible decisions
 and reviewed labels; calculate quality only for valid sampling designs; and
-give a bounded stored GPT-5.6 recommendation for the next review action.
+give a bounded stored Configured model recommendation for the next review action.
 
 The workflow implementation and Phase 14.1 release gate are complete and
 pushed. Scientific review work is not complete: the repository contains zero
@@ -23,7 +23,7 @@ retained human outcomes across its 82 campaign assignments.
 | Hosted fingerprint | `02d5a288cb2aad0e37efef2b50c305480846266c0a3df117e9b294dfa03a1861` |
 | Hosted source verified | `94158393c9d3886143b432ecc4fbc5f783829c3b` |
 | Required branch | `main`; no feature branch or pull request |
-| Primary model | `gpt-5.6-sol` |
+| Primary model | `configured-model` |
 | Reasoning effort used | `xhigh` |
 | Codex session | `019f65d0-3ca9-7870-9eb2-37c14ed02517` |
 
@@ -317,11 +317,11 @@ LRU byte budget. No B2 credential, live bucket or private research media is in
 the repository or public build. The hosted replay contains only the three
 rights-cleared Commons files.
 
-## GPT-5.6 analyst
+## Configured model analyst
 
 The runtime analyst boundary has deterministic tools for campaign inspection,
 next-action recommendation, quality-change explanation and campaign analysis.
-The public demo replays a committed `gpt-5.6-sol` response through five actual
+The public demo replays a committed `configured-model` response through five actual
 tool results and seven-artifact citations per result. It recommends
 adjudication for an intentionally synthetic unresolved conflict, performs no
 external action and authorizes no scientific claim.
@@ -435,7 +435,7 @@ Exactly blocked:
 - Any population prevalence inference from staged candidates.
 - “More review clicks guarantee quality.”
 - Any human productivity or time-savings claim from the scripted pair.
-- “GPT-5.6 identified the species,” “live GPT quality was evaluated,” or “the
+- “Configured model identified the species,” “live GPT quality was evaluated,” or “the
   agent authorized scientific release.”
 - “Supabase/B2 production collaboration is deployed.”
 - “Scientific release is authorized.”

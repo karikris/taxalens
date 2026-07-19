@@ -679,7 +679,7 @@
     "status": "available",
     "traces": [
       {
-        "model": "gpt-5.6-sol",
+        "model": "configured-model",
         "occurred_at": null,
         "prompt_sha256": "2f157b29f5aed3b09580c329115836c1fc3af806e1c4332885974c257b4a9331",
         "request_artifact_id": "stored-analyst-request",

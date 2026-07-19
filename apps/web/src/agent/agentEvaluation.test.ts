@@ -80,7 +80,7 @@ describe('initial research workflow evaluation', () => {
         'prototype_rights',
       ]),
     )
-    expect(report.limitations.join(' ')).toContain('not live GPT-5.6 response quality')
+    expect(report.limitations.join(' ')).toContain('not live Configured model response quality')
     expect(report.limitations.join(' ')).toContain('not a BioMiner Phase 14 scientific evaluation')
     expect(
       report.cases.find(({ id }) => id === 'why-abstained-is-not-evaluated'),

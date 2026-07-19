@@ -1,6 +1,6 @@
 import type { ResearchToolName, ResearchToolResult } from './researchTools'
 
-export const RESEARCH_ANALYST_MODEL = 'gpt-5.6-sol' as const
+export const RESEARCH_ANALYST_MODEL = 'configured-model' as const
 export const RESEARCH_ANALYST_OUTPUT_VERSION =
   'taxalens-research-analyst-output:v1.0.0' as const
 export const RESEARCH_ANALYST_RUN_VERSION = 'taxalens-research-analyst-run:v1.0.0' as const

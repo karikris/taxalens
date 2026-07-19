@@ -5,7 +5,7 @@
     "id": "019f65d0-3ca9-7870-9eb2-37c14ed02517",
     "role": "majority-core-geographic-impact-build-session",
     "source": "active Codex goal runtime",
-    "primary_model": "gpt-5.6-sol",
+    "primary_model": "configured-model",
     "reasoning_effort": "xhigh",
     "reasoning_mode": "standard",
     "supporting_models": []
@@ -26,7 +26,7 @@
   },
   "commit_trailer_contract": {
     "ai_assistance": "OpenAI Codex",
-    "ai_primary_model": "gpt-5.6-sol",
+    "ai_primary_model": "configured-model",
     "ai_reasoning_effort": "xhigh",
     "ai_reasoning_mode": "standard",
     "ai_session": "019f65d0-3ca9-7870-9eb2-37c14ed02517",
