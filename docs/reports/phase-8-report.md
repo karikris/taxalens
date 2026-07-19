@@ -47,7 +47,7 @@ on 2026-07-15:
 - no hidden reasoning or chain-of-thought in the public trace.
 
 The full source and compatibility assessment is recorded in
-`docs/reports/openai-gpt-5-6-implementation-contract.md`. The GitHits-generated alternative was
+`docs/reports/openai-model-implementation-contract.md`. The GitHits-generated alternative was
 rejected because its model, tool-calling, persistence, replay, and runtime assumptions did not meet
 the verified contract.
 
