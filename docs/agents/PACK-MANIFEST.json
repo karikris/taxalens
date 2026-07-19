@@ -1,0 +1,81 @@
+{
+  "active_goal_note": "A Codex session is still active. GitHub cannot expose uncommitted local work; inspect the local worktree and reports before installation or edits.",
+  "files": [
+    {
+      "bytes": 6450,
+      "lines": 148,
+      "path": "AGENTS.md",
+      "sha256": "24ee65b1f2287767438e883d381e3559253d4cf485c46b0301bc037449b962d7"
+    },
+    {
+      "bytes": 6609,
+      "lines": 205,
+      "path": "docs/agents/CURRENT_STATE.md",
+      "sha256": "4daee4184ddf07dc6c32ffa92f5427404b6bedd57a3e890e8b7b46fdc9072e10"
+    },
+    {
+      "bytes": 5116,
+      "lines": 216,
+      "path": "docs/agents/DATA_REPLAY_AND_STORAGE.md",
+      "sha256": "dec06d1b83524e0f6c75d2106e098c13444b6e21e0b0b8400ff561dbe8310567"
+    },
+    {
+      "bytes": 5748,
+      "lines": 231,
+      "path": "docs/agents/GEOGRAPHIC_IMPACT_AND_VERIFICATION.md",
+      "sha256": "027f1e8c318f077266b762bc67cb02819b5bde48425f100d0d5ef872ca6fa762"
+    },
+    {
+      "bytes": 4501,
+      "lines": 199,
+      "path": "docs/agents/GIT_AND_PROVENANCE.md",
+      "sha256": "8526b72bd890d582926af5e3577f5db23e56ce56e1217f525c92081b277875c8"
+    },
+    {
+      "bytes": 1710,
+      "lines": 32,
+      "path": "docs/agents/README.md",
+      "sha256": "e5cbadd932bdce06b6eae1591e04b8c9830b17d13093495b71838d2bb99f5440"
+    },
+    {
+      "bytes": 5853,
+      "lines": 193,
+      "path": "docs/agents/SCIENCE_AND_PRODUCT.md",
+      "sha256": "5dfe16e56a333a2cc6cb77a1a10fd6068bef5563174dd29841a774be9487ec90"
+    },
+    {
+      "bytes": 1708,
+      "lines": 80,
+      "path": "docs/agents/TASK_TEMPLATE.md",
+      "sha256": "fc5acfc494f906f4d8730229f56a637cc6cef4d62f2f76fbf73b222afb24805d"
+    },
+    {
+      "bytes": 5089,
+      "lines": 211,
+      "path": "docs/agents/TESTING_AND_RELEASE.md",
+      "sha256": "9ee027fcd9ea46db9b743da348654bf0745e93dd715232d7c5e34654fa5ee481"
+    },
+    {
+      "bytes": 3895,
+      "lines": 133,
+      "path": "docs/agents/TOOLS_AND_SKILLS.md",
+      "sha256": "6a3575c8ec852e2b4fd8cde924ba8c135ece30b95025358c3e023399c232603a"
+    },
+    {
+      "bytes": 4393,
+      "lines": 188,
+      "path": "docs/agents/WEB_OPENAI_AND_ACCESSIBILITY.md",
+      "sha256": "8a20aa3bff469ddb2b2d3f4bce5e8b8cebcb24e46d0caa9f70e288fd88748810"
+    }
+  ],
+  "observed_active_goal": "Geographic Impact Lens through committed Task 5.3",
+  "observed_main_commit": "acd915da6b7545c110e0261b0c9edbe105d2206f",
+  "observed_repository": "karikris/taxalens",
+  "pack": "TaxaLens token-efficient agent instructions",
+  "root_agents_ignored_by_repository": true,
+  "schema_version": "taxalens-agent-pack-v1.0.0",
+  "source_instruction_candidates": [
+    "/mnt/data/TaxaLens-AGENTS.md",
+    "/mnt/data/AGENTS.md"
+  ]
+}

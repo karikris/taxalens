@@ -1,0 +1,46 @@
+{
+  "biominer": {
+    "branch": "main",
+    "head": "5aa8e782c8721dd77f5e6338d7c95b9ff5e78b68",
+    "path": "/home/toffe/github/karikris/BioMiner",
+    "phase13_signal": false,
+    "pinned_revision": {
+      "available": true,
+      "head_matches": false,
+      "resolved_sha": "74a7d648a562efa744e6502ef504a23b63b4e02f"
+    },
+    "status": {
+      "raw": [
+        "?? config/papilio_demoleus_flickr_estimator.sh2",
+        "?? config/papilio_demoleus_multilingual_keywords.json",
+        "?? docs/superpowers/",
+        "?? duplicate_query_terms_skipped",
+        "?? logs/",
+        "?? query_terms_added"
+      ],
+      "staged": [],
+      "untracked": [
+        "?? config/papilio_demoleus_flickr_estimator.sh2",
+        "?? config/papilio_demoleus_multilingual_keywords.json",
+        "?? docs/superpowers/",
+        "?? duplicate_query_terms_skipped",
+        "?? logs/",
+        "?? query_terms_added"
+      ]
+    }
+  },
+  "failures": [],
+  "manifest_path": "/home/toffe/github/karikris/taxalens/provenance/biominer_migration_manifest.yaml",
+  "phase13_excluded": true,
+  "phase13_pinned": true,
+  "pinned_sha": "74a7d648a562efa744e6502ef504a23b63b4e02f",
+  "taxalens": {
+    "branch": "main",
+    "head": "e845dd98493979f37b04dbb6538e0d7b8758ca11"
+  },
+  "timestamp": "2026-07-19T07:46:18.985170Z",
+  "warnings": [
+    "BioMiner local HEAD differs from the retained evidence pin; pinned=74a7d648a562efa744e6502ef504a23b63b4e02f, local HEAD=5aa8e782c8721dd77f5e6338d7c95b9ff5e78b68. The pinned commit remains available and migrations must use commit-qualified Git objects.",
+    "BioMiner has untracked content: config/papilio_demoleus_flickr_estimator.sh2, config/papilio_demoleus_multilingual_keywords.json, docs/superpowers/, duplicate_query_terms_skipped, logs/, query_terms_added."
+  ]
+}
